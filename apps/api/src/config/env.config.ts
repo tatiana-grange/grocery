@@ -50,7 +50,6 @@ export const configValidationSchema = z.object({
 
   // Clients
   CLIENTS_WEB_APP_URL: z.string(),
-  CLIENTS_WEB_SSR_URL: z.string(),
 
   // Email
   EMAIL_HOST: z.string().default('localhost'),
@@ -115,9 +114,6 @@ export const config = {
   clients: {
     webApp: {
       url: configParsed.data.CLIENTS_WEB_APP_URL,
-    },
-    webSsr: {
-      url: configParsed.data.CLIENTS_WEB_SSR_URL,
     },
   },
   langfuse: {

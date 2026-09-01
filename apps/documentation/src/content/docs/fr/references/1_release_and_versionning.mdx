@@ -37,7 +37,7 @@ Il y a aussi une raison technique : un merge fait avec le `GITHUB_TOKEN` par dé
 
 ## Ce que le pipeline produit
 
-Le workflow `.github/workflows/push-to-ghcr.yml` construit une image Docker sur GHCR pour chaque app exécutable : API, web-spa et web-ssr. Si un Dockerfile manque (par exemple parce que vous avez supprimé une app), le workflow l'ignore simplement — pas besoin de l'éditer.
+Le workflow `.github/workflows/push-to-ghcr.yml` construit une image Docker sur GHCR pour chaque app exécutable : API et web-spa. Si un Dockerfile manque (par exemple parce que vous avez supprimé une app), le workflow l'ignore simplement — pas besoin de l'éditer.
 
 - Un push sur `main` produit une image taguée avec le SHA pour chaque app.
 - Un tag `v*` produit `{{version}}`, `{{major}}.{{minor}}` et `latest` pour chaque app.
@@ -119,10 +119,10 @@ Créez des GitHub Environments nommés `staging` et `production`. `./scripts/con
 `DOKPLOY_APPLICATIONS` mappe chaque suffixe d'image GHCR vers l'app Dokploy qui la fait tourner. Ne listez que les apps que cet environnement utilise :
 
 ```
-api:dokploy-api-id,web-spa:dokploy-spa-id,web-ssr:dokploy-ssr-id
+api:dokploy-api-id,web-spa:dokploy-spa-id
 ```
 
-L'image pour `api` est `ghcr.io/<owner>/<repo>-api:<version>`. Même motif pour `web-spa` et `web-ssr`.
+L'image pour `api` est `ghcr.io/<owner>/<repo>-api:<version>`. Même motif pour `web-spa`.
 
 Vous pouvez ajouter des reviewers requis sur `production` si une seconde personne doit approuver le job.
 

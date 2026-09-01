@@ -53,9 +53,6 @@
       "ignoreDependencies": ["tailwindcss"],
       "entry": ["app/lib/i18n/i18n-client.ts!"]
     },
-    "apps/web-ssr": {
-      "ignoreDependencies": ["tailwindcss"]
-    },
     "apps/documentation": {
       "ignoreDependencies": ["zod"]
     },

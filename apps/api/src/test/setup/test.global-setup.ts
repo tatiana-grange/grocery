@@ -41,7 +41,6 @@ export default async function setup(project: TestProject) {
 
   process.env.NODE_ENV = 'test'
   process.env.CLIENTS_WEB_APP_URL = 'http://localhost:3000'
-  process.env.CLIENTS_WEB_SSR_URL = 'http://localhost:5174'
   process.env.S3_ENDPOINT = 'http://localhost:9000'
   process.env.S3_REGION = 'us-east-1'
   process.env.S3_ACCESS_KEY_ID = 'minioadmin'

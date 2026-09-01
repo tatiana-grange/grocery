@@ -75,6 +75,6 @@ On each environment, add:
 
 - Secret `DOKPLOY_URL`
 - Secret `DOKPLOY_API_KEY`
-- Secret `DOKPLOY_APPLICATIONS` (`service:dokployApplicationId` map, for example `api:…,web-spa:…,web-ssr:…`)
+- Secret `DOKPLOY_APPLICATIONS` (`service:dokployApplicationId` map, for example `api:…,web-spa:…`)
 
 Optional: add required reviewers on `production` so Promote waits for a second approval. Do not hook production to the `latest` image tag — staging and production would then move together.

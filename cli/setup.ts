@@ -83,7 +83,6 @@ export const PRODUCER_FILES_TO_REMOVE = [
 interface AvailableApps {
   api: boolean
   webSpa: boolean
-  webSsr: boolean
   openapiGenerator: boolean
 }
 
@@ -98,7 +97,6 @@ interface EnvConfig {
   ports: {
     api?: number
     webSpa?: number
-    webSsr?: number
   }
   smtp: {
     port: number
@@ -289,7 +287,6 @@ function detectAvailableApps(): AvailableApps {
   const apps: AvailableApps = {
     api: false,
     webSpa: false,
-    webSsr: false,
     openapiGenerator: false,
   }
 
@@ -301,7 +298,6 @@ function detectAvailableApps(): AvailableApps {
 
     apps.api = appDirs.includes('api')
     apps.webSpa = appDirs.includes('web-spa')
-    apps.webSsr = appDirs.includes('web-ssr')
   }
 
   if (existsSync(packagesDir)) {
@@ -411,13 +407,6 @@ async function promptPortsConfig(availableApps: AvailableApps): Promise<EnvConfi
     ports.webSpa = Number.parseInt(webSpaPortStr, 10) || 5173
   }
 
-  if (availableApps.webSsr) {
-    const viteConfigPath = join(projectRoot, 'apps/web-ssr/vite.config.ts')
-    const initialPort = (getViteConfigPort(viteConfigPath) ?? 5174).toString()
-    const webSsrPortStr = await prompt('Web SSR port', initialPort)
-    ports.webSsr = Number.parseInt(webSsrPortStr, 10) || 5174
-  }
-
   return ports
 }
 
@@ -477,10 +466,6 @@ function checkEnvFiles(availableApps: AvailableApps): EnvFileInfo[] {
 
   if (availableApps.webSpa) {
     envFiles.push({ from: 'apps/web-spa/.env.example', to: 'apps/web-spa/.env' })
-  }
-
-  if (availableApps.webSsr) {
-    envFiles.push({ from: 'apps/web-ssr/.env.example', to: 'apps/web-ssr/.env' })
   }
 
   if (availableApps.openapiGenerator) {
@@ -869,7 +854,6 @@ async function renameProjects(projectName: string, availableApps: AvailableApps)
   const appsToUpdate: Array<{ path: string; name: string; condition: boolean }> = [
     { path: 'apps/api/package.json', name: 'api', condition: availableApps.api },
     { path: 'apps/web-spa/package.json', name: 'web-spa', condition: availableApps.webSpa },
-    { path: 'apps/web-ssr/package.json', name: 'web-ssr', condition: availableApps.webSsr },
     { path: 'apps/documentation/package.json', name: 'documentation', condition: true },
   ]
 
@@ -965,9 +949,6 @@ function buildTrustedOrigins(config: EnvConfig, apiEnvPath: string): string {
   if (config.ports.webSpa) {
     fromConfig.push(`http://localhost:${config.ports.webSpa}`)
   }
-  if (config.ports.webSsr) {
-    fromConfig.push(`http://localhost:${config.ports.webSsr}`)
-  }
 
   const localhostMerged = [...new Set([...fromConfig, ...localhostFromFile])]
 
@@ -979,10 +960,6 @@ function updateViteConfigPorts(config: EnvConfig, availableApps: AvailableApps):
 
   if (availableApps.webSpa && config.ports.webSpa) {
     updateViteConfigPort(join(projectRoot, 'apps/web-spa/vite.config.ts'), config.ports.webSpa)
-  }
-
-  if (availableApps.webSsr && config.ports.webSsr) {
-    updateViteConfigPort(join(projectRoot, 'apps/web-ssr/vite.config.ts'), config.ports.webSsr)
   }
 }
 
@@ -1027,9 +1004,6 @@ function updateAllEnvFiles(config: EnvConfig, availableApps: AvailableApps): voi
     if (config.ports.webSpa) {
       updates.CLIENTS_WEB_APP_URL = `http://localhost:${config.ports.webSpa}`
     }
-    if (config.ports.webSsr) {
-      updates.CLIENTS_WEB_SSR_URL = `http://localhost:${config.ports.webSsr}`
-    }
 
     if (Object.keys(updates).length > 0) {
       updateEnvFile(apiEnvPath, updates, false)
@@ -1041,13 +1015,6 @@ function updateAllEnvFiles(config: EnvConfig, availableApps: AvailableApps): voi
     const webSpaEnvPath = join(projectRoot, 'apps/web-spa/.env')
     const apiUrl = `http://localhost:${config.ports.api}`
     updateEnvFile(webSpaEnvPath, { VITE_API_URL: apiUrl }, false)
-  }
-
-  // Web SSR .env
-  if (availableApps.webSsr && config.ports.api) {
-    const webSsrEnvPath = join(projectRoot, 'apps/web-ssr/.env')
-    const apiUrl = `http://localhost:${config.ports.api}`
-    updateEnvFile(webSsrEnvPath, { VITE_API_URL: apiUrl }, false)
   }
 
   // OpenAPI Generator .env
@@ -1129,8 +1096,6 @@ async function main(): Promise<void> {
     if (availableApps.api) console.log(`  ${colorize('✓', 'green')} ${colorize('API', 'bright')}`)
     if (availableApps.webSpa)
       console.log(`  ${colorize('✓', 'green')} ${colorize('Web SPA', 'bright')}`)
-    if (availableApps.webSsr)
-      console.log(`  ${colorize('✓', 'green')} ${colorize('Web SSR', 'bright')}`)
     if (availableApps.openapiGenerator)
       console.log(`  ${colorize('✓', 'green')} ${colorize('OpenAPI Generator', 'bright')}`)
 
@@ -1160,7 +1125,7 @@ async function main(): Promise<void> {
     // Update .env files with the configured values
     updateAllEnvFiles(config, availableApps)
 
-    // Update Vite config ports (SPA/SSR)
+    // Update Vite config ports (SPA)
     updateViteConfigPorts(config, availableApps)
 
     // Template cleanup: remove boilerplate-only files
@@ -1179,11 +1144,6 @@ async function main(): Promise<void> {
     if (config.ports.webSpa) {
       console.log(
         `  ${colorize('Web SPA:', 'bright')} ${colorize(`http://localhost:${config.ports.webSpa}`, 'blue')}`,
-      )
-    }
-    if (config.ports.webSsr) {
-      console.log(
-        `  ${colorize('Web SSR:', 'bright')} ${colorize(`http://localhost:${config.ports.webSsr}`, 'blue')}`,
       )
     }
     console.log(

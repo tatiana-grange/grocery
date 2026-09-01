@@ -21,8 +21,6 @@ jobs:
             image: ${{ github.repository }}-api
           - dockerfile: ./apps/web-spa/Dockerfile
             image: ${{ github.repository }}-web-spa
-          - dockerfile: ./apps/web-ssr/Dockerfile
-            image: ${{ github.repository }}-web-ssr
 
     permissions:
       contents: read

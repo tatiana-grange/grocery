@@ -8,7 +8,7 @@ Draft plan, not yet reviewed. Companion to the
 
 ## Does the stack fit
 
-Yes. NestJS + MikroORM/PostgreSQL + Better Auth + Zod/OpenAPI + React (SSR and SPA) + shadcn/ui
+Yes. NestJS + MikroORM/PostgreSQL + Better Auth + Zod/OpenAPI + React (SPA) + shadcn/ui
 is a good match for this kind of management app.
 
 - **Money and stock** are the real risk. PostgreSQL plus MikroORM give real transactions and
@@ -19,8 +19,8 @@ is a good match for this kind of management app.
 - **Repetitive CRUD** (products, suppliers, members): the `apps/api/src/modules/example/posts/`
   pattern (entity, contract, mapper, service, controller, module, e2e test) is built for this,
   and the generated OpenAPI client gives the frontend typed calls for free.
-- **web-ssr** serves the public shop, **web-spa** serves the back office. The split already
-  exists.
+- **web-spa** serves both the public shop and the back office. A single React SPA, no
+  server-side rendering.
 
 ## NestJS modules (single location)
 
@@ -54,7 +54,7 @@ of movements, never a stored field you overwrite.
 ## Delivery lots (MVP)
 
 1. **Foundation** — members, auth and roles, product and supplier catalogue. ~2-3 weeks.
-2. **Shop and orders** — public SSR shop, cart, pre-order and in-store order. ~2-3 weeks.
+2. **Shop and orders** — public shop, cart, pre-order and in-store order. ~2-3 weeks.
 3. **Purchasing** — aggregate into supplier order, reception, stock, cost price. ~2-3 weeks.
 4. **Distribution** — distribution screen, express order, wallet debit. ~2-3 weeks.
 5. **Wallet and online top-up** — ledger, top-ups, payment provider. ~2 weeks.

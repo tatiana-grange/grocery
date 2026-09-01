@@ -109,7 +109,7 @@ pnpm install
 Then run the setup script:
 
 The project includes an automated setup script that will:
-- Detect available applications (API, Web SPA, Web SSR, OpenAPI Generator)
+- Detect available applications (API, Web SPA, OpenAPI Generator)
 - Prompt you for database configuration (user, password, name, host, port)
 - Prompt you for application ports
 - Configure SMTP settings (MailDev)
@@ -144,7 +144,6 @@ If you prefer to configure everything manually:
 cp .env.example .env
 cp apps/api/.env.example apps/api/.env
 cp apps/web-spa/.env.example apps/web-spa/.env
-cp apps/web-ssr/.env.example apps/web-ssr/.env
 cp packages/openapi-generator/.env.example packages/openapi-generator/.env
 ```
 
@@ -198,7 +197,6 @@ The project uses Docker Compose to provide the following services:
 
 - The API is built with NestJS and provides a REST API. See the [API README](apps/api/README.md) for more information.
 - The web-spa is built with React and provides a single-page application. See the [Web SPA README](apps/web-spa/README.md) for more information.
-- The web-ssr is built with React and provides a server-side rendered application. See the [Web SSR README](apps/web-ssr/README.md) for more information.
 
 You can start each application in development mode with the following commands:
 
@@ -235,7 +233,7 @@ For more information, see the [GitHub Actions documentation](.github/ACTIONS.md)
 
 ### CD Workflow
 
-The CD workflow (`push-to-ghcr.yml`) builds an image per runnable app (API, web-spa, web-ssr) and pushes them to GHCR.
+The CD workflow (`push-to-ghcr.yml`) builds an image per runnable app (API, web-spa) and pushes them to GHCR.
 
 - A push to `main` produces a SHA-tagged image for each app.
 - A `v*` tag produces versioned images (`1.2.3`, `1.2`, and `latest`) for each app.

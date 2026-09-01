@@ -14,7 +14,6 @@ Package.json files:
 - ./package.json
 - ./apps/api/package.json
 - ./apps/web-spa/package.json
-- ./apps/web-ssr/package.json
 - ./apps/documentation/package.json
 - ./packages/openapi-generator/package.json
 - ./packages/ui/package.json
