@@ -5,7 +5,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@boilerstone/*": ["packages/*/src"]
+      "@grocery/*": ["packages/*/src"]
     },
     "ignoreDeprecations": "6.0"
   }

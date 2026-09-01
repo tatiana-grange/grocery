@@ -3,10 +3,10 @@ import {
   publicPostControllerGetPost,
   publicPostControllerGetPosts,
   publicPostControllerLikePost,
-} from '@boilerstone/openapi-generator/client/sdk.gen'
-import PostContent from '@boilerstone/ui/components/posts/PostContent'
-import { Badge } from '@boilerstone/ui/components/primitives/badge'
-import { Button } from '@boilerstone/ui/components/primitives/button'
+} from '@grocery/openapi-generator/client/sdk.gen'
+import PostContent from '@grocery/ui/components/posts/PostContent'
+import { Badge } from '@grocery/ui/components/primitives/badge'
+import { Button } from '@grocery/ui/components/primitives/button'
 import { motion, useReducedMotion, useScroll, useSpring } from 'motion/react'
 import { ArrowLeft, ArrowRight, Calendar, Clock, Heart, User } from 'lucide-react'
 import { useState } from 'react'

@@ -1,24 +1,24 @@
-import type { AiStreamEvent, GenerateObjectResponse, Recipe } from '@boilerstone/openapi-generator'
-import { aiExampleControllerGenerateObject, createSseClient } from '@boilerstone/openapi-generator'
-import { Badge } from '@boilerstone/ui/components/primitives/badge'
-import { Button } from '@boilerstone/ui/components/primitives/button'
+import type { AiStreamEvent, GenerateObjectResponse, Recipe } from '@grocery/openapi-generator'
+import { aiExampleControllerGenerateObject, createSseClient } from '@grocery/openapi-generator'
+import { Badge } from '@grocery/ui/components/primitives/badge'
+import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@boilerstone/ui/components/primitives/card'
-import { Input } from '@boilerstone/ui/components/primitives/input'
-import { Label } from '@boilerstone/ui/components/primitives/label'
+} from '@grocery/ui/components/primitives/card'
+import { Input } from '@grocery/ui/components/primitives/input'
+import { Label } from '@grocery/ui/components/primitives/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@boilerstone/ui/components/primitives/select'
-import { Switch } from '@boilerstone/ui/components/primitives/switch'
+} from '@grocery/ui/components/primitives/select'
+import { Switch } from '@grocery/ui/components/primitives/switch'
 import * as React from 'react'
 
 interface StreamingState {

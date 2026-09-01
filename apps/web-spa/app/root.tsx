@@ -1,6 +1,6 @@
 import type { Route } from './+types/root'
-import { getHtmlLang, normalizeLocale } from '@boilerstone/i18n/config'
-import { client } from '@boilerstone/openapi-generator'
+import { getHtmlLang, normalizeLocale } from '@grocery/i18n/config'
+import { client } from '@grocery/openapi-generator'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -10,7 +10,7 @@ import { queryClient } from '@/lib/query-client'
 import useTheme from './hooks/useTheme'
 import '@/lib/i18n/i18n-client'
 import '@fontsource/source-sans-pro'
-import '@boilerstone/ui/globals.css'
+import '@grocery/ui/globals.css'
 
 client.setConfig({
   baseUrl: import.meta.env.VITE_API_URL,

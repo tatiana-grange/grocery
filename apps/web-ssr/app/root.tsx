@@ -1,6 +1,6 @@
 import type { Route } from './+types/root'
 import process from 'node:process'
-import { client } from '@boilerstone/openapi-generator'
+import { client } from '@grocery/openapi-generator'
 import { HydrationBoundary, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import {
@@ -15,7 +15,7 @@ import {
 import { useDehydratedState } from '@/hooks/use-dehydrated-state'
 import { useTheme } from '@/hooks/use-theme'
 import { queryClient } from '@/lib/query-client'
-import '@boilerstone/ui/globals.css'
+import '@grocery/ui/globals.css'
 
 client.setConfig({
   baseUrl: import.meta.env.VITE_API_URL as string,

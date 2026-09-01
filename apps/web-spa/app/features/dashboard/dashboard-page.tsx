@@ -1,6 +1,6 @@
-import type { SupportedLocale } from '@boilerstone/i18n/config'
-import { SUPPORTED_LOCALES } from '@boilerstone/i18n/config'
-import { AppLayout, AppLayoutHeader, AppLoader } from '@boilerstone/ui/components/app'
+import type { SupportedLocale } from '@grocery/i18n/config'
+import { SUPPORTED_LOCALES } from '@grocery/i18n/config'
+import { AppLayout, AppLayoutHeader, AppLoader } from '@grocery/ui/components/app'
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from '@boilerstone/ui/components/primitives/sidebar'
+} from '@grocery/ui/components/primitives/sidebar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,9 +23,9 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@boilerstone/ui/components/primitives/dropdown-menu'
-import { Avatar, AvatarFallback } from '@boilerstone/ui/components/primitives/avatar'
-import { Toaster } from '@boilerstone/ui/components/primitives/sonner'
+} from '@grocery/ui/components/primitives/dropdown-menu'
+import { Avatar, AvatarFallback } from '@grocery/ui/components/primitives/avatar'
+import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import {
   Brain,
   ChevronUp,

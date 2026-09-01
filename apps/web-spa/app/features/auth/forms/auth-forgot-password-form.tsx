@@ -1,4 +1,4 @@
-import { Button } from '@boilerstone/ui/components/primitives/button'
+import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Form,
   FormControl,
@@ -6,8 +6,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@boilerstone/ui/components/primitives/form'
-import { Input } from '@boilerstone/ui/components/primitives/input'
+} from '@grocery/ui/components/primitives/form'
+import { Input } from '@grocery/ui/components/primitives/input'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'

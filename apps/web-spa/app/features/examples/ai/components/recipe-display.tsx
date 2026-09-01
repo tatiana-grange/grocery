@@ -1,12 +1,12 @@
-import type { Recipe } from '@boilerstone/openapi-generator'
-import { Badge } from '@boilerstone/ui/components/primitives/badge'
+import type { Recipe } from '@grocery/openapi-generator'
+import { Badge } from '@grocery/ui/components/primitives/badge'
 
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from '@boilerstone/ui/components/primitives/card'
+} from '@grocery/ui/components/primitives/card'
 
 interface RecipeDisplayProps {
   recipe: Recipe

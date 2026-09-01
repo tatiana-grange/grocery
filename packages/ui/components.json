@@ -10,11 +10,11 @@
     "prefix": ""
   },
   "aliases": {
-    "components": "@boilerstone/ui/components",
-    "utils": "@boilerstone/ui/lib/utils",
-    "ui": "@boilerstone/ui/components/primitives",
-    "lib": "@boilerstone/ui/lib",
-    "hooks": "@boilerstone/ui/hooks"
+    "components": "@grocery/ui/components",
+    "utils": "@grocery/ui/lib/utils",
+    "ui": "@grocery/ui/components/primitives",
+    "lib": "@grocery/ui/lib",
+    "hooks": "@grocery/ui/hooks"
   },
   "iconLibrary": "lucide"
 }

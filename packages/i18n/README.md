@@ -1,4 +1,4 @@
-# `@boilerstone/i18n`
+# `@grocery/i18n`
 
 Shared internationalization package for SPA and SSR consumers.
 
@@ -22,12 +22,12 @@ SSR resolveLocale(request)
 
 ## Public exports
 
-- `@boilerstone/i18n`: re-exports the main modules
-- `@boilerstone/i18n/config`: supported locales, defaults, `initializeI18n`, `getHtmlLang`, `normalizeLocale`
-- `@boilerstone/i18n/instance`: shared `i18next` singleton
-- `@boilerstone/i18n/store`: `createI18nStore(i18n)` (localStorage + cookie mirror)
-- `@boilerstone/i18n/utils`: `import.meta.glob` → i18next `Resource` helpers
-- `@boilerstone/i18n/cookies`: cookie helpers + server `getLocaleFromRequestWithFallback`
+- `@grocery/i18n`: re-exports the main modules
+- `@grocery/i18n/config`: supported locales, defaults, `initializeI18n`, `getHtmlLang`, `normalizeLocale`
+- `@grocery/i18n/instance`: shared `i18next` singleton
+- `@grocery/i18n/store`: `createI18nStore(i18n)` (localStorage + cookie mirror)
+- `@grocery/i18n/utils`: `import.meta.glob` → i18next `Resource` helpers
+- `@grocery/i18n/cookies`: cookie helpers + server `getLocaleFromRequestWithFallback`
 
 ## Translation file convention
 
@@ -40,12 +40,12 @@ SSR resolveLocale(request)
 
 ## Scripts
 
-- `pnpm --filter @boilerstone/i18n check-translations`
+- `pnpm --filter @grocery/i18n check-translations`
   - Scans monorepo `locales` directories
   - English is the source of truth
   - Exits `1` on missing or orphaned keys
   - Regenerates nearby `i18next.d.ts` type stubs
-- `pnpm --filter @boilerstone/i18n test`
+- `pnpm --filter @grocery/i18n test`
 
 ## Modules
 

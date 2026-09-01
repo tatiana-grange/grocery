@@ -1,5 +1,5 @@
 import type { AuthLoginFormData } from '../forms/auth-login-form'
-import { toast } from '@boilerstone/ui/components/primitives/sonner'
+import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'

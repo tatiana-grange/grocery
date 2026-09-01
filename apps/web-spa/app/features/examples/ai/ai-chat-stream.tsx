@@ -3,26 +3,26 @@ import type {
   aiExampleControllerChat,
   AiStreamEvent,
   ChatSchemaType,
-} from '@boilerstone/openapi-generator'
+} from '@grocery/openapi-generator'
 import type { ChatMessage } from './components/chat-bubble'
-import { createSseClient } from '@boilerstone/openapi-generator'
-import { Button } from '@boilerstone/ui/components/primitives/button'
+import { createSseClient } from '@grocery/openapi-generator'
+import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@boilerstone/ui/components/primitives/card'
-import { Input } from '@boilerstone/ui/components/primitives/input'
-import { Label } from '@boilerstone/ui/components/primitives/label'
+} from '@grocery/ui/components/primitives/card'
+import { Input } from '@grocery/ui/components/primitives/input'
+import { Label } from '@grocery/ui/components/primitives/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@boilerstone/ui/components/primitives/select'
+} from '@grocery/ui/components/primitives/select'
 import * as React from 'react'
 import { ChatBubble } from './components/chat-bubble'
 

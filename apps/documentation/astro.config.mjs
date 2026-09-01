@@ -35,6 +35,10 @@ export default defineConfig({
       sidebar: [
         { slug: 'quickstart' },
         {
+          label: 'Project',
+          items: [{ autogenerate: { directory: 'project' } }],
+        },
+        {
           label: 'Explanations',
           translations: { fr: 'Explications' },
           items: [{ autogenerate: { directory: 'explanations' } }],

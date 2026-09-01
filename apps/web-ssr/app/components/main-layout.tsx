@@ -1,4 +1,4 @@
-import { cn } from '@boilerstone/ui/lib/utils'
+import { cn } from '@grocery/ui/lib/utils'
 import { Moon, Sun } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useTheme } from '@/hooks/use-theme'

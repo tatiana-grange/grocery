@@ -1,5 +1,5 @@
 {
-  "name": "@boilerstone/web-ssr",
+  "name": "@grocery/web-ssr",
   "private": true,
   "files": [
     "build"
@@ -12,8 +12,8 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@boilerstone/openapi-generator": "workspace:*",
-    "@boilerstone/ui": "workspace:*",
+    "@grocery/openapi-generator": "workspace:*",
+    "@grocery/ui": "workspace:*",
     "@hookform/resolvers": "catalog:frontend",
     "@react-router/node": "catalog:frontend",
     "@react-router/serve": "catalog:frontend",

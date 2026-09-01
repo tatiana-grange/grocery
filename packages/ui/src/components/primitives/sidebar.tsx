@@ -5,24 +5,24 @@ import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
 
-import { useIsMobile } from '@boilerstone/ui/hooks/use-mobile'
-import { cn } from '@boilerstone/ui/lib/utils'
-import { Button } from '@boilerstone/ui/components/primitives/button'
-import { Input } from '@boilerstone/ui/components/primitives/input'
-import { Separator } from '@boilerstone/ui/components/primitives/separator'
+import { useIsMobile } from '@grocery/ui/hooks/use-mobile'
+import { cn } from '@grocery/ui/lib/utils'
+import { Button } from '@grocery/ui/components/primitives/button'
+import { Input } from '@grocery/ui/components/primitives/input'
+import { Separator } from '@grocery/ui/components/primitives/separator'
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@boilerstone/ui/components/primitives/sheet'
-import { Skeleton } from '@boilerstone/ui/components/primitives/skeleton'
+} from '@grocery/ui/components/primitives/sheet'
+import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@boilerstone/ui/components/primitives/tooltip'
+} from '@grocery/ui/components/primitives/tooltip'
 import { PanelLeftIcon } from 'lucide-react'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'

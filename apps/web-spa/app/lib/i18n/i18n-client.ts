@@ -1,8 +1,8 @@
-import { initializeI18n, normalizeLocale } from '@boilerstone/i18n/config'
-import { getInitialLocale, setLocaleCookie } from '@boilerstone/i18n/cookies'
-import i18n from '@boilerstone/i18n/instance'
-import { createI18nStore, I18N_STORE_STORAGE_KEY } from '@boilerstone/i18n/store'
-import { loadDynamicLocales } from '@boilerstone/i18n/utils'
+import { initializeI18n, normalizeLocale } from '@grocery/i18n/config'
+import { getInitialLocale, setLocaleCookie } from '@grocery/i18n/cookies'
+import i18n from '@grocery/i18n/instance'
+import { createI18nStore, I18N_STORE_STORAGE_KEY } from '@grocery/i18n/store'
+import { loadDynamicLocales } from '@grocery/i18n/utils'
 
 const resources = loadDynamicLocales(
   import.meta.glob('./locales/*/*.locales.*.json', { eager: true }),

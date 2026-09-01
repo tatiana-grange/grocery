@@ -1,20 +1,20 @@
-import { Button } from '@boilerstone/ui/components/primitives/button'
+import { Button } from '@grocery/ui/components/primitives/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@boilerstone/ui/components/primitives/dropdown-menu'
-import { Separator } from '@boilerstone/ui/components/primitives/separator'
+} from '@grocery/ui/components/primitives/dropdown-menu'
+import { Separator } from '@grocery/ui/components/primitives/separator'
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@boilerstone/ui/components/primitives/sheet'
-import { cn } from '@boilerstone/ui/lib/utils'
+} from '@grocery/ui/components/primitives/sheet'
+import { cn } from '@grocery/ui/lib/utils'
 import { Menu } from 'lucide-react'
 import * as React from 'react'
 import { Link, NavLink } from 'react-router'

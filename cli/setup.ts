@@ -1140,7 +1140,7 @@ async function main(): Promise<void> {
     // Prompt for project name
     const projectName = await prompt('Project name', 'my-project')
 
-    // Rename workspace packages and rewrite leftover @boilerstone/ imports
+    // Rename workspace packages and rewrite leftover @grocery/ imports
     await renameProjects(projectName, availableApps)
 
     // Prompt for configuration BEFORE copying files

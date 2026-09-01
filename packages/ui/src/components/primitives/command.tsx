@@ -1,15 +1,15 @@
 import * as React from 'react'
 import { Command as CommandPrimitive } from 'cmdk'
 
-import { cn } from '@boilerstone/ui/lib/utils'
+import { cn } from '@grocery/ui/lib/utils'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@boilerstone/ui/components/primitives/dialog'
-import { InputGroup, InputGroupAddon } from '@boilerstone/ui/components/primitives/input-group'
+} from '@grocery/ui/components/primitives/dialog'
+import { InputGroup, InputGroupAddon } from '@grocery/ui/components/primitives/input-group'
 import { SearchIcon, CheckIcon } from 'lucide-react'
 
 function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {

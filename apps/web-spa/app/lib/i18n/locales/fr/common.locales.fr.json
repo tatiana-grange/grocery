@@ -123,7 +123,7 @@
   },
   "components": {
     "title": "Composants",
-    "description": "Explorez la bibliothèque de composants @boilerstone/ui — tout ce qui est inclus dans ce boilerplate.",
+    "description": "Explorez la bibliothèque de composants @grocery/ui — tout ce qui est inclus dans ce boilerplate.",
     "subtitle": "Galerie complète",
     "sections": {
       "buttons": "Boutons",

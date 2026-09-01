@@ -1,0 +1,82 @@
+---
+title: Architecture plan
+description: How the MonÉpi features map onto this stack — modules, entities, delivery lots, risks
+---
+
+Draft plan, not yet reviewed. Companion to the
+[feature inventory](/lonestone-boilerplate/project/monepi-features).
+
+## Does the stack fit
+
+Yes. NestJS + MikroORM/PostgreSQL + Better Auth + Zod/OpenAPI + React (SSR and SPA) + shadcn/ui
+is a good match for this kind of management app.
+
+- **Money and stock** are the real risk. PostgreSQL plus MikroORM give real transactions and
+  row locking, which is what a correct balance ledger needs. MikroORM wraps each controller
+  request in a transaction by default.
+- **Roles** (member / grocer / admin): the Better Auth admin plugin is enough for one site.
+  The organizations plugin is only needed for multi-site, which we do not do.
+- **Repetitive CRUD** (products, suppliers, members): the `apps/api/src/modules/example/posts/`
+  pattern (entity, contract, mapper, service, controller, module, e2e test) is built for this,
+  and the generated OpenAPI client gives the frontend typed calls for free.
+- **web-ssr** serves the public shop, **web-spa** serves the back office. The split already
+  exists.
+
+## NestJS modules (single location)
+
+| Module | Responsibility |
+| --- | --- |
+| `members` | Members, statuses, membership fee (fixed and variable), termination |
+| `catalog` | Suppliers, products, categories, prices, units (including sale by weight) |
+| `orders` | Cart, pre-order (producer) versus in-store order (stock) |
+| `purchasing` | Aggregate pre-orders into a supplier order, reception, discrepancies |
+| `inventory` | Stock, weighted average cost price, inventory counts, adjustments |
+| `distribution` | Distribution screen: find member, adjust quantities, validate, express order |
+| `wallet` | Movement ledger: top-ups, debits, refunds, credit notes — append only |
+| `planning` | Participation slots, sign-ups, hour balance |
+| `payments` | Online top-up integration (Stripe or HelloAsso), webhooks |
+| `accounting` | CSV exports, profit-and-loss account |
+
+## Core entities
+
+`Member`, `Supplier`, `Product`, `ProductPrice`, `Category`, `Order` + `OrderLine`,
+`SupplierOrder` + `SupplierOrderLine`, `Reception` + `ReceptionLine`, `StockMovement`,
+`WalletEntry`, `MembershipPayment`, `ParticipationSlot`, `ParticipationBooking`.
+
+UUID primary keys, `createdAt` / `updatedAt` audit fields (project convention).
+
+### The rule that must not be broken
+
+`WalletEntry` and `StockMovement` are **immutable**. You never edit a past row. To correct a
+mistake you write a reversing entry. The member balance and the stock level are always a sum
+of movements, never a stored field you overwrite.
+
+## Delivery lots (MVP)
+
+1. **Foundation** — members, auth and roles, product and supplier catalogue. ~2-3 weeks.
+2. **Shop and orders** — public SSR shop, cart, pre-order and in-store order. ~2-3 weeks.
+3. **Purchasing** — aggregate into supplier order, reception, stock, cost price. ~2-3 weeks.
+4. **Distribution** — distribution screen, express order, wallet debit. ~2-3 weeks.
+5. **Wallet and online top-up** — ledger, top-ups, payment provider. ~2 weeks.
+6. **Participation planning**. ~1-2 weeks.
+7. **Accounting and exports**. ~1-2 weeks.
+
+Lots 1 to 4 already form a complete cycle: order, buy, receive, distribute, pay.
+Roughly three months to a version usable in real conditions.
+
+## Main risks
+
+- **Balance ledger correctness** — top-ups, refunds, credit notes, distribution debits. Needs
+  the immutable-ledger design above and real DB transactions.
+- **Products sold by weight** — priced per kg but delivered at an approximate weight, so
+  pre-order, reception and billing quantities differ.
+- **Weighted average cost price** on stock.
+- **Deposit products (consigne)**, supplier credit notes, transfer payment delays.
+- **Distribution UX** — must be fast, works at a table with a queue, ideally barcode scanner,
+  tolerant of a flaky network.
+- Online payment (Stripe / HelloAsso), transactional emails, PDF invoices, accounting exports.
+
+## Explicitly out of scope
+
+Multi-site hosting, cooperative directory, group orders between cooperatives, announcements
+module, services module, BAR module. Add later as separate work if wanted.

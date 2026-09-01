@@ -1,48 +1,48 @@
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
-import { AppLoader } from '@boilerstone/ui/components/app'
-import { EmptyState } from '@boilerstone/ui/components/app'
+import { AppLoader } from '@grocery/ui/components/app'
+import { EmptyState } from '@grocery/ui/components/app'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@boilerstone/ui/components/primitives/accordion'
+} from '@grocery/ui/components/primitives/accordion'
 import {
   Avatar,
   AvatarFallback,
   AvatarGroup,
   AvatarGroupCount,
   AvatarImage,
-} from '@boilerstone/ui/components/primitives/avatar'
-import { Badge } from '@boilerstone/ui/components/primitives/badge'
-import { Button } from '@boilerstone/ui/components/primitives/button'
-import { DatePicker } from '@boilerstone/ui/components/primitives/date-picker'
-import { Checkbox } from '@boilerstone/ui/components/primitives/checkbox'
-import { Input } from '@boilerstone/ui/components/primitives/input'
+} from '@grocery/ui/components/primitives/avatar'
+import { Badge } from '@grocery/ui/components/primitives/badge'
+import { Button } from '@grocery/ui/components/primitives/button'
+import { DatePicker } from '@grocery/ui/components/primitives/date-picker'
+import { Checkbox } from '@grocery/ui/components/primitives/checkbox'
+import { Input } from '@grocery/ui/components/primitives/input'
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
   InputGroupText,
-} from '@boilerstone/ui/components/primitives/input-group'
-import { Label } from '@boilerstone/ui/components/primitives/label'
-import { MultiSelect } from '@boilerstone/ui/components/primitives/multi-select'
+} from '@grocery/ui/components/primitives/input-group'
+import { Label } from '@grocery/ui/components/primitives/label'
+import { MultiSelect } from '@grocery/ui/components/primitives/multi-select'
 import {
   Popover,
   PopoverContent,
   PopoverHeader,
   PopoverTitle,
   PopoverTrigger,
-} from '@boilerstone/ui/components/primitives/popover'
+} from '@grocery/ui/components/primitives/popover'
 import {
   Progress,
   ProgressLabel,
   ProgressValue,
-} from '@boilerstone/ui/components/primitives/progress'
-import { RadioGroup, RadioGroupItem } from '@boilerstone/ui/components/primitives/radio-group'
-import { Separator } from '@boilerstone/ui/components/primitives/separator'
-import { Skeleton } from '@boilerstone/ui/components/primitives/skeleton'
-import { Switch } from '@boilerstone/ui/components/primitives/switch'
+} from '@grocery/ui/components/primitives/progress'
+import { RadioGroup, RadioGroupItem } from '@grocery/ui/components/primitives/radio-group'
+import { Separator } from '@grocery/ui/components/primitives/separator'
+import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
+import { Switch } from '@grocery/ui/components/primitives/switch'
 import {
   Table,
   TableBody,
@@ -50,20 +50,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@boilerstone/ui/components/primitives/table'
+} from '@grocery/ui/components/primitives/table'
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@boilerstone/ui/components/primitives/tabs'
+} from '@grocery/ui/components/primitives/tabs'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@boilerstone/ui/components/primitives/tooltip'
-import { cn } from '@boilerstone/ui/lib/utils'
+} from '@grocery/ui/components/primitives/tooltip'
+import { cn } from '@grocery/ui/lib/utils'
 import {
   getCoreRowModel,
   getFilteredRowModel,

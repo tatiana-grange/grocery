@@ -12,7 +12,7 @@ import {
   CommandList,
 } from './command'
 import { Popover, PopoverContent, PopoverTrigger } from './popover'
-import { cn } from '@boilerstone/ui/lib/utils'
+import { cn } from '@grocery/ui/lib/utils'
 
 interface TagsContextType {
   value?: string

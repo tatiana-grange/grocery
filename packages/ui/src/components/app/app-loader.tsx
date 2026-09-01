@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { cn } from '@boilerstone/ui/lib/utils'
+import { cn } from '@grocery/ui/lib/utils'
 
 interface AppLoaderProps {
   className?: string

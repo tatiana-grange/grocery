@@ -6,10 +6,7 @@
   "type": "module",
   "scripts": {
     "lint:intentions": "tsx ./cli/boilerplate.ts intentions lint",
-    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
-  "devDependencies": {
-    "vitest": "^4.1.10"
-  }
+  "devDependencies": {}
 }

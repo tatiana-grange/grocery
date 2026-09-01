@@ -123,7 +123,7 @@
   },
   "components": {
     "title": "Components",
-    "description": "Explore the full @boilerstone/ui component library — everything included in this boilerplate.",
+    "description": "Explore the full @grocery/ui component library — everything included in this boilerplate.",
     "subtitle": "Kitchen-sink gallery",
     "sections": {
       "buttons": "Buttons",

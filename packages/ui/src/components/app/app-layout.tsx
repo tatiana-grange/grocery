@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
-import { cn } from '@boilerstone/ui/lib/utils'
+import { cn } from '@grocery/ui/lib/utils'
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from '@boilerstone/ui/components/primitives/sidebar'
-import { Separator } from '@boilerstone/ui/components/primitives/separator'
+} from '@grocery/ui/components/primitives/sidebar'
+import { Separator } from '@grocery/ui/components/primitives/separator'
 
 interface AppLayoutProps {
   sidebar: ReactNode

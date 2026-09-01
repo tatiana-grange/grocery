@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 
-import { cn } from '@boilerstone/ui/lib/utils'
-import { Button } from '@boilerstone/ui/components/primitives/button'
+import { cn } from '@grocery/ui/lib/utils'
+import { Button } from '@grocery/ui/components/primitives/button'
 import { XIcon } from 'lucide-react'
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {

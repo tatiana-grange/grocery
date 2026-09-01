@@ -1,5 +1,5 @@
-import type { UserPostSchema } from '@boilerstone/openapi-generator'
-import { Badge } from '@boilerstone/ui/components/primitives/badge'
+import type { UserPostSchema } from '@grocery/openapi-generator'
+import { Badge } from '@grocery/ui/components/primitives/badge'
 import { ArrowRight, CalendarDays, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'

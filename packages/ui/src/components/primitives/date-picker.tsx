@@ -1,6 +1,6 @@
 import { CalendarIcon } from 'lucide-react'
 import * as React from 'react'
-import { cn } from '@boilerstone/ui/lib/utils'
+import { cn } from '@grocery/ui/lib/utils'
 import { Calendar } from './calendar'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from './input-group'
 import { Popover, PopoverContent, PopoverTrigger } from './popover'

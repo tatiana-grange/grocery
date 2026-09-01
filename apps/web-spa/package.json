@@ -1,5 +1,5 @@
 {
-  "name": "@boilerstone/web-spa",
+  "name": "@grocery/web-spa",
   "private": true,
   "files": [
     "build"
@@ -11,9 +11,9 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@boilerstone/i18n": "workspace:*",
-    "@boilerstone/openapi-generator": "workspace:*",
-    "@boilerstone/ui": "workspace:*",
+    "@grocery/i18n": "workspace:*",
+    "@grocery/openapi-generator": "workspace:*",
+    "@grocery/ui": "workspace:*",
     "@fontsource/source-sans-pro": "^5.3.0",
     "@hookform/resolvers": "catalog:frontend",
     "@lonestone/nzoth": "^1.2.0",

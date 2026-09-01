@@ -1,5 +1,5 @@
-import type { PublicPostsSchema } from '@boilerstone/openapi-generator'
-import { Badge } from '@boilerstone/ui/components/primitives/badge'
+import type { PublicPostsSchema } from '@grocery/openapi-generator'
+import { Badge } from '@grocery/ui/components/primitives/badge'
 import { motion, useReducedMotion } from 'motion/react'
 import { ArrowRight, Calendar, Heart, MessageCircle } from 'lucide-react'
 import { useMemo, useState } from 'react'

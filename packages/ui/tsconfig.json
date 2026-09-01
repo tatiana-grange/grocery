@@ -4,7 +4,7 @@
     "baseUrl": ".",
     "rootDir": "./src",
     "paths": {
-      "@boilerstone/ui/*": ["./src/*"]
+      "@grocery/ui/*": ["./src/*"]
     },
     "outDir": "./dist"
   },
