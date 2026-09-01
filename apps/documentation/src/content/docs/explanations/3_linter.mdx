@@ -1,0 +1,40 @@
+---
+title: Linter
+description: How the linter works, how to use it, how to customize it
+---
+
+## How it works
+
+The project uses [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) for linting and [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) for formatting. Configuration lives at the repository root in `.oxlintrc.json` and `.oxfmtrc.json`.
+
+Oxlint and Oxfmt replace ESLint and Prettier. This repository has no ESLint flat config and no Prettier config.
+
+## How to use
+
+- `pnpm lint` — run Oxlint
+- `pnpm lint:fix` — apply Oxlint autofixes
+- `pnpm fmt` — format with Oxfmt
+- `pnpm fmt:check` — check formatting without writing
+
+CI runs `pnpm lint`. Formatting is checked with `pnpm fmt:check` in local/release flows.
+
+## How to customize rules
+
+Rules are centralized in `.oxlintrc.json`. Use `overrides` to change rules for specific files or directories.
+
+For example, the API workspace turns off `typescript/consistent-type-imports`:
+
+```json
+{
+  "overrides": [
+    {
+      "files": ["apps/api/**/*.ts", "apps/api/**/*.json"],
+      "rules": {
+        "typescript/consistent-type-imports": "off"
+      }
+    }
+  ]
+}
+```
+
+See the [Oxlint config file reference](https://oxc.rs/docs/guide/usage/linter/config-file-reference.html) for rule names and override syntax.

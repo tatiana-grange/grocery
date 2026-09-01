@@ -1,0 +1,43 @@
+{
+  "name": "@boilerstone/web-ssr",
+  "private": true,
+  "files": [
+    "build"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "react-router build",
+    "dev": "react-router dev",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc"
+  },
+  "dependencies": {
+    "@boilerstone/openapi-generator": "workspace:*",
+    "@boilerstone/ui": "workspace:*",
+    "@hookform/resolvers": "catalog:frontend",
+    "@react-router/node": "catalog:frontend",
+    "@react-router/serve": "catalog:frontend",
+    "@tanstack/query-core": "^5.101.4",
+    "@tanstack/react-query": "catalog:frontend",
+    "isbot": "^5.2.1",
+    "lucide-react": "^0.563.0",
+    "motion": "^12.43.0",
+    "react": "catalog:frontend",
+    "react-dom": "catalog:frontend",
+    "react-hook-form": "catalog:frontend",
+    "react-router": "catalog:frontend",
+    "zod": "catalog:validation"
+  },
+  "devDependencies": {
+    "@react-router/dev": "catalog:frontend",
+    "@tailwindcss/vite": "catalog:frontend",
+    "@types/node": "catalog:build",
+    "@types/react": "catalog:frontend",
+    "@types/react-dom": "catalog:frontend",
+    "tailwindcss": "catalog:frontend",
+    "typescript": "catalog:build",
+    "vite": "catalog:build",
+    "vite-plugin-devtools-json": "^1.1.0",
+    "vite-tsconfig-paths": "catalog:build"
+  }
+}

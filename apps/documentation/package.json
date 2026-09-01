@@ -1,0 +1,21 @@
+{
+  "name": "@boilerstone/documentation",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "generate:index": "node ./scripts/generate-docs-index.mjs",
+    "generate:index:watch": "node ./scripts/generate-docs-index.mjs --watch",
+    "dev": "pnpm run generate:index:watch & astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.41.6",
+    "astro": "7.1.1",
+    "sharp": "0.34.5",
+    "starlight-links-validator": "^0.25.2",
+    "zod": "catalog:validation"
+  }
+}
