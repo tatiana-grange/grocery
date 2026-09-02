@@ -5,8 +5,8 @@ import starlightLinksValidator from 'starlight-links-validator'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://lonestone.github.io',
-  base: '/lonestone-boilerplate',
+  site: 'https://tatiana-grange.github.io',
+  base: '/grocery',
   integrations: [
     starlight({
       plugins: [
@@ -17,7 +17,7 @@ export default defineConfig({
           errorOnFallbackPages: false,
         }),
       ],
-      title: 'Boilerstone Documentation',
+      title: 'Grocery Documentation',
       // English lives at the root (no /en/ prefix); French pages live in
       // src/content/docs/fr/ and fall back to English when untranslated.
       defaultLocale: 'root',
@@ -29,7 +29,7 @@ export default defineConfig({
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/lonestone/lonestone-boilerplate',
+          href: 'https://github.com/tatiana-grange/grocery',
         },
       ],
       sidebar: [
@@ -66,10 +66,6 @@ export default defineConfig({
           label: 'References',
           translations: { fr: 'Références' },
           items: [{ autogenerate: { directory: 'references' } }],
-        },
-        {
-          label: 'Releases',
-          items: [{ autogenerate: { directory: 'releases' } }],
         },
       ],
     }),

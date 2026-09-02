@@ -1,6 +1,6 @@
 # GitHub Workflows
 
-This folder contains the GitHub Actions workflows for the Lonestone project.
+This folder contains the GitHub Actions workflows for the Grocery project.
 
 ## Available workflows
 

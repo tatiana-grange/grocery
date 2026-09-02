@@ -1,8 +1,8 @@
 {
   "android": {
-    "package": "com.lonestone.app"
+    "package": "com.grocery.app"
   },
   "ios": {
-    "bundleIdentifier": "com.lonestone.app"
+    "bundleIdentifier": "com.grocery.app"
   }
 }

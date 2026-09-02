@@ -254,8 +254,7 @@
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.user",
-          "updateRule": "cascade"
+          "referencedTableName": "public.user"
         }
       },
       "comment": null
@@ -393,8 +392,7 @@
           "constraint": false,
           "keyName": "category_archivedAt_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"category_archivedAt_index\" ON public.category USING btree (\"archivedAt\")"
+          "unique": false
         },
         {
           "columnNames": [
@@ -430,219 +428,6 @@
             "id"
           ],
           "referencedTableName": "public.category",
-          "deleteRule": "set null"
-        }
-      },
-      "comment": null
-    },
-    {
-      "name": "comment",
-      "schema": "public",
-      "columns": {
-        "authorName": {
-          "name": "authorName",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "content": {
-          "name": "content",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamptz(6)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 6,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "datetime"
-        },
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": true,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": "gen_random_uuid()",
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        },
-        "parentId": {
-          "name": "parentId",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        },
-        "postId": {
-          "name": "postId",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        },
-        "userId": {
-          "name": "userId",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        }
-      },
-      "indexes": [
-        {
-          "columnNames": [
-            "parentId"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "comment_parentId_index",
-          "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"comment_parentId_index\" ON public.comment USING btree (\"parentId\")"
-        },
-        {
-          "columnNames": [
-            "id"
-          ],
-          "composite": false,
-          "constraint": true,
-          "keyName": "comment_pkey",
-          "primary": true,
-          "unique": true
-        },
-        {
-          "columnNames": [
-            "postId"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "comment_postId_index",
-          "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"comment_postId_index\" ON public.comment USING btree (\"postId\")"
-        },
-        {
-          "columnNames": [
-            "userId"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "comment_userId_index",
-          "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"comment_userId_index\" ON public.comment USING btree (\"userId\")"
-        }
-      ],
-      "checks": [],
-      "triggers": [],
-      "foreignKeys": {
-        "comment_parentId_foreign": {
-          "columnNames": [
-            "parentId"
-          ],
-          "constraintName": "comment_parentId_foreign",
-          "localTableName": "public.comment",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.comment",
-          "updateRule": "cascade",
-          "deleteRule": "set null"
-        },
-        "comment_postId_foreign": {
-          "columnNames": [
-            "postId"
-          ],
-          "constraintName": "comment_postId_foreign",
-          "localTableName": "public.comment",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.post",
-          "updateRule": "cascade"
-        },
-        "comment_userId_foreign": {
-          "columnNames": [
-            "userId"
-          ],
-          "constraintName": "comment_userId_foreign",
-          "localTableName": "public.comment",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.user",
-          "updateRule": "cascade",
           "deleteRule": "set null"
         }
       },
@@ -883,8 +668,7 @@
           "constraint": false,
           "keyName": "member_membershipNumber_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"member_membershipNumber_index\" ON public.member USING btree (\"membershipNumber\")"
+          "unique": false
         },
         {
           "columnNames": [
@@ -894,8 +678,7 @@
           "constraint": true,
           "keyName": "member_membershipNumber_unique",
           "primary": false,
-          "unique": true,
-          "expression": "CREATE UNIQUE INDEX \"member_membershipNumber_unique\" ON public.member USING btree (\"membershipNumber\")"
+          "unique": true
         },
         {
           "columnNames": [
@@ -915,8 +698,7 @@
           "constraint": false,
           "keyName": "member_userId_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"member_userId_index\" ON public.member USING btree (\"userId\")"
+          "unique": false
         },
         {
           "columnNames": [
@@ -926,8 +708,7 @@
           "constraint": true,
           "keyName": "member_userId_unique",
           "primary": false,
-          "unique": true,
-          "expression": "CREATE UNIQUE INDEX \"member_userId_unique\" ON public.member USING btree (\"userId\")"
+          "unique": true
         }
       ],
       "checks": [],
@@ -1080,8 +861,7 @@
           "constraint": false,
           "keyName": "memberStatusChange_memberId_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"memberStatusChange_memberId_index\" ON public.\"memberStatusChange\" USING btree (\"memberId\")"
+          "unique": false
         },
         {
           "columnNames": [
@@ -1239,8 +1019,7 @@
           "constraint": true,
           "keyName": "membershipFee_memberId_unique",
           "primary": false,
-          "unique": true,
-          "expression": "CREATE UNIQUE INDEX \"membershipFee_memberId_unique\" ON public.\"membershipFee\" USING btree (\"memberId\")"
+          "unique": true
         },
         {
           "columnNames": [
@@ -1527,8 +1306,7 @@
           "constraint": false,
           "keyName": "membershipPayment_feeId_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"membershipPayment_feeId_index\" ON public.\"membershipPayment\" USING btree (\"feeId\")"
+          "unique": false
         },
         {
           "columnNames": [
@@ -1565,433 +1343,6 @@
             "id"
           ],
           "referencedTableName": "public.user"
-        }
-      },
-      "comment": null
-    },
-    {
-      "name": "post",
-      "schema": "public",
-      "columns": {
-        "coverImage": {
-          "name": "coverImage",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamptz(6)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 6,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "datetime"
-        },
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": true,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": "gen_random_uuid()",
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        },
-        "likesCount": {
-          "name": "likesCount",
-          "type": "int",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": "0",
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "integer"
-        },
-        "publishedAt": {
-          "name": "publishedAt",
-          "type": "timestamptz(6)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": false,
-          "length": 6,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "datetime"
-        },
-        "slug": {
-          "name": "slug",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": true,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamptz(6)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 6,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "datetime"
-        },
-        "userId": {
-          "name": "userId",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        }
-      },
-      "indexes": [
-        {
-          "columnNames": [
-            "id"
-          ],
-          "composite": false,
-          "constraint": true,
-          "keyName": "post_pkey",
-          "primary": true,
-          "unique": true
-        },
-        {
-          "columnNames": [
-            "publishedAt"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "post_publishedAt_index",
-          "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"post_publishedAt_index\" ON public.post USING btree (\"publishedAt\")"
-        },
-        {
-          "columnNames": [
-            "slug"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "post_slug_index",
-          "primary": false,
-          "unique": false
-        },
-        {
-          "columnNames": [
-            "slug"
-          ],
-          "composite": false,
-          "constraint": true,
-          "keyName": "post_slug_unique",
-          "primary": false,
-          "unique": true
-        },
-        {
-          "columnNames": [
-            "userId"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "post_userId_index",
-          "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"post_userId_index\" ON public.post USING btree (\"userId\")"
-        }
-      ],
-      "checks": [],
-      "triggers": [],
-      "foreignKeys": {
-        "post_userId_foreign": {
-          "columnNames": [
-            "userId"
-          ],
-          "constraintName": "post_userId_foreign",
-          "localTableName": "public.post",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.user",
-          "updateRule": "cascade"
-        }
-      },
-      "comment": null
-    },
-    {
-      "name": "postVersion",
-      "schema": "public",
-      "columns": {
-        "content": {
-          "name": "content",
-          "type": "jsonb",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "json"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamptz(6)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 6,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "datetime"
-        },
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": true,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": "gen_random_uuid()",
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        },
-        "postId": {
-          "name": "postId",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        },
-        "title": {
-          "name": "title",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": false,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "string"
-        }
-      },
-      "indexes": [
-        {
-          "columnNames": [
-            "id"
-          ],
-          "composite": false,
-          "constraint": true,
-          "keyName": "postVersion_pkey",
-          "primary": true,
-          "unique": true
-        },
-        {
-          "columnNames": [
-            "title"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "postVersion_title_index",
-          "primary": false,
-          "unique": false
-        }
-      ],
-      "checks": [],
-      "triggers": [],
-      "foreignKeys": {
-        "postVersion_postId_foreign": {
-          "columnNames": [
-            "postId"
-          ],
-          "constraintName": "postVersion_postId_foreign",
-          "localTableName": "public.postVersion",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.post",
-          "updateRule": "cascade"
-        }
-      },
-      "comment": null
-    },
-    {
-      "name": "post_tag",
-      "schema": "public",
-      "columns": {
-        "post": {
-          "name": "post",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": true,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        },
-        "tag": {
-          "name": "tag",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": true,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        }
-      },
-      "indexes": [
-        {
-          "columnNames": [
-            "post",
-            "tag"
-          ],
-          "composite": true,
-          "constraint": true,
-          "keyName": "post_tag_pkey",
-          "primary": true,
-          "unique": true
-        }
-      ],
-      "checks": [],
-      "triggers": [],
-      "foreignKeys": {
-        "post_tag_post_foreign": {
-          "columnNames": [
-            "post"
-          ],
-          "constraintName": "post_tag_post_foreign",
-          "localTableName": "public.post_tag",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.post",
-          "updateRule": "cascade",
-          "deleteRule": "cascade"
-        },
-        "post_tag_tag_foreign": {
-          "columnNames": [
-            "tag"
-          ],
-          "constraintName": "post_tag_tag_foreign",
-          "localTableName": "public.post_tag",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.tag",
-          "updateRule": "cascade",
-          "deleteRule": "cascade"
         }
       },
       "comment": null
@@ -2265,8 +1616,7 @@
           "constraint": false,
           "keyName": "product_archivedAt_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"product_archivedAt_index\" ON public.product USING btree (\"archivedAt\")"
+          "unique": false
         },
         {
           "columnNames": [
@@ -2286,8 +1636,7 @@
           "constraint": false,
           "keyName": "product_categoryId_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"product_categoryId_index\" ON public.product USING btree (\"categoryId\")"
+          "unique": false
         },
         {
           "columnNames": [
@@ -2317,8 +1666,7 @@
           "constraint": false,
           "keyName": "product_supplierId_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"product_supplierId_index\" ON public.product USING btree (\"supplierId\")"
+          "unique": false
         }
       ],
       "checks": [],
@@ -2492,6 +1840,15 @@
       },
       "indexes": [
         {
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "keyName": "productPrice_one_open_per_product",
+          "primary": false,
+          "unique": false,
+          "expression": "create unique index \"productPrice_one_open_per_product\" on \"productPrice\" (\"productId\") where \"validTo\" is null"
+        },
+        {
           "columnNames": [
             "id"
           ],
@@ -2510,8 +1867,7 @@
           "constraint": false,
           "keyName": "productPrice_productId_validTo_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"productPrice_productId_validTo_index\" ON public.\"productPrice\" USING btree (\"productId\", \"validTo\")"
+          "unique": false
         }
       ],
       "checks": [],
@@ -2734,8 +2090,7 @@
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.user",
-          "updateRule": "cascade"
+          "referencedTableName": "public.user"
         }
       },
       "comment": null
@@ -2941,8 +2296,7 @@
           "constraint": false,
           "keyName": "supplier_archivedAt_index",
           "primary": false,
-          "unique": false,
-          "expression": "CREATE INDEX \"supplier_archivedAt_index\" ON public.supplier USING btree (\"archivedAt\")"
+          "unique": false
         },
         {
           "columnNames": [
@@ -2962,119 +2316,6 @@
           "constraint": true,
           "keyName": "supplier_pkey",
           "primary": true,
-          "unique": true
-        }
-      ],
-      "checks": [],
-      "triggers": [],
-      "foreignKeys": {},
-      "comment": null
-    },
-    {
-      "name": "tag",
-      "schema": "public",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": true,
-          "nullable": false,
-          "unique": false,
-          "length": null,
-          "precision": null,
-          "scale": null,
-          "default": "gen_random_uuid()",
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "uuid"
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": true,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "string"
-        },
-        "slug": {
-          "name": "slug",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "unique": true,
-          "length": 255,
-          "precision": null,
-          "scale": null,
-          "default": null,
-          "comment": null,
-          "collation": null,
-          "enumItems": [],
-          "mappedType": "string"
-        }
-      },
-      "indexes": [
-        {
-          "columnNames": [
-            "name"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "tag_name_index",
-          "primary": false,
-          "unique": false
-        },
-        {
-          "columnNames": [
-            "name"
-          ],
-          "composite": false,
-          "constraint": true,
-          "keyName": "tag_name_unique",
-          "primary": false,
-          "unique": true
-        },
-        {
-          "columnNames": [
-            "id"
-          ],
-          "composite": false,
-          "constraint": true,
-          "keyName": "tag_pkey",
-          "primary": true,
-          "unique": true
-        },
-        {
-          "columnNames": [
-            "slug"
-          ],
-          "composite": false,
-          "constraint": false,
-          "keyName": "tag_slug_index",
-          "primary": false,
-          "unique": false
-        },
-        {
-          "columnNames": [
-            "slug"
-          ],
-          "composite": false,
-          "constraint": true,
-          "keyName": "tag_slug_unique",
-          "primary": false,
           "unique": true
         }
       ],
@@ -3328,8 +2569,7 @@
           "constraint": true,
           "keyName": "user_phoneNumber_unique",
           "primary": false,
-          "unique": true,
-          "expression": "CREATE UNIQUE INDEX \"user_phoneNumber_unique\" ON public.\"user\" USING btree (\"phoneNumber\")"
+          "unique": true
         },
         {
           "columnNames": [

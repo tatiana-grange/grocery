@@ -55,10 +55,10 @@ async function bootstrap() {
   if (config.env === 'development') {
     const swaggerConfig = new DocumentBuilder()
       .setOpenAPIVersion('3.1.0')
-      .setTitle('Lonestone API')
-      .setDescription('The Lonestone API description')
+      .setTitle('Grocery API')
+      .setDescription('The Grocery API')
       .setVersion('1.0')
-      .addTag('@lonestone')
+      .addTag('grocery')
       .build()
 
     const document = createOpenApiDocument(app, swaggerConfig)

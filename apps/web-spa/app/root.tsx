@@ -48,16 +48,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang={htmlLang}>
       <head>
-        <title>Dashboard</title>
+        <title>Grocery</title>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="author" content="Lonestone" />
-        <meta name="keywords" content="Lonestone, platform, create, share, ideas" />
+        <meta name="author" content="Grocery" />
+        <meta name="keywords" content="Grocery" />
 
-        <meta
-          name="description"
-          content="Lonestone is a platform for creating and sharing your ideas."
-        />
+        <meta name="description" content="Grocery" />
         <Meta />
         <Links />
       </head>

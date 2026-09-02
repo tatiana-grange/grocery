@@ -5,7 +5,7 @@ description: Comment un projet se versionne, et comment les environnements conso
 
 Cette page décrit comment un projet construit sur le boilerplate gère les versions, les releases et les déploiements.
 
-Les règles d'écriture des commits et des pull requests vivent dans [`CONTRIBUTING.md`](https://github.com/lonestone/lonestone-boilerplate/blob/main/CONTRIBUTING.md). Pour comprendre pourquoi le système est conçu ainsi, lisez [Contribution et release](/lonestone-boilerplate/fr/explanations/2_contribution-and-release).
+Les règles d'écriture des commits et des pull requests vivent dans [`CONTRIBUTING.md`](https://github.com/lonestone/grocery/blob/main/CONTRIBUTING.md). Pour comprendre pourquoi le système est conçu ainsi, lisez [Contribution et release](/grocery/fr/explanations/2_contribution-and-release).
 
 ## Comment ça marche
 
@@ -27,7 +27,7 @@ Un nouveau projet démarre généralement **sans versions** : en début de déve
 
 Les deux modes partagent le même pipeline de build — un mode est de la configuration, pas un chemin de CD différent. La config release-please et son workflow sont déjà livrés avec le template : passer de « sans versions » à « versionné » revient à activer ces fichiers.
 
-En mode versionné, [release-please](https://github.com/googleapis/release-please) maintient une Release PR : elle accumule les changements mergés sur `main`, génère le changelog, et c'est là que la note de release s'écrit. La merger crée le tag `v*` et les images versionnées. La PR se rebase sur `main` à chaque push (`always-update`). Cette mise à jour est un force-push : le travail fait sur la Release PR elle-même (intentions promues) doit donc se faire en dernier — voir le [runbook du mainteneur de release](https://github.com/lonestone/lonestone-boilerplate/blob/main/.boilerstone/docs/release-maintainer-runbook.md#working-the-release-pr).
+En mode versionné, [release-please](https://github.com/googleapis/release-please) maintient une Release PR : elle accumule les changements mergés sur `main`, génère le changelog, et c'est là que la note de release s'écrit. La merger crée le tag `v*` et les images versionnées. La PR se rebase sur `main` à chaque push (`always-update`). Cette mise à jour est un force-push : le travail fait sur la Release PR elle-même (intentions promues) doit donc se faire en dernier — voir le [runbook du mainteneur de release](https://github.com/lonestone/grocery/blob/main/.boilerstone/docs/release-maintainer-runbook.md#working-the-release-pr).
 
 :::caution[Ne jamais auto-merger la Release PR]
 Des checks verts signifient « cette PR a le droit de merger », pas « envoyez ça en production ». Un humain décide quand une release a lieu. Et même alors, merger la Release PR ne fait que publier le tag et les images — déployer est une étape séparée, décrite dans [Promouvoir une version](#promouvoir-une-version).
@@ -130,8 +130,8 @@ Vous pouvez ajouter des reviewers requis sur `production` si une seconde personn
 
 Deux artefacts, deux rôles :
 
-- [`CHANGELOG.md`](https://github.com/lonestone/lonestone-boilerplate/blob/main/CHANGELOG.md) est l'inventaire généré : une ligne par changement, chacune liée à son commit. Ne l'éditez jamais à la main.
-- [`releases/`](/lonestone-boilerplate/fr/releases) contient les notes écrites par des humains : pourquoi cette version existe.
+- [`CHANGELOG.md`](https://github.com/lonestone/grocery/blob/main/CHANGELOG.md) est l'inventaire généré : une ligne par changement, chacune liée à son commit. Ne l'éditez jamais à la main.
+- `releases/` dans l'app de documentation contient les notes écrites par des humains : pourquoi cette version existe.
 
 Les notes de release sont **optionnelles par défaut** : le check CI sur la Release PR passe sans note. Quand votre équipe veut rendre la note obligatoire, mettez la variable de dépôt `REQUIRE_RELEASE_NOTE` à `true` (`gh variable set REQUIRE_RELEASE_NOTE --body true`) et le check bloquera la Release PR tant que `releases/vX.Y.Z.mdx` n'existe pas. Le dépôt du boilerplate l'impose.
 
@@ -139,4 +139,4 @@ Vous pouvez écrire ce fichier **avant** que la Release PR n'existe — sur une 
 
 ## Feature flags
 
-Parfois deux changements mergés ne doivent pas partir ensemble. Préférez un feature flag plutôt que de retenir un merge — voir [Feature flags](/lonestone-boilerplate/fr/guides/feature-flags). Pour les rares cas où le cherry-pick est la seule option, l'échappatoire est documentée dans le [runbook du mainteneur de release](https://github.com/lonestone/lonestone-boilerplate/blob/main/.boilerstone/docs/release-maintainer-runbook.md#selective-shipping-d12).
+Parfois deux changements mergés ne doivent pas partir ensemble. Préférez un feature flag plutôt que de retenir un merge — voir [Feature flags](/grocery/fr/guides/feature-flags). Pour les rares cas où le cherry-pick est la seule option, l'échappatoire est documentée dans le [runbook du mainteneur de release](https://github.com/lonestone/grocery/blob/main/.boilerstone/docs/release-maintainer-runbook.md#selective-shipping-d12).
