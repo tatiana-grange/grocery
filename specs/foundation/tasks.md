@@ -187,15 +187,15 @@ admin and get a clear refusal.
 
 ### Tests for User Story 4
 
-- [ ] T077 [P] [US4] Extend `members.controller.e2e-spec.ts`: grant `admin` → member gains `@AdminOnly()` access; remove → withdrawn; remove `admin` from the last admin → 409; non-admin calling the route → 403
+- [x] T077 [P] [US4] Extend `members.controller.e2e-spec.ts`: grant `admin` → member gains `@AdminOnly()` access; remove → withdrawn; remove `admin` from the last admin → 409; non-admin calling the route → 403
 
 ### Implementation for User Story 4
 
-- [ ] T078 [P] [US4] Add `setMemberRolesSchema` (`roles: ['member','admin']`, `version`) to `apps/api/src/modules/members/contracts/member.contract.ts`
-- [ ] T079 [US4] `MembersService.setRoles`: replace the role set on the Better Auth user, refuse dropping `admin` from the last admin, transactional (depends on T016)
-- [ ] T080 [US4] `members.controller.ts`: `PUT /admin/members/:id/roles` (depends on T079)
-- [ ] T081 [US4] Run `pnpm generate` (depends on T080)
-- [ ] T082 [US4] Frontend: admin-role toggle on the member-detail page + i18n in `apps/web-spa/app/features/admin-members/components/` (depends on T081)
+- [x] T078 [P] [US4] Add `setMemberRolesSchema` (`roles: ['member','admin']`, `version`) to `apps/api/src/modules/members/contracts/member.contract.ts`
+- [x] T079 [US4] `MembersService.setRoles`: replace the role set on the Better Auth user, refuse dropping `admin` from the last admin, transactional (depends on T016)
+- [x] T080 [US4] `members.controller.ts`: `PUT /admin/members/:id/roles` (depends on T079)
+- [x] T081 [US4] Run `pnpm generate` (depends on T080)
+- [x] T082 [US4] Frontend: admin-role toggle on the member-detail page + i18n in `apps/web-spa/app/features/admin-members/components/` (depends on T081)
 
 **Checkpoint**: US1–US4 all work independently.
 
@@ -212,17 +212,17 @@ status with personal data unchanged.
 
 ### Tests for User Story 5
 
-- [ ] T083 [P] [US5] Extend `members.controller.e2e-spec.ts`: self-termination → `terminated` + next request unauthorised; admin termination with reason → status + history + notification; reactivation → `active`, profile fields unchanged
+- [x] T083 [P] [US5] Extend `members.controller.e2e-spec.ts`: self-termination → `terminated` + next request unauthorised; admin termination with reason → status + history + notification; reactivation → `active`, profile fields unchanged
 
 ### Implementation for User Story 5
 
-- [ ] T084 [P] [US5] Add termination and reactivation schemas to `apps/api/src/modules/members/contracts/member.contract.ts`
-- [ ] T085 [US5] `MembersService`: `selfTerminate`, `adminTerminate(reason)`, `reactivate` — status transition + `MemberStatusChange` + Better Auth session revoke, transactional (depends on T029)
-- [ ] T086 [US5] Termination notification (email / SMS) + i18n strings (depends on T085, T031)
-- [ ] T087 [US5] `members.controller.ts`: `POST /members/me/termination`, `POST /admin/members/:id/termination`, `POST /admin/members/:id/reactivation` (depends on T085)
-- [ ] T088 [US5] Run `pnpm generate` (depends on T087)
-- [ ] T089 [P] [US5] Frontend: "End membership" action with a confirmation dialog in `apps/web-spa/app/features/members/components/` (depends on T088)
-- [ ] T090 [US5] Frontend: terminate / reactivate actions on the member-detail page + i18n (depends on T088)
+- [x] T084 [P] [US5] Add termination and reactivation schemas to `apps/api/src/modules/members/contracts/member.contract.ts`
+- [x] T085 [US5] `MembersService`: `selfTerminate`, `adminTerminate(reason)`, `reactivate` — status transition + `MemberStatusChange` + Better Auth session revoke, transactional (depends on T029)
+- [x] T086 [US5] Termination notification (email / SMS) + i18n strings (depends on T085, T031)
+- [x] T087 [US5] `members.controller.ts`: `POST /members/me/termination`, `POST /admin/members/:id/termination`, `POST /admin/members/:id/reactivation` (depends on T085)
+- [x] T088 [US5] Run `pnpm generate` (depends on T087)
+- [x] T089 [P] [US5] Frontend: "End membership" action with a confirmation dialog in `apps/web-spa/app/features/members/components/` (depends on T088)
+- [x] T090 [US5] Frontend: terminate / reactivate actions on the member-detail page + i18n (depends on T088)
 
 **Checkpoint**: All five user stories work independently.
 

@@ -523,6 +523,202 @@
         }
       }
     },
+    "/api/admin/members/{id}/roles": {
+      "put": {
+        "operationId": "AdminMembersController_setRoles",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Replace a member’s access roles. Every member keeps \"member\"; adding \"admin\" grants the back office.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "member",
+                        "admin"
+                      ],
+                      "title": "UserRole",
+                      "description": "Access role. \"admin\" is a superset of \"member\". \"grocer\" is added in lot 4."
+                    }
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "roles",
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "SetMemberRoles",
+                "description": "Replace a member’s access roles. Every member keeps \"member\"; adding \"admin\" grants the back office.",
+                "examples": [
+                  {
+                    "roles": [
+                      "member",
+                      "admin"
+                    ],
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/termination": {
+      "post": {
+        "operationId": "AdminMembersController_terminate",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Terminate a member with a reason (admin action)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "reason",
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "TerminateMember",
+                "description": "Terminate a member with a reason (admin action)",
+                "examples": [
+                  {
+                    "reason": "Moved away",
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/reactivation": {
+      "post": {
+        "operationId": "AdminMembersController_reactivate",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Return a terminated member to active",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "ReactivateMember",
+                "description": "Return a terminated member to active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/members/me": {
       "get": {
         "operationId": "MemberSelfController_me",
@@ -628,6 +824,50 @@
                     "version": 1
                   }
                 ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The signed-in member’s own account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberSelf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/me/termination": {
+      "post": {
+        "operationId": "MemberSelfController_terminate",
+        "tags": [
+          "Member self-service"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "A member ending their own membership",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "confirm"
+                ],
+                "additionalProperties": false,
+                "title": "SelfTerminate",
+                "description": "A member ending their own membership"
               }
             }
           }
@@ -5243,6 +5483,97 @@
           }
         ]
       },
+      "SetMemberRoles": {
+        "type": "object",
+        "properties": {
+          "roles": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "roles",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "SetMemberRoles",
+        "description": "Replace a member’s access roles. Every member keeps \"member\"; adding \"admin\" grants the back office.",
+        "examples": [
+          {
+            "roles": [
+              "member",
+              "admin"
+            ],
+            "version": 1
+          }
+        ]
+      },
+      "TerminateMember": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "reason",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "TerminateMember",
+        "description": "Terminate a member with a reason (admin action)",
+        "examples": [
+          {
+            "reason": "Moved away",
+            "version": 1
+          }
+        ]
+      },
+      "ReactivateMember": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "ReactivateMember",
+        "description": "Return a terminated member to active"
+      },
+      "SelfTerminate": {
+        "type": "object",
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "additionalProperties": false,
+        "title": "SelfTerminate",
+        "description": "A member ending their own membership"
+      },
       "MembershipIntake": {
         "type": "object",
         "properties": {
@@ -7388,7 +7719,6 @@
         "description": "One recorded membership-fee payment or adjustment"
       },
       "MembershipPaymentKind": {
-        "default": "payment",
         "type": "string",
         "enum": [
           "payment",

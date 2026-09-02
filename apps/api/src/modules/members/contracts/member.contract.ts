@@ -239,6 +239,49 @@ export const feePaymentsListSchema = z.array(memberPaymentSchema).meta({
 })
 
 // -------------------------------------------------------------------------------------------------
+// Roles and lifecycle
+// -------------------------------------------------------------------------------------------------
+
+export const setMemberRolesSchema = z
+  .object({
+    roles: z.array(userRoleSchema).min(1),
+    version: z.number().int(),
+  })
+  .meta({
+    title: 'SetMemberRoles',
+    description:
+      'Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.',
+    examples: [{ roles: ['member', 'admin'], version: 1 }],
+  })
+
+export type SetMemberRolesInput = z.infer<typeof setMemberRolesSchema>
+
+export const terminateMemberSchema = z
+  .object({
+    reason: z.string().min(1),
+    version: z.number().int(),
+  })
+  .meta({
+    title: 'TerminateMember',
+    description: 'Terminate a member with a reason (admin action)',
+    examples: [{ reason: 'Moved away', version: 1 }],
+  })
+
+export type TerminateMemberInput = z.infer<typeof terminateMemberSchema>
+
+export const selfTerminateSchema = z
+  .object({ confirm: z.literal(true) })
+  .meta({ title: 'SelfTerminate', description: 'A member ending their own membership' })
+
+export type SelfTerminateInput = z.infer<typeof selfTerminateSchema>
+
+export const reactivateMemberSchema = z
+  .object({ version: z.number().int() })
+  .meta({ title: 'ReactivateMember', description: 'Return a terminated member to active' })
+
+export type ReactivateMemberInput = z.infer<typeof reactivateMemberSchema>
+
+// -------------------------------------------------------------------------------------------------
 // List query params
 // -------------------------------------------------------------------------------------------------
 

@@ -230,7 +230,10 @@
       "currentPassword": "Current password",
       "newPassword": "New password (min. 8 characters)",
       "passwordChanged": "Password changed",
-      "passwordError": "Could not change the password"
+      "passwordError": "Could not change the password",
+      "endMembership": "End my membership",
+      "endMembershipTitle": "End your membership?",
+      "endMembershipWarning": "You will be signed out and will no longer be able to order. Your history is kept."
     },
     "status": {
       "pending": "Pending",
@@ -258,6 +261,11 @@
     "history": "Status history",
     "validate": "Validate",
     "reject": "Reject",
+    "makeAdmin": "Make administrator",
+    "removeAdmin": "Remove administrator",
+    "roleUpdated": "Roles updated",
+    "terminate": "End membership",
+    "reactivate": "Reactivate",
     "count": "{{count}} member",
     "count_other": "{{count}} members",
     "tabs": {
@@ -276,9 +284,14 @@
       "title": "Reject this membership request",
       "reasonPlaceholder": "Reason (shown to the applicant)"
     },
+    "terminateDialog": {
+      "title": "End this membership",
+      "reasonPlaceholder": "Reason (shown to the member)"
+    },
     "toasts": {
       "validated": "Member validated",
       "rejected": "Request rejected",
+      "updated": "Done",
       "error": "Something went wrong"
     },
     "fee": {

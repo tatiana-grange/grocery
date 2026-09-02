@@ -4,6 +4,20 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 10:54] - /speckit.implement
+
+### Changed
+
+- Completed Phase 6 (US4 — admin role management, P3) and Phase 7 (US5 — ending a membership, P4)
+- Tasks completed: T077–T090
+- Contract: `setMemberRolesSchema`, `terminateMemberSchema`, `selfTerminateSchema`, `reactivateMemberSchema`.
+- Backend: `MembersService.setRoles` (transactional, refuses removing `admin` from the last administrator via a `role LIKE '%admin%'` count), `selfTerminate`, `adminTerminate` (with reason), `reactivate` (data retained) — each writes an append-only `MemberStatusChange`, terminations drop the member's sessions, and a lifecycle notification goes to the confirmed identifier. New routes: `PUT /admin/members/:id/roles`, `POST /admin/members/:id/termination`, `POST /admin/members/:id/reactivation`, `POST /members/me/termination`.
+- Tests: four new e2e cases (grant/remove admin, last-admin 409, self-terminate then locked out, admin terminate with reason + reactivate with the city intact). Full api suite: 143 passed.
+- Frontend: admin member-detail page gained a make/remove-administrator toggle and terminate (reason dialog) / reactivate actions; the member account page gained an "End my membership" confirmation that signs the person out. `adminMembers` and `members.account` i18n filled (en + fr).
+- Verified: `pnpm typecheck` (all), `pnpm --filter=api test` (143), `pnpm lint`, `pnpm --filter=web-spa build` all pass.
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/members/{contracts/member.contract.ts,members.service.ts,members.controller.ts,tests/members.controller.e2e-spec.ts}, apps/web-spa/app/features/{admin-members,account}/**, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, packages/openapi-generator/client/**, specs/foundation/tasks.md
+
 ## [2026-09-02 10:48] - /speckit.implement
 
 ### Changed

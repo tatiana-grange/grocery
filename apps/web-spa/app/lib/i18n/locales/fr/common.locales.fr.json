@@ -230,7 +230,10 @@
       "currentPassword": "Mot de passe actuel",
       "newPassword": "Nouveau mot de passe (8 caractères min.)",
       "passwordChanged": "Mot de passe modifié",
-      "passwordError": "Impossible de changer le mot de passe"
+      "passwordError": "Impossible de changer le mot de passe",
+      "endMembership": "Résilier mon adhésion",
+      "endMembershipTitle": "Résilier votre adhésion ?",
+      "endMembershipWarning": "Vous serez déconnecté·e et ne pourrez plus commander. Votre historique est conservé."
     },
     "status": {
       "pending": "En attente",
@@ -258,6 +261,11 @@
     "history": "Historique des statuts",
     "validate": "Valider",
     "reject": "Refuser",
+    "makeAdmin": "Nommer administrateur",
+    "removeAdmin": "Retirer l'administration",
+    "roleUpdated": "Rôles mis à jour",
+    "terminate": "Résilier l'adhésion",
+    "reactivate": "Réactiver",
     "count": "{{count}} adhérent",
     "count_other": "{{count}} adhérents",
     "tabs": {
@@ -276,9 +284,14 @@
       "title": "Refuser cette demande d'adhésion",
       "reasonPlaceholder": "Motif (communiqué au demandeur)"
     },
+    "terminateDialog": {
+      "title": "Résilier cette adhésion",
+      "reasonPlaceholder": "Motif (communiqué à l'adhérent)"
+    },
     "toasts": {
       "validated": "Adhérent validé",
       "rejected": "Demande refusée",
+      "updated": "Fait",
       "error": "Une erreur est survenue"
     },
     "fee": {

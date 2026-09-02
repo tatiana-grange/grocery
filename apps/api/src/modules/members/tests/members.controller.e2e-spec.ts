@@ -194,6 +194,89 @@ describe('membersController (e2e)', () => {
     })
   })
 
+  describe('roles', () => {
+    it('grants and removes the admin role and protects the last admin', async (context) => {
+      const { em, request } = context
+      const adminSession = await arrangeAdmin(em)
+      const { member } = await createMemberData(em, { status: 'active', roles: ['member'] })
+
+      const granted = await request
+        .withSession(adminSession)
+        .put(`/admin/members/${member.id}/roles`)
+        .send({ roles: ['member', 'admin'], version: member.version })
+      expect(granted.status).toBe(200)
+      expect(granted.body.roles).toEqual(expect.arrayContaining(['member', 'admin']))
+
+      const removed = await request
+        .withSession(adminSession)
+        .put(`/admin/members/${member.id}/roles`)
+        .send({ roles: ['member'], version: granted.body.version })
+      expect(removed.status).toBe(200)
+      expect(removed.body.roles).toEqual(['member'])
+    })
+
+    it('refuses to remove the last administrator', async (context) => {
+      const { em, request } = context
+      // Exactly one admin: the one we arrange here.
+      const { user, member } = await createMemberData(em, {
+        user: { name: 'Only Admin', email: `only-${Math.random().toString(36).slice(2)}@example.com` },
+        roles: ['member', 'admin'],
+        status: 'active',
+      })
+
+      const res = await request
+        .withSession(createSessionFromUser(user))
+        .put(`/admin/members/${member.id}/roles`)
+        .send({ roles: ['member'], version: member.version })
+      expect(res.status).toBe(409)
+    })
+  })
+
+  describe('termination', () => {
+    it('lets a member self-terminate and then locks them out', async (context) => {
+      const { em, request } = context
+      const { user } = await createMemberData(em, { status: 'active' })
+      const session = createSessionFromUser(user)
+
+      const res = await request
+        .withSession(session)
+        .post('/members/me/termination')
+        .send({ confirm: true })
+      expect(res.status).toBe(200)
+      expect(res.body.status).toBe('terminated')
+
+      const after = await request.withSession(session).get('/members/me')
+      expect(after.status).toBe(403)
+    })
+
+    it('lets an admin terminate with a reason and reactivate with data intact', async (context) => {
+      const { em, request } = context
+      const adminSession = await arrangeAdmin(em)
+      const { member } = await createMemberData(em, {
+        status: 'active',
+        profile: { city: 'Nantes' },
+      })
+
+      const terminated = await request
+        .withSession(adminSession)
+        .post(`/admin/members/${member.id}/termination`)
+        .send({ reason: 'Moved away', version: member.version })
+      expect(terminated.status).toBe(200)
+      expect(terminated.body.status).toBe('terminated')
+      expect(terminated.body.statusHistory.at(-1)).toMatchObject({
+        toStatus: 'terminated',
+        reason: 'Moved away',
+      })
+
+      const reactivated = await request
+        .withSession(adminSession)
+        .post(`/admin/members/${member.id}/reactivation`)
+        .send({ version: terminated.body.version })
+      expect(reactivated.status).toBe(200)
+      expect(reactivated.body).toMatchObject({ status: 'active', profile: { city: 'Nantes' } })
+    })
+  })
+
   describe('membership fee', () => {
     it('moves through unpaid → partly_paid → paid and back with an adjustment', async (context) => {
       const { em, request } = context

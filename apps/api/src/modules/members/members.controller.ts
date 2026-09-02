@@ -29,10 +29,18 @@ import {
   membersListSchema,
   type MembershipIntakeInput,
   membershipIntakeSchema,
+  type ReactivateMemberInput,
+  reactivateMemberSchema,
   type RecordFeePaymentInput,
   recordFeePaymentSchema,
+  type SelfTerminateInput,
+  selfTerminateSchema,
   type SetFeeInput,
   setFeeSchema,
+  type SetMemberRolesInput,
+  setMemberRolesSchema,
+  type TerminateMemberInput,
+  terminateMemberSchema,
   type UpdateProfileInput,
   updateProfileSchema,
 } from './contracts/member.contract'
@@ -115,6 +123,38 @@ export class AdminMembersController {
     const fee = await this.membersService.recordFeePayment(id, body, session.user.id)
     return this.membersMapper.toFeeSummary(fee)
   }
+
+  @TypedRoute.Put(':id/roles', memberDetailSchema)
+  async setRoles(
+    @TypedParam('id', z.string()) id: string,
+    @TypedBody(setMemberRolesSchema) body: SetMemberRolesInput,
+  ): Promise<MemberDetail> {
+    await this.membersService.setRoles(id, body.roles, body.version)
+    const member = await this.membersService.getMemberDetail(id)
+    return this.membersMapper.toMemberDetail(member, await this.membersService.getFeeForMember(id))
+  }
+
+  @TypedRoute.Post(':id/termination', memberDetailSchema)
+  @HttpCode(200)
+  async terminate(
+    @Session() session: LoggedInBetterAuthSession,
+    @TypedParam('id', z.string()) id: string,
+    @TypedBody(terminateMemberSchema) body: TerminateMemberInput,
+  ): Promise<MemberDetail> {
+    const member = await this.membersService.adminTerminate(id, body.reason, session.user.id)
+    return this.membersMapper.toMemberDetail(member, await this.membersService.getFeeForMember(id))
+  }
+
+  @TypedRoute.Post(':id/reactivation', memberDetailSchema)
+  @HttpCode(200)
+  async reactivate(
+    @Session() session: LoggedInBetterAuthSession,
+    @TypedParam('id', z.string()) id: string,
+    @TypedBody(reactivateMemberSchema) body: ReactivateMemberInput,
+  ): Promise<MemberDetail> {
+    const member = await this.membersService.reactivate(id, body.version, session.user.id)
+    return this.membersMapper.toMemberDetail(member, await this.membersService.getFeeForMember(id))
+  }
 }
 
 @TypedController('members/me', undefined, { tags: ['Member self-service'] })
@@ -139,6 +179,17 @@ export class MemberSelfController {
   ) {
     await this.membersService.updateMyProfile(session.user.id, body)
     const { member, fee } = await this.membersService.getMyAccount(session.user.id)
+    return this.membersMapper.toMemberSelf(member, fee)
+  }
+
+  @TypedRoute.Post('termination', memberSelfSchema)
+  @HttpCode(200)
+  async terminate(
+    @Session() session: LoggedInBetterAuthSession,
+    @TypedBody(selfTerminateSchema) _body: SelfTerminateInput,
+  ) {
+    const member = await this.membersService.selfTerminate(session.user.id)
+    const fee = await this.membersService.getFeeForMember(member.id)
     return this.membersMapper.toMemberSelf(member, fee)
   }
 }

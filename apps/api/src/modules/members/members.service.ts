@@ -16,11 +16,10 @@ import type {
   MemberSorting,
   MemberStatus,
   MembershipFeeState,
-} from './contracts/member.contract'
-import type {
   RecordFeePaymentInput,
   SetFeeInput,
   UpdateProfileInput,
+  UserRole,
 } from './contracts/member.contract'
 import { MemberStatusChange } from './entities/member-status-change.entity'
 import { MembershipFee } from './entities/membership-fee.entity'
@@ -28,6 +27,7 @@ import { MembershipIntakeSetting } from './entities/membership-intake-setting.en
 import { MembershipPayment } from './entities/membership-payment.entity'
 import { Member } from './entities/member.entity'
 import { MembersMapper } from './members.mapper'
+import { parseRoles, serializeRoles } from './members.util'
 
 export interface MembersListResult {
   members: Member[]
@@ -323,6 +323,85 @@ export class MembersService {
   }
 
   // -----------------------------------------------------------------------------------------------
+  // Roles
+  // -----------------------------------------------------------------------------------------------
+
+  async setRoles(memberId: string, roles: UserRole[], version: number): Promise<Member> {
+    return this.em.transactional(async (em) => {
+      const member = await em.findOne(Member, { id: memberId }, { populate: ['user'] })
+      if (!member) throw new NotFoundException('Member not found')
+      if (member.version !== version) {
+        throw new ConflictException(
+          'This member changed since you opened it — reload and try again',
+        )
+      }
+
+      const wasAdmin = parseRoles(member.user.role).includes('admin')
+      const willBeAdmin = roles.includes('admin')
+      if (wasAdmin && !willBeAdmin) {
+        const admins = await em.find(User, { role: { $like: '%admin%' } })
+        const otherAdmins = admins.filter(
+          (user) => user.id !== member.user.id && parseRoles(user.role).includes('admin'),
+        )
+        if (otherAdmins.length === 0) {
+          throw new ConflictException('Cannot remove the last administrator')
+        }
+      }
+
+      member.user.role = serializeRoles(roles)
+      // Touch the member row so its version advances too.
+      member.updatedAt = new Date()
+      await em.flush()
+      return member
+    })
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Termination / reactivation
+  // -----------------------------------------------------------------------------------------------
+
+  async selfTerminate(userId: string): Promise<Member> {
+    const member = await this.em.findOne(Member, { user: userId }, { populate: ['user'] })
+    if (!member) throw new NotFoundException('Member not found')
+    if (member.status !== 'active') {
+      throw new BadRequestException(`Member is ${member.status}`)
+    }
+    this.transitionStatus(member, 'terminated')
+    await this.em.flush()
+    await this.revokeSessions(userId)
+    await this.notifyLifecycle(member, 'terminated')
+    return this.getMemberDetail(member.id)
+  }
+
+  async adminTerminate(id: string, reason: string, adminUserId: string): Promise<Member> {
+    const member = await this.em.findOne(Member, { id }, { populate: ['user'] })
+    if (!member) throw new NotFoundException('Member not found')
+    if (member.status !== 'active') {
+      throw new BadRequestException(`Member is ${member.status}`)
+    }
+    this.transitionStatus(member, 'terminated', { reason, changedByUserId: adminUserId })
+    await this.em.flush()
+    await this.revokeSessions(member.user.id)
+    await this.notifyLifecycle(member, 'terminated', reason)
+    return this.getMemberDetail(id)
+  }
+
+  async reactivate(id: string, version: number, adminUserId: string): Promise<Member> {
+    const member = await this.em.findOne(Member, { id }, { populate: ['user'] })
+    if (!member) throw new NotFoundException('Member not found')
+    if (member.version !== version) {
+      throw new ConflictException('This member changed since you opened it — reload and try again')
+    }
+    if (member.status !== 'terminated') {
+      throw new BadRequestException(`Member is ${member.status}`)
+    }
+    this.transitionStatus(member, 'active', { changedByUserId: adminUserId })
+    await this.em.flush()
+    await this.notifyLifecycle(member, 'reactivated')
+    return this.getMemberDetail(id)
+  }
+
+  // -----------------------------------------------------------------------------------------------
   // Notifications
   // -----------------------------------------------------------------------------------------------
 
@@ -340,7 +419,27 @@ export class MembersService {
         : `Hello ${user.name}, your membership request was not approved.${
             reason ? ` Reason: ${reason}` : ''
           }`
+    await this.send(user, subject, body)
+  }
 
+  private async notifyLifecycle(
+    member: Member,
+    outcome: 'terminated' | 'reactivated',
+    reason?: string,
+  ): Promise<void> {
+    const user = member.user
+    const subject =
+      outcome === 'terminated' ? 'Your membership has ended' : 'Your membership is active again'
+    const body =
+      outcome === 'terminated'
+        ? `Hello ${user.name}, your membership has been terminated.${
+            reason ? ` Reason: ${reason}` : ''
+          }`
+        : `Hello ${user.name}, your membership has been reactivated. You can sign in again.`
+    await this.send(user, subject, body)
+  }
+
+  private async send(user: User, subject: string, body: string): Promise<void> {
     if (user.emailVerified && user.email && !user.email.endsWith('@phone.grocery.local')) {
       await this.emailService.sendEmail({ to: user.email, subject, content: body })
     } else if (user.phoneNumberVerified && user.phoneNumber) {

@@ -21,6 +21,9 @@ import { MemberStatusBadge } from '@/features/admin-members/components/member-st
 import {
   decideMember,
   memberDetailQueryOptions,
+  reactivateMember,
+  setMemberRoles,
+  terminateMember,
 } from '@/features/admin-members/utils/admin-members-queries'
 
 export default function MemberDetailPage() {
@@ -48,11 +51,39 @@ export default function MemberDetailPage() {
     onError: () => toast.error(t('adminMembers.toasts.error')),
   })
 
+  const invalidate = () => void queryClient.invalidateQueries({ queryKey: ['admin-members'] })
+  const onError = () => toast.error(t('adminMembers.toasts.error'))
+
+  const roleMutation = useMutation({
+    mutationFn: (roles: ('member' | 'admin')[]) =>
+      setMemberRoles(memberId, { roles, version: member!.version }),
+    onSuccess: () => {
+      toast.success(t('adminMembers.roleUpdated'))
+      invalidate()
+    },
+    onError,
+  })
+
+  const lifecycleMutation = useMutation({
+    mutationFn: (action: { type: 'terminate'; reason: string } | { type: 'reactivate' }) =>
+      action.type === 'terminate'
+        ? terminateMember(memberId, { reason: action.reason, version: member!.version })
+        : reactivateMember(memberId, { version: member!.version }),
+    onSuccess: () => {
+      toast.success(t('adminMembers.toasts.updated'))
+      invalidate()
+    },
+    onError,
+  })
+
+  const [terminateReason, setTerminateReason] = useState('')
+
   if (isLoading || !member) {
     return <Skeleton className="h-64 w-full" />
   }
 
   const isPending = member.status === 'pending'
+  const isAdmin = member.roles.includes('admin')
 
   return (
     <div className="space-y-6">
@@ -125,6 +156,59 @@ export default function MemberDetailPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        </div>
+      )}
+
+      {member.status === 'active' && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={roleMutation.isPending}
+            onClick={() => roleMutation.mutate(isAdmin ? ['member'] : ['member', 'admin'])}
+          >
+            {isAdmin ? t('adminMembers.removeAdmin') : t('adminMembers.makeAdmin')}
+          </Button>
+
+          <Dialog>
+            <DialogTrigger render={<Button variant="destructive" size="sm" />}>
+              {t('adminMembers.terminate')}
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t('adminMembers.terminateDialog.title')}</DialogTitle>
+              </DialogHeader>
+              <Textarea
+                value={terminateReason}
+                onChange={(event) => setTerminateReason(event.target.value)}
+                placeholder={t('adminMembers.terminateDialog.reasonPlaceholder')}
+              />
+              <DialogFooter>
+                <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
+                <DialogClose
+                  render={<Button variant="destructive" />}
+                  disabled={!terminateReason.trim()}
+                  onClick={() =>
+                    lifecycleMutation.mutate({ type: 'terminate', reason: terminateReason.trim() })
+                  }
+                >
+                  {t('adminMembers.terminate')}
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {member.status === 'terminated' && (
+        <div className="rounded-lg border border-border p-4">
+          <Button
+            size="sm"
+            disabled={lifecycleMutation.isPending}
+            onClick={() => lifecycleMutation.mutate({ type: 'reactivate' })}
+          >
+            {t('adminMembers.reactivate')}
+          </Button>
         </div>
       )}
 

@@ -1,24 +1,46 @@
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@grocery/ui/components/primitives/dialog'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
 import { MemberQr } from '@/features/account/components/member-qr'
 import { PasswordChangeForm } from '@/features/account/components/password-change-form'
 import {
+  endMyMembership,
   myAccountQueryOptions,
   updateMyProfile,
 } from '@/features/account/utils/account-queries'
+import { authClient } from '@/lib/auth-client'
 
 const FIELDS = ['addressLine1', 'addressLine2', 'postalCode', 'city', 'phone'] as const
 
 export default function AccountPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: account, isLoading } = useQuery(myAccountQueryOptions())
+
+  const terminate = useMutation({
+    mutationFn: endMyMembership,
+    onSuccess: async () => {
+      await authClient.signOut()
+      navigate('/login')
+    },
+    onError: () => toast.error(t('members.account.error')),
+  })
 
   const [profile, setProfile] = useState<Record<string, string>>({})
   useEffect(() => {
@@ -95,6 +117,32 @@ export default function AccountPage() {
       </div>
 
       <PasswordChangeForm />
+
+      <section className="border-t border-border pt-6">
+        <Dialog>
+          <DialogTrigger render={<Button variant="ghost" size="sm" className="text-destructive" />}>
+            {t('members.account.endMembership')}
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('members.account.endMembershipTitle')}</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              {t('members.account.endMembershipWarning')}
+            </p>
+            <DialogFooter>
+              <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
+              <DialogClose
+                render={<Button variant="destructive" />}
+                disabled={terminate.isPending}
+                onClick={() => terminate.mutate()}
+              >
+                {t('members.account.endMembership')}
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </section>
     </div>
   )
 }

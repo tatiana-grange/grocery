@@ -317,6 +317,44 @@ export type RecordFeePayment = {
 };
 
 /**
+ * SetMemberRoles
+ *
+ * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
+ */
+export type SetMemberRoles = {
+    roles: Array<UserRole>;
+    version: number;
+};
+
+/**
+ * TerminateMember
+ *
+ * Terminate a member with a reason (admin action)
+ */
+export type TerminateMember = {
+    reason: string;
+    version: number;
+};
+
+/**
+ * ReactivateMember
+ *
+ * Return a terminated member to active
+ */
+export type ReactivateMember = {
+    version: number;
+};
+
+/**
+ * SelfTerminate
+ *
+ * A member ending their own membership
+ */
+export type SelfTerminate = {
+    confirm: true;
+};
+
+/**
  * MembershipIntake
  *
  * Whether self-registration is currently accepted
@@ -1654,6 +1692,83 @@ export type AdminMembersControllerRecordFeePaymentResponses = {
 
 export type AdminMembersControllerRecordFeePaymentResponse = AdminMembersControllerRecordFeePaymentResponses[keyof AdminMembersControllerRecordFeePaymentResponses];
 
+export type AdminMembersControllerSetRolesData = {
+    /**
+     * SetMemberRoles
+     *
+     * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
+     */
+    body: {
+        roles: Array<'member' | 'admin'>;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/roles';
+};
+
+export type AdminMembersControllerSetRolesResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerSetRolesResponse = AdminMembersControllerSetRolesResponses[keyof AdminMembersControllerSetRolesResponses];
+
+export type AdminMembersControllerTerminateData = {
+    /**
+     * TerminateMember
+     *
+     * Terminate a member with a reason (admin action)
+     */
+    body: {
+        reason: string;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/termination';
+};
+
+export type AdminMembersControllerTerminateResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerTerminateResponse = AdminMembersControllerTerminateResponses[keyof AdminMembersControllerTerminateResponses];
+
+export type AdminMembersControllerReactivateData = {
+    /**
+     * ReactivateMember
+     *
+     * Return a terminated member to active
+     */
+    body: {
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/reactivation';
+};
+
+export type AdminMembersControllerReactivateResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerReactivateResponse = AdminMembersControllerReactivateResponses[keyof AdminMembersControllerReactivateResponses];
+
 export type MemberSelfControllerMeData = {
     body?: never;
     path?: never;
@@ -1697,6 +1812,29 @@ export type MemberSelfControllerUpdateProfileResponses = {
 };
 
 export type MemberSelfControllerUpdateProfileResponse = MemberSelfControllerUpdateProfileResponses[keyof MemberSelfControllerUpdateProfileResponses];
+
+export type MemberSelfControllerTerminateData = {
+    /**
+     * SelfTerminate
+     *
+     * A member ending their own membership
+     */
+    body: {
+        confirm: true;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/members/me/termination';
+};
+
+export type MemberSelfControllerTerminateResponses = {
+    /**
+     * The signed-in member’s own account
+     */
+    200: MemberSelf;
+};
+
+export type MemberSelfControllerTerminateResponse = MemberSelfControllerTerminateResponses[keyof MemberSelfControllerTerminateResponses];
 
 export type MembershipIntakeControllerGetData = {
     body?: never;

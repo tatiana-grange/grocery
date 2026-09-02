@@ -9,8 +9,11 @@ import {
   adminMembersControllerDetail,
   adminMembersControllerList,
   adminMembersControllerListFeePayments,
+  adminMembersControllerReactivate,
   adminMembersControllerRecordFeePayment,
   adminMembersControllerSetFee,
+  adminMembersControllerSetRoles,
+  adminMembersControllerTerminate,
   adminMembersControllerUpdateProfile,
 } from '@grocery/openapi-generator/client/sdk.gen'
 import { FilterRule } from '@lonestone/nzoth/client'
@@ -96,3 +99,16 @@ export function feePaymentsQueryOptions(id: string) {
     queryFn: async () => unwrap(await adminMembersControllerListFeePayments({ path: { id } })),
   }
 }
+
+export const setMemberRoles = async (
+  id: string,
+  body: { roles: ('member' | 'admin')[]; version: number },
+) => unwrap(await adminMembersControllerSetRoles({ path: { id }, body }))
+
+export const terminateMember = async (
+  id: string,
+  body: { reason: string; version: number },
+) => unwrap(await adminMembersControllerTerminate({ path: { id }, body }))
+
+export const reactivateMember = async (id: string, body: { version: number }) =>
+  unwrap(await adminMembersControllerReactivate({ path: { id }, body }))

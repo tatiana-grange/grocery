@@ -164,6 +164,34 @@ export const zSetMembershipFee = z.object({
 });
 
 /**
+ * TerminateMember
+ *
+ * Terminate a member with a reason (admin action)
+ */
+export const zTerminateMember = z.object({
+    reason: z.string().min(1),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * ReactivateMember
+ *
+ * Return a terminated member to active
+ */
+export const zReactivateMember = z.object({
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * SelfTerminate
+ *
+ * A member ending their own membership
+ */
+export const zSelfTerminate = z.object({
+    confirm: z.literal(true)
+});
+
+/**
  * MembershipIntake
  *
  * Whether self-registration is currently accepted
@@ -971,6 +999,16 @@ export const zMemberStatus = z.enum([
  * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
  */
 export const zUserRole = z.enum(['member', 'admin']);
+
+/**
+ * SetMemberRoles
+ *
+ * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
+ */
+export const zSetMemberRoles = z.object({
+    roles: z.array(zUserRole).min(1),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
 
 /**
  * MembershipFeeState
@@ -1862,6 +1900,53 @@ export const zAdminMembersControllerRecordFeePaymentData = z.object({
  */
 export const zAdminMembersControllerRecordFeePaymentResponse = zFeeSummary;
 
+export const zAdminMembersControllerSetRolesData = z.object({
+    body: z.object({
+        roles: z.array(z.enum(['member', 'admin'])).min(1),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerSetRolesResponse = zMemberDetail;
+
+export const zAdminMembersControllerTerminateData = z.object({
+    body: z.object({
+        reason: z.string().min(1),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerTerminateResponse = zMemberDetail;
+
+export const zAdminMembersControllerReactivateData = z.object({
+    body: z.object({
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerReactivateResponse = zMemberDetail;
+
 export const zMemberSelfControllerMeData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -1905,6 +1990,19 @@ export const zMemberSelfControllerUpdateProfileData = z.object({
  * The signed-in member’s own account
  */
 export const zMemberSelfControllerUpdateProfileResponse = zMemberSelf;
+
+export const zMemberSelfControllerTerminateData = z.object({
+    body: z.object({
+        confirm: z.literal(true)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The signed-in member’s own account
+ */
+export const zMemberSelfControllerTerminateResponse = zMemberSelf;
 
 export const zMembershipIntakeControllerGetData = z.object({
     body: z.optional(z.never()),
