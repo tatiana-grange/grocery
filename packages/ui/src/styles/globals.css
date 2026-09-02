@@ -8,7 +8,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Lonestone gray scale (hex → oklch) ──────────────────────────────────
+/* ─── Brand gray scale (hex → oklch) ──────────────────────────────────
    #f9f9f9 → oklch(0.979 0 0)   [ --gray-50  ]
    #f6f6f6 → oklch(0.969 0 0)   [ --gray-100 ]
    #e7e7e7 → oklch(0.924 0 0)   [ --gray-200 ]
@@ -27,7 +27,7 @@
   --header-height: 3rem;
   --radius: 0.625rem;
 
-  /* Lonestone yellow — primary fill token (NEVER use as text color on white) */
+  /* brand yellow — primary fill token (NEVER use as text color on white) */
   /* #fff056 = oklch(0.95 0.18 105) */
 
   /* ── Light mode ─────────────────────────────────────────────────────── */
@@ -40,7 +40,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.097 0 0);
 
-  /* Primary = Lonestone yellow; foreground always black */
+  /* Primary = brand yellow; foreground always black */
   --primary: oklch(0.95 0.18 105); /* #fff056             */
   --primary-foreground: oklch(0.097 0 0); /* black on yellow     */
 
@@ -101,7 +101,7 @@
   --popover: oklch(0.155 0 0);
   --popover-foreground: oklch(0.979 0 0);
 
-  /* Primary = same Lonestone yellow; foreground still black */
+  /* Primary = same brand yellow; foreground still black */
   --primary: oklch(0.95 0.18 105); /* #fff056             */
   --primary-foreground: oklch(0.097 0 0); /* black on yellow     */
 
