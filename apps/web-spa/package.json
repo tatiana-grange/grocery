@@ -11,10 +11,10 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
+    "@fontsource/source-sans-pro": "^5.3.0",
     "@grocery/i18n": "workspace:*",
     "@grocery/openapi-generator": "workspace:*",
     "@grocery/ui": "workspace:*",
-    "@fontsource/source-sans-pro": "^5.3.0",
     "@hookform/resolvers": "catalog:frontend",
     "@lonestone/nzoth": "^1.2.0",
     "@react-router/node": "catalog:frontend",
@@ -26,6 +26,7 @@
     "isbot": "^5.2.1",
     "lucide-react": "^0.563.0",
     "motion": "^12.43.0",
+    "qrcode.react": "^4.2.0",
     "react": "catalog:frontend",
     "react-dom": "catalog:frontend",
     "react-hook-form": "catalog:frontend",

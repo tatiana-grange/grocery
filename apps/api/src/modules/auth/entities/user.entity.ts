@@ -1,3 +1,4 @@
+import type { Opt } from '@mikro-orm/core'
 import { Entity, PrimaryKey, Property, Unique } from '@mikro-orm/decorators/legacy'
 
 @Entity({ tableName: 'user' })
@@ -23,4 +24,23 @@ export class User {
 
   @Property({ onUpdate: () => new Date() })
   updatedAt: Date = new Date()
+
+  @Property({ nullable: true })
+  role?: string
+
+  @Property({ default: false })
+  banned: boolean & Opt = false
+
+  @Property({ nullable: true })
+  banReason?: string
+
+  @Property({ nullable: true })
+  banExpires?: Date
+
+  @Property({ nullable: true })
+  @Unique()
+  phoneNumber?: string
+
+  @Property({ nullable: true })
+  phoneNumberVerified?: boolean
 }

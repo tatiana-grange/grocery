@@ -46,6 +46,7 @@
 
 - [architecture-plan.mdx](./src/content/docs/project/architecture-plan.mdx) - How the MonÉpi features map onto this stack — modules, entities, delivery lots, risks
 - [index.mdx](./src/content/docs/project/index.mdx) - What this project is and where the planning notes live
+- [lot-1-foundation.mdx](./src/content/docs/project/lot-1-foundation.mdx) - What the members and catalog modules deliver, and how they are shaped
 - [monepi-features.mdx](./src/content/docs/project/monepi-features.mdx) - Every feature found on the MonÉpi wiki, grouped by area
 
 ## References

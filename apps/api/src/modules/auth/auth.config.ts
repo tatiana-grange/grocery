@@ -2,8 +2,17 @@ import type { MikroORM } from '@mikro-orm/core'
 import type { BetterAuthOptions, User } from 'better-auth'
 import type { BetterAuthType } from './auth.client-types'
 import { betterAuth } from 'better-auth'
-import { openAPI } from 'better-auth/plugins'
+import { admin, openAPI, phoneNumber } from 'better-auth/plugins'
 import { mikroOrmAdapter } from './auth-db.adapter'
+
+/**
+ * Access roles in lot 1. `admin` is a strict superset of `member`.
+ * `grocer` is added in lot 4 (distribution).
+ */
+export const USER_ROLES = ['member', 'admin'] as const
+export type UserRole = (typeof USER_ROLES)[number]
+export const DEFAULT_USER_ROLE: UserRole = 'member'
+export const ADMIN_USER_ROLES: UserRole[] = ['admin']
 
 type BetterAuthHooks = NonNullable<BetterAuthOptions['hooks']>
 
@@ -19,6 +28,8 @@ interface BetterAuthOptionsDynamic {
     data: { user: User; url: string; token: string },
     request: Request | undefined,
   ) => Promise<void>
+  sendPhoneOtp?: (data: { phoneNumber: string; code: string }) => Promise<void>
+  sendPhonePasswordResetOtp?: (data: { phoneNumber: string; code: string }) => Promise<void>
   beforeHook?: BetterAuthHooks['before']
   afterHook?: BetterAuthHooks['after']
   databaseHooks?: BetterAuthOptions['databaseHooks']
@@ -78,7 +89,24 @@ export function createBetterAuth(options: BetterAuthOptionsDynamic): BetterAuthT
       before: options?.beforeHook,
       after: options?.afterHook,
     },
-    plugins: [openAPI()],
+    plugins: [
+      openAPI(),
+      admin({
+        defaultRole: DEFAULT_USER_ROLE,
+        adminRoles: ADMIN_USER_ROLES,
+      }),
+      phoneNumber({
+        requireVerification: true,
+        sendOTP: async ({ phoneNumber: phone, code }) => {
+          if (!options?.sendPhoneOtp) return
+          return options.sendPhoneOtp({ phoneNumber: phone, code })
+        },
+        sendPasswordResetOTP: async ({ phoneNumber: phone, code }) => {
+          if (!options?.sendPhonePasswordResetOtp) return
+          return options.sendPhonePasswordResetOtp({ phoneNumber: phone, code })
+        },
+      }),
+    ],
   } satisfies BetterAuthOptions
 
   // We need to pass the options to the customSession plugin to infer the type correctly

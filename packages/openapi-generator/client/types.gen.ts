@@ -5,6 +5,104 @@ export type ClientOptions = {
 };
 
 /**
+ * CreateSupplier
+ *
+ * Create a supplier
+ */
+export type CreateSupplier = {
+    name: string;
+    type: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
+};
+
+/**
+ * UpdateSupplier
+ *
+ * Update a supplier (send the loaded version)
+ */
+export type UpdateSupplier = {
+    name?: string;
+    type?: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
+    version: number;
+};
+
+/**
+ * CreateCategory
+ *
+ * Create a category
+ */
+export type CreateCategory = {
+    name: string;
+    parentId?: string | null;
+};
+
+/**
+ * UpdateCategory
+ *
+ * Rename or reparent a category
+ */
+export type UpdateCategory = {
+    name?: string;
+    parentId?: string | null;
+    version: number;
+};
+
+/**
+ * CreateProduct
+ *
+ * Create a catalogue product with its first price. pricingUnit is derived from saleMode.
+ */
+export type CreateProduct = {
+    name: string;
+    description?: string | null;
+    supplierId: string;
+    categoryId: string;
+    saleMode: ProductSaleMode;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
+    initialPriceEur: number;
+};
+
+/**
+ * UpdateProduct
+ *
+ * Update a product (not its price)
+ */
+export type UpdateProduct = {
+    name?: string;
+    description?: string | null;
+    supplierId?: string;
+    categoryId?: string;
+    saleMode?: ProductSaleMode;
+    photos?: Array<string>;
+    labels?: Array<ProductLabel>;
+    barcode?: string | null;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
+    version: number;
+};
+
+/**
+ * SetProductPrice
+ *
+ * Set a new current price; the previous window is closed at effectiveFrom (or now)
+ */
+export type SetProductPrice = {
+    amountEur: number;
+    effectiveFrom?: string;
+};
+
+/**
  * UseCase1SingleGenerationRequest
  *
  * Single generation; trace is finalized with name/output so Langfuse shows them
@@ -135,6 +233,15 @@ export type CreateCommentSchema = {
 };
 
 /**
+ * UpdateCommentSchema
+ *
+ * Schema for updating a comment
+ */
+export type UpdateCommentSchema = {
+    content: string;
+};
+
+/**
  * CreatePostSchema
  *
  * Schema for creating/updating a post
@@ -156,6 +263,329 @@ export type UpdatePostSchema = {
     content?: Array<PostContentSchema>;
     coverImage?: string;
     tags?: Array<string>;
+};
+
+/**
+ * CreateMember
+ *
+ * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
+ */
+export type CreateMember = {
+    name: string;
+    email?: string | null;
+    phoneNumber?: string | null;
+    profile?: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+    };
+    roles: Array<UserRole>;
+    status: 'pending' | 'active';
+};
+
+/**
+ * MemberValidation
+ *
+ * Validate a pending member (moves them to active) or reject them with a reason
+ */
+export type MemberValidation = {
+    decision: 'validate';
+    version: number;
+} | {
+    decision: 'reject';
+    reason: string;
+    version: number;
+};
+
+/**
+ * UpdateMemberProfile
+ *
+ * Update a member’s name and personal details (send the version you loaded)
+ */
+export type UpdateMemberProfile = {
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    postalCode?: string | null;
+    city?: string | null;
+    phone?: string | null;
+    name?: string;
+    version: number;
+};
+
+/**
+ * SetMembershipFee
+ *
+ * Set the expected membership fee for a member (the "variable fee")
+ */
+export type SetMembershipFee = {
+    expectedAmountCents: number;
+    version: number;
+};
+
+/**
+ * RecordFeePayment
+ *
+ * Record a membership-fee payment (positive) or an adjustment (any non-zero)
+ */
+export type RecordFeePayment = {
+    kind: MembershipPaymentKind;
+    amountCents: number;
+    method: MembershipPaymentMethod;
+    paidAt: string;
+    note?: string | null;
+};
+
+/**
+ * SetMemberRoles
+ *
+ * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
+ */
+export type SetMemberRoles = {
+    roles: Array<UserRole>;
+    version: number;
+};
+
+/**
+ * TerminateMember
+ *
+ * Terminate a member with a reason (admin action)
+ */
+export type TerminateMember = {
+    reason: string;
+    version: number;
+};
+
+/**
+ * ReactivateMember
+ *
+ * Return a terminated member to active
+ */
+export type ReactivateMember = {
+    version: number;
+};
+
+/**
+ * SelfTerminate
+ *
+ * A member ending their own membership
+ */
+export type SelfTerminate = {
+    confirm: true;
+};
+
+/**
+ * MembershipIntake
+ *
+ * Whether self-registration is currently accepted
+ */
+export type MembershipIntake = {
+    open: boolean;
+};
+
+/**
+ * CatalogSuppliersList
+ *
+ * A paginated list of suppliers
+ */
+export type CatalogSuppliersList = {
+    data: Array<CatalogSupplier>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * CatalogSupplier
+ *
+ * A source of products
+ */
+export type CatalogSupplier = {
+    id: string;
+    name: string;
+    type: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
+    archivedAt?: string | null;
+    productCount: number;
+    version: number;
+    createdAt: string;
+};
+
+/**
+ * SupplierType
+ *
+ * Whether the supplier is a producer or a wholesaler
+ */
+export const SupplierType = { PRODUCER: 'producer', WHOLESALER: 'wholesaler' } as const;
+
+/**
+ * SupplierType
+ *
+ * Whether the supplier is a producer or a wholesaler
+ */
+export type SupplierType = typeof SupplierType[keyof typeof SupplierType];
+
+/**
+ * CatalogCategoriesList
+ *
+ * All categories (one nesting level)
+ */
+export type CatalogCategoriesList = Array<CatalogCategory>;
+
+/**
+ * CatalogCategory
+ *
+ * A grouping for products in the catalogue
+ */
+export type CatalogCategory = {
+    id: string;
+    name: string;
+    parentId?: string | null;
+    archivedAt?: string | null;
+    productCount: number;
+    version: number;
+};
+
+/**
+ * CatalogProductsList
+ *
+ * A paginated list of products
+ */
+export type CatalogProductsList = {
+    data: Array<CatalogProduct>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * CatalogProduct
+ *
+ * An item the cooperative offers
+ */
+export type CatalogProduct = {
+    id: string;
+    name: string;
+    description?: string | null;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    category: {
+        id: string;
+        name: string;
+    };
+    saleMode: ProductSaleMode;
+    pricingUnit: ProductPricingUnit;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    currentPriceEur?: number | null;
+    archivedAt?: string | null;
+    version: number;
+    createdAt: string;
+};
+
+/**
+ * ProductSaleMode
+ *
+ * "unit" is sold per piece, "weight" is priced per kilogram
+ */
+export const ProductSaleMode = { UNIT: 'unit', WEIGHT: 'weight' } as const;
+
+/**
+ * ProductSaleMode
+ *
+ * "unit" is sold per piece, "weight" is priced per kilogram
+ */
+export type ProductSaleMode = typeof ProductSaleMode[keyof typeof ProductSaleMode];
+
+/**
+ * ProductPricingUnit
+ *
+ * Derived from the sale mode: unit → piece, weight → kg
+ */
+export const ProductPricingUnit = { PIECE: 'piece', KG: 'kg' } as const;
+
+/**
+ * ProductPricingUnit
+ *
+ * Derived from the sale mode: unit → piece, weight → kg
+ */
+export type ProductPricingUnit = typeof ProductPricingUnit[keyof typeof ProductPricingUnit];
+
+/**
+ * ProductLabel
+ *
+ * Informational badges shown on the product
+ */
+export const ProductLabel = {
+    ORGANIC: 'organic',
+    LOCAL: 'local',
+    VEGETARIAN: 'vegetarian',
+    VEGAN: 'vegan'
+} as const;
+
+/**
+ * ProductLabel
+ *
+ * Informational badges shown on the product
+ */
+export type ProductLabel = typeof ProductLabel[keyof typeof ProductLabel];
+
+/**
+ * CatalogProductDetail
+ *
+ * A product with its full price history
+ */
+export type CatalogProductDetail = {
+    id: string;
+    name: string;
+    description?: string | null;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    category: {
+        id: string;
+        name: string;
+    };
+    saleMode: ProductSaleMode;
+    pricingUnit: ProductPricingUnit;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    currentPriceEur?: number | null;
+    archivedAt?: string | null;
+    version: number;
+    createdAt: string;
+    priceHistory: Array<CatalogPriceWindow>;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
+};
+
+/**
+ * CatalogPriceWindow
+ *
+ * One entry in a product’s price history
+ */
+export type CatalogPriceWindow = {
+    id: string;
+    amountEur: number;
+    currency: string;
+    validFrom: string;
+    validTo?: string | null;
+    setByName?: string | null;
 };
 
 /**
@@ -515,6 +945,293 @@ export type PublicAuthorPostsSchema = {
 };
 
 /**
+ * MembersList
+ *
+ * A paginated list of members
+ */
+export type MembersList = {
+    data: Array<MemberListItem>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * MemberListItem
+ *
+ * A member as shown in the back-office list
+ */
+export type MemberListItem = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    email?: string | null;
+    phoneNumber?: string | null;
+    /**
+     * MemberStatus
+     *
+     * Lifecycle status of a cooperative member
+     */
+    status: 'pending' | 'active' | 'rejected' | 'terminated';
+    roles: Array<'member' | 'admin'>;
+    /**
+     * MembershipFeeState
+     *
+     * Derived from the sum of recorded payments against the expected amount
+     */
+    feeState: 'unpaid' | 'partly_paid' | 'paid';
+    createdAt: string;
+};
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export const MemberStatus = {
+    PENDING: 'pending',
+    ACTIVE: 'active',
+    REJECTED: 'rejected',
+    TERMINATED: 'terminated'
+} as const;
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export type MemberStatus = typeof MemberStatus[keyof typeof MemberStatus];
+
+/**
+ * UserRole
+ *
+ * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ */
+export const UserRole = { MEMBER: 'member', ADMIN: 'admin' } as const;
+
+/**
+ * UserRole
+ *
+ * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ */
+export type UserRole = typeof UserRole[keyof typeof UserRole];
+
+/**
+ * MembershipFeeState
+ *
+ * Derived from the sum of recorded payments against the expected amount
+ */
+export const MembershipFeeState = {
+    UNPAID: 'unpaid',
+    PARTLY_PAID: 'partly_paid',
+    PAID: 'paid'
+} as const;
+
+/**
+ * MembershipFeeState
+ *
+ * Derived from the sum of recorded payments against the expected amount
+ */
+export type MembershipFeeState = typeof MembershipFeeState[keyof typeof MembershipFeeState];
+
+/**
+ * MemberDetail
+ *
+ * Full back-office view of a member
+ */
+export type MemberDetail = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    identifiers: MemberIdentifiers;
+    status: MemberStatus;
+    roles: Array<UserRole>;
+    profile: MemberProfile;
+    fee: FeeSummary;
+    joinedAt?: string | null;
+    version: number;
+    statusHistory: Array<MemberStatusChange>;
+    payments: Array<MemberPayment>;
+};
+
+/**
+ * MemberIdentifiers
+ *
+ * The email and/or phone the account signs in with
+ */
+export type MemberIdentifiers = {
+    email?: string | null;
+    emailVerified: boolean;
+    phoneNumber?: string | null;
+    phoneNumberVerified: boolean;
+};
+
+/**
+ * MemberProfile
+ *
+ * A member’s editable personal details
+ */
+export type MemberProfile = {
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    postalCode?: string | null;
+    city?: string | null;
+    phone?: string | null;
+};
+
+/**
+ * FeeSummary
+ *
+ * Membership-fee expectation, total paid, and derived state
+ */
+export type FeeSummary = {
+    expectedAmountCents: number;
+    paidAmountCents: number;
+    /**
+     * MembershipFeeState
+     *
+     * Derived from the sum of recorded payments against the expected amount
+     */
+    state: 'unpaid' | 'partly_paid' | 'paid';
+};
+
+/**
+ * MemberStatusChange
+ *
+ * One entry in a member’s status history
+ */
+export type MemberStatusChange = {
+    fromStatus?: 'pending' | 'active' | 'rejected' | 'terminated' | null;
+    /**
+     * MemberStatus
+     *
+     * Lifecycle status of a cooperative member
+     */
+    toStatus: 'pending' | 'active' | 'rejected' | 'terminated';
+    reason?: string | null;
+    changedByName?: string | null;
+    createdAt: string;
+};
+
+/**
+ * MemberPayment
+ *
+ * One recorded membership-fee payment or adjustment
+ */
+export type MemberPayment = {
+    id: string;
+    /**
+     * MembershipPaymentKind
+     *
+     * A correction is recorded as an "adjustment" row, never by editing a payment
+     */
+    kind: 'payment' | 'adjustment';
+    amountCents: number;
+    /**
+     * MembershipPaymentMethod
+     *
+     * How a membership-fee payment was made ("online" is reserved for lot 5)
+     */
+    method: 'cash' | 'transfer' | 'other';
+    paidAt: string;
+    note?: string | null;
+    recordedByName: string;
+    createdAt: string;
+};
+
+/**
+ * MembershipPaymentKind
+ *
+ * A correction is recorded as an "adjustment" row, never by editing a payment
+ */
+export const MembershipPaymentKind = { PAYMENT: 'payment', ADJUSTMENT: 'adjustment' } as const;
+
+/**
+ * MembershipPaymentKind
+ *
+ * A correction is recorded as an "adjustment" row, never by editing a payment
+ */
+export type MembershipPaymentKind = typeof MembershipPaymentKind[keyof typeof MembershipPaymentKind];
+
+/**
+ * MembershipPaymentMethod
+ *
+ * How a membership-fee payment was made ("online" is reserved for lot 5)
+ */
+export const MembershipPaymentMethod = {
+    CASH: 'cash',
+    TRANSFER: 'transfer',
+    OTHER: 'other'
+} as const;
+
+/**
+ * MembershipPaymentMethod
+ *
+ * How a membership-fee payment was made ("online" is reserved for lot 5)
+ */
+export type MembershipPaymentMethod = typeof MembershipPaymentMethod[keyof typeof MembershipPaymentMethod];
+
+/**
+ * FeePaymentsList
+ *
+ * All recorded payments and adjustments against a member’s fee
+ */
+export type FeePaymentsList = Array<MemberPayment>;
+
+/**
+ * MemberSelf
+ *
+ * The signed-in member’s own account
+ */
+export type MemberSelf = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    identifiers: MemberIdentifiers;
+    status: MemberStatus;
+    roles: Array<UserRole>;
+    profile: MemberProfile;
+    fee: FeeSummary;
+    joinedAt?: string | null;
+    version: number;
+};
+
+/**
+ * PaginationQuerySchema
+ *
+ * Schema for pagination query
+ */
+export type PaginationQuerySchema = {
+    /**
+     * Starting position of the query
+     */
+    offset: number;
+    /**
+     * Number of items to return
+     */
+    pageSize: number;
+};
+
+/**
+ * FilterQueryStringSchema
+ *
+ * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+ * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+ * <br> Available properties: status, feeState, role, q
+ */
+export type FilterQueryStringSchema = string;
+
+/**
+ * SortingQueryStringSchema
+ *
+ * Schema for sorting items
+ */
+export type SortingQueryStringSchema = string;
+
+/**
  * AiCoreMessage
  *
  * A message in the conversation history following Vercel AI SDK patterns
@@ -690,39 +1407,45 @@ export type AiGenerateOptions = {
     };
 };
 
-/**
- * PaginationQuerySchema
- *
- * Schema for pagination query
- */
-export type PaginationQuerySchema = {
-    /**
-     * Starting position of the query
-     */
-    offset: number;
-    /**
-     * Number of items to return
-     */
-    pageSize: number;
+export type CommentsControllerPostSlug = string;
+
+export type AdminMembersControllerListFilterItem = {
+    property: 'status' | 'feeState' | 'role' | 'q';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
 };
 
-/**
- * SortingQueryStringSchema
- *
- * Schema for sorting items
- */
-export type SortingQueryStringSchema = string;
+export type AdminMembersControllerListFilterArray = Array<AdminMembersControllerListFilterItem>;
 
-/**
- * FilterQueryStringSchema
- *
- * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
- * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: title, tag
- */
-export type FilterQueryStringSchema = string;
+export type AdminMembersControllerListSortItem = {
+    property: 'createdAt' | 'name';
+    direction: 'asc' | 'desc';
+};
 
-export type CommentsControllerPostSlug = string;
+export type AdminMembersControllerListSortArray = Array<AdminMembersControllerListSortItem>;
+
+export type AdminSuppliersControllerListFilterItem = {
+    property: 'type' | 'q';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type AdminSuppliersControllerListFilterArray = Array<AdminSuppliersControllerListFilterItem>;
+
+export type AdminProductsControllerListFilterItem = {
+    property: 'supplierId' | 'categoryId' | 'saleMode' | 'label' | 'q';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type AdminProductsControllerListFilterArray = Array<AdminProductsControllerListFilterItem>;
+
+export type AdminProductsControllerListSortItem = {
+    property: 'name' | 'createdAt';
+    direction: 'asc' | 'desc';
+};
+
+export type AdminProductsControllerListSortArray = Array<AdminProductsControllerListSortItem>;
 
 export type CommentsControllerGetCommentsFilterItem = {
     property: 'content';
@@ -794,6 +1517,877 @@ export type AppControllerGetHelloResponses = {
     200: unknown;
 };
 
+export type AdminMembersControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: status, feeState, role, q
+         */
+        filter?: AdminMembersControllerListFilterArray;
+        /**
+         * Schema for sorting items
+         */
+        sort?: AdminMembersControllerListSortArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/members';
+};
+
+export type AdminMembersControllerListResponses = {
+    /**
+     * A paginated list of members
+     */
+    200: MembersList;
+};
+
+export type AdminMembersControllerListResponse = AdminMembersControllerListResponses[keyof AdminMembersControllerListResponses];
+
+export type AdminMembersControllerCreateData = {
+    /**
+     * CreateMember
+     *
+     * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
+     */
+    body: {
+        name: string;
+        email?: string | null;
+        phoneNumber?: string | null;
+        profile?: {
+            addressLine1?: string | null;
+            addressLine2?: string | null;
+            postalCode?: string | null;
+            city?: string | null;
+            phone?: string | null;
+        };
+        roles: Array<'member' | 'admin'>;
+        status: 'pending' | 'active';
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/members';
+};
+
+export type AdminMembersControllerCreateResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerCreateResponse = AdminMembersControllerCreateResponses[keyof AdminMembersControllerCreateResponses];
+
+export type AdminMembersControllerDetailData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}';
+};
+
+export type AdminMembersControllerDetailResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerDetailResponse = AdminMembersControllerDetailResponses[keyof AdminMembersControllerDetailResponses];
+
+export type AdminMembersControllerDecideData = {
+    /**
+     * MemberValidation
+     *
+     * Validate a pending member (moves them to active) or reject them with a reason
+     */
+    body: {
+        decision: 'validate';
+        version: number;
+    } | {
+        decision: 'reject';
+        reason: string;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/validation';
+};
+
+export type AdminMembersControllerDecideResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerDecideResponse = AdminMembersControllerDecideResponses[keyof AdminMembersControllerDecideResponses];
+
+export type AdminMembersControllerUpdateProfileData = {
+    /**
+     * UpdateMemberProfile
+     *
+     * Update a member’s name and personal details (send the version you loaded)
+     */
+    body: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+        name?: string;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/profile';
+};
+
+export type AdminMembersControllerUpdateProfileResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerUpdateProfileResponse = AdminMembersControllerUpdateProfileResponses[keyof AdminMembersControllerUpdateProfileResponses];
+
+export type AdminMembersControllerSetFeeData = {
+    /**
+     * SetMembershipFee
+     *
+     * Set the expected membership fee for a member (the "variable fee")
+     */
+    body: {
+        expectedAmountCents: number;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/fee';
+};
+
+export type AdminMembersControllerSetFeeResponses = {
+    /**
+     * Membership-fee expectation, total paid, and derived state
+     */
+    200: FeeSummary;
+};
+
+export type AdminMembersControllerSetFeeResponse = AdminMembersControllerSetFeeResponses[keyof AdminMembersControllerSetFeeResponses];
+
+export type AdminMembersControllerListFeePaymentsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/fee/payments';
+};
+
+export type AdminMembersControllerListFeePaymentsResponses = {
+    /**
+     * All recorded payments and adjustments against a member’s fee
+     */
+    200: FeePaymentsList;
+};
+
+export type AdminMembersControllerListFeePaymentsResponse = AdminMembersControllerListFeePaymentsResponses[keyof AdminMembersControllerListFeePaymentsResponses];
+
+export type AdminMembersControllerRecordFeePaymentData = {
+    /**
+     * RecordFeePayment
+     *
+     * Record a membership-fee payment (positive) or an adjustment (any non-zero)
+     */
+    body: {
+        /**
+         * MembershipPaymentKind
+         *
+         * A correction is recorded as an "adjustment" row, never by editing a payment
+         */
+        kind: 'payment' | 'adjustment';
+        amountCents: number;
+        /**
+         * MembershipPaymentMethod
+         *
+         * How a membership-fee payment was made ("online" is reserved for lot 5)
+         */
+        method: 'cash' | 'transfer' | 'other';
+        paidAt: string;
+        note?: string | null;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/fee/payments';
+};
+
+export type AdminMembersControllerRecordFeePaymentResponses = {
+    /**
+     * Membership-fee expectation, total paid, and derived state
+     */
+    200: FeeSummary;
+};
+
+export type AdminMembersControllerRecordFeePaymentResponse = AdminMembersControllerRecordFeePaymentResponses[keyof AdminMembersControllerRecordFeePaymentResponses];
+
+export type AdminMembersControllerSetRolesData = {
+    /**
+     * SetMemberRoles
+     *
+     * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
+     */
+    body: {
+        roles: Array<'member' | 'admin'>;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/roles';
+};
+
+export type AdminMembersControllerSetRolesResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerSetRolesResponse = AdminMembersControllerSetRolesResponses[keyof AdminMembersControllerSetRolesResponses];
+
+export type AdminMembersControllerTerminateData = {
+    /**
+     * TerminateMember
+     *
+     * Terminate a member with a reason (admin action)
+     */
+    body: {
+        reason: string;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/termination';
+};
+
+export type AdminMembersControllerTerminateResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerTerminateResponse = AdminMembersControllerTerminateResponses[keyof AdminMembersControllerTerminateResponses];
+
+export type AdminMembersControllerReactivateData = {
+    /**
+     * ReactivateMember
+     *
+     * Return a terminated member to active
+     */
+    body: {
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/reactivation';
+};
+
+export type AdminMembersControllerReactivateResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerReactivateResponse = AdminMembersControllerReactivateResponses[keyof AdminMembersControllerReactivateResponses];
+
+export type MemberSelfControllerMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/members/me';
+};
+
+export type MemberSelfControllerMeResponses = {
+    /**
+     * The signed-in member’s own account
+     */
+    200: MemberSelf;
+};
+
+export type MemberSelfControllerMeResponse = MemberSelfControllerMeResponses[keyof MemberSelfControllerMeResponses];
+
+export type MemberSelfControllerUpdateProfileData = {
+    /**
+     * UpdateMemberProfile
+     *
+     * Update a member’s name and personal details (send the version you loaded)
+     */
+    body: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+        name?: string;
+        version: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/members/me/profile';
+};
+
+export type MemberSelfControllerUpdateProfileResponses = {
+    /**
+     * The signed-in member’s own account
+     */
+    200: MemberSelf;
+};
+
+export type MemberSelfControllerUpdateProfileResponse = MemberSelfControllerUpdateProfileResponses[keyof MemberSelfControllerUpdateProfileResponses];
+
+export type MemberSelfControllerTerminateData = {
+    /**
+     * SelfTerminate
+     *
+     * A member ending their own membership
+     */
+    body: {
+        confirm: true;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/members/me/termination';
+};
+
+export type MemberSelfControllerTerminateResponses = {
+    /**
+     * The signed-in member’s own account
+     */
+    200: MemberSelf;
+};
+
+export type MemberSelfControllerTerminateResponse = MemberSelfControllerTerminateResponses[keyof MemberSelfControllerTerminateResponses];
+
+export type MembershipIntakeControllerGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/membership-intake';
+};
+
+export type MembershipIntakeControllerGetResponses = {
+    /**
+     * Whether self-registration is currently accepted
+     */
+    200: MembershipIntake;
+};
+
+export type MembershipIntakeControllerGetResponse = MembershipIntakeControllerGetResponses[keyof MembershipIntakeControllerGetResponses];
+
+export type MembershipIntakeControllerSetData = {
+    /**
+     * MembershipIntake
+     *
+     * Whether self-registration is currently accepted
+     */
+    body: {
+        open: boolean;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/membership-intake';
+};
+
+export type MembershipIntakeControllerSetResponses = {
+    /**
+     * Whether self-registration is currently accepted
+     */
+    200: MembershipIntake;
+};
+
+export type MembershipIntakeControllerSetResponse = MembershipIntakeControllerSetResponses[keyof MembershipIntakeControllerSetResponses];
+
+export type AdminSuppliersControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: type, q
+         */
+        filter?: AdminSuppliersControllerListFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/suppliers';
+};
+
+export type AdminSuppliersControllerListResponses = {
+    /**
+     * A paginated list of suppliers
+     */
+    200: CatalogSuppliersList;
+};
+
+export type AdminSuppliersControllerListResponse = AdminSuppliersControllerListResponses[keyof AdminSuppliersControllerListResponses];
+
+export type AdminSuppliersControllerCreateData = {
+    /**
+     * CreateSupplier
+     *
+     * Create a supplier
+     */
+    body: {
+        name: string;
+        /**
+         * SupplierType
+         *
+         * Whether the supplier is a producer or a wholesaler
+         */
+        type: 'producer' | 'wholesaler';
+        contactName?: string | null;
+        contactEmail?: string | null;
+        contactPhone?: string | null;
+        notes?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/suppliers';
+};
+
+export type AdminSuppliersControllerCreateResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerCreateResponse = AdminSuppliersControllerCreateResponses[keyof AdminSuppliersControllerCreateResponses];
+
+export type AdminSuppliersControllerGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{id}';
+};
+
+export type AdminSuppliersControllerGetResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerGetResponse = AdminSuppliersControllerGetResponses[keyof AdminSuppliersControllerGetResponses];
+
+export type AdminSuppliersControllerUpdateData = {
+    /**
+     * UpdateSupplier
+     *
+     * Update a supplier (send the loaded version)
+     */
+    body: {
+        name?: string;
+        /**
+         * SupplierType
+         *
+         * Whether the supplier is a producer or a wholesaler
+         */
+        type?: 'producer' | 'wholesaler';
+        contactName?: string | null;
+        contactEmail?: string | null;
+        contactPhone?: string | null;
+        notes?: string | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{id}';
+};
+
+export type AdminSuppliersControllerUpdateResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerUpdateResponse = AdminSuppliersControllerUpdateResponses[keyof AdminSuppliersControllerUpdateResponses];
+
+export type AdminSuppliersControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query: {
+        cascade: string;
+    };
+    url: '/api/admin/suppliers/{id}/archive';
+};
+
+export type AdminSuppliersControllerArchiveResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerArchiveResponse = AdminSuppliersControllerArchiveResponses[keyof AdminSuppliersControllerArchiveResponses];
+
+export type AdminSuppliersControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{id}/unarchive';
+};
+
+export type AdminSuppliersControllerUnarchiveResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerUnarchiveResponse = AdminSuppliersControllerUnarchiveResponses[keyof AdminSuppliersControllerUnarchiveResponses];
+
+export type AdminCategoriesControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+    };
+    url: '/api/admin/categories';
+};
+
+export type AdminCategoriesControllerListResponses = {
+    /**
+     * All categories (one nesting level)
+     */
+    200: CatalogCategoriesList;
+};
+
+export type AdminCategoriesControllerListResponse = AdminCategoriesControllerListResponses[keyof AdminCategoriesControllerListResponses];
+
+export type AdminCategoriesControllerCreateData = {
+    /**
+     * CreateCategory
+     *
+     * Create a category
+     */
+    body: {
+        name: string;
+        parentId?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/categories';
+};
+
+export type AdminCategoriesControllerCreateResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerCreateResponse = AdminCategoriesControllerCreateResponses[keyof AdminCategoriesControllerCreateResponses];
+
+export type AdminCategoriesControllerUpdateData = {
+    /**
+     * UpdateCategory
+     *
+     * Rename or reparent a category
+     */
+    body: {
+        name?: string;
+        parentId?: string | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}';
+};
+
+export type AdminCategoriesControllerUpdateResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerUpdateResponse = AdminCategoriesControllerUpdateResponses[keyof AdminCategoriesControllerUpdateResponses];
+
+export type AdminCategoriesControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}/archive';
+};
+
+export type AdminCategoriesControllerArchiveResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerArchiveResponse = AdminCategoriesControllerArchiveResponses[keyof AdminCategoriesControllerArchiveResponses];
+
+export type AdminCategoriesControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}/unarchive';
+};
+
+export type AdminCategoriesControllerUnarchiveResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerUnarchiveResponse = AdminCategoriesControllerUnarchiveResponses[keyof AdminCategoriesControllerUnarchiveResponses];
+
+export type AdminProductsControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: supplierId, categoryId, saleMode, label, q
+         */
+        filter?: AdminProductsControllerListFilterArray;
+        /**
+         * Schema for sorting items
+         */
+        sort?: AdminProductsControllerListSortArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/products';
+};
+
+export type AdminProductsControllerListResponses = {
+    /**
+     * A paginated list of products
+     */
+    200: CatalogProductsList;
+};
+
+export type AdminProductsControllerListResponse = AdminProductsControllerListResponses[keyof AdminProductsControllerListResponses];
+
+export type AdminProductsControllerCreateData = {
+    /**
+     * CreateProduct
+     *
+     * Create a catalogue product with its first price. pricingUnit is derived from saleMode.
+     */
+    body: {
+        name: string;
+        description?: string | null;
+        supplierId: string;
+        categoryId: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+        photos: Array<string>;
+        labels: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
+        barcode?: string | null;
+        averageWeightGrams?: number | null;
+        weightTolerancePercent?: number | null;
+        initialPriceEur: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/products';
+};
+
+export type AdminProductsControllerCreateResponses = {
+    /**
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerCreateResponse = AdminProductsControllerCreateResponses[keyof AdminProductsControllerCreateResponses];
+
+export type AdminProductsControllerGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}';
+};
+
+export type AdminProductsControllerGetResponses = {
+    /**
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerGetResponse = AdminProductsControllerGetResponses[keyof AdminProductsControllerGetResponses];
+
+export type AdminProductsControllerUpdateData = {
+    /**
+     * UpdateProduct
+     *
+     * Update a product (not its price)
+     */
+    body: {
+        name?: string;
+        description?: string | null;
+        supplierId?: string;
+        categoryId?: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode?: 'unit' | 'weight';
+        photos?: Array<string>;
+        labels?: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
+        barcode?: string | null;
+        averageWeightGrams?: number | null;
+        weightTolerancePercent?: number | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}';
+};
+
+export type AdminProductsControllerUpdateResponses = {
+    /**
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerUpdateResponse = AdminProductsControllerUpdateResponses[keyof AdminProductsControllerUpdateResponses];
+
+export type AdminProductsControllerSetPriceData = {
+    /**
+     * SetProductPrice
+     *
+     * Set a new current price; the previous window is closed at effectiveFrom (or now)
+     */
+    body: {
+        amountEur: number;
+        effectiveFrom?: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}/price';
+};
+
+export type AdminProductsControllerSetPriceResponses = {
+    /**
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerSetPriceResponse = AdminProductsControllerSetPriceResponses[keyof AdminProductsControllerSetPriceResponses];
+
+export type AdminProductsControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}/archive';
+};
+
+export type AdminProductsControllerArchiveResponses = {
+    /**
+     * An item the cooperative offers
+     */
+    200: CatalogProduct;
+};
+
+export type AdminProductsControllerArchiveResponse = AdminProductsControllerArchiveResponses[keyof AdminProductsControllerArchiveResponses];
+
+export type AdminProductsControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}/unarchive';
+};
+
+export type AdminProductsControllerUnarchiveResponses = {
+    /**
+     * An item the cooperative offers
+     */
+    200: CatalogProduct;
+};
+
+export type AdminProductsControllerUnarchiveResponse = AdminProductsControllerUnarchiveResponses[keyof AdminProductsControllerUnarchiveResponses];
+
 export type CommentsControllerGetCommentsData = {
     body?: never;
     path: {
@@ -857,6 +2451,46 @@ export type CommentsControllerCreateCommentResponses = {
 
 export type CommentsControllerCreateCommentResponse = CommentsControllerCreateCommentResponses[keyof CommentsControllerCreateCommentResponses];
 
+export type CommentsControllerDeleteCommentData = {
+    body?: never;
+    path: {
+        commentId: string;
+        postSlug: string;
+    };
+    query?: never;
+    url: '/api/posts/{postSlug}/comments/{commentId}';
+};
+
+export type CommentsControllerDeleteCommentResponses = {
+    200: unknown;
+};
+
+export type CommentsControllerUpdateCommentData = {
+    /**
+     * UpdateCommentSchema
+     *
+     * Schema for updating a comment
+     */
+    body: {
+        content: string;
+    };
+    path: {
+        commentId: string;
+        postSlug: string;
+    };
+    query?: never;
+    url: '/api/posts/{postSlug}/comments/{commentId}';
+};
+
+export type CommentsControllerUpdateCommentResponses = {
+    /**
+     * Schema for a comment
+     */
+    200: CommentSchema;
+};
+
+export type CommentsControllerUpdateCommentResponse = CommentsControllerUpdateCommentResponses[keyof CommentsControllerUpdateCommentResponses];
+
 export type CommentsControllerGetCommentCountData = {
     body?: never;
     path: {
@@ -901,20 +2535,6 @@ export type CommentsControllerGetCommentRepliesResponses = {
 };
 
 export type CommentsControllerGetCommentRepliesResponse = CommentsControllerGetCommentRepliesResponses[keyof CommentsControllerGetCommentRepliesResponses];
-
-export type CommentsControllerDeleteCommentData = {
-    body?: never;
-    path: {
-        commentId: string;
-        postSlug: string;
-    };
-    query?: never;
-    url: '/api/posts/{postSlug}/comments/{commentId}';
-};
-
-export type CommentsControllerDeleteCommentResponses = {
-    200: unknown;
-};
 
 export type PostControllerGetUserPostsData = {
     body?: never;

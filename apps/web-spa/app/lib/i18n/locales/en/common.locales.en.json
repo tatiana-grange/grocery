@@ -27,14 +27,29 @@
       "description": "Create an account to get started.",
       "name": "Name",
       "email": "Email",
+      "phone": "Phone number",
       "password": "Password",
       "confirmPassword": "Confirm password",
       "signUp": "Sign up",
       "hasAccount": "Already have an account?",
       "login": "Sign in",
+      "invalidPhone": "Enter a valid phone number",
+      "invalidCode": "Incorrect code",
+      "resendEmail": "Send the link again",
+      "mode": {
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "otp": {
+        "title": "Confirm your phone number",
+        "description": "Enter the code we sent to {{phone}}.",
+        "confirm": "Confirm",
+        "resend": "Send a new code"
+      },
       "success": {
         "title": "Registration successful",
-        "description": "Check your email for the activation link."
+        "description": "Check your email for the activation link.",
+        "phoneDescription": "Your phone number is confirmed. An administrator will review your request; you can sign in once it is approved."
       },
       "backToLogin": "Back to sign in",
       "registrationSuccessful": "Registration successful",
@@ -42,9 +57,10 @@
     },
     "forgotPassword": {
       "title": "Forgot my password",
-      "description": "Enter your email to receive a reset link.",
+      "description": "Enter your email or phone number to reset your password.",
       "email": "Email",
       "sendResetLink": "Send reset link",
+      "emailSent": "If an account matches, a reset link is on its way.",
       "backToLogin": "Back to sign in",
       "failedToSend": "Failed to send reset link"
     },
@@ -205,9 +221,195 @@
   "errorCodes": {
     "PASSWORDS_DO_NOT_MATCH": "Passwords do not match"
   },
+  "members": {
+    "title": "MonÉpi",
+    "nav": {
+      "myAccount": "My account",
+      "logOut": "Log out"
+    },
+    "account": {
+      "title": "My account",
+      "comingSoon": "Your profile, membership status, fee and QR code will appear here.",
+      "identifierConfirmed": "Identifier confirmed",
+      "personalDetails": "Personal details",
+      "notActive": "Your membership is pending review, or is no longer active. An administrator will be in touch.",
+      "loadError": "We couldn’t load your account right now.",
+      "name": "Name",
+      "addressLine1": "Address",
+      "addressLine2": "Address (line 2)",
+      "postalCode": "Postal code",
+      "city": "City",
+      "phone": "Phone",
+      "fee": "Membership fee",
+      "save": "Save",
+      "saved": "Saved",
+      "error": "Something went wrong",
+      "qrHint": "Show this at the distribution to be identified.",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password (min. 8 characters)",
+      "passwordChanged": "Password changed",
+      "passwordError": "Could not change the password",
+      "endMembership": "End my membership",
+      "endMembershipTitle": "End your membership?",
+      "endMembershipWarning": "You will be signed out and will no longer be able to order. Your history is kept."
+    },
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "rejected": "Rejected",
+      "terminated": "Terminated"
+    },
+    "feeState": {
+      "unpaid": "Unpaid",
+      "partly_paid": "Partly paid",
+      "paid": "Paid"
+    }
+  },
+  "adminMembers": {
+    "title": "Members",
+    "subtitle": "Review membership requests and manage members.",
+    "backOffice": "Back office",
+    "accessDenied": "You need an administrator account to open the back office.",
+    "comingSoon": "The pending queue and member list will appear here.",
+    "searchPlaceholder": "Search name, email, phone, number…",
+    "empty": "No members here.",
+    "review": "Review",
+    "backToList": "Back to members",
+    "roles": "Roles",
+    "history": "Status history",
+    "validate": "Validate",
+    "reject": "Reject",
+    "editDetails": "Edit details",
+    "makeAdmin": "Make administrator",
+    "removeAdmin": "Remove administrator",
+    "roleUpdated": "Roles updated",
+    "terminate": "End membership",
+    "reactivate": "Reactivate",
+    "count": "{{count}} member",
+    "count_other": "{{count}} members",
+    "tabs": {
+      "pending": "Pending",
+      "active": "Active",
+      "all": "All"
+    },
+    "columns": {
+      "number": "Number",
+      "name": "Name",
+      "identifier": "Email / phone",
+      "status": "Status",
+      "fee": "Fee"
+    },
+    "rejectDialog": {
+      "title": "Reject this membership request",
+      "reasonPlaceholder": "Reason (shown to the applicant)"
+    },
+    "terminateDialog": {
+      "title": "End this membership",
+      "reasonPlaceholder": "Reason (shown to the member)"
+    },
+    "create": {
+      "new": "New member",
+      "title": "Create a member",
+      "hint": "Give an email or a phone number. The person sets their own password via \"forgot password\".",
+      "done": "Member created",
+      "duplicate": "An account already uses that email or phone number"
+    },
+    "toasts": {
+      "validated": "Member validated",
+      "rejected": "Request rejected",
+      "updated": "Done",
+      "error": "Something went wrong"
+    },
+    "fee": {
+      "title": "Membership fee",
+      "expected": "Expected (€)",
+      "saved": "Fee updated",
+      "recorded": "Payment recorded",
+      "recordPayment": "Record payment",
+      "amount": "Amount (€)",
+      "record": "Record payment",
+      "adjustment": "Record adjustment",
+      "method": { "cash": "Cash", "transfer": "Transfer", "other": "Other" }
+    },
+    "nav": {
+      "section": "Management",
+      "members": "Members"
+    }
+  },
+  "catalog": {
+    "title": "Catalogue",
+    "subtitle": "Suppliers, categories and products.",
+    "comingSoon": "Suppliers, categories and products will appear here.",
+    "edit": "Edit",
+    "save": "Save",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "archived": "Archived",
+    "open": "Open",
+    "perKg": "per kg",
+    "backToCatalogue": "Back to catalogue",
+    "nav": { "catalog": "Catalogue" },
+    "tabs": { "products": "Products", "suppliers": "Suppliers", "categories": "Categories" },
+    "saleMode": { "unit": "Per unit", "weight": "By weight" },
+    "supplierType": { "producer": "Producer", "wholesaler": "Wholesaler" },
+    "pricingUnit": { "piece": "piece", "kg": "kg" },
+    "label": {
+      "organic": "Organic",
+      "local": "Local",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan"
+    },
+    "suppliers": {
+      "name": "Name",
+      "type": "Type",
+      "products": "Products",
+      "new": "New supplier",
+      "edit": "Edit supplier",
+      "cascadeConfirm": "This supplier has {{count}} active product(s). Archive them too?"
+    },
+    "categories": {
+      "name": "Name",
+      "new": "New category",
+      "edit": "Edit category",
+      "blocked": "Reassign this category’s {{count}} product(s) first."
+    },
+    "products": {
+      "name": "Name",
+      "description": "Description",
+      "supplier": "Supplier",
+      "category": "Category",
+      "price": "Price",
+      "saleMode": "Sale mode",
+      "saleModeLocked": "cannot change once a price is set",
+      "pricePerKg": "Price per kg (€)",
+      "pricePerPiece": "Price per piece (€)",
+      "labels": "Labels",
+      "searchPlaceholder": "Search name or barcode…",
+      "new": "New product",
+      "edit": "Edit product",
+      "empty": "No products yet.",
+      "count": "{{count}} product",
+      "count_other": "{{count}} products",
+      "currentPrice": "Current price",
+      "changePrice": "Change price",
+      "priceHistory": "Price history",
+      "current": "current"
+    },
+    "toasts": {
+      "saved": "Saved",
+      "archived": "Archived",
+      "restored": "Restored",
+      "error": "Something went wrong",
+      "priceUpdated": "Price updated"
+    }
+  },
   "common": {
     "user": "User",
     "active": "Active",
-    "error": "Error"
+    "error": "Error",
+    "cancel": "Cancel",
+    "conflict": "This changed since you opened it — reload and try again",
+    "retry": "Try again"
   }
 }

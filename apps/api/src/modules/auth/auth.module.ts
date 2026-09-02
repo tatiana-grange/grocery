@@ -4,17 +4,19 @@ import { MikroORM } from '@mikro-orm/core'
 import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Global, Inject, Module, RequestMethod } from '@nestjs/common'
 import { DiscoveryModule, DiscoveryService, MetadataScanner } from '@nestjs/core'
-import { createAuthMiddleware } from 'better-auth/api'
+import { APIError, createAuthMiddleware } from 'better-auth/api'
 import { toNodeHandler } from 'better-auth/node'
 import { config } from '../../config/env.config'
 import { EmailModule } from '../email/email.module'
 import { EmailService } from '../email/email.service'
+import { ensurePendingMember, isMembershipIntakeOpen } from '../members/members.util'
 import { BetterAuthType, createBetterAuth } from './auth.config'
 import { AFTER_HOOK_KEY, BEFORE_HOOK_KEY, HOOK_KEY } from './auth.decorator'
 import { AuthModuleOptions, ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } from './auth.definition'
 import { Account, Session, User, Verification } from './auth.entity'
 import { AuthGuard } from './auth.guard'
 import { AuthService } from './auth.service'
+import { SmsService } from './sms.service'
 
 @Global()
 @Module({
@@ -28,6 +30,7 @@ import { AuthService } from './auth.service'
       provide: MODULE_OPTIONS_TOKEN,
       useFactory: (
         emailService: EmailService,
+        smsService: SmsService,
         orm: MikroORM,
       ): AuthModuleOptions<BetterAuthType> => {
         const betterAuth = createBetterAuth({
@@ -35,6 +38,18 @@ import { AuthService } from './auth.service'
           secret: config.betterAuth.secret,
           trustedOrigins: config.betterAuth.trustedOrigins,
           orm,
+          sendPhoneOtp: async ({ phoneNumber, code }) => {
+            return smsService.sendSms({
+              to: phoneNumber,
+              content: `Your verification code is ${code}`,
+            })
+          },
+          sendPhonePasswordResetOtp: async ({ phoneNumber, code }) => {
+            return smsService.sendSms({
+              to: phoneNumber,
+              content: `Your password reset code is ${code}`,
+            })
+          },
           sendResetPassword: async (data) => {
             const webUrl = `${config.clients.webApp.url}/reset-password?token=${data.token}`
             return emailService.sendEmail({
@@ -51,17 +66,39 @@ import { AuthService } from './auth.service'
               content: `Hello ${data.user.name}, please verify your email by clicking on the link below: <a href="${url}">${url}</a>`,
             })
           },
+          databaseHooks: {
+            user: {
+              create: {
+                // Block self-registration while membership intake is closed.
+                before: async (user) => {
+                  const em = orm.em.fork()
+                  if (!(await isMembershipIntakeOpen(em))) {
+                    throw new APIError('FORBIDDEN', {
+                      message: 'Membership intake is currently closed',
+                    })
+                  }
+                  return { data: user }
+                },
+                // Every new auth user becomes a pending cooperative member.
+                after: async (user) => {
+                  const em = orm.em.fork()
+                  await ensurePendingMember(em, user.id)
+                },
+              },
+            },
+          },
         })
         return {
           auth: betterAuth,
         }
       },
-      inject: [EmailService, MikroORM],
+      inject: [EmailService, SmsService, MikroORM],
     },
     AuthService,
     AuthGuard,
+    SmsService,
   ],
-  exports: [AuthService, AuthGuard],
+  exports: [AuthService, AuthGuard, SmsService],
 })
 export class AuthModule extends ConfigurableModuleClass implements NestModule {
   constructor(

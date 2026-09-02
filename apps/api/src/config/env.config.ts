@@ -59,6 +59,13 @@ export const configValidationSchema = z.object({
   EMAIL_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().default('noreply@lonestone.io'),
 
+  // SMS (phone-number one-time codes). No provider => codes are logged to the console.
+  SMS_PROVIDER: z.string().optional(),
+  SMS_FROM: z.string().optional(),
+
+  // Members
+  MEMBERSHIP_FEE_DEFAULT_CENTS: z.coerce.number().int().nonnegative().default(0),
+
   // AI Providers
   OPENAI_API_KEY: z.string().optional(), // OpenAI
   ANTHROPIC_API_KEY: z.string().optional(), // Anthropic
@@ -110,6 +117,13 @@ export const config = {
     user: configParsed.data.EMAIL_USER,
     password: configParsed.data.EMAIL_PASSWORD,
     from: configParsed.data.EMAIL_FROM,
+  },
+  sms: {
+    provider: configParsed.data.SMS_PROVIDER,
+    from: configParsed.data.SMS_FROM,
+  },
+  members: {
+    membershipFeeDefaultCents: configParsed.data.MEMBERSHIP_FEE_DEFAULT_CENTS,
   },
   clients: {
     webApp: {

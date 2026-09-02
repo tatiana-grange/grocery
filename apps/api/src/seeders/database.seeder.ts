@@ -6,6 +6,8 @@ import { AuthSeeder } from '../modules/auth/auth.seeder'
 import { CommentSeeder } from '../modules/example/comments/comment.seeder'
 import { PostSeeder } from '../modules/example/posts/post.seeder'
 import { TagSeeder } from '../modules/example/tags/tag.seeder'
+import { CatalogSeeder } from '../modules/catalog/catalog.seeder'
+import { MembersSeeder } from '../modules/members/members.seeder'
 
 export class DatabaseSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
@@ -13,6 +15,12 @@ export class DatabaseSeeder extends Seeder {
 
     await new AuthSeeder().run(em, context)
     console.info('AuthSeeder done')
+
+    await new MembersSeeder().run(em, context)
+    console.info('MembersSeeder done')
+
+    await new CatalogSeeder().run(em, context)
+    console.info('CatalogSeeder done')
 
     await new TagSeeder().run(em, context)
     console.info('TagSeeder done')
