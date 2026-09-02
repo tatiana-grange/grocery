@@ -1,5 +1,11 @@
 import type { FilterQuery } from '@mikro-orm/core'
-import { EntityManager, QueryOrder, wrap } from '@mikro-orm/core'
+import {
+  EntityManager,
+  LockMode,
+  QueryOrder,
+  UniqueConstraintViolationException,
+  wrap,
+} from '@mikro-orm/core'
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { User } from '../auth/auth.entity'
 import { eurToCents } from './catalog.util'
@@ -134,7 +140,9 @@ export class CatalogService {
   async createCategory(input: CreateCategoryInput): Promise<Category> {
     const category = new Category()
     category.name = input.name
-    if (input.parentId) category.parent = this.em.getReference(Category, input.parentId)
+    if (input.parentId) {
+      category.parent = await this.resolveParent(null, input.parentId)
+    }
     this.em.persist(category)
     await this.em.flush()
     return category
@@ -146,11 +154,36 @@ export class CatalogService {
     if (input.name !== undefined) category.name = input.name
     if (input.parentId !== undefined) {
       category.parent = input.parentId
-        ? this.em.getReference(Category, input.parentId)
+        ? await this.resolveParent(id, input.parentId)
         : undefined
     }
     await this.em.flush()
     return category
+  }
+
+  /**
+   * Validates a proposed parent against the "one nesting level" rule: a category cannot be its
+   * own parent, the parent must exist and must itself be top-level, and a category that already
+   * has sub-categories cannot become a sub-category.
+   */
+  private async resolveParent(categoryId: string | null, parentId: string): Promise<Category> {
+    if (categoryId && parentId === categoryId) {
+      throw new ConflictException('A category cannot be its own parent')
+    }
+    const parent = await this.em.findOne(Category, { id: parentId })
+    if (!parent) throw new NotFoundException('Parent category not found')
+    if (parent.parent) {
+      throw new ConflictException('Categories can only be nested one level deep')
+    }
+    if (categoryId) {
+      const childCount = await this.em.count(Category, { parent: categoryId })
+      if (childCount > 0) {
+        throw new ConflictException(
+          'This category has sub-categories, so it cannot become a sub-category itself',
+        )
+      }
+    }
+    return parent
   }
 
   async archiveCategory(id: string): Promise<Category> {
@@ -316,8 +349,12 @@ export class CatalogService {
     userId: string,
   ): Promise<Product> {
     return this.em.transactional(async (em) => {
-      const product = await em.findOne(Product, { id }, { populate: ['prices'] })
+      // Lock the product row so two concurrent price changes serialise: without this both
+      // readers see the same open row, both close it, and both insert a new open row —
+      // leaving two rows with `validTo IS NULL` and a corrupt "current price".
+      const product = await em.findOne(Product, { id }, { lockMode: LockMode.PESSIMISTIC_WRITE })
       if (!product) throw new NotFoundException('Product not found')
+      await em.populate(product, ['prices'])
 
       const effectiveFrom = input.effectiveFrom ?? new Date()
       const current = product.prices.getItems().find((price) => !price.validTo)
@@ -328,6 +365,9 @@ export class CatalogService {
           )
         }
         current.validTo = effectiveFrom
+        // Close the open row before inserting its replacement: the partial unique index
+        // ("one open price per product") is checked per statement, not deferred.
+        await em.flush()
       }
 
       const next = new ProductPrice()
@@ -338,6 +378,16 @@ export class CatalogService {
       product.prices.add(next)
       em.persist(next)
 
+      try {
+        await em.flush()
+      } catch (error) {
+        if (error instanceof UniqueConstraintViolationException) {
+          throw new ConflictException(
+            'This product’s price just changed — reload and try again',
+          )
+        }
+        throw error
+      }
       return product
     })
   }

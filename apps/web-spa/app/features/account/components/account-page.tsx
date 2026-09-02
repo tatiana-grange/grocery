@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { MemberQr } from '@/features/account/components/member-qr'
 import { PasswordChangeForm } from '@/features/account/components/password-change-form'
-import { handleMutationError } from '@/features/common/lib/api-error'
+import { handleMutationError, isForbidden } from '@/features/common/lib/api-error'
 import {
   endMyMembership,
   myAccountQueryOptions,
@@ -32,9 +32,11 @@ export default function AccountPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: account, isLoading, error } = useQuery({
+  const { data: account, isLoading, isFetching, error, refetch } = useQuery({
     ...myAccountQueryOptions(),
-    retry: false,
+    // A 403 is a real answer ("your membership is not active") — don't retry it. Anything
+    // else (network blip, 500) is transient, so give it a couple of tries.
+    retry: (failureCount, err) => !isForbidden(err) && failureCount < 2,
   })
 
   const terminate = useMutation({
@@ -82,6 +84,18 @@ export default function AccountPage() {
   })
 
   if (isLoading) return <Skeleton className="h-96 w-full" />
+
+  if (error && !isForbidden(error)) {
+    return (
+      <div className="space-y-4 text-center">
+        <h1 className="text-2xl font-black tracking-tight">{t('members.account.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('members.account.loadError')}</p>
+        <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+          {t('common.retry')}
+        </Button>
+      </div>
+    )
+  }
 
   if (error || !account) {
     return (

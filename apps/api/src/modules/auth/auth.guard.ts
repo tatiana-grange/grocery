@@ -11,7 +11,6 @@ import { AuthService } from './auth.service'
 
 export interface AuthenticatedRequest extends Request {
   session: LoggedInBetterAuthSession
-  member?: Member
 }
 
 interface SessionUserLike {
@@ -72,13 +71,16 @@ export class AuthGuard implements CanActivate {
           throw new ForbiddenException('Confirm your email or phone number first')
         }
 
-        const member = await this.em.findOne(Member, { user: user.id })
-        request.member = member ?? undefined
-
-        if (!isAdmin && member?.status !== 'active') {
-          throw new ForbiddenException(
-            member ? `Your membership is ${member.status}` : 'You are not an active member',
-          )
+        // Admins reach member-scoped routes regardless of their own member status, so only
+        // pay for the lookup when the active-status check actually gates access. Handlers
+        // that need the member load it themselves (via MembersService).
+        if (!isAdmin) {
+          const member = await this.em.findOne(Member, { user: user.id })
+          if (member?.status !== 'active') {
+            throw new ForbiddenException(
+              member ? `Your membership is ${member.status}` : 'You are not an active member',
+            )
+          }
         }
       }
 

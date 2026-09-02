@@ -11,6 +11,13 @@ import { Product } from './product.entity'
  */
 @Entity({ tableName: 'productPrice' })
 @Index({ properties: ['product', 'validTo'] })
+// Enforce the "exactly one open price per product" invariant at the database level, as a
+// backstop to the pessimistic lock in CatalogService.setProductPrice.
+@Index({
+  name: 'productPrice_one_open_per_product',
+  expression:
+    'create unique index "productPrice_one_open_per_product" on "productPrice" ("productId") where "validTo" is null',
+})
 export class ProductPrice {
   @PrimaryKey({ type: 'uuid', defaultRaw: 'gen_random_uuid()' })
   id!: string

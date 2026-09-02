@@ -1,17 +1,49 @@
 import type { EntityManager } from '@mikro-orm/core'
+import { UniqueConstraintViolationException } from '@mikro-orm/core'
 import type { UserRole } from './contracts/member.contract'
 import { User } from '../auth/auth.entity'
 import { MemberStatusChange } from './entities/member-status-change.entity'
 import { MembershipIntakeSetting } from './entities/membership-intake-setting.entity'
 import { Member } from './entities/member.entity'
 
+/** How many times to retry a membership-number collision before giving up. */
+const MEMBERSHIP_NUMBER_MAX_ATTEMPTS = 5
+
 /**
- * Generates the next membership number (e.g. `MEM-000123`). The unique constraint on
- * `Member.membershipNumber` is the backstop against a race.
+ * Generates the next membership number (e.g. `MEM-000123`). Derived from the current row
+ * count, so two simultaneous sign-ups can land on the same value — the unique constraint on
+ * `Member.membershipNumber` rejects the loser and `persistWithMembershipNumber` retries.
  */
 export async function generateMembershipNumber(em: EntityManager): Promise<string> {
   const count = await em.count(Member)
   return `MEM-${String(count + 1).padStart(6, '0')}`
+}
+
+/**
+ * Assigns a fresh membership number and flushes, retrying on the unique-constraint race that
+ * two simultaneous sign-ups (or a sign-up racing an admin-created member) can trigger. Each
+ * retry clears the identity map and rebuilds the row via `build`.
+ */
+export async function persistWithMembershipNumber(
+  em: EntityManager,
+  build: (membershipNumber: string) => Promise<void> | void,
+): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    await build(await generateMembershipNumber(em))
+    try {
+      await em.flush()
+      return
+    } catch (error) {
+      if (
+        error instanceof UniqueConstraintViolationException &&
+        attempt < MEMBERSHIP_NUMBER_MAX_ATTEMPTS
+      ) {
+        em.clear()
+        continue
+      }
+      throw error
+    }
+  }
 }
 
 export const PHONE_EMAIL_DOMAIN = 'phone.grocery.local'
@@ -55,17 +87,19 @@ export async function ensurePendingMember(em: EntityManager, userId: string): Pr
   const existing = await em.findOne(Member, { user: userId })
   if (existing) return existing
 
-  const member = new Member()
-  member.user = em.getReference(User, userId)
-  member.membershipNumber = await generateMembershipNumber(em)
-  member.status = 'pending'
+  let member!: Member
+  await persistWithMembershipNumber(em, (membershipNumber) => {
+    member = new Member()
+    member.user = em.getReference(User, userId)
+    member.membershipNumber = membershipNumber
+    member.status = 'pending'
 
-  const change = new MemberStatusChange()
-  change.member = member
-  change.toStatus = 'pending'
-  member.statusChanges.add(change)
+    const change = new MemberStatusChange()
+    change.member = member
+    change.toStatus = 'pending'
+    member.statusChanges.add(change)
 
-  em.persist([member, change])
-  await em.flush()
+    em.persist([member, change])
+  })
   return member
 }

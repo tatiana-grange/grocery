@@ -58,7 +58,9 @@ export default function ProductFormPage() {
       isEdit
         ? updateProduct(productId!, {
             name,
-            description: description || undefined,
+            // Send null (not undefined) when cleared, so the backend actually removes it —
+            // `undefined` reads as "leave unchanged".
+            description: description.trim() ? description : null,
             supplierId,
             categoryId,
             labels,

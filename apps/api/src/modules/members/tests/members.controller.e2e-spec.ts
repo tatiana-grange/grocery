@@ -331,5 +331,53 @@ describe('membersController (e2e)', () => {
         .get(`/admin/members/${member.id}/fee/payments`)
       expect(payments.body).toHaveLength(3)
     })
+
+    it('sets the expected fee against the member version, not a hidden fee version', async (context) => {
+      const { em, request } = context
+      const adminSession = await arrangeAdmin(em)
+      const { member } = await createMemberData(em, { status: 'active', expectedFeeCents: 2000 })
+
+      const detail = await request.withSession(adminSession).get(`/admin/members/${member.id}`)
+      const ok = await request
+        .withSession(adminSession)
+        .put(`/admin/members/${member.id}/fee`)
+        .send({ expectedAmountCents: 3000, version: detail.body.version })
+      expect(ok.status).toBe(200)
+      expect(ok.body.expectedAmountCents).toBe(3000)
+
+      // The member version moved, so replaying the old one now conflicts.
+      const stale = await request
+        .withSession(adminSession)
+        .put(`/admin/members/${member.id}/fee`)
+        .send({ expectedAmountCents: 4000, version: detail.body.version })
+      expect(stale.status).toBe(409)
+    })
+
+    it('filters the member list by derived fee state', async (context) => {
+      const { em, request } = context
+      const adminSession = await arrangeAdmin(em)
+      const { member: unpaid } = await createMemberData(em, {
+        status: 'active',
+        expectedFeeCents: 2000,
+        user: { name: 'Unpaid Ursula' },
+      })
+      const { member: paid } = await createMemberData(em, {
+        status: 'active',
+        expectedFeeCents: 1000,
+        user: { name: 'Paid Paula' },
+      })
+      await request
+        .withSession(adminSession)
+        .post(`/admin/members/${paid.id}/fee/payments`)
+        .send({ kind: 'payment', amountCents: 1000, method: 'cash', paidAt: '2026-09-02' })
+
+      const res = await request
+        .withSession(adminSession)
+        .get('/admin/members?filter=feeState:eq:paid')
+      expect(res.status).toBe(200)
+      const ids = res.body.data.map((m: { id: string }) => m.id)
+      expect(ids).toContain(paid.id)
+      expect(ids).not.toContain(unpaid.id)
+    })
   })
 })

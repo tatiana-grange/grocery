@@ -231,7 +231,8 @@ export const setFeeSchema = z
   })
   .meta({
     title: 'SetMembershipFee',
-    description: 'Set the expected membership fee for a member (the "variable fee")',
+    description:
+      'Set the expected membership fee for a member (the "variable fee"). Send the member version you loaded — a stale value returns 409.',
     examples: [{ expectedAmountCents: 2000, version: 1 }],
   })
 

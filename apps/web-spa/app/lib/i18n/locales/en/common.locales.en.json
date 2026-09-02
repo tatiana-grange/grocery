@@ -233,6 +233,7 @@
       "identifierConfirmed": "Identifier confirmed",
       "personalDetails": "Personal details",
       "notActive": "Your membership is pending review, or is no longer active. An administrator will be in touch.",
+      "loadError": "We couldn’t load your account right now.",
       "name": "Name",
       "addressLine1": "Address",
       "addressLine2": "Address (line 2)",
@@ -408,6 +409,7 @@
     "active": "Active",
     "error": "Error",
     "cancel": "Cancel",
-    "conflict": "This changed since you opened it — reload and try again"
+    "conflict": "This changed since you opened it — reload and try again",
+    "retry": "Try again"
   }
 }

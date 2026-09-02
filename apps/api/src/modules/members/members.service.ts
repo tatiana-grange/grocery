@@ -1,9 +1,10 @@
 import type { FilterQuery } from '@mikro-orm/core'
-import { EntityManager, QueryOrder } from '@mikro-orm/core'
+import { EntityManager, QueryOrder, UniqueConstraintViolationException } from '@mikro-orm/core'
 import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common'
 import { randomBytes, randomUUID } from 'node:crypto'
@@ -31,6 +32,7 @@ import { MembershipPayment } from './entities/membership-payment.entity'
 import { Member } from './entities/member.entity'
 import { MembersMapper } from './members.mapper'
 import {
+  PHONE_EMAIL_DOMAIN,
   generateMembershipNumber,
   parseRoles,
   serializeRoles,
@@ -45,11 +47,28 @@ export interface MembersListResult {
 
 @Injectable()
 export class MembersService {
+  private readonly logger = new Logger(MembersService.name)
+
   constructor(
     private readonly em: EntityManager,
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
   ) {}
+
+  /**
+   * Runs a post-commit side effect (a notification, a session revocation) without letting its
+   * failure surface as a 500 on a request whose status transition has already committed.
+   */
+  private async runPostCommit(label: string, effect: () => Promise<void>): Promise<void> {
+    try {
+      await effect()
+    } catch (error) {
+      this.logger.error(
+        `${label} failed after the member change committed`,
+        error instanceof Error ? error.stack : String(error),
+      )
+    }
+  }
 
   // -----------------------------------------------------------------------------------------------
   // Membership intake
@@ -96,6 +115,10 @@ export class MembersService {
       if (item.property === 'role') {
         Object.assign(where, { user: { role: { $like: `%${item.value}%` } } })
       }
+      if (item.property === 'feeState') {
+        const ids = await this.memberIdsByFeeState(item.value as MembershipFeeState)
+        Object.assign(where, { id: { $in: ids } })
+      }
       if (item.property === 'q') {
         const like = `%${item.value}%`
         Object.assign(where, {
@@ -129,6 +152,28 @@ export class MembersService {
     return { members, total, pagination }
   }
 
+  /**
+   * Member ids whose derived fee state matches. Computed in SQL because the state depends on
+   * the sum of payment rows against the expected amount — a member with no fee row yet counts
+   * as "unpaid", matching the fallback in `MembersMapper.toMembersList`.
+   */
+  private async memberIdsByFeeState(state: MembershipFeeState): Promise<string[]> {
+    const rows: Array<{ memberId: string; expected: number; paid: number }> = await this.em
+      .getConnection()
+      .execute(
+        `select m."id" as "memberId",
+                coalesce(f."expectedAmountCents", 0)::int as "expected",
+                coalesce(sum(p."amountCents"), 0)::int as "paid"
+           from "member" m
+           left join "membershipFee" f on f."memberId" = m."id"
+           left join "membershipPayment" p on p."feeId" = f."id"
+          group by m."id", f."expectedAmountCents"`,
+      )
+    return rows
+      .filter((row) => MembersMapper.deriveFeeState(row.expected, row.paid) === state)
+      .map((row) => row.memberId)
+  }
+
   async getMemberDetail(id: string): Promise<Member> {
     const member = await this.em.findOne(
       Member,
@@ -143,8 +188,23 @@ export class MembersService {
    * Admin-created member: makes the auth user + credential account + `Member` row (+ fee row
    * if active) in one transaction. No password is set — the person uses "forgot password" to
    * choose one, which works because the admin vouches for the identifier (marked verified).
+   *
+   * The whole transaction is retried on a unique-constraint violation: a membership-number
+   * collision with a concurrent sign-up, or an email/phone another request created a beat
+   * earlier (the retry re-runs the clash check and returns a clean 409).
    */
   async createMember(input: CreateMemberInput, adminUserId: string): Promise<Member> {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this.createMemberOnce(input, adminUserId)
+      } catch (error) {
+        if (error instanceof UniqueConstraintViolationException && attempt < 5) continue
+        throw error
+      }
+    }
+  }
+
+  private async createMemberOnce(input: CreateMemberInput, adminUserId: string): Promise<Member> {
     return this.em.transactional(async (em) => {
       const email = input.email ?? synthesizedPhoneEmail(input.phoneNumber!)
 
@@ -292,14 +352,34 @@ export class MembersService {
     return fee
   }
 
+  /**
+   * Sets the expected fee. The optimistic-lock token is the *member* version, not the fee
+   * version: the back office edits this from the member detail page, which only ever loads
+   * `member.version` (the fee row's version is never exposed to the client). Touching the
+   * member row keeps that version moving in step with fee edits.
+   */
   async setExpectedFee(memberId: string, input: SetFeeInput): Promise<MembershipFee> {
-    const fee = await this.requireFee(memberId)
-    if (fee.version !== input.version) {
-      throw new ConflictException('The fee changed since you opened it — reload and try again')
-    }
-    fee.expectedAmountCents = input.expectedAmountCents
-    await this.em.flush()
-    return this.requireFee(memberId)
+    return this.em.transactional(async (em) => {
+      const member = await em.findOne(Member, { id: memberId })
+      if (!member) throw new NotFoundException('Member not found')
+      if (member.version !== input.version) {
+        throw new ConflictException(
+          'This member changed since you opened it — reload and try again',
+        )
+      }
+
+      const fee = await em.findOne(
+        MembershipFee,
+        { member: memberId },
+        { populate: ['payments'] },
+      )
+      if (!fee) throw new NotFoundException('This member has no fee record yet')
+
+      fee.expectedAmountCents = input.expectedAmountCents
+      member.updatedAt = new Date()
+      await em.flush()
+      return fee
+    })
   }
 
   async recordFeePayment(
@@ -346,7 +426,9 @@ export class MembersService {
     }
 
     await this.em.flush()
-    await this.notifyDecision(member, 'validated')
+    await this.runPostCommit('Member validation notification', () =>
+      this.notifyDecision(member, 'validated'),
+    )
     return this.getMemberDetail(id)
   }
 
@@ -361,8 +443,12 @@ export class MembersService {
     this.transitionStatus(member, 'rejected', { reason, changedByUserId: adminUserId })
     await this.em.flush()
 
-    await this.revokeSessions(member.user.id)
-    await this.notifyDecision(member, 'rejected', reason)
+    await this.runPostCommit('Rejected-member session revocation', () =>
+      this.revokeSessions(member.user.id),
+    )
+    await this.runPostCommit('Member rejection notification', () =>
+      this.notifyDecision(member, 'rejected', reason),
+    )
     return this.getMemberDetail(id)
   }
 
@@ -448,8 +534,12 @@ export class MembersService {
     }
     this.transitionStatus(member, 'terminated')
     await this.em.flush()
-    await this.revokeSessions(userId)
-    await this.notifyLifecycle(member, 'terminated')
+    await this.runPostCommit('Self-termination session revocation', () =>
+      this.revokeSessions(userId),
+    )
+    await this.runPostCommit('Self-termination notification', () =>
+      this.notifyLifecycle(member, 'terminated'),
+    )
     return this.getMemberDetail(member.id)
   }
 
@@ -461,8 +551,12 @@ export class MembersService {
     }
     this.transitionStatus(member, 'terminated', { reason, changedByUserId: adminUserId })
     await this.em.flush()
-    await this.revokeSessions(member.user.id)
-    await this.notifyLifecycle(member, 'terminated', reason)
+    await this.runPostCommit('Admin-termination session revocation', () =>
+      this.revokeSessions(member.user.id),
+    )
+    await this.runPostCommit('Admin-termination notification', () =>
+      this.notifyLifecycle(member, 'terminated', reason),
+    )
     return this.getMemberDetail(id)
   }
 
@@ -477,7 +571,9 @@ export class MembersService {
     }
     this.transitionStatus(member, 'active', { changedByUserId: adminUserId })
     await this.em.flush()
-    await this.notifyLifecycle(member, 'reactivated')
+    await this.runPostCommit('Reactivation notification', () =>
+      this.notifyLifecycle(member, 'reactivated'),
+    )
     return this.getMemberDetail(id)
   }
 
@@ -520,9 +616,15 @@ export class MembersService {
   }
 
   private async send(user: User, subject: string, body: string): Promise<void> {
-    if (user.emailVerified && user.email && !user.email.endsWith('@phone.grocery.local')) {
-      await this.emailService.sendEmail({ to: user.email, subject, content: body })
-    } else if (user.phoneNumberVerified && user.phoneNumber) {
+    // A lifecycle decision must always reach the member, so we send to whatever identifier
+    // they registered with — not only a *verified* one. An email member who never clicked the
+    // verification link still gets told their request was approved or rejected. The synthesized
+    // `@phone.grocery.local` address is not a real inbox, so those members get the SMS instead.
+    const realEmail =
+      user.email && !user.email.endsWith(`@${PHONE_EMAIL_DOMAIN}`) ? user.email : null
+    if (realEmail) {
+      await this.emailService.sendEmail({ to: realEmail, subject, content: body })
+    } else if (user.phoneNumber) {
       await this.smsService.sendSms({ to: user.phoneNumber, content: `${subject}: ${body}` })
     }
   }

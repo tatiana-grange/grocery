@@ -233,6 +233,7 @@
       "identifierConfirmed": "Identifiant confirmé",
       "personalDetails": "Coordonnées",
       "notActive": "Votre adhésion est en attente de validation, ou n'est plus active. Un administrateur vous recontactera.",
+      "loadError": "Impossible de charger votre compte pour le moment.",
       "name": "Nom",
       "addressLine1": "Adresse",
       "addressLine2": "Adresse (complément)",
@@ -408,6 +409,7 @@
     "active": "Actif",
     "error": "Erreur",
     "cancel": "Annuler",
-    "conflict": "Cet élément a changé depuis son ouverture — rechargez et réessayez"
+    "conflict": "Cet élément a changé depuis son ouverture — rechargez et réessayez",
+    "retry": "Réessayer"
   }
 }

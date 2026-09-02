@@ -133,6 +133,55 @@ describe('catalogController (e2e)', () => {
     expect(res.body.productCount).toBe(1)
   })
 
+  it('enforces the one-level category nesting rule', async () => {
+    const top = await makeCategory(`Top-${Math.random().toString(36).slice(2, 6)}`)
+    const child = await makeCategory(`Child-${Math.random().toString(36).slice(2, 6)}`)
+    const grandchild = await makeCategory(`GC-${Math.random().toString(36).slice(2, 6)}`)
+
+    const nest = await request
+      .withSession(admin)
+      .put(`/admin/categories/${child.id}`)
+      .send({ parentId: top.id, version: child.version })
+    expect(nest.status).toBe(200)
+
+    // A category that already has a parent cannot itself be a parent.
+    const twoLevels = await request
+      .withSession(admin)
+      .put(`/admin/categories/${grandchild.id}`)
+      .send({ parentId: child.id, version: grandchild.version })
+    expect(twoLevels.status).toBe(409)
+
+    // A category with sub-categories cannot become a sub-category.
+    const demoteParent = await request
+      .withSession(admin)
+      .put(`/admin/categories/${top.id}`)
+      .send({ parentId: grandchild.id, version: top.version })
+    expect(demoteParent.status).toBe(409)
+
+    // A category cannot be its own parent.
+    const selfParent = await request
+      .withSession(admin)
+      .put(`/admin/categories/${grandchild.id}`)
+      .send({ parentId: grandchild.id, version: grandchild.version })
+    expect(selfParent.status).toBe(409)
+  })
+
+  it('keeps one open price per product under a concurrent price change', async () => {
+    const { product } = await makeProduct()
+    const [a, b] = await Promise.all([
+      request.withSession(admin).post(`/admin/products/${product.id}/price`).send({ amountEur: 3 }),
+      request.withSession(admin).post(`/admin/products/${product.id}/price`).send({ amountEur: 4 }),
+    ])
+
+    // One write wins outright; the other either serialises cleanly or is rejected as a conflict.
+    expect([a.status, b.status].filter((status) => status === 200).length).toBeGreaterThanOrEqual(1)
+    expect([a.status, b.status].every((status) => status === 200 || status === 409)).toBe(true)
+
+    const detail = await request.withSession(admin).get(`/admin/products/${product.id}`)
+    const open = detail.body.priceHistory.filter((w: { validTo: string | null }) => !w.validTo)
+    expect(open).toHaveLength(1)
+  })
+
   it('refuses to flip saleMode while a product has an open price', async () => {
     const { product } = await makeProduct()
     const res = await request

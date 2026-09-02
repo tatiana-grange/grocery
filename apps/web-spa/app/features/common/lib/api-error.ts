@@ -14,6 +14,12 @@ export function isConflict(error: unknown): boolean {
   return candidate?.statusCode === 409 || candidate?.status === 409
 }
 
+/** A 403 means the request was understood but the caller is not allowed (e.g. not an active member). */
+export function isForbidden(error: unknown): boolean {
+  const candidate = error as ApiErrorLike | undefined
+  return candidate?.statusCode === 403 || candidate?.status === 403
+}
+
 export function apiErrorMessage(error: unknown, fallback: string): string {
   const candidate = error as ApiErrorLike | undefined
   return candidate?.message ?? fallback
