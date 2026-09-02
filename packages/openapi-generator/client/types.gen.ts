@@ -5,6 +5,104 @@ export type ClientOptions = {
 };
 
 /**
+ * CreateSupplier
+ *
+ * Create a supplier
+ */
+export type CreateSupplier = {
+    name: string;
+    type: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
+};
+
+/**
+ * UpdateSupplier
+ *
+ * Update a supplier (send the loaded version)
+ */
+export type UpdateSupplier = {
+    name?: string;
+    type?: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
+    version: number;
+};
+
+/**
+ * CreateCategory
+ *
+ * Create a category
+ */
+export type CreateCategory = {
+    name: string;
+    parentId?: string | null;
+};
+
+/**
+ * UpdateCategory
+ *
+ * Rename or reparent a category
+ */
+export type UpdateCategory = {
+    name?: string;
+    parentId?: string | null;
+    version: number;
+};
+
+/**
+ * CreateProduct
+ *
+ * Create a catalogue product with its first price. pricingUnit is derived from saleMode.
+ */
+export type CreateProduct = {
+    name: string;
+    description?: string | null;
+    supplierId: string;
+    categoryId: string;
+    saleMode: ProductSaleMode;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
+    initialPriceEur: number;
+};
+
+/**
+ * UpdateProduct
+ *
+ * Update a product (not its price)
+ */
+export type UpdateProduct = {
+    name?: string;
+    description?: string | null;
+    supplierId?: string;
+    categoryId?: string;
+    saleMode?: ProductSaleMode;
+    photos?: Array<string>;
+    labels?: Array<ProductLabel>;
+    barcode?: string | null;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
+    version: number;
+};
+
+/**
+ * SetProductPrice
+ *
+ * Set a new current price; the previous window is closed at effectiveFrom (or now)
+ */
+export type SetProductPrice = {
+    amountEur: number;
+    effectiveFrom?: string;
+};
+
+/**
  * UseCase1SingleGenerationRequest
  *
  * Single generation; trace is finalized with name/output so Langfuse shows them
@@ -188,6 +286,210 @@ export type MemberValidation = {
  */
 export type MembershipIntake = {
     open: boolean;
+};
+
+/**
+ * CatalogSuppliersList
+ *
+ * A paginated list of suppliers
+ */
+export type CatalogSuppliersList = {
+    data: Array<CatalogSupplier>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * CatalogSupplier
+ *
+ * A source of products
+ */
+export type CatalogSupplier = {
+    id: string;
+    name: string;
+    type: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
+    archivedAt?: string | null;
+    productCount: number;
+    version: number;
+    createdAt: string;
+};
+
+/**
+ * SupplierType
+ *
+ * Whether the supplier is a producer or a wholesaler
+ */
+export const SupplierType = { PRODUCER: 'producer', WHOLESALER: 'wholesaler' } as const;
+
+/**
+ * SupplierType
+ *
+ * Whether the supplier is a producer or a wholesaler
+ */
+export type SupplierType = typeof SupplierType[keyof typeof SupplierType];
+
+/**
+ * CatalogCategoriesList
+ *
+ * All categories (one nesting level)
+ */
+export type CatalogCategoriesList = Array<CatalogCategory>;
+
+/**
+ * CatalogCategory
+ *
+ * A grouping for products in the catalogue
+ */
+export type CatalogCategory = {
+    id: string;
+    name: string;
+    parentId?: string | null;
+    archivedAt?: string | null;
+    productCount: number;
+    version: number;
+};
+
+/**
+ * CatalogProductsList
+ *
+ * A paginated list of products
+ */
+export type CatalogProductsList = {
+    data: Array<CatalogProduct>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * CatalogProduct
+ *
+ * An item the cooperative offers
+ */
+export type CatalogProduct = {
+    id: string;
+    name: string;
+    description?: string | null;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    category: {
+        id: string;
+        name: string;
+    };
+    saleMode: ProductSaleMode;
+    pricingUnit: ProductPricingUnit;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    currentPriceEur?: number | null;
+    archivedAt?: string | null;
+    version: number;
+    createdAt: string;
+};
+
+/**
+ * ProductSaleMode
+ *
+ * "unit" is sold per piece, "weight" is priced per kilogram
+ */
+export const ProductSaleMode = { UNIT: 'unit', WEIGHT: 'weight' } as const;
+
+/**
+ * ProductSaleMode
+ *
+ * "unit" is sold per piece, "weight" is priced per kilogram
+ */
+export type ProductSaleMode = typeof ProductSaleMode[keyof typeof ProductSaleMode];
+
+/**
+ * ProductPricingUnit
+ *
+ * Derived from the sale mode: unit → piece, weight → kg
+ */
+export const ProductPricingUnit = { PIECE: 'piece', KG: 'kg' } as const;
+
+/**
+ * ProductPricingUnit
+ *
+ * Derived from the sale mode: unit → piece, weight → kg
+ */
+export type ProductPricingUnit = typeof ProductPricingUnit[keyof typeof ProductPricingUnit];
+
+/**
+ * ProductLabel
+ *
+ * Informational badges shown on the product
+ */
+export const ProductLabel = {
+    ORGANIC: 'organic',
+    LOCAL: 'local',
+    VEGETARIAN: 'vegetarian',
+    VEGAN: 'vegan'
+} as const;
+
+/**
+ * ProductLabel
+ *
+ * Informational badges shown on the product
+ */
+export type ProductLabel = typeof ProductLabel[keyof typeof ProductLabel];
+
+/**
+ * CatalogProductDetail
+ *
+ * A product with its full price history
+ */
+export type CatalogProductDetail = {
+    id: string;
+    name: string;
+    description?: string | null;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    category: {
+        id: string;
+        name: string;
+    };
+    saleMode: ProductSaleMode;
+    pricingUnit: ProductPricingUnit;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    currentPriceEur?: number | null;
+    archivedAt?: string | null;
+    version: number;
+    createdAt: string;
+    priceHistory: Array<CatalogPriceWindow>;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
+};
+
+/**
+ * CatalogPriceWindow
+ *
+ * One entry in a product’s price history
+ */
+export type CatalogPriceWindow = {
+    id: string;
+    amountEur: number;
+    currency: string;
+    validFrom: string;
+    validTo?: string | null;
+    setByName?: string | null;
 };
 
 /**
@@ -777,6 +1079,38 @@ export const MembershipPaymentMethod = {
 export type MembershipPaymentMethod = typeof MembershipPaymentMethod[keyof typeof MembershipPaymentMethod];
 
 /**
+ * PaginationQuerySchema
+ *
+ * Schema for pagination query
+ */
+export type PaginationQuerySchema = {
+    /**
+     * Starting position of the query
+     */
+    offset: number;
+    /**
+     * Number of items to return
+     */
+    pageSize: number;
+};
+
+/**
+ * FilterQueryStringSchema
+ *
+ * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+ * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+ * <br> Available properties: status, feeState, role, q
+ */
+export type FilterQueryStringSchema = string;
+
+/**
+ * SortingQueryStringSchema
+ *
+ * Schema for sorting items
+ */
+export type SortingQueryStringSchema = string;
+
+/**
  * AiCoreMessage
  *
  * A message in the conversation history following Vercel AI SDK patterns
@@ -952,38 +1286,6 @@ export type AiGenerateOptions = {
     };
 };
 
-/**
- * PaginationQuerySchema
- *
- * Schema for pagination query
- */
-export type PaginationQuerySchema = {
-    /**
-     * Starting position of the query
-     */
-    offset: number;
-    /**
-     * Number of items to return
-     */
-    pageSize: number;
-};
-
-/**
- * SortingQueryStringSchema
- *
- * Schema for sorting items
- */
-export type SortingQueryStringSchema = string;
-
-/**
- * FilterQueryStringSchema
- *
- * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
- * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: status, feeState, role, q
- */
-export type FilterQueryStringSchema = string;
-
 export type CommentsControllerPostSlug = string;
 
 export type AdminMembersControllerListFilterItem = {
@@ -1000,6 +1302,29 @@ export type AdminMembersControllerListSortItem = {
 };
 
 export type AdminMembersControllerListSortArray = Array<AdminMembersControllerListSortItem>;
+
+export type AdminSuppliersControllerListFilterItem = {
+    property: 'type' | 'q';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type AdminSuppliersControllerListFilterArray = Array<AdminSuppliersControllerListFilterItem>;
+
+export type AdminProductsControllerListFilterItem = {
+    property: 'supplierId' | 'categoryId' | 'saleMode' | 'label' | 'q';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type AdminProductsControllerListFilterArray = Array<AdminProductsControllerListFilterItem>;
+
+export type AdminProductsControllerListSortItem = {
+    property: 'name' | 'createdAt';
+    direction: 'asc' | 'desc';
+};
+
+export type AdminProductsControllerListSortArray = Array<AdminProductsControllerListSortItem>;
 
 export type CommentsControllerGetCommentsFilterItem = {
     property: 'content';
@@ -1192,6 +1517,462 @@ export type MembershipIntakeControllerSetResponses = {
 };
 
 export type MembershipIntakeControllerSetResponse = MembershipIntakeControllerSetResponses[keyof MembershipIntakeControllerSetResponses];
+
+export type AdminSuppliersControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: type, q
+         */
+        filter?: AdminSuppliersControllerListFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/suppliers';
+};
+
+export type AdminSuppliersControllerListResponses = {
+    /**
+     * A paginated list of suppliers
+     */
+    200: CatalogSuppliersList;
+};
+
+export type AdminSuppliersControllerListResponse = AdminSuppliersControllerListResponses[keyof AdminSuppliersControllerListResponses];
+
+export type AdminSuppliersControllerCreateData = {
+    /**
+     * CreateSupplier
+     *
+     * Create a supplier
+     */
+    body: {
+        name: string;
+        /**
+         * SupplierType
+         *
+         * Whether the supplier is a producer or a wholesaler
+         */
+        type: 'producer' | 'wholesaler';
+        contactName?: string | null;
+        contactEmail?: string | null;
+        contactPhone?: string | null;
+        notes?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/suppliers';
+};
+
+export type AdminSuppliersControllerCreateResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerCreateResponse = AdminSuppliersControllerCreateResponses[keyof AdminSuppliersControllerCreateResponses];
+
+export type AdminSuppliersControllerGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{id}';
+};
+
+export type AdminSuppliersControllerGetResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerGetResponse = AdminSuppliersControllerGetResponses[keyof AdminSuppliersControllerGetResponses];
+
+export type AdminSuppliersControllerUpdateData = {
+    /**
+     * UpdateSupplier
+     *
+     * Update a supplier (send the loaded version)
+     */
+    body: {
+        name?: string;
+        /**
+         * SupplierType
+         *
+         * Whether the supplier is a producer or a wholesaler
+         */
+        type?: 'producer' | 'wholesaler';
+        contactName?: string | null;
+        contactEmail?: string | null;
+        contactPhone?: string | null;
+        notes?: string | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{id}';
+};
+
+export type AdminSuppliersControllerUpdateResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerUpdateResponse = AdminSuppliersControllerUpdateResponses[keyof AdminSuppliersControllerUpdateResponses];
+
+export type AdminSuppliersControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query: {
+        cascade: string;
+    };
+    url: '/api/admin/suppliers/{id}/archive';
+};
+
+export type AdminSuppliersControllerArchiveResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerArchiveResponse = AdminSuppliersControllerArchiveResponses[keyof AdminSuppliersControllerArchiveResponses];
+
+export type AdminSuppliersControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{id}/unarchive';
+};
+
+export type AdminSuppliersControllerUnarchiveResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerUnarchiveResponse = AdminSuppliersControllerUnarchiveResponses[keyof AdminSuppliersControllerUnarchiveResponses];
+
+export type AdminCategoriesControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+    };
+    url: '/api/admin/categories';
+};
+
+export type AdminCategoriesControllerListResponses = {
+    /**
+     * All categories (one nesting level)
+     */
+    200: CatalogCategoriesList;
+};
+
+export type AdminCategoriesControllerListResponse = AdminCategoriesControllerListResponses[keyof AdminCategoriesControllerListResponses];
+
+export type AdminCategoriesControllerCreateData = {
+    /**
+     * CreateCategory
+     *
+     * Create a category
+     */
+    body: {
+        name: string;
+        parentId?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/categories';
+};
+
+export type AdminCategoriesControllerCreateResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerCreateResponse = AdminCategoriesControllerCreateResponses[keyof AdminCategoriesControllerCreateResponses];
+
+export type AdminCategoriesControllerUpdateData = {
+    /**
+     * UpdateCategory
+     *
+     * Rename or reparent a category
+     */
+    body: {
+        name?: string;
+        parentId?: string | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}';
+};
+
+export type AdminCategoriesControllerUpdateResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerUpdateResponse = AdminCategoriesControllerUpdateResponses[keyof AdminCategoriesControllerUpdateResponses];
+
+export type AdminCategoriesControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}/archive';
+};
+
+export type AdminCategoriesControllerArchiveResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerArchiveResponse = AdminCategoriesControllerArchiveResponses[keyof AdminCategoriesControllerArchiveResponses];
+
+export type AdminCategoriesControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}/unarchive';
+};
+
+export type AdminCategoriesControllerUnarchiveResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerUnarchiveResponse = AdminCategoriesControllerUnarchiveResponses[keyof AdminCategoriesControllerUnarchiveResponses];
+
+export type AdminProductsControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: supplierId, categoryId, saleMode, label, q
+         */
+        filter?: AdminProductsControllerListFilterArray;
+        /**
+         * Schema for sorting items
+         */
+        sort?: AdminProductsControllerListSortArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/products';
+};
+
+export type AdminProductsControllerListResponses = {
+    /**
+     * A paginated list of products
+     */
+    200: CatalogProductsList;
+};
+
+export type AdminProductsControllerListResponse = AdminProductsControllerListResponses[keyof AdminProductsControllerListResponses];
+
+export type AdminProductsControllerCreateData = {
+    /**
+     * CreateProduct
+     *
+     * Create a catalogue product with its first price. pricingUnit is derived from saleMode.
+     */
+    body: {
+        name: string;
+        description?: string | null;
+        supplierId: string;
+        categoryId: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+        photos: Array<string>;
+        labels: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
+        barcode?: string | null;
+        averageWeightGrams?: number | null;
+        weightTolerancePercent?: number | null;
+        initialPriceEur: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/products';
+};
+
+export type AdminProductsControllerCreateResponses = {
+    /**
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerCreateResponse = AdminProductsControllerCreateResponses[keyof AdminProductsControllerCreateResponses];
+
+export type AdminProductsControllerGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}';
+};
+
+export type AdminProductsControllerGetResponses = {
+    /**
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerGetResponse = AdminProductsControllerGetResponses[keyof AdminProductsControllerGetResponses];
+
+export type AdminProductsControllerUpdateData = {
+    /**
+     * UpdateProduct
+     *
+     * Update a product (not its price)
+     */
+    body: {
+        name?: string;
+        description?: string | null;
+        supplierId?: string;
+        categoryId?: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode?: 'unit' | 'weight';
+        photos?: Array<string>;
+        labels?: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
+        barcode?: string | null;
+        averageWeightGrams?: number | null;
+        weightTolerancePercent?: number | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}';
+};
+
+export type AdminProductsControllerUpdateResponses = {
+    /**
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerUpdateResponse = AdminProductsControllerUpdateResponses[keyof AdminProductsControllerUpdateResponses];
+
+export type AdminProductsControllerSetPriceData = {
+    /**
+     * SetProductPrice
+     *
+     * Set a new current price; the previous window is closed at effectiveFrom (or now)
+     */
+    body: {
+        amountEur: number;
+        effectiveFrom?: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}/price';
+};
+
+export type AdminProductsControllerSetPriceResponses = {
+    /**
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerSetPriceResponse = AdminProductsControllerSetPriceResponses[keyof AdminProductsControllerSetPriceResponses];
+
+export type AdminProductsControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}/archive';
+};
+
+export type AdminProductsControllerArchiveResponses = {
+    /**
+     * An item the cooperative offers
+     */
+    200: CatalogProduct;
+};
+
+export type AdminProductsControllerArchiveResponse = AdminProductsControllerArchiveResponses[keyof AdminProductsControllerArchiveResponses];
+
+export type AdminProductsControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}/unarchive';
+};
+
+export type AdminProductsControllerUnarchiveResponses = {
+    /**
+     * An item the cooperative offers
+     */
+    200: CatalogProduct;
+};
+
+export type AdminProductsControllerUnarchiveResponse = AdminProductsControllerUnarchiveResponses[keyof AdminProductsControllerUnarchiveResponses];
 
 export type CommentsControllerGetCommentsData = {
     body?: never;

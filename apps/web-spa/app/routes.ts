@@ -28,5 +28,10 @@ export default [
     route('admin/members', 'features/admin-members/components/members-list-page.tsx'),
     route('admin/members/:memberId', 'features/admin-members/components/member-detail-page.tsx'),
     route('admin/catalog', 'features/catalog/components/catalog-page.tsx'),
+    route('admin/catalog/products/new', 'features/catalog/components/product-form-page.tsx'),
+    route(
+      'admin/catalog/products/:productId',
+      'features/catalog/components/product-detail-page.tsx',
+    ),
   ]),
 ] satisfies RouteConfig

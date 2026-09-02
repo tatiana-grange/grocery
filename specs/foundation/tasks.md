@@ -114,32 +114,32 @@ product and a supplier (with cascade). No member or self-service work needed.
 
 ### Tests for User Story 2
 
-- [ ] T041 [P] [US2] Create `apps/api/src/modules/catalog/tests/catalog.controller.e2e-spec.ts` covering: supplier/category/product create + list (+ `includeArchived`); by-weight product gets `pricingUnit: kg`; two price changes → three contiguous windows, one open; archive product (absent from list, present in detail); archive supplier without `cascade` → 409 with count, with `?cascade=true` → both archived; archive category referenced by an active product → 409; stale `version` → 409; non-admin → 403
-- [ ] T042 [P] [US2] Create `apps/api/src/modules/catalog/tests/catalog.service.spec.ts` unit tests: price-window transition (close current + open new) and `saleMode → pricingUnit` derivation (AAA)
+- [x] T041 [P] [US2] Create `apps/api/src/modules/catalog/tests/catalog.controller.e2e-spec.ts` covering: supplier/category/product create + list (+ `includeArchived`); by-weight product gets `pricingUnit: kg`; two price changes → three contiguous windows, one open; archive product (absent from list, present in detail); archive supplier without `cascade` → 409 with count, with `?cascade=true` → both archived; archive category referenced by an active product → 409; stale `version` → 409; non-admin → 403
+- [x] T042 [P] [US2] Create `apps/api/src/modules/catalog/tests/catalog.service.spec.ts` unit tests: price-window transition (close current + open new) and `saleMode → pricingUnit` derivation (AAA)
 
 ### Implementation for User Story 2
 
-- [ ] T043 [P] [US2] `Supplier` entity in `apps/api/src/modules/catalog/entities/supplier.entity.ts` (`type`, contact fields, `archivedAt`, `version`)
-- [ ] T044 [P] [US2] `Category` entity in `apps/api/src/modules/catalog/entities/category.entity.ts` (`name`, optional `parent`, `archivedAt`, `version`)
-- [ ] T045 [P] [US2] `Product` entity in `apps/api/src/modules/catalog/entities/product.entity.ts` (`saleMode`, `pricingUnit`, `photos` json, `labels` json, `barcode`, reserved `averageWeightGrams` / `weightTolerancePercent`, `archivedAt`, `version`)
-- [ ] T046 [P] [US2] Append-only `ProductPrice` entity in `apps/api/src/modules/catalog/entities/product-price.entity.ts` (`amountCents`, `currency`, `validFrom`, `validTo` nullable, `setByUser`; index `(product, validTo)`)
-- [ ] T047 [P] [US2] `supplier.contract.ts` and `category.contract.ts` in `apps/api/src/modules/catalog/contracts/` (enums + create/update/response schemas, `.meta()`)
-- [ ] T048 [P] [US2] `product.contract.ts` and `product-price.contract.ts` in `apps/api/src/modules/catalog/contracts/` (enums `supplierType`, `saleMode`, `pricingUnit`, `label`; a shared euros↔cents transform helper)
-- [ ] T049 [US2] Create `catalog.module.ts`, `catalog.service.ts` skeleton, and `catalog.mapper.ts` in `apps/api/src/modules/catalog/` (depends on T043–T048)
-- [ ] T050 [US2] `CatalogService` suppliers: `create` / `update` (optimistic `version`), `list` (filters, `includeArchived`), `get`, `archive` (+ `cascade` in one transaction), `unarchive` (depends on T049)
-- [ ] T051 [US2] `CatalogService` categories: `create` / `update`, `list`, `archive` (refuse while non-archived products reference it), `unarchive` (depends on T049)
-- [ ] T052 [US2] `CatalogService` products: `create` (+ initial open `ProductPrice` in one transaction), `update` (`version`, not price), `list` (filters), `getDetail` (current price + history) (depends on T049)
-- [ ] T053 [US2] `CatalogService.setProductPrice`: close the current open window (`validTo = effectiveFrom`) and insert a new open window, one transaction; `archiveProduct` / `unarchiveProduct` with supplier/category parent checks (depends on T052)
-- [ ] T054 [US2] `catalog.mapper.ts`: supplier / category / product / product-detail mapping incl. `currentPriceEur` and `priceHistory` (depends on T048)
-- [ ] T055 [US2] `apps/api/src/modules/catalog/catalog.controller.ts`: every route in `contracts/catalog-api.md`, all `@AdminOnly()` (depends on T050–T054)
-- [ ] T056 [US2] Register `CatalogModule` in `apps/api/src/app.module.ts`; create `catalog.seeder.ts` (2 suppliers, 1 category, a `unit` and a `weight` product with prices) and wire into `database.seeder.ts` (depends on T049)
-- [ ] T057 [US2] Run `pnpm generate` (depends on T055)
-- [ ] T058 [P] [US2] Frontend: `apps/web-spa/app/features/catalog/utils/catalog-queries.ts` (depends on T057)
-- [ ] T059 [US2] Frontend: supplier list + create/edit form in `apps/web-spa/app/features/catalog/components/` (depends on T058)
-- [ ] T060 [US2] Frontend: category management component in `apps/web-spa/app/features/catalog/components/` (depends on T058)
-- [ ] T061 [US2] Frontend: product list + create/edit form (unit and by-weight) in `apps/web-spa/app/features/catalog/components/` (depends on T058)
-- [ ] T062 [US2] Frontend: price-change dialog + price-history view in `apps/web-spa/app/features/catalog/components/` (depends on T058)
-- [ ] T063 [US2] Frontend: archive / unarchive actions + `includeArchived` toggle; wire catalog routes and `catalog` i18n strings (en + fr) (depends on T059–T062, T024)
+- [x] T043 [P] [US2] `Supplier` entity in `apps/api/src/modules/catalog/entities/supplier.entity.ts` (`type`, contact fields, `archivedAt`, `version`)
+- [x] T044 [P] [US2] `Category` entity in `apps/api/src/modules/catalog/entities/category.entity.ts` (`name`, optional `parent`, `archivedAt`, `version`)
+- [x] T045 [P] [US2] `Product` entity in `apps/api/src/modules/catalog/entities/product.entity.ts` (`saleMode`, `pricingUnit`, `photos` json, `labels` json, `barcode`, reserved `averageWeightGrams` / `weightTolerancePercent`, `archivedAt`, `version`)
+- [x] T046 [P] [US2] Append-only `ProductPrice` entity in `apps/api/src/modules/catalog/entities/product-price.entity.ts` (`amountCents`, `currency`, `validFrom`, `validTo` nullable, `setByUser`; index `(product, validTo)`)
+- [x] T047 [P] [US2] `supplier.contract.ts` and `category.contract.ts` in `apps/api/src/modules/catalog/contracts/` (enums + create/update/response schemas, `.meta()`)
+- [x] T048 [P] [US2] `product.contract.ts` and `product-price.contract.ts` in `apps/api/src/modules/catalog/contracts/` (enums `supplierType`, `saleMode`, `pricingUnit`, `label`; a shared euros↔cents transform helper)
+- [x] T049 [US2] Create `catalog.module.ts`, `catalog.service.ts` skeleton, and `catalog.mapper.ts` in `apps/api/src/modules/catalog/` (depends on T043–T048)
+- [x] T050 [US2] `CatalogService` suppliers: `create` / `update` (optimistic `version`), `list` (filters, `includeArchived`), `get`, `archive` (+ `cascade` in one transaction), `unarchive` (depends on T049)
+- [x] T051 [US2] `CatalogService` categories: `create` / `update`, `list`, `archive` (refuse while non-archived products reference it), `unarchive` (depends on T049)
+- [x] T052 [US2] `CatalogService` products: `create` (+ initial open `ProductPrice` in one transaction), `update` (`version`, not price), `list` (filters), `getDetail` (current price + history) (depends on T049)
+- [x] T053 [US2] `CatalogService.setProductPrice`: close the current open window (`validTo = effectiveFrom`) and insert a new open window, one transaction; `archiveProduct` / `unarchiveProduct` with supplier/category parent checks (depends on T052)
+- [x] T054 [US2] `catalog.mapper.ts`: supplier / category / product / product-detail mapping incl. `currentPriceEur` and `priceHistory` (depends on T048)
+- [x] T055 [US2] `apps/api/src/modules/catalog/catalog.controller.ts`: every route in `contracts/catalog-api.md`, all `@AdminOnly()` (depends on T050–T054)
+- [x] T056 [US2] Register `CatalogModule` in `apps/api/src/app.module.ts`; create `catalog.seeder.ts` (2 suppliers, 1 category, a `unit` and a `weight` product with prices) and wire into `database.seeder.ts` (depends on T049)
+- [x] T057 [US2] Run `pnpm generate` (depends on T055)
+- [x] T058 [P] [US2] Frontend: `apps/web-spa/app/features/catalog/utils/catalog-queries.ts` (depends on T057)
+- [x] T059 [US2] Frontend: supplier list + create/edit form in `apps/web-spa/app/features/catalog/components/` (depends on T058)
+- [x] T060 [US2] Frontend: category management component in `apps/web-spa/app/features/catalog/components/` (depends on T058)
+- [x] T061 [US2] Frontend: product list + create/edit form (unit and by-weight) in `apps/web-spa/app/features/catalog/components/` (depends on T058)
+- [x] T062 [US2] Frontend: price-change dialog + price-history view in `apps/web-spa/app/features/catalog/components/` (depends on T058)
+- [x] T063 [US2] Frontend: archive / unarchive actions + `includeArchived` toggle; wire catalog routes and `catalog` i18n strings (en + fr) (depends on T059–T062, T024)
 
 **Checkpoint**: US1 and US2 both work independently.
 

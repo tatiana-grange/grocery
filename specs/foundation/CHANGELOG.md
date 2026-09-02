@@ -4,6 +4,21 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 10:33] - /speckit.implement
+
+### Changed
+
+- Completed Phase 4: User Story 2 — an administrator builds the catalogue (P2)
+- Tasks completed: T041–T063 (all 23)
+- New `catalog` module: `Supplier`, `Category`, `Product`, `ProductPrice` (append-only, windowed) entities; four contract files with enums (`SupplierType`, `ProductSaleMode`, `ProductPricingUnit`, `ProductLabel`) and `.meta()`-annotated response schemas — response titles prefixed `Catalog*` to avoid a collision with the AI example's `Product` schema. `CatalogService` covers supplier CRUD + archive (409 with `activeProductCount`, `?cascade=true` in one transaction), category CRUD + archive guard (409 with `productCount`), product create (with the first open price row in one transaction), update, list with filters, detail with full price history, and `setProductPrice` (closes the current window at `effectiveFrom`, inserts a new open row, one transaction). `CatalogMapper` exposes euros at the edge (cents stored) and derives `pricingUnit` from `saleMode`. Three `@AdminOnly()` controllers (`admin/suppliers`, `admin/categories`, `admin/products`). Registered in `app.module.ts`; `CatalogSeeder` adds two suppliers, one category, and a per-unit + a by-weight product.
+- Tests: `catalog.controller.e2e-spec.ts` (8 cases — by-weight pricing, windowed history, product archive visibility, supplier cascade 409/200, category archive 409, stale version 409, 401/403 gating) and `catalog.service.spec.ts` (money rounding, `pricingUnitFor`). Full api suite: 132 passed.
+- Live verification: seeded "Pommes Golden" is `weight` / `kg` / 2.40 €, "Pain de campagne" is `unit` / `piece` / 3.20 €; two price changes give three windows with exactly one open and `currentPriceEur` 3.50; archiving the seeded supplier without cascade returns 409 `activeProductCount: 2`, with cascade returns 200.
+- Client: `pnpm generate` published the catalogue SDK / zod / types.
+- Frontend: `catalog` feature (built on `@grocery/ui`) — a tabbed back-office page (Products / Suppliers / Categories), supplier and category tabs with create/edit dialogs and archive/restore (supplier cascade prompt on 409), a product list with search + pagination, a product create form (supplier/category selects, sale mode, labels, initial price), and a product detail page with a change-price dialog, the price-history timeline, and archive/restore. Routes `/admin/catalog`, `/admin/catalog/products/new`, `/admin/catalog/products/:productId`. `catalog` i18n filled (en + fr).
+- Verified: `pnpm typecheck` (all), `pnpm --filter=api test` (132), `pnpm lint`, `pnpm --filter=web-spa build` all pass.
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/catalog/** (new), apps/api/src/app.module.ts, apps/api/src/seeders/database.seeder.ts, apps/web-spa/app/features/catalog/** (new), apps/web-spa/app/routes.ts, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, packages/openapi-generator/client/**, specs/foundation/tasks.md
+
 ## [2026-09-02 10:06] - /speckit.implement
 
 ### Changed

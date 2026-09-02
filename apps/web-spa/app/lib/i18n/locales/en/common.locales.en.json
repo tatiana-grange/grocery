@@ -272,9 +272,66 @@
   },
   "catalog": {
     "title": "Catalogue",
+    "subtitle": "Suppliers, categories and products.",
     "comingSoon": "Suppliers, categories and products will appear here.",
-    "nav": {
-      "catalog": "Catalogue"
+    "edit": "Edit",
+    "save": "Save",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "archived": "Archived",
+    "open": "Open",
+    "perKg": "per kg",
+    "backToCatalogue": "Back to catalogue",
+    "nav": { "catalog": "Catalogue" },
+    "tabs": { "products": "Products", "suppliers": "Suppliers", "categories": "Categories" },
+    "saleMode": { "unit": "Per unit", "weight": "By weight" },
+    "supplierType": { "producer": "Producer", "wholesaler": "Wholesaler" },
+    "pricingUnit": { "piece": "piece", "kg": "kg" },
+    "label": {
+      "organic": "Organic",
+      "local": "Local",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan"
+    },
+    "suppliers": {
+      "name": "Name",
+      "type": "Type",
+      "products": "Products",
+      "new": "New supplier",
+      "edit": "Edit supplier",
+      "cascadeConfirm": "This supplier has {{count}} active product(s). Archive them too?"
+    },
+    "categories": {
+      "name": "Name",
+      "new": "New category",
+      "edit": "Edit category",
+      "blocked": "Reassign this category’s {{count}} product(s) first."
+    },
+    "products": {
+      "name": "Name",
+      "description": "Description",
+      "supplier": "Supplier",
+      "category": "Category",
+      "price": "Price",
+      "saleMode": "Sale mode",
+      "pricePerKg": "Price per kg (€)",
+      "pricePerPiece": "Price per piece (€)",
+      "labels": "Labels",
+      "searchPlaceholder": "Search name or barcode…",
+      "new": "New product",
+      "empty": "No products yet.",
+      "count": "{{count}} product",
+      "count_other": "{{count}} products",
+      "currentPrice": "Current price",
+      "changePrice": "Change price",
+      "priceHistory": "Price history",
+      "current": "current"
+    },
+    "toasts": {
+      "saved": "Saved",
+      "archived": "Done",
+      "error": "Something went wrong",
+      "priceUpdated": "Price updated"
     }
   },
   "common": {

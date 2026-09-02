@@ -3,7 +3,7 @@
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
 import { aiExampleControllerChatResponseTransformer } from './transformers.gen';
-import type { AdminMembersControllerDecideData, AdminMembersControllerDecideResponses, AdminMembersControllerDetailData, AdminMembersControllerDetailResponses, AdminMembersControllerListData, AdminMembersControllerListResponses, AiExampleControllerChatData, AiExampleControllerChatResponses, AiExampleControllerGenerateObjectData, AiExampleControllerGenerateObjectResponses, AiExampleControllerGenerateTextData, AiExampleControllerGenerateTextResponses, AiExampleControllerStreamChatData, AiExampleControllerStreamChatResponses, AiExampleControllerStreamObjectData, AiExampleControllerStreamObjectResponses, AiExampleControllerStreamTextData, AiExampleControllerStreamTextResponses, AiExampleUseCasesControllerUseCase1SingleGenerationData, AiExampleUseCasesControllerUseCase1SingleGenerationResponses, AiExampleUseCasesControllerUseCase2GroupedCallsData, AiExampleUseCasesControllerUseCase2GroupedCallsResponses, AiExampleUseCasesControllerUseCase3LogicalUnitsData, AiExampleUseCasesControllerUseCase3LogicalUnitsResponses, AiExampleUseCasesControllerUseCase4ChatSessionData, AiExampleUseCasesControllerUseCase4ChatSessionResponses, AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedData, AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedResponses, AppControllerGetHelloData, AppControllerGetHelloResponses, CommentsControllerCreateCommentData, CommentsControllerCreateCommentResponses, CommentsControllerDeleteCommentData, CommentsControllerDeleteCommentResponses, CommentsControllerGetCommentCountData, CommentsControllerGetCommentCountResponses, CommentsControllerGetCommentRepliesData, CommentsControllerGetCommentRepliesResponses, CommentsControllerGetCommentsData, CommentsControllerGetCommentsResponses, CommentsControllerUpdateCommentData, CommentsControllerUpdateCommentResponses, MembershipIntakeControllerGetData, MembershipIntakeControllerGetResponses, MembershipIntakeControllerSetData, MembershipIntakeControllerSetResponses, PostControllerCreatePostData, PostControllerCreatePostResponses, PostControllerGetUserPostData, PostControllerGetUserPostResponses, PostControllerGetUserPostsData, PostControllerGetUserPostsResponses, PostControllerPublishPostData, PostControllerPublishPostResponses, PostControllerUnpublishPostData, PostControllerUnpublishPostResponses, PostControllerUpdatePostData, PostControllerUpdatePostResponses, PublicAuthorControllerGetAuthorPostsData, PublicAuthorControllerGetAuthorPostsResponses, PublicPostControllerGetPostData, PublicPostControllerGetPostResponses, PublicPostControllerGetPostsData, PublicPostControllerGetPostsResponses, PublicPostControllerGetRandomPostData, PublicPostControllerGetRandomPostResponses, PublicPostControllerLikePostData, PublicPostControllerLikePostResponses } from './types.gen';
+import type { AdminCategoriesControllerArchiveData, AdminCategoriesControllerArchiveResponses, AdminCategoriesControllerCreateData, AdminCategoriesControllerCreateResponses, AdminCategoriesControllerListData, AdminCategoriesControllerListResponses, AdminCategoriesControllerUnarchiveData, AdminCategoriesControllerUnarchiveResponses, AdminCategoriesControllerUpdateData, AdminCategoriesControllerUpdateResponses, AdminMembersControllerDecideData, AdminMembersControllerDecideResponses, AdminMembersControllerDetailData, AdminMembersControllerDetailResponses, AdminMembersControllerListData, AdminMembersControllerListResponses, AdminProductsControllerArchiveData, AdminProductsControllerArchiveResponses, AdminProductsControllerCreateData, AdminProductsControllerCreateResponses, AdminProductsControllerGetData, AdminProductsControllerGetResponses, AdminProductsControllerListData, AdminProductsControllerListResponses, AdminProductsControllerSetPriceData, AdminProductsControllerSetPriceResponses, AdminProductsControllerUnarchiveData, AdminProductsControllerUnarchiveResponses, AdminProductsControllerUpdateData, AdminProductsControllerUpdateResponses, AdminSuppliersControllerArchiveData, AdminSuppliersControllerArchiveResponses, AdminSuppliersControllerCreateData, AdminSuppliersControllerCreateResponses, AdminSuppliersControllerGetData, AdminSuppliersControllerGetResponses, AdminSuppliersControllerListData, AdminSuppliersControllerListResponses, AdminSuppliersControllerUnarchiveData, AdminSuppliersControllerUnarchiveResponses, AdminSuppliersControllerUpdateData, AdminSuppliersControllerUpdateResponses, AiExampleControllerChatData, AiExampleControllerChatResponses, AiExampleControllerGenerateObjectData, AiExampleControllerGenerateObjectResponses, AiExampleControllerGenerateTextData, AiExampleControllerGenerateTextResponses, AiExampleControllerStreamChatData, AiExampleControllerStreamChatResponses, AiExampleControllerStreamObjectData, AiExampleControllerStreamObjectResponses, AiExampleControllerStreamTextData, AiExampleControllerStreamTextResponses, AiExampleUseCasesControllerUseCase1SingleGenerationData, AiExampleUseCasesControllerUseCase1SingleGenerationResponses, AiExampleUseCasesControllerUseCase2GroupedCallsData, AiExampleUseCasesControllerUseCase2GroupedCallsResponses, AiExampleUseCasesControllerUseCase3LogicalUnitsData, AiExampleUseCasesControllerUseCase3LogicalUnitsResponses, AiExampleUseCasesControllerUseCase4ChatSessionData, AiExampleUseCasesControllerUseCase4ChatSessionResponses, AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedData, AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedResponses, AppControllerGetHelloData, AppControllerGetHelloResponses, CommentsControllerCreateCommentData, CommentsControllerCreateCommentResponses, CommentsControllerDeleteCommentData, CommentsControllerDeleteCommentResponses, CommentsControllerGetCommentCountData, CommentsControllerGetCommentCountResponses, CommentsControllerGetCommentRepliesData, CommentsControllerGetCommentRepliesResponses, CommentsControllerGetCommentsData, CommentsControllerGetCommentsResponses, CommentsControllerUpdateCommentData, CommentsControllerUpdateCommentResponses, MembershipIntakeControllerGetData, MembershipIntakeControllerGetResponses, MembershipIntakeControllerSetData, MembershipIntakeControllerSetResponses, PostControllerCreatePostData, PostControllerCreatePostResponses, PostControllerGetUserPostData, PostControllerGetUserPostResponses, PostControllerGetUserPostsData, PostControllerGetUserPostsResponses, PostControllerPublishPostData, PostControllerPublishPostResponses, PostControllerUnpublishPostData, PostControllerUnpublishPostResponses, PostControllerUpdatePostData, PostControllerUpdatePostResponses, PublicAuthorControllerGetAuthorPostsData, PublicAuthorControllerGetAuthorPostsResponses, PublicPostControllerGetPostData, PublicPostControllerGetPostResponses, PublicPostControllerGetPostsData, PublicPostControllerGetPostsResponses, PublicPostControllerGetRandomPostData, PublicPostControllerGetRandomPostResponses, PublicPostControllerLikePostData, PublicPostControllerLikePostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -44,6 +44,91 @@ export const membershipIntakeControllerSet = <ThrowOnError extends boolean = fal
         ...options.headers
     }
 });
+
+export const adminSuppliersControllerList = <ThrowOnError extends boolean = false>(options: Options<AdminSuppliersControllerListData, ThrowOnError>) => (options.client ?? client).get<AdminSuppliersControllerListResponses, unknown, ThrowOnError>({ url: '/api/admin/suppliers', ...options });
+
+export const adminSuppliersControllerCreate = <ThrowOnError extends boolean = false>(options: Options<AdminSuppliersControllerCreateData, ThrowOnError>) => (options.client ?? client).post<AdminSuppliersControllerCreateResponses, unknown, ThrowOnError>({
+    url: '/api/admin/suppliers',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const adminSuppliersControllerGet = <ThrowOnError extends boolean = false>(options: Options<AdminSuppliersControllerGetData, ThrowOnError>) => (options.client ?? client).get<AdminSuppliersControllerGetResponses, unknown, ThrowOnError>({ url: '/api/admin/suppliers/{id}', ...options });
+
+export const adminSuppliersControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<AdminSuppliersControllerUpdateData, ThrowOnError>) => (options.client ?? client).put<AdminSuppliersControllerUpdateResponses, unknown, ThrowOnError>({
+    url: '/api/admin/suppliers/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const adminSuppliersControllerArchive = <ThrowOnError extends boolean = false>(options: Options<AdminSuppliersControllerArchiveData, ThrowOnError>) => (options.client ?? client).post<AdminSuppliersControllerArchiveResponses, unknown, ThrowOnError>({ url: '/api/admin/suppliers/{id}/archive', ...options });
+
+export const adminSuppliersControllerUnarchive = <ThrowOnError extends boolean = false>(options: Options<AdminSuppliersControllerUnarchiveData, ThrowOnError>) => (options.client ?? client).post<AdminSuppliersControllerUnarchiveResponses, unknown, ThrowOnError>({ url: '/api/admin/suppliers/{id}/unarchive', ...options });
+
+export const adminCategoriesControllerList = <ThrowOnError extends boolean = false>(options: Options<AdminCategoriesControllerListData, ThrowOnError>) => (options.client ?? client).get<AdminCategoriesControllerListResponses, unknown, ThrowOnError>({ url: '/api/admin/categories', ...options });
+
+export const adminCategoriesControllerCreate = <ThrowOnError extends boolean = false>(options: Options<AdminCategoriesControllerCreateData, ThrowOnError>) => (options.client ?? client).post<AdminCategoriesControllerCreateResponses, unknown, ThrowOnError>({
+    url: '/api/admin/categories',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const adminCategoriesControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<AdminCategoriesControllerUpdateData, ThrowOnError>) => (options.client ?? client).put<AdminCategoriesControllerUpdateResponses, unknown, ThrowOnError>({
+    url: '/api/admin/categories/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const adminCategoriesControllerArchive = <ThrowOnError extends boolean = false>(options: Options<AdminCategoriesControllerArchiveData, ThrowOnError>) => (options.client ?? client).post<AdminCategoriesControllerArchiveResponses, unknown, ThrowOnError>({ url: '/api/admin/categories/{id}/archive', ...options });
+
+export const adminCategoriesControllerUnarchive = <ThrowOnError extends boolean = false>(options: Options<AdminCategoriesControllerUnarchiveData, ThrowOnError>) => (options.client ?? client).post<AdminCategoriesControllerUnarchiveResponses, unknown, ThrowOnError>({ url: '/api/admin/categories/{id}/unarchive', ...options });
+
+export const adminProductsControllerList = <ThrowOnError extends boolean = false>(options: Options<AdminProductsControllerListData, ThrowOnError>) => (options.client ?? client).get<AdminProductsControllerListResponses, unknown, ThrowOnError>({ url: '/api/admin/products', ...options });
+
+export const adminProductsControllerCreate = <ThrowOnError extends boolean = false>(options: Options<AdminProductsControllerCreateData, ThrowOnError>) => (options.client ?? client).post<AdminProductsControllerCreateResponses, unknown, ThrowOnError>({
+    url: '/api/admin/products',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const adminProductsControllerGet = <ThrowOnError extends boolean = false>(options: Options<AdminProductsControllerGetData, ThrowOnError>) => (options.client ?? client).get<AdminProductsControllerGetResponses, unknown, ThrowOnError>({ url: '/api/admin/products/{id}', ...options });
+
+export const adminProductsControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<AdminProductsControllerUpdateData, ThrowOnError>) => (options.client ?? client).put<AdminProductsControllerUpdateResponses, unknown, ThrowOnError>({
+    url: '/api/admin/products/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const adminProductsControllerSetPrice = <ThrowOnError extends boolean = false>(options: Options<AdminProductsControllerSetPriceData, ThrowOnError>) => (options.client ?? client).post<AdminProductsControllerSetPriceResponses, unknown, ThrowOnError>({
+    url: '/api/admin/products/{id}/price',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const adminProductsControllerArchive = <ThrowOnError extends boolean = false>(options: Options<AdminProductsControllerArchiveData, ThrowOnError>) => (options.client ?? client).post<AdminProductsControllerArchiveResponses, unknown, ThrowOnError>({ url: '/api/admin/products/{id}/archive', ...options });
+
+export const adminProductsControllerUnarchive = <ThrowOnError extends boolean = false>(options: Options<AdminProductsControllerUnarchiveData, ThrowOnError>) => (options.client ?? client).post<AdminProductsControllerUnarchiveResponses, unknown, ThrowOnError>({ url: '/api/admin/products/{id}/unarchive', ...options });
 
 export const commentsControllerGetComments = <ThrowOnError extends boolean = false>(options: Options<CommentsControllerGetCommentsData, ThrowOnError>) => (options.client ?? client).get<CommentsControllerGetCommentsResponses, unknown, ThrowOnError>({ url: '/api/posts/{postSlug}/comments', ...options });
 

@@ -272,9 +272,66 @@
   },
   "catalog": {
     "title": "Catalogue",
+    "subtitle": "Fournisseurs, catégories et produits.",
     "comingSoon": "Les fournisseurs, catégories et produits apparaîtront ici.",
-    "nav": {
-      "catalog": "Catalogue"
+    "edit": "Modifier",
+    "save": "Enregistrer",
+    "archive": "Archiver",
+    "unarchive": "Restaurer",
+    "archived": "Archivé",
+    "open": "Ouvrir",
+    "perKg": "au kg",
+    "backToCatalogue": "Retour au catalogue",
+    "nav": { "catalog": "Catalogue" },
+    "tabs": { "products": "Produits", "suppliers": "Fournisseurs", "categories": "Catégories" },
+    "saleMode": { "unit": "À l'unité", "weight": "Au poids" },
+    "supplierType": { "producer": "Producteur", "wholesaler": "Grossiste" },
+    "pricingUnit": { "piece": "pièce", "kg": "kg" },
+    "label": {
+      "organic": "Bio",
+      "local": "Local",
+      "vegetarian": "Végétarien",
+      "vegan": "Végan"
+    },
+    "suppliers": {
+      "name": "Nom",
+      "type": "Type",
+      "products": "Produits",
+      "new": "Nouveau fournisseur",
+      "edit": "Modifier le fournisseur",
+      "cascadeConfirm": "Ce fournisseur a {{count}} produit(s) actif(s). Les archiver également ?"
+    },
+    "categories": {
+      "name": "Nom",
+      "new": "Nouvelle catégorie",
+      "edit": "Modifier la catégorie",
+      "blocked": "Réaffectez d'abord les {{count}} produit(s) de cette catégorie."
+    },
+    "products": {
+      "name": "Nom",
+      "description": "Description",
+      "supplier": "Fournisseur",
+      "category": "Catégorie",
+      "price": "Prix",
+      "saleMode": "Mode de vente",
+      "pricePerKg": "Prix au kg (€)",
+      "pricePerPiece": "Prix à la pièce (€)",
+      "labels": "Labels",
+      "searchPlaceholder": "Rechercher un nom ou un code-barres…",
+      "new": "Nouveau produit",
+      "empty": "Aucun produit pour le moment.",
+      "count": "{{count}} produit",
+      "count_other": "{{count}} produits",
+      "currentPrice": "Prix actuel",
+      "changePrice": "Changer le prix",
+      "priceHistory": "Historique des prix",
+      "current": "actuel"
+    },
+    "toasts": {
+      "saved": "Enregistré",
+      "archived": "Fait",
+      "error": "Une erreur est survenue",
+      "priceUpdated": "Prix mis à jour"
     }
   },
   "common": {

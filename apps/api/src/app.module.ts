@@ -9,6 +9,7 @@ import { AppController } from './app.controller'
 import { AiModule } from './modules/ai/ai.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { DbModule } from './modules/db/db.module'
+import { CatalogModule } from './modules/catalog/catalog.module'
 import { EmailModule } from './modules/email/email.module'
 import { ExampleModule } from './modules/example/example.module'
 import { MembersModule } from './modules/members/members.module'
@@ -96,6 +97,7 @@ interface ExpressResponse extends ServerResponse<IncomingMessage> {
     AiModule,
     NestConfigModule,
     MembersModule,
+    CatalogModule,
     ExampleModule,
   ],
   controllers: [AppController],
