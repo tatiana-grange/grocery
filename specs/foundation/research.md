@@ -93,9 +93,14 @@ person".
   and the `members` module would have no entity of its own. Rejected by the reviewer.
 - `member` with a PK unrelated to `user` — loses the natural 1:1.
 
-**Creation flow**: a Better Auth `after` hook on the sign-up route creates the `member` row
-with `status = 'pending'` and writes the first `MemberStatusChange`, in one transaction.
-The default-admin seeder creates user + member + `role = 'admin'` + `status = 'active'`.
+**Creation flow** (as built): a Better Auth `databaseHooks.user.create.after` in
+`auth.module.ts` calls `ensurePendingMember(em.fork(), user.id)` (in `members.util.ts`),
+which creates the `member` row with `status = 'pending'` and its first `MemberStatusChange`.
+A `databaseHooks.user.create.before` throws when membership intake is closed. This replaces
+the originally-planned `members.hooks.ts` `@Hook()` provider — the e2e harness mocks
+`AuthService`, so a `databaseHooks` entry (which fires on the real user INSERT) is the
+reliable seam. The default-admin seeder creates user + member + `role = 'admin'` +
+`status = 'active'` directly via the factory.
 
 ---
 

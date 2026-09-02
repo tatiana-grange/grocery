@@ -4,6 +4,21 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 11:35] - /speckit.analyze remediation (docs)
+
+### Changed
+
+- Applied the `/speckit.analyze` findings that resolve as documentation drift or spec narrowing (no behaviour change):
+  - **G1 (narrow)**: FR-033 rewritten — the lot-1 audit covers member-status changes, fee payments, and price changes (the money- and lifecycle-sensitive ones). Full created-by / updated-by on every catalogue and member record is deferred.
+  - **C1 (narrow)**: `plan.md` records that the `@grocery/i18n` rule is a frontend rule; backend transactional email/SMS bodies stay plain, matching `auth.module.ts`.
+  - **I1**: `data-model.md` + T003 corrected — `user.email` stays NOT NULL; phone-only accounts use a synthesized `<digits>@phone.grocery.local` address.
+  - **I2**: `plan.md` + `research.md` corrected — sign-up wiring is `auth.module.ts` `databaseHooks` + `members.util.ts`, not a `members.hooks.ts` `@Hook()` provider.
+  - **I3 / I4**: `plan.md` structure updated — one `member.contract.ts` (not separate fee/intake files); `*.util.ts` / `*.factory.ts` noted as permitted additions.
+  - **M1**: `Migration20260902085529.ts` header expanded — explains that the regenerated snapshot is ahead of the applied DDL on the boilerplate `post`/`comment`/`account`/`session` tables (pre-existing drift, to be fixed in a dedicated boilerplate-sync migration).
+- Still open (code, next commits): G2 (name in self-service), G3 (`POST /admin/members`), U1 (saleMode-flip guard), U2 (product edit UI), U3 (pending-member panel), U4 (resend links).
+- **Author**: AI (Claude)
+- **Files**: specs/foundation/{spec.md,plan.md,research.md,data-model.md,tasks.md}, apps/api/src/modules/db/migrations/Migration20260902085529.ts
+
 ## [2026-09-02 11:16] - /speckit.implement
 
 ### Changed

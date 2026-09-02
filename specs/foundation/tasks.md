@@ -29,7 +29,7 @@ scaffolding that everything else needs.
 
 - [x] T001 Add the `admin` (`defaultRole: 'member'`, `adminRoles: ['admin']`) and `phoneNumber` plugins to `apps/api/src/modules/auth/auth.config.ts`, and update the exported `BetterAuthType`
 - [x] T002 [P] Create `SmsService` in `apps/api/src/modules/auth/sms.service.ts` — a thin sender that logs the message to the console in dev and calls a provider (stubbed) otherwise
-- [x] T003 [P] Extend `apps/api/src/modules/auth/entities/user.entity.ts` (`role`, `banned`, `banReason`, `banExpires`, `phoneNumber` unique nullable, `phoneNumberVerified`; make `email` nullable) and `entities/session.entity.ts` (`impersonatedBy`)
+- [x] T003 [P] Extend `apps/api/src/modules/auth/entities/user.entity.ts` (`role`, `banned`, `banReason`, `banExpires`, `phoneNumber` unique nullable, `phoneNumberVerified`) and `entities/session.entity.ts` (`impersonatedBy`). `email` stays NOT NULL — phone-only accounts use a synthesized hidden address.
 - [x] T004 Wire phone OTP and reset delivery into `apps/api/src/modules/auth/auth.module.ts`: inject `SmsService`, add the phoneNumber plugin's `sendOTP` / password-reset handlers next to the existing email wiring (depends on T001, T002)
 - [x] T005 Run `pnpm --filter=api auth:generate`, review the generated auth schema/entities, then `pnpm --filter=api db:fresh` (depends on T003, T004)
 - [x] T006 [P] Add `@AdminOnly()` and a generic `@Roles(...)` decorator to `apps/api/src/modules/auth/auth.decorator.ts`

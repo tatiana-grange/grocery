@@ -15,7 +15,7 @@ Modules: **auth** (existing, extended), **members** (new), **catalog** (new).
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| id, name, email, emailVerified, image, createdAt, updatedAt | — | unchanged; `email` now nullable (a phone-only account has no email) |
+| id, name, email, emailVerified, image, createdAt, updatedAt | — | unchanged. `email` stays **NOT NULL**: a phone-only account is created with a synthesized hidden address `<digits>@phone.grocery.local` that the person never sees or uses (keeps the MikroORM auth adapter and schema codegen untouched). |
 | `role` | string | Better Auth admin plugin. Comma-separated roles. Default `member`. Values used in lot 1: `member`, `admin`. `grocer` reserved for lot 4. |
 | `banned` | boolean | default `false` — admin plugin |
 | `banReason` | string \| null | admin plugin |

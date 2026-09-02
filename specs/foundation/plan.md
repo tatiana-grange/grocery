@@ -71,6 +71,22 @@ updates. By-weight pricing, weighted average cost price, deposit products, and s
 credit notes are designed for now (fields and enums leave room) but only by-weight pricing
 is implemented in lot 1.
 
+**Scope notes** (recorded so `/speckit.analyze` doesn't re-flag them):
+
+- The constitution's "`@grocery/i18n` for all user-facing strings" rule is a **frontend**
+  rule. Backend transactional messages (the decision / termination email and SMS bodies in
+  `members.service.ts`) are plain strings, matching the existing `auth.module.ts` wiring.
+- Sign-up wiring lives in `auth.module.ts` (`databaseHooks.user.create`) plus
+  `members.util.ts` (`ensurePendingMember`, `isMembershipIntakeOpen`) — not a separate
+  `members.hooks.ts` `@Hook()` provider. The e2e harness mocks `AuthService`, so a
+  `databaseHooks` entry (which fires on the real user-create path) is the reliable seam.
+- `members` and `catalog` each carry an extra `*.util.ts` and `*.factory.ts` beyond the
+  fixed module shape. The factory mirrors the boilerplate's `auth.factory.ts`; the util
+  holds pure helpers (membership-number generator, role parse/serialize, money conversion).
+- Fee and membership-intake schemas are consolidated into `member.contract.ts` rather than
+  the separate `membership-fee.contract.ts` / `membership-intake.contract.ts` files this
+  plan first listed.
+
 **Result**: PASS. No Complexity Tracking entries required.
 
 ## Project Structure
@@ -101,32 +117,35 @@ apps/api/src/modules/
 │   ├── auth.config.ts                 # add admin() plugin (defaultRole 'member', adminRoles ['admin']) + phoneNumber() plugin
 │   ├── auth.module.ts                 # wire OTP delivery to SmsService (mirrors the email wiring)
 │   ├── sms.service.ts                 # new — thin SMS sender, console in dev, provider in prod
-│   ├── auth.entity.ts / entities/user.entity.ts   # add role, banned, banReason, banExpires, phoneNumber, phoneNumberVerified
+│   ├── auth.entity.ts / entities/user.entity.ts   # add role, banned, ban*, phoneNumber, phoneNumberVerified (email stays NOT NULL)
 │   ├── entities/session.entity.ts     # add impersonatedBy
 │   ├── auth.guard.ts                  # member-status + @AdminOnly() checks
-│   ├── auth.decorator.ts              # @AdminOnly() (@Roles(...) kept generic for the future grocer role)
-│   └── auth.seeder.ts                 # seed a default admin (user + member row + role admin)
+│   ├── auth.decorator.ts              # @AdminOnly() / @MemberScoped() (@Roles(...) kept generic for the future grocer role)
+│   └── auth.module.ts                 # databaseHooks.user.create → ensurePendingMember / intake check (sign-up wiring lives here, not a members.hooks.ts)
 ├── members/
 │   ├── members.module.ts
 │   ├── members.controller.ts          # member self-service + admin member management
 │   ├── members.service.ts
 │   ├── members.mapper.ts
+│   ├── members.util.ts                # membership-number generator, role parse/serialize, intake helper
+│   ├── members.factory.ts             # test / seed factory (mirrors auth.factory.ts)
 │   ├── entities/
 │   │   ├── member.entity.ts
 │   │   ├── member-status-change.entity.ts
 │   │   ├── membership-fee.entity.ts
-│   │   └── membership-payment.entity.ts
+│   │   ├── membership-payment.entity.ts
+│   │   └── membership-intake-setting.entity.ts
 │   ├── contracts/
-│   │   ├── member.contract.ts
-│   │   ├── membership-fee.contract.ts
-│   │   └── membership-intake.contract.ts
+│   │   └── member.contract.ts         # member + fee + intake + role + lifecycle schemas
 │   ├── members.seeder.ts
-│   └── tests/members.controller.e2e-spec.ts
+│   └── tests/members.controller.e2e-spec.ts + members.mapper.spec.ts
 └── catalog/
     ├── catalog.module.ts
     ├── catalog.controller.ts           # suppliers, categories, products, prices (admin)
     ├── catalog.service.ts
     ├── catalog.mapper.ts
+    ├── catalog.util.ts                 # euros ↔ cents, pricing-unit derivation
+    ├── catalog.factory.ts              # test / seed factory
     ├── entities/
     │   ├── supplier.entity.ts
     │   ├── category.entity.ts
@@ -138,7 +157,7 @@ apps/api/src/modules/
     │   ├── product.contract.ts
     │   └── product-price.contract.ts
     ├── catalog.seeder.ts
-    └── tests/catalog.controller.e2e-spec.ts
+    └── tests/catalog.controller.e2e-spec.ts + catalog.service.spec.ts + catalog.mapper.spec.ts
 
 apps/api/src/app.module.ts             # register MembersModule, CatalogModule
 apps/api/src/seeders/database.seeder.ts # wire the new seeders

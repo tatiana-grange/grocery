@@ -287,8 +287,10 @@ sign in as an active member, and confirm their record and history remain retriev
 
 #### Auditing
 
-- **FR-033**: The system MUST record who created or last changed each member, supplier,
-  product, and price, and when.
+- **FR-033**: The system MUST record who changed a member's status, who recorded a
+  membership-fee payment, and who set a product price, and when. (Full created-by /
+  updated-by auditing on every catalogue and member record is deferred to a later lot; the
+  lot-1 audit covers the money- and lifecycle-sensitive changes.)
 - **FR-034**: The system MUST warn an editor when they are about to save over a record that
   changed since they loaded it.
 
