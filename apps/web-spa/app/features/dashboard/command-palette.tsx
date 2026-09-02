@@ -8,7 +8,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from '@grocery/ui/components/primitives/command'
-import { Component, LayoutDashboard, Moon, PlusCircle, Sun, User } from 'lucide-react'
+import { Component, LayoutDashboard, Moon, Sun, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import useTheme from '@/hooks/useTheme'
@@ -68,19 +68,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <User className="h-4 w-4" />
             <span>{t('commandPalette.items.profile')}</span>
             <CommandShortcut>P</CommandShortcut>
-          </CommandItem>
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        <CommandGroup heading={t('commandPalette.groups.actions')}>
-          <CommandItem
-            onSelect={() => handleNavigate('/dashboard/posts/new')}
-            keywords={['new', 'create', 'post', 'write', 'article']}
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span>{t('commandPalette.items.newPost')}</span>
-            <CommandShortcut>N</CommandShortcut>
           </CommandItem>
         </CommandGroup>
 

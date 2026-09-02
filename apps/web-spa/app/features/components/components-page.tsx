@@ -575,13 +575,13 @@ export default function ComponentsPage() {
                   <TabsTrigger value="tab3">Drafts</TabsTrigger>
                 </TabsList>
                 <TabsContent value="tab1" className="mt-2 text-sm text-muted-foreground">
-                  All posts
+                  All items
                 </TabsContent>
                 <TabsContent value="tab2" className="mt-2 text-sm text-muted-foreground">
-                  Published posts
+                  Published items
                 </TabsContent>
                 <TabsContent value="tab3" className="mt-2 text-sm text-muted-foreground">
-                  Draft posts
+                  Draft items
                 </TabsContent>
               </Tabs>
             </DemoBlock>

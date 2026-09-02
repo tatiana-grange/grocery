@@ -67,10 +67,10 @@ Some important concepts to know:
 
 `wrap(entity).assign(data)` is the usual way to copy fields onto a loaded entity. It respects the entity graph (scalars, foreign keys, nested relations) instead of assigning properties by hand. See MikroORM's [entity helper](https://mikro-orm.io/docs/entity-helper).
 
-The copy-paste example is `CommentsService.updateComment` in `apps/api/src/modules/example/comments/comments.service.ts`:
+A typical update method loads the entity, assigns the DTO, and flushes:
 
 ```typescript
-wrap(comment).assign(data)
+wrap(entity).assign(data)
 await this.em.flush()
 ```
 
@@ -84,7 +84,7 @@ wrap(event).assign({ title: data.title, venue: { id: data.venueId } }, { em: thi
 
 Use `mergeObjectProperties: true` when you want nested object fields merged instead of replaced.
 
-Do not assign a whole DTO onto an entity whose fields live elsewhere. The posts example is versioned on purpose: `title` and `content` live on `PostVersion`, and tags arrive as names that must be resolved. `wrap(post).assign(updateDto)` would silently skip those fields. Assign only what belongs on that entity; keep versioning and collection rebuilds as explicit steps.
+Do not assign a whole DTO onto an entity whose fields live elsewhere. If, say, some fields live on a child version entity and others arrive as names that must be resolved to references, `wrap(entity).assign(updateDto)` would silently skip them. Assign only what belongs on that entity; keep versioning and collection rebuilds as explicit steps.
 
 :::note [About migrations]
 Migrations are an important part of database management, you can read more about them in the [Database Migrations](/lonestone-boilerplate/explanations/6_database-migrations) page.

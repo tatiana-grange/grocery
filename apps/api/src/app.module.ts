@@ -9,7 +9,6 @@ import { AppController } from './app.controller'
 import { AuthModule } from './modules/auth/auth.module'
 import { DbModule } from './modules/db/db.module'
 import { EmailModule } from './modules/email/email.module'
-import { ExampleModule } from './modules/example/example.module'
 
 // Extended interface for Express requests
 interface ExpressRequest extends IncomingMessage {
@@ -92,7 +91,6 @@ interface ExpressResponse extends ServerResponse<IncomingMessage> {
     AuthModule,
     EmailModule,
     NestConfigModule,
-    ExampleModule,
   ],
   controllers: [AppController],
   providers: [

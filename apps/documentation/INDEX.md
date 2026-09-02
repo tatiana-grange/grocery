@@ -15,7 +15,6 @@
 - [2_monitoring.mdx](./src/content/docs/core-features/2_monitoring.mdx) - How to report errors, log traces and monitor your project with Sentry
 - [3_filestorage.mdx](./src/content/docs/core-features/3_filestorage.mdx) - File storage explanation
 - [5_email.mdx](./src/content/docs/core-features/5_email.mdx) - Email explanation
-- [99_examples.mdx](./src/content/docs/core-features/99_examples.mdx) - Provided examples
 
 ## Explanations
 
