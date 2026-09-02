@@ -4,6 +4,23 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 11:01] - /speckit.implement
+
+### Changed
+
+- Completed Phase 8: Polish & cross-cutting concerns
+- Tasks completed: T091–T099 (99/99 minus the deferred T035, T036 phone sign-up UI)
+- T091: `features/common/lib/api-error.ts` — `isConflict` / `handleMutationError` so a 409 (optimistic-concurrency) shows a "reload and try again" message; wired into the account profile save; `common.conflict` i18n added.
+- T092/T093: `apps/documentation/src/content/docs/project/lot-1-foundation.mdx` (module overview) + `INDEX.md` regenerated + the project `index.mdx` status updated.
+- T094: `update-agent-context.sh claude` appended the Active Technologies / Recent Changes sections to `CLAUDE.md`.
+- T095: `Migration20260902085529.ts` — the lot-1 tables and the auth `role` / `phoneNumber` columns, **hand-trimmed** to remove unrelated pre-existing boilerplate drift the generator also emitted (FK DROP/ADD churn on `post`/`comment`/`account`, a risky `postVersion.content SET NOT NULL`). `db:migrate:fresh --seed` applies the full chain cleanly; `schema:update --dump` shows zero drift on the lot-1 tables. Snapshot committed.
+- T096: `catalog.mapper.spec.ts` (pricing-unit derivation, current-price window).
+- T097: quickstart walked end to end via the API — sign-up → validate → catalogue → self-service → grant admin → terminate → reactivate all confirmed. `quickstart.md` phone section updated to note the UI deferral.
+- T098: full gate green — `pnpm lint`, `pnpm typecheck` (all), `pnpm --filter=api test` (145 passed), `pnpm --filter=web-spa build`.
+- T099: i18n audit — no hardcoded user-facing strings in the new `account` / `admin-members` / `catalog` features.
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/db/migrations/Migration20260902085529.ts, apps/api/src/modules/db/migrations/.snapshot-grocery.json, apps/api/src/modules/catalog/tests/catalog.mapper.spec.ts, apps/web-spa/app/features/common/lib/api-error.ts, apps/web-spa/app/features/account/components/account-page.tsx, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, apps/documentation/src/content/docs/project/{lot-1-foundation.mdx,index.mdx}, apps/documentation/INDEX.md, CLAUDE.md, specs/foundation/{quickstart.md,tasks.md}
+
 ## [2026-09-02 10:54] - /speckit.implement
 
 ### Changed

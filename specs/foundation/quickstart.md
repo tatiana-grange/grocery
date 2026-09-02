@@ -58,12 +58,13 @@ Email path:
 5. MailDev shows the "validated" email. Sign in as the new member → account is **active**.
 6. Try signing up again with the same email → clear "already registered" error.
 
-Phone path:
+Phone path (backend only — the register/login phone UI is deferred, tasks T035/T036):
 
-1. `/register`: sign up with a name, phone number, password.
-2. Read the one-time code from the API console, enter it on the confirmation step.
-3. Same as above from step 3 — pending, admin validates, then sign in with the phone number.
-4. Try signing up again with the same phone number → clear "already registered" error.
+1. `POST /api/auth/phone-number/send-otp` with `{ "phoneNumber": "+33…" }` → the code is
+   printed to the API console.
+2. `POST /api/auth/phone-number/verify` with the code, then the phoneNumber plugin's
+   password-based sign-in.
+3. From there the flow is the same — a pending `Member` is created, an admin validates it.
 
 ### US2 — Build the catalogue (P2)
 

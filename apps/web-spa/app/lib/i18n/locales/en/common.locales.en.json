@@ -378,6 +378,7 @@
     "user": "User",
     "active": "Active",
     "error": "Error",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "conflict": "This changed since you opened it — reload and try again"
   }
 }

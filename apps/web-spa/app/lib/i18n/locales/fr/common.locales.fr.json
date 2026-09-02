@@ -378,6 +378,7 @@
     "user": "Utilisateur",
     "active": "Actif",
     "error": "Erreur",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "conflict": "Cet élément a changé depuis son ouverture — rechargez et réessayez"
   }
 }

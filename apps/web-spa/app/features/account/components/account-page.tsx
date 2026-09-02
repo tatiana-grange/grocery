@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { MemberQr } from '@/features/account/components/member-qr'
 import { PasswordChangeForm } from '@/features/account/components/password-change-form'
+import { handleMutationError } from '@/features/common/lib/api-error'
 import {
   endMyMembership,
   myAccountQueryOptions,
@@ -63,7 +64,11 @@ export default function AccountPage() {
       toast.success(t('members.account.saved'))
       void queryClient.invalidateQueries({ queryKey: ['members', 'me'] })
     },
-    onError: () => toast.error(t('members.account.error')),
+    onError: (error) =>
+      handleMutationError(error, toast.error, {
+        conflict: t('common.conflict'),
+        fallback: t('members.account.error'),
+      }),
   })
 
   if (isLoading || !account) return <Skeleton className="h-96 w-full" />

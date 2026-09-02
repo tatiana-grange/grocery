@@ -232,15 +232,15 @@ status with personal data unchanged.
 
 **Purpose**: Shared UX, docs, migrations, and the full quality gate.
 
-- [ ] T091 [P] Shared optimistic-concurrency conflict component (stale-`version` reload prompt) in `apps/web-spa/app/features/common/`, used by the members and catalog forms
-- [ ] T092 [P] Add a `members` module note in `apps/documentation/src/content/docs/project/` (or a module `README`) and regenerate `apps/documentation/INDEX.md`
-- [ ] T093 [P] Add a `catalog` module note in `apps/documentation/src/content/docs/project/` and regenerate `INDEX.md`
-- [ ] T094 Run `.specify/scripts/bash/update-agent-context.sh claude` so `CLAUDE.md` lists the `members` and `catalog` modules
-- [ ] T095 Generate the lot migration once the schema is stable: `pnpm --filter=api db:migrate:create`, review the SQL for DROP+ADD and NOT-NULL-on-existing-rows, commit the migration and the updated `.snapshot` files
-- [ ] T096 [P] Unit tests for the `members` and `catalog` mappers in each module's `tests/` folder
-- [ ] T097 Walk through `specs/foundation/quickstart.md` end to end — all five user stories, email and phone paths
-- [ ] T098 Run the pre-merge gate: `pnpm lint && pnpm typecheck && pnpm test`
-- [ ] T099 [P] i18n audit — confirm no hardcoded user-facing strings in the new `members`, `admin-members`, and `catalog` features
+- [x] T091 [P] Shared optimistic-concurrency conflict component (stale-`version` reload prompt) in `apps/web-spa/app/features/common/`, used by the members and catalog forms
+- [x] T092 [P] Add a `members` module note in `apps/documentation/src/content/docs/project/` (or a module `README`) and regenerate `apps/documentation/INDEX.md`
+- [x] T093 [P] Add a `catalog` module note in `apps/documentation/src/content/docs/project/` and regenerate `INDEX.md`
+- [x] T094 Run `.specify/scripts/bash/update-agent-context.sh claude` so `CLAUDE.md` lists the `members` and `catalog` modules
+- [x] T095 Generate the lot migration once the schema is stable: `pnpm --filter=api db:migrate:create`, review the SQL for DROP+ADD and NOT-NULL-on-existing-rows, commit the migration and the updated `.snapshot` files
+- [x] T096 [P] Unit tests for the `members` and `catalog` mappers in each module's `tests/` folder
+- [x] T097 Walk through `specs/foundation/quickstart.md` end to end — all five user stories, email and phone paths
+- [x] T098 Run the pre-merge gate: `pnpm lint && pnpm typecheck && pnpm test`
+- [x] T099 [P] i18n audit — confirm no hardcoded user-facing strings in the new `members`, `admin-members`, and `catalog` features
 
 ---
 
