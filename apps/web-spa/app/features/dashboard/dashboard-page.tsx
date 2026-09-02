@@ -27,7 +27,6 @@ import {
 import { Avatar, AvatarFallback } from '@grocery/ui/components/primitives/avatar'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import {
-  Brain,
   ChevronUp,
   Command,
   Component,
@@ -83,11 +82,6 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
       label: t('dashboard.title'),
       to: '/dashboard',
       icon: LayoutDashboard,
-    },
-    {
-      label: t('dashboard.ai'),
-      to: '/ai',
-      icon: Brain,
     },
     {
       label: t('dashboard.components'),

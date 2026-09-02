@@ -95,29 +95,6 @@ vi.mock('../modules/email/email.service', () => ({
     sendEmail: vi.fn(),
   })),
 }))
-
-// Mocking the ai service example
-vi.mock('ai', () => ({
-  generateObject: vi
-    .fn()
-    .mockResolvedValue({ object: { analysisResult: 'mocked result' } } as never),
-}))
-
-// Mock langfuse at module level
-vi.mock('langfuse', () => ({
-  __esModule: true,
-  default: vi.fn().mockImplementation(() => ({
-    trace: vi.fn().mockReturnValue({
-      span: vi.fn().mockReturnValue({
-        end: vi.fn(),
-      }),
-      update: vi.fn(),
-      getTraceUrl: vi.fn(),
-    }),
-    shutdown: vi.fn(),
-  })),
-  observeOpenAI: vi.fn((openaiInstance: unknown) => openaiInstance),
-}))
 ```
 
 ## Utils and configurations

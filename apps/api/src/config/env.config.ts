@@ -59,17 +59,6 @@ export const configValidationSchema = z.object({
   EMAIL_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().default('noreply@lonestone.io'),
 
-  // AI Providers
-  OPENAI_API_KEY: z.string().optional(), // OpenAI
-  ANTHROPIC_API_KEY: z.string().optional(), // Anthropic
-  GOOGLE_API_KEY: z.string().optional(), // Google
-  MISTRAL_API_KEY: z.string().optional(), // Mistral
-
-  // Langfuse
-  LANGFUSE_SECRET_KEY: z.string().optional(),
-  LANGFUSE_PUBLIC_KEY: z.string().optional(), // Optional
-  LANGFUSE_BASE_URL: z.string().optional(), // Optional, defaults to cloud
-
   // Sentry
   SENTRY_DSN: z.string().optional(),
 })
@@ -114,27 +103,6 @@ export const config = {
   clients: {
     webApp: {
       url: configParsed.data.CLIENTS_WEB_APP_URL,
-    },
-  },
-  langfuse: {
-    secretKey: configParsed.data.LANGFUSE_SECRET_KEY,
-    publicKey: configParsed.data.LANGFUSE_PUBLIC_KEY,
-    host: configParsed.data.LANGFUSE_BASE_URL,
-  },
-  ai: {
-    providers: {
-      openai: {
-        apiKey: configParsed.data.OPENAI_API_KEY,
-      },
-      anthropic: {
-        apiKey: configParsed.data.ANTHROPIC_API_KEY,
-      },
-      google: {
-        apiKey: configParsed.data.GOOGLE_API_KEY,
-      },
-      mistral: {
-        apiKey: configParsed.data.MISTRAL_API_KEY,
-      },
     },
   },
   sentry: {

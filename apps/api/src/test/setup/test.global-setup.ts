@@ -52,13 +52,6 @@ export default async function setup(project: TestProject) {
   process.env.BETTER_AUTH_SECRET = 'test-secret-key-for-testing-only'
   process.env.TRUSTED_ORIGINS = 'http://localhost:3000'
 
-  // AI variables
-  process.env.MISTRAL_API_KEY = 'test'
-  process.env.LANGFUSE_SECRET_KEY = 'test'
-  process.env.LANGFUSE_PUBLIC_KEY = 'test'
-  process.env.LANGFUSE_BASE_URL = 'http://localhost:3000'
-  process.env.AI_DISABLED = 'true'
-
   // Update environment variables for this test
   process.env.DATABASE_HOST = host
   process.env.DATABASE_PORT = port.toString()
