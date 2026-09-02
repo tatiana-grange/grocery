@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module'
 import { DbModule } from './modules/db/db.module'
 import { EmailModule } from './modules/email/email.module'
 import { ExampleModule } from './modules/example/example.module'
+import { MembersModule } from './modules/members/members.module'
 
 // Extended interface for Express requests
 interface ExpressRequest extends IncomingMessage {
@@ -94,6 +95,7 @@ interface ExpressResponse extends ServerResponse<IncomingMessage> {
     EmailModule,
     AiModule,
     NestConfigModule,
+    MembersModule,
     ExampleModule,
   ],
   controllers: [AppController],

@@ -205,9 +205,34 @@
   "errorCodes": {
     "PASSWORDS_DO_NOT_MATCH": "Passwords do not match"
   },
-  "members": {},
-  "adminMembers": {},
-  "catalog": {},
+  "members": {
+    "title": "MonÉpi",
+    "nav": {
+      "myAccount": "My account",
+      "logOut": "Log out"
+    },
+    "account": {
+      "title": "My account",
+      "comingSoon": "Your profile, membership status, fee and QR code will appear here."
+    }
+  },
+  "adminMembers": {
+    "title": "Members",
+    "backOffice": "Back office",
+    "accessDenied": "You need an administrator account to open the back office.",
+    "comingSoon": "The pending queue and member list will appear here.",
+    "nav": {
+      "section": "Management",
+      "members": "Members"
+    }
+  },
+  "catalog": {
+    "title": "Catalogue",
+    "comingSoon": "Suppliers, categories and products will appear here.",
+    "nav": {
+      "catalog": "Catalogue"
+    }
+  },
   "common": {
     "user": "User",
     "active": "Active",

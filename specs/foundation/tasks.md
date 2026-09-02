@@ -48,21 +48,21 @@ the default admin, and shared frontend layout. No user story can start until thi
 
 **⚠️ CRITICAL**: Blocks every user story.
 
-- [ ] T010 [P] Create `Member` entity in `apps/api/src/modules/members/entities/member.entity.ts` (1:1 `User`, `membershipNumber` unique, `status`, address fields, `phone`, `joinedAt`, `version`, audit)
-- [ ] T011 [P] Create append-only `MemberStatusChange` entity in `apps/api/src/modules/members/entities/member-status-change.entity.ts`
-- [ ] T012 [P] Create `MembershipFee` entity in `apps/api/src/modules/members/entities/membership-fee.entity.ts` (1:1 `Member`, `expectedAmountCents`, `version`)
-- [ ] T013 [P] Create single-row `MembershipIntakeSetting` entity in `apps/api/src/modules/members/entities/membership-intake-setting.entity.ts`
-- [ ] T014 [P] Create `membershipNumber` generator util in `apps/api/src/modules/members/members.util.ts` (`MEM-000123` sequence)
-- [ ] T015 Create enums and shared schemas in `apps/api/src/modules/members/contracts/member.contract.ts` (`memberStatus`, `userRole` = `['member','admin']`, fee enums, `memberProfile`/`identifier`/`feeSummary`/`memberSelf`/`memberListItem`/`memberDetail`), each with `.meta()` and an exported inferred type (depends on T010, T011, T012)
-- [ ] T016 Create `members.module.ts`, `members.service.ts` (constructor + `EntityManager`), and `members.mapper.ts` skeletons in `apps/api/src/modules/members/` (depends on T010–T015)
-- [ ] T017 Implement sign-up wiring in `apps/api/src/modules/members/members.hooks.ts` (Better Auth `@Hook` provider): `after` the sign-up route, create the `Member` row (`status: 'pending'`) + first `MemberStatusChange` in one transaction; `before` the sign-up route, refuse when `MembershipIntakeSetting` is closed (depends on T016, T013, T014)
-- [ ] T018 Extend `apps/api/src/modules/auth/auth.guard.ts`: after resolving the session, load the linked `Member`, cache it on `request`; enforce a confirmed identifier + `member.status === 'active'` for member-scoped routes; enforce `@AdminOnly()` via `role` (depends on T010, T006)
-- [ ] T019 Register `MembersModule` (with `MikroOrmModule.forFeature([...])`) in `apps/api/src/app.module.ts` (depends on T016)
-- [ ] T020 Create `apps/api/src/modules/members/members.seeder.ts` seeding one admin (Better Auth user + `Member` row + `role: 'admin'` + `status: 'active'`) and wire it into `apps/api/src/seeders/database.seeder.ts` (depends on T016)
-- [ ] T021 Run `pnpm --filter=api db:fresh:seed`, then `pnpm generate` to publish the member enums and shared types (depends on T019, T020)
-- [ ] T022 [P] Create `useCurrentMember` and `useIsAdmin` hooks in `apps/web-spa/app/features/common/hooks/`
-- [ ] T023 [P] Create route-guard components and the member-area + back-office layout shells in `apps/web-spa/app/features/common/`
-- [ ] T024 Add the member-area and back-office route groups to `apps/web-spa/app/routes.ts` (depends on T023)
+- [x] T010 [P] Create `Member` entity in `apps/api/src/modules/members/entities/member.entity.ts` (1:1 `User`, `membershipNumber` unique, `status`, address fields, `phone`, `joinedAt`, `version`, audit)
+- [x] T011 [P] Create append-only `MemberStatusChange` entity in `apps/api/src/modules/members/entities/member-status-change.entity.ts`
+- [x] T012 [P] Create `MembershipFee` entity in `apps/api/src/modules/members/entities/membership-fee.entity.ts` (1:1 `Member`, `expectedAmountCents`, `version`)
+- [x] T013 [P] Create single-row `MembershipIntakeSetting` entity in `apps/api/src/modules/members/entities/membership-intake-setting.entity.ts`
+- [x] T014 [P] Create `membershipNumber` generator util in `apps/api/src/modules/members/members.util.ts` (`MEM-000123` sequence)
+- [x] T015 Create enums and shared schemas in `apps/api/src/modules/members/contracts/member.contract.ts` (`memberStatus`, `userRole` = `['member','admin']`, fee enums, `memberProfile`/`identifier`/`feeSummary`/`memberSelf`/`memberListItem`/`memberDetail`), each with `.meta()` and an exported inferred type (depends on T010, T011, T012)
+- [x] T016 Create `members.module.ts`, `members.service.ts` (constructor + `EntityManager`), and `members.mapper.ts` skeletons in `apps/api/src/modules/members/` (depends on T010–T015)
+- [x] T017 Implement sign-up wiring in `apps/api/src/modules/members/members.hooks.ts` (Better Auth `@Hook` provider): `after` the sign-up route, create the `Member` row (`status: 'pending'`) + first `MemberStatusChange` in one transaction; `before` the sign-up route, refuse when `MembershipIntakeSetting` is closed (depends on T016, T013, T014)
+- [x] T018 Extend `apps/api/src/modules/auth/auth.guard.ts`: after resolving the session, load the linked `Member`, cache it on `request`; enforce a confirmed identifier + `member.status === 'active'` for member-scoped routes; enforce `@AdminOnly()` via `role` (depends on T010, T006)
+- [x] T019 Register `MembersModule` (with `MikroOrmModule.forFeature([...])`) in `apps/api/src/app.module.ts` (depends on T016)
+- [x] T020 Create `apps/api/src/modules/members/members.seeder.ts` seeding one admin (Better Auth user + `Member` row + `role: 'admin'` + `status: 'active'`) and wire it into `apps/api/src/seeders/database.seeder.ts` (depends on T016)
+- [x] T021 Run `pnpm --filter=api db:fresh:seed`, then `pnpm generate` to publish the member enums and shared types (depends on T019, T020)
+- [x] T022 [P] Create `useCurrentMember` and `useIsAdmin` hooks in `apps/web-spa/app/features/common/hooks/`
+- [x] T023 [P] Create route-guard components and the member-area + back-office layout shells in `apps/web-spa/app/features/common/`
+- [x] T024 Add the member-area and back-office route groups to `apps/web-spa/app/routes.ts` (depends on T023)
 
 **Checkpoint**: A signed-up person lands as a pending member; a seeded admin can sign in.
 

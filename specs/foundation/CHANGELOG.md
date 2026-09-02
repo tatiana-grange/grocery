@@ -4,6 +4,21 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 09:53] - /speckit.implement
+
+### Changed
+
+- Completed Phase 2: Foundational (blocking prerequisites)
+- Tasks completed: T010, T011, T012, T013, T014, T015, T016, T017, T018, T019, T020, T021, T022, T023, T024
+- New `members` module: `Member`, `MemberStatusChange`, `MembershipFee`, `MembershipPayment`, `MembershipIntakeSetting` entities; `member.contract.ts` with the enums and shared response schemas (all `.meta()`-annotated); `MembersService` (intake setting, member lookup), `MembersMapper` (fee-state derivation), `members.util.ts` (membership-number generator, role parse/serialize, `ensurePendingMember`, `isMembershipIntakeOpen`), `members.factory.ts` (test/seed factory), `MembersSeeder` (default admin: admin@example.com / admin12345).
+- Sign-up wiring: Better Auth `databaseHooks.user.create` in `auth.module.ts` — `before` refuses sign-up while intake is closed, `after` creates the pending `Member` + first status-history row. Verified live: signing up `alice@example.com` produced `MEM-000002` / `pending`; the seeded admin is `MEM-000001` / `active`.
+- `AuthGuard` extended: parses the `role` string, enforces `@AdminOnly()` / `@Roles()`, and for `@MemberScoped()` routes requires a confirmed identifier and an active membership (admins bypass the status check). `@MemberScoped()` decorator added. `createSessionFromUser` test helper now carries `role` / `phoneNumber` / `phoneNumberVerified`.
+- Frontend: `features/common` — `useRoles` / `useIsAdmin` hooks, `roles.ts` helper, `BackOfficeLayout` (admin-gated sidebar shell) and `MemberAreaLayout` (member top-bar shell); placeholder pages for `/account`, `/admin/members`, `/admin/catalog`; routes wired; `members` / `adminMembers` / `catalog` i18n keys filled (en + fr).
+- Deviations from the task text: T017 lives in `auth.module.ts` + `members.util.ts` rather than a `members.hooks.ts` `@Hook` provider (databaseHooks fire on the real user-create path and the e2e harness mocks auth anyway). T022's `useCurrentMember` fetch is deferred to US3 where `/members/me` exists. Entity relation properties are typed `Rel<T>` to avoid an `emitDecoratorMetadata` circular-import crash. `MembershipPayment` entity was created now (referenced by `MembershipFee`) though its endpoints come in US3.
+- Verified: `pnpm typecheck` (all), `pnpm --filter=api test` (116 passed), `pnpm lint`, `pnpm --filter=api build`, `pnpm --filter=web-spa build` all pass; `db:fresh:seed` rebuilds and seeds cleanly.
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/members/** (new), apps/api/src/modules/auth/{auth.guard.ts,auth.decorator.ts,auth.module.ts}, apps/api/src/app.module.ts, apps/api/src/seeders/database.seeder.ts, apps/api/src/test/helpers/test-auth.helper.ts, apps/web-spa/app/features/{common,account,admin-members,catalog}/** (new), apps/web-spa/app/routes.ts, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, specs/foundation/tasks.md
+
 ## [2026-09-02 09:38] - /speckit.implement
 
 ### Changed

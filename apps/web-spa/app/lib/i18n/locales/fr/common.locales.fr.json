@@ -205,9 +205,34 @@
   "errorCodes": {
     "PASSWORDS_DO_NOT_MATCH": "Les mots de passe ne correspondent pas"
   },
-  "members": {},
-  "adminMembers": {},
-  "catalog": {},
+  "members": {
+    "title": "MonÉpi",
+    "nav": {
+      "myAccount": "Mon compte",
+      "logOut": "Se déconnecter"
+    },
+    "account": {
+      "title": "Mon compte",
+      "comingSoon": "Votre profil, votre statut d'adhésion, votre cotisation et votre QR code apparaîtront ici."
+    }
+  },
+  "adminMembers": {
+    "title": "Adhérents",
+    "backOffice": "Back-office",
+    "accessDenied": "Un compte administrateur est nécessaire pour ouvrir le back-office.",
+    "comingSoon": "La file d'attente des demandes et la liste des adhérents apparaîtront ici.",
+    "nav": {
+      "section": "Gestion",
+      "members": "Adhérents"
+    }
+  },
+  "catalog": {
+    "title": "Catalogue",
+    "comingSoon": "Les fournisseurs, catégories et produits apparaîtront ici.",
+    "nav": {
+      "catalog": "Catalogue"
+    }
+  },
   "common": {
     "user": "Utilisateur",
     "active": "Actif",

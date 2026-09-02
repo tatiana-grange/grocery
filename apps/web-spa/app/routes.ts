@@ -21,4 +21,11 @@ export default [
     route('forgot-password', 'features/auth/pages/auth-forgot-password-page.tsx'),
     route('reset-password', 'features/auth/pages/auth-reset-password-page.tsx'),
   ]),
+  layout('features/common/components/member-area-layout.tsx', [
+    route('account', 'features/account/components/account-page.tsx'),
+  ]),
+  layout('features/common/components/back-office-layout.tsx', [
+    route('admin/members', 'features/admin-members/components/members-list-page.tsx'),
+    route('admin/catalog', 'features/catalog/components/catalog-page.tsx'),
+  ]),
 ] satisfies RouteConfig
