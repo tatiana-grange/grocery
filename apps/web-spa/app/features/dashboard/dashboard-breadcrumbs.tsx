@@ -33,10 +33,6 @@ function useBreadcrumbs(): BreadcrumbItem[] {
     ]
   }
 
-  if (path === '/ai') {
-    return [{ label: t('breadcrumbs.dashboard'), to: '/dashboard' }, { label: t('breadcrumbs.ai') }]
-  }
-
   if (path === '/components') {
     return [
       { label: t('breadcrumbs.dashboard'), to: '/dashboard' },

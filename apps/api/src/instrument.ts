@@ -1,24 +1,5 @@
-import { LangfuseSpanProcessor } from '@langfuse/otel'
-import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
 import * as Sentry from '@sentry/nestjs'
-import { SentryPropagator, SentrySampler, SentrySpanProcessor } from '@sentry/opentelemetry'
 import { config } from './config/env.config'
-
-// Only spans emitted by the Vercel AI SDK (`ai`) and the Langfuse SDK (`langfuse-sdk`) are
-// LLM-related. Everything else on the global provider (Nest controllers, guards, interceptors,
-// database queries, HTTP requests) must never reach Langfuse.
-const LANGFUSE_INSTRUMENTATION_SCOPES = ['langfuse-sdk', 'ai']
-
-function createLangfuseSpanProcessor() {
-  return new LangfuseSpanProcessor({
-    publicKey: config.langfuse.publicKey,
-    secretKey: config.langfuse.secretKey,
-    baseUrl: config.langfuse.host,
-    environment: config.env,
-    shouldExportSpan: ({ otelSpan }) =>
-      LANGFUSE_INSTRUMENTATION_SCOPES.includes(otelSpan.instrumentationScope.name),
-  })
-}
 
 const sentryConfig: Sentry.NodeOptions = {
   // Uncomment this to enable debug mode (which is REALLY verbose)
@@ -38,68 +19,16 @@ const sentryConfig: Sentry.NodeOptions = {
   integrations: [Sentry.pinoIntegration()],
 }
 
-// 3 cases :
-// Sentry alone - We let Sentry handles OTEL
-// Langfuse alone - We need to handle OTEL ourselves
-// Sentry and Langfuse - We use a shared TracerProvider
 function initialiazeTelemetry() {
-  if (config.sentry.dsn && !config.langfuse.secretKey) {
-    // Initialize Sentry alone
-    Sentry.init({
-      ...sentryConfig,
-    })
-
-    console.warn('Sentry initialized')
-    console.warn('Langfuse not configured. AI tracing will be disabled.')
-  } else if (!config.sentry.dsn && config.langfuse.secretKey) {
+  if (!config.sentry.dsn) {
     console.warn(
       'Sentry DSN not configured. Base tracing, logging and error reporting will be disabled.',
     )
-
-    // Initialize Langfuse alone. The processor still has to filter spans: OpenTelemetryModule
-    // instruments the whole Nest application on the same global provider.
-    const provider = new NodeTracerProvider({
-      spanProcessors: [createLangfuseSpanProcessor()],
-    })
-
-    provider.register()
-
-    console.warn('Langfuse initialized')
-  } else if (config.sentry.dsn && config.langfuse.secretKey) {
-    // REASONNING:
-    // Option A: Shared TracerProvider (Recommended by Langfuse) - This gives distributed tracing across both Sentry and Langfuse, but it means Langfuse traces will appear in Sentry.
-    // Option B: Add the Tracer to Langfuse manually. On paper, it is simpler, but we could not get it to work reliably.
-    // See: https://langfuse.com/faq/all/existing-sentry-setup and https://langfuse.com/faq/all/existing-otel-setup#no-traces-in-langfuse
-    // ⚠️ This means Langfuse traces will appear in Sentry.
-
-    // Step 1: Initialize Sentry WITHOUT automatic OTEL setup, to be compatible with Langfuse (Option A described below)
-    const sentryClient = Sentry.init({
-      ...sentryConfig,
-      // We don't want Sentry to handle OTEL, we want to use the shared TracerProvider
-      skipOpenTelemetrySetup: true,
-    })
-
-    console.warn('Sentry initialized')
-
-    // Step 2 & 3: Create shared TracerProvider with both processors (async due to ESM-only packages in CJS)
-    const provider = new NodeTracerProvider({
-      sampler: sentryClient ? new SentrySampler(sentryClient) : undefined,
-      spanProcessors: [
-        // Langfuse processor - filters to only export LLM-related spans
-        createLangfuseSpanProcessor(),
-        // Sentry processor - receives all spans
-        new SentrySpanProcessor(),
-      ],
-    })
-
-    // Register with Sentry's propagator and context manager
-    provider.register({
-      propagator: new SentryPropagator(),
-      contextManager: new Sentry.SentryContextManager(),
-    })
-
-    console.warn('Shared TracerProvider initialized (Langfuse + Sentry)')
+    return
   }
+
+  Sentry.init({ ...sentryConfig })
+  console.warn('Sentry initialized')
 }
 
 export { initialiazeTelemetry }

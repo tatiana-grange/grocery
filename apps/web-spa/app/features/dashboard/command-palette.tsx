@@ -8,7 +8,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from '@grocery/ui/components/primitives/command'
-import { Brain, Component, LayoutDashboard, Moon, PlusCircle, Sun, User } from 'lucide-react'
+import { Component, LayoutDashboard, Moon, PlusCircle, Sun, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import useTheme from '@/hooks/useTheme'
@@ -52,14 +52,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <LayoutDashboard className="h-4 w-4" />
             <span>{t('commandPalette.items.dashboard')}</span>
             <CommandShortcut>D</CommandShortcut>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleNavigate('/ai')}
-            keywords={['ai', 'playground', 'chat', 'artificial intelligence']}
-          >
-            <Brain className="h-4 w-4" />
-            <span>{t('commandPalette.items.ai')}</span>
-            <CommandShortcut>A</CommandShortcut>
           </CommandItem>
           <CommandItem
             onSelect={() => handleNavigate('/components')}

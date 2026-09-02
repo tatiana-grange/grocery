@@ -86,7 +86,6 @@
     "title": "Dashboard",
     "brand": "Lonestone - Dashboard",
     "newPost": "New post",
-    "ai": "AI",
     "userMenu": "User menu",
     "settings": "Settings",
     "lightMode": "Light mode",
@@ -111,7 +110,6 @@
     "items": {
       "dashboard": "Dashboard",
       "newPost": "New post",
-      "ai": "AI Playground",
       "components": "Components",
       "profile": "Profile",
       "toggleTheme": "Toggle theme",
@@ -124,7 +122,6 @@
     "posts": "Posts",
     "newPost": "New post",
     "editPost": "Edit post",
-    "ai": "AI",
     "components": "Components",
     "profile": "Profile"
   },
@@ -150,16 +147,6 @@
       "feedback": "Feedback",
       "dataDisplay": "Data & Tables",
       "overlays": "Overlays"
-    }
-  },
-  "ai": {
-    "title": "AI Playground",
-    "subtitle": "Interactive demos",
-    "description": "Explore real AI capabilities powered by the Lonestone boilerplate. Each demo connects to the live API.",
-    "sections": {
-      "textGeneration": "Text generation",
-      "structuredOutput": "Structured output",
-      "chatStream": "Chat with streaming"
     }
   },
   "posts": {
