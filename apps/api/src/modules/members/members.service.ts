@@ -190,7 +190,8 @@ export class MembersService {
         'This member changed since you opened it — reload and try again',
       )
     }
-    const { version: _version, ...profile } = input
+    const { version: _version, name, ...profile } = input
+    if (name !== undefined) member.user.name = name
     for (const [key, value] of Object.entries(profile)) {
       ;(member as unknown as Record<string, unknown>)[key] = value ?? undefined
     }

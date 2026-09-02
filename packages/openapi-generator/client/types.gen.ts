@@ -282,7 +282,7 @@ export type MemberValidation = {
 /**
  * UpdateMemberProfile
  *
- * Update a member’s personal details (send the version you loaded)
+ * Update a member’s name and personal details (send the version you loaded)
  */
 export type UpdateMemberProfile = {
     addressLine1?: string | null;
@@ -290,6 +290,7 @@ export type UpdateMemberProfile = {
     postalCode?: string | null;
     city?: string | null;
     phone?: string | null;
+    name?: string;
     version: number;
 };
 
@@ -1583,7 +1584,7 @@ export type AdminMembersControllerUpdateProfileData = {
     /**
      * UpdateMemberProfile
      *
-     * Update a member’s personal details (send the version you loaded)
+     * Update a member’s name and personal details (send the version you loaded)
      */
     body: {
         addressLine1?: string | null;
@@ -1591,6 +1592,7 @@ export type AdminMembersControllerUpdateProfileData = {
         postalCode?: string | null;
         city?: string | null;
         phone?: string | null;
+        name?: string;
         version: number;
     };
     path: {
@@ -1789,7 +1791,7 @@ export type MemberSelfControllerUpdateProfileData = {
     /**
      * UpdateMemberProfile
      *
-     * Update a member’s personal details (send the version you loaded)
+     * Update a member’s name and personal details (send the version you loaded)
      */
     body: {
         addressLine1?: string | null;
@@ -1797,6 +1799,7 @@ export type MemberSelfControllerUpdateProfileData = {
         postalCode?: string | null;
         city?: string | null;
         phone?: string | null;
+        name?: string;
         version: number;
     };
     path?: never;

@@ -238,7 +238,7 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Update a member’s personal details (send the version you loaded)",
+          "description": "Update a member’s name and personal details (send the version you loaded)",
           "content": {
             "application/json": {
               "schema": {
@@ -294,6 +294,10 @@
                       }
                     ]
                   },
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
                   "version": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -305,9 +309,10 @@
                 ],
                 "additionalProperties": false,
                 "title": "UpdateMemberProfile",
-                "description": "Update a member’s personal details (send the version you loaded)",
+                "description": "Update a member’s name and personal details (send the version you loaded)",
                 "examples": [
                   {
+                    "name": "Zoé Martin",
                     "city": "Nantes",
                     "phone": "+33612345678",
                     "version": 1
@@ -749,7 +754,7 @@
         "parameters": [],
         "requestBody": {
           "required": true,
-          "description": "Update a member’s personal details (send the version you loaded)",
+          "description": "Update a member’s name and personal details (send the version you loaded)",
           "content": {
             "application/json": {
               "schema": {
@@ -805,6 +810,10 @@
                       }
                     ]
                   },
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
                   "version": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -816,9 +825,10 @@
                 ],
                 "additionalProperties": false,
                 "title": "UpdateMemberProfile",
-                "description": "Update a member’s personal details (send the version you loaded)",
+                "description": "Update a member’s name and personal details (send the version you loaded)",
                 "examples": [
                   {
+                    "name": "Zoé Martin",
                     "city": "Nantes",
                     "phone": "+33612345678",
                     "version": 1
@@ -5389,6 +5399,10 @@
               }
             ]
           },
+          "name": {
+            "type": "string",
+            "minLength": 2
+          },
           "version": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -5400,9 +5414,10 @@
         ],
         "additionalProperties": false,
         "title": "UpdateMemberProfile",
-        "description": "Update a member’s personal details (send the version you loaded)",
+        "description": "Update a member’s name and personal details (send the version you loaded)",
         "examples": [
           {
+            "name": "Zoé Martin",
             "city": "Nantes",
             "phone": "+33612345678",
             "version": 1

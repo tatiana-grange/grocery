@@ -35,6 +35,7 @@
       "login": "Se connecter",
       "invalidPhone": "Saisissez un numéro de téléphone valide",
       "invalidCode": "Code incorrect",
+      "resendEmail": "Renvoyer le lien",
       "mode": {
         "email": "Email",
         "phone": "Téléphone"
@@ -56,9 +57,10 @@
     },
     "forgotPassword": {
       "title": "Mot de passe oublié",
-      "description": "Entrez votre email pour recevoir un lien de réinitialisation.",
+      "description": "Entrez votre email ou votre numéro pour réinitialiser votre mot de passe.",
       "email": "Email",
       "sendResetLink": "Envoyer le lien de réinitialisation",
+      "emailSent": "Si un compte correspond, un lien de réinitialisation est en route.",
       "backToLogin": "Retour à la connexion",
       "failedToSend": "Échec de l'envoi du lien de réinitialisation"
     },
@@ -230,6 +232,8 @@
       "comingSoon": "Votre profil, votre statut d'adhésion, votre cotisation et votre QR code apparaîtront ici.",
       "identifierConfirmed": "Identifiant confirmé",
       "personalDetails": "Coordonnées",
+      "notActive": "Votre adhésion est en attente de validation, ou n'est plus active. Un administrateur vous recontactera.",
+      "name": "Nom",
       "addressLine1": "Adresse",
       "addressLine2": "Adresse (complément)",
       "postalCode": "Code postal",

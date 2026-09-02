@@ -127,7 +127,7 @@ export const zMemberValidation = z.union([
 /**
  * UpdateMemberProfile
  *
- * Update a member’s personal details (send the version you loaded)
+ * Update a member’s name and personal details (send the version you loaded)
  */
 export const zUpdateMemberProfile = z.object({
     addressLine1: z.optional(z.union([
@@ -150,6 +150,7 @@ export const zUpdateMemberProfile = z.object({
         z.string(),
         z.null()
     ])),
+    name: z.optional(z.string().min(2)),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
@@ -1832,6 +1833,7 @@ export const zAdminMembersControllerUpdateProfileData = z.object({
             z.string(),
             z.null()
         ])),
+        name: z.optional(z.string().min(2)),
         version: z.int().gte(-9007199254740991).lte(9007199254740991)
     }),
     path: z.object({
@@ -1980,6 +1982,7 @@ export const zMemberSelfControllerUpdateProfileData = z.object({
             z.string(),
             z.null()
         ])),
+        name: z.optional(z.string().min(2)),
         version: z.int().gte(-9007199254740991).lte(9007199254740991)
     }),
     path: z.optional(z.never()),

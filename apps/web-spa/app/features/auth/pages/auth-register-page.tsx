@@ -21,6 +21,7 @@ export default function Register() {
   const [mode, setMode] = useState<IdentifierMode>('email')
   const [step, setStep] = useState<Step>('form')
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
 
   const register = useMutation({
@@ -47,7 +48,7 @@ export default function Register() {
         callbackURL: '/',
       })
       if (signUp.error) throw new Error(signUp.error.code)
-      return { mode: 'email' as const }
+      return { mode: 'email' as const, email: data.identifier }
     },
     onSuccess: (result) => {
       toast.success(t('auth.register.registrationSuccessful'))
@@ -55,9 +56,15 @@ export default function Register() {
         setPhoneNumber(result.phone)
         setStep('otp')
       } else {
+        setEmail(result.email)
         setStep('done')
       }
     },
+  })
+
+  const resendEmail = useMutation({
+    mutationFn: () => authClient.sendVerificationEmail({ email, callbackURL: '/' }),
+    onSuccess: () => toast.success(t('auth.register.resendEmail')),
   })
 
   const verify = useMutation({
@@ -85,6 +92,16 @@ export default function Register() {
               : t('auth.register.success.description')
           }
         />
+        {mode === 'email' && (
+          <Button
+            variant="ghost"
+            className="mt-4 w-full"
+            disabled={resendEmail.isPending}
+            onClick={() => resendEmail.mutate()}
+          >
+            {t('auth.register.resendEmail')}
+          </Button>
+        )}
         <div className="mt-4 text-center text-sm">
           <Link to="/login" className="font-medium">
             {t('auth.register.backToLogin')}

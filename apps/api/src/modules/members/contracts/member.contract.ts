@@ -191,11 +191,14 @@ export type MembershipIntakeInput = z.infer<typeof membershipIntakeSchema>
 
 export const updateProfileSchema = memberProfileSchema
   .partial()
-  .extend({ version: z.number().int() })
+  .extend({
+    name: z.string().min(2).optional(),
+    version: z.number().int(),
+  })
   .meta({
     title: 'UpdateMemberProfile',
-    description: 'Update a member’s personal details (send the version you loaded)',
-    examples: [{ city: 'Nantes', phone: '+33612345678', version: 1 }],
+    description: 'Update a member’s name and personal details (send the version you loaded)',
+    examples: [{ name: 'Zoé Martin', city: 'Nantes', phone: '+33612345678', version: 1 }],
   })
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>

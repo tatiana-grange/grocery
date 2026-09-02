@@ -32,7 +32,10 @@ export default function AccountPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: account, isLoading } = useQuery(myAccountQueryOptions())
+  const { data: account, isLoading, error } = useQuery({
+    ...myAccountQueryOptions(),
+    retry: false,
+  })
 
   const terminate = useMutation({
     mutationFn: endMyMembership,
@@ -43,9 +46,11 @@ export default function AccountPage() {
     onError: () => toast.error(t('members.account.error')),
   })
 
+  const [name, setName] = useState('')
   const [profile, setProfile] = useState<Record<string, string>>({})
   useEffect(() => {
     if (account) {
+      setName(account.name)
       setProfile(
         Object.fromEntries(FIELDS.map((field) => [field, account.profile[field] ?? ''])),
       )
@@ -55,6 +60,7 @@ export default function AccountPage() {
   const mutation = useMutation({
     mutationFn: () =>
       updateMyProfile({
+        name: name.trim() || undefined,
         ...Object.fromEntries(
           Object.entries(profile).map(([key, value]) => [key, value || null]),
         ),
@@ -71,7 +77,25 @@ export default function AccountPage() {
       }),
   })
 
-  if (isLoading || !account) return <Skeleton className="h-96 w-full" />
+  if (isLoading) return <Skeleton className="h-96 w-full" />
+
+  if (error || !account) {
+    return (
+      <div className="space-y-4 text-center">
+        <h1 className="text-2xl font-black tracking-tight">{t('members.account.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('members.account.notActive')}</p>
+        <Button
+          variant="outline"
+          onClick={async () => {
+            await authClient.signOut()
+            navigate('/login')
+          }}
+        >
+          {t('members.nav.logOut')}
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -100,6 +124,12 @@ export default function AccountPage() {
           <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             {t('members.account.personalDetails')}
           </h2>
+          <label className="block space-y-1">
+            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              {t('members.account.name')}
+            </span>
+            <Input value={name} onChange={(event) => setName(event.target.value)} />
+          </label>
           {FIELDS.map((field) => (
             <label key={field} className="block space-y-1">
               <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">

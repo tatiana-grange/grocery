@@ -281,7 +281,15 @@ export class CatalogService {
 
     if (input.name !== undefined) product.name = input.name
     if (input.description !== undefined) product.description = input.description ?? undefined
-    if (input.saleMode !== undefined) product.saleMode = input.saleMode
+    if (input.saleMode !== undefined && input.saleMode !== product.saleMode) {
+      const hasOpenPrice = product.prices.getItems().some((price) => !price.validTo)
+      if (hasOpenPrice) {
+        throw new ConflictException(
+          'Changing the sale mode changes what the price means — set a new price with the price endpoint at the same time',
+        )
+      }
+      product.saleMode = input.saleMode
+    }
     if (input.photos !== undefined) product.photos = input.photos
     if (input.labels !== undefined) product.labels = input.labels
     if (input.barcode !== undefined) product.barcode = input.barcode ?? undefined

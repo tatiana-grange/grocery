@@ -133,6 +133,15 @@ describe('catalogController (e2e)', () => {
     expect(res.body.productCount).toBe(1)
   })
 
+  it('refuses to flip saleMode while a product has an open price', async () => {
+    const { product } = await makeProduct()
+    const res = await request
+      .withSession(admin)
+      .put(`/admin/products/${product.id}`)
+      .send({ saleMode: 'weight', version: product.version })
+    expect(res.status).toBe(409)
+  })
+
   it('returns 409 on a stale version', async () => {
     const supplier = await makeSupplier()
     const res = await request

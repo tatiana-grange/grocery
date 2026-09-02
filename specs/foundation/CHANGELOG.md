@@ -4,6 +4,18 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 11:41] - /speckit.analyze remediation (small fixes)
+
+### Changed
+
+- **G2**: `PUT /members/me/profile` now accepts `name` (written through to the auth `User`); the account page has a name field. e2e updated.
+- **U1**: `CatalogService.updateProduct` refuses (409) to flip `saleMode` while a product has an open price — the amount's meaning would silently change. e2e added.
+- **U3**: the account page shows a "membership pending / not active" panel with a sign-out button instead of a perpetual skeleton when `/members/me` returns 403.
+- **U4**: "send the link again" on the register email-confirmation screen (`sendVerificationEmail`) and on the forgot-password email-sent screen.
+- Client regenerated for the new `name` field. Suite: 146 passed. `pnpm typecheck` (all), `pnpm lint`, `pnpm --filter=web-spa build` pass.
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/members/{contracts/member.contract.ts,members.service.ts,tests/members.controller.e2e-spec.ts}, apps/api/src/modules/catalog/{catalog.service.ts,tests/catalog.controller.e2e-spec.ts}, apps/web-spa/app/features/{account/components/account-page.tsx,auth/pages/auth-register-page.tsx,auth/pages/auth-forgot-password-page.tsx}, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, packages/openapi-generator/client/**
+
 ## [2026-09-02 11:35] - /speckit.analyze remediation (docs)
 
 ### Changed

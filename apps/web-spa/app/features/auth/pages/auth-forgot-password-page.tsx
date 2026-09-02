@@ -24,11 +24,13 @@ export default function AuthForgotPasswordPage() {
   const [mode, setMode] = useState<IdentifierMode>('email')
   const [step, setStep] = useState<Step>('form')
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [lastIdentifier, setLastIdentifier] = useState('')
   const [otp, setOtp] = useState('')
   const [newPassword, setNewPassword] = useState('')
 
   const request = useMutation({
     mutationFn: async (data: AuthForgotPasswordFormData & { mode: IdentifierMode }) => {
+      setLastIdentifier(data.identifier)
       if (data.mode === 'phone') {
         const phone = normalizePhone(data.identifier)
         const response = await authClient.phoneNumber.requestPasswordReset({ phoneNumber: phone })
@@ -90,6 +92,24 @@ export default function AuthForgotPasswordPage() {
             </p>
           ) : null}
         </>
+      )}
+
+      {step === 'emailSent' && (
+        <div className="space-y-3 text-center">
+          <p className="text-sm text-muted-foreground">
+            {t('auth.forgotPassword.emailSent')}
+          </p>
+          <Button
+            variant="ghost"
+            className="w-full"
+            disabled={request.isPending}
+            onClick={() =>
+              request.mutate({ mode: 'email', identifier: lastIdentifier })
+            }
+          >
+            {t('auth.register.resendEmail')}
+          </Button>
+        </div>
       )}
 
       {step === 'phoneReset' && (

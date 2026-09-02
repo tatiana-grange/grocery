@@ -182,8 +182,9 @@ describe('membersController (e2e)', () => {
       const ok = await request
         .withSession(session)
         .put('/members/me/profile')
-        .send({ city: 'Nantes', version: member.version })
+        .send({ name: 'Zoé Martin', city: 'Nantes', version: member.version })
       expect(ok.status).toBe(200)
+      expect(ok.body.name).toBe('Zoé Martin')
       expect(ok.body.profile.city).toBe('Nantes')
 
       const stale = await request

@@ -35,6 +35,7 @@
       "login": "Sign in",
       "invalidPhone": "Enter a valid phone number",
       "invalidCode": "Incorrect code",
+      "resendEmail": "Send the link again",
       "mode": {
         "email": "Email",
         "phone": "Phone"
@@ -56,9 +57,10 @@
     },
     "forgotPassword": {
       "title": "Forgot my password",
-      "description": "Enter your email to receive a reset link.",
+      "description": "Enter your email or phone number to reset your password.",
       "email": "Email",
       "sendResetLink": "Send reset link",
+      "emailSent": "If an account matches, a reset link is on its way.",
       "backToLogin": "Back to sign in",
       "failedToSend": "Failed to send reset link"
     },
@@ -230,6 +232,8 @@
       "comingSoon": "Your profile, membership status, fee and QR code will appear here.",
       "identifierConfirmed": "Identifier confirmed",
       "personalDetails": "Personal details",
+      "notActive": "Your membership is pending review, or is no longer active. An administrator will be in touch.",
+      "name": "Name",
       "addressLine1": "Address",
       "addressLine2": "Address (line 2)",
       "postalCode": "Postal code",
