@@ -5,7 +5,7 @@ type Theme = 'light' | 'dark'
 const THEME_STORAGE_KEY = 'app-theme'
 
 function getThemeFromLocalStorage(): Theme {
-  return (localStorage.getItem(THEME_STORAGE_KEY) as Theme) || 'dark'
+  return (localStorage.getItem(THEME_STORAGE_KEY) as Theme) || 'light'
 }
 
 function subscribe(callback: () => void): () => void {
@@ -16,7 +16,7 @@ function subscribe(callback: () => void): () => void {
 }
 
 function useTheme(): [Theme, (newTheme: Theme) => void] {
-  const theme = useSyncExternalStore(subscribe, getThemeFromLocalStorage, () => 'dark' as Theme)
+  const theme = useSyncExternalStore(subscribe, getThemeFromLocalStorage, () => 'light' as Theme)
 
   const setTheme = (newTheme: Theme) => {
     localStorage.setItem(THEME_STORAGE_KEY, newTheme)

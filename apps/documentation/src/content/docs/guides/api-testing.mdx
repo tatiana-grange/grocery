@@ -63,7 +63,7 @@ You will want to stop the test container at the end of your test suite, and you'
 beforeAll(async () => {
   // Initialize the test application (this will launch the test container)
   testContext = await initializeTestApp({
-    imports: [PostModule],
+    imports: [YourModule],
   })
   app = testContext.app
   orm = testContext.orm

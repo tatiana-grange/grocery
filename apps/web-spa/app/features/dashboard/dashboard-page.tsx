@@ -35,7 +35,6 @@ import {
   LogOut,
   Moon,
   Pen,
-  PlusCircle,
   Sun,
   User,
 } from 'lucide-react'
@@ -101,7 +100,7 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
               </div>
               <div className="flex flex-col leading-none">
                 <span className="font-black tracking-tight text-foreground uppercase text-sm">
-                  Lonestone
+                  Grocery
                 </span>
                 <span className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">
                   Dashboard
@@ -154,12 +153,6 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton render={<Link to="/dashboard/posts/new" />}>
-                  <PlusCircle className="h-4 w-4" />
-                  <span>{t('dashboard.newPost')}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               {/* Command palette trigger */}
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={onOpenCommandPalette}>

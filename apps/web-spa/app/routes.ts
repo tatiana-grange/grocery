@@ -4,12 +4,7 @@ import { index, layout, route } from '@react-router/dev/routes'
 export default [
   index('features/home/home-redirect.tsx'),
   layout('features/dashboard/dashboard-page.tsx', [
-    route('dashboard', 'features/examples/user-posts/user-posts-page.tsx'),
-    route('dashboard/posts/new', 'features/examples/user-posts/user-post-create-page.tsx'),
-    route(
-      'dashboard/posts/:userPostId/edit',
-      'features/examples/user-posts/user-post-edit-page.tsx',
-    ),
+    route('dashboard', 'features/dashboard/dashboard-home-page.tsx'),
     route('components', 'features/components/components-page.tsx'),
     route('dashboard/profile', 'features/profile/profile-page.tsx'),
   ]),

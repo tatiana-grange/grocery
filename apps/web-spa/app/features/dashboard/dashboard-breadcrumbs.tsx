@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useParams } from 'react-router'
+import { Link, useLocation } from 'react-router'
 
 interface BreadcrumbItem {
   label: string
@@ -10,27 +10,10 @@ interface BreadcrumbItem {
 function useBreadcrumbs(): BreadcrumbItem[] {
   const { t } = useTranslation()
   const location = useLocation()
-  const { userPostId } = useParams()
   const path = location.pathname
 
   if (path === '/dashboard') {
     return [{ label: t('breadcrumbs.dashboard') }]
-  }
-
-  if (path === '/dashboard/posts/new') {
-    return [
-      { label: t('breadcrumbs.dashboard'), to: '/dashboard' },
-      { label: t('breadcrumbs.posts'), to: '/dashboard' },
-      { label: t('breadcrumbs.newPost') },
-    ]
-  }
-
-  if (userPostId && path.includes('/edit')) {
-    return [
-      { label: t('breadcrumbs.dashboard'), to: '/dashboard' },
-      { label: t('breadcrumbs.posts'), to: '/dashboard' },
-      { label: t('breadcrumbs.editPost') },
-    ]
   }
 
   if (path === '/components') {

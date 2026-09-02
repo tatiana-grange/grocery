@@ -5,15 +5,15 @@ description: How the authentication system works, how to use it. Better Auth exp
 
 The authentication system is handled by the [Better Auth](https://www.better-auth.com/) library, which provides most features you will ever need, plus some more.
 
-Better-auth is heavily plugin-based, we propose a few guides on how to add some specific features like [organizations](/lonestone-boilerplate/addons/better-auth-orgs), [admin](/lonestone-boilerplate/addons/better-auth-admin), etc.
+Better-auth is heavily plugin-based, we propose a few guides on how to add some specific features like [organizations](/grocery/addons/better-auth-orgs), [admin](/grocery/addons/better-auth-admin), etc.
 
 # ❓ How it works
 
 Better-auth is using your database to store all of its data. Depending on the ORM you use, you might need to create some entities to store the data.
 
-We use MikroORM in this boilerplate, and you can find the entities in the [auth module](https://github.com/lonestone/lonestone-boilerplate/blob/main/apps/api/src/modules/auth).
+We use MikroORM in this boilerplate, and you can find the entities in the [auth module](https://github.com/lonestone/grocery/blob/main/apps/api/src/modules/auth).
 
-The boilerplate ships a custom MikroORM adapter for Better Auth (see [`auth-db.adapter.ts`](https://github.com/lonestone/lonestone-boilerplate/blob/main/apps/api/src/modules/auth/auth-db.adapter.ts)), replacing the community `better-auth-mikro-orm` package. It includes a CLI integration to auto-generate entity code via `pnpm --filter=api auth:generate`:
+The boilerplate ships a custom MikroORM adapter for Better Auth (see [`auth-db.adapter.ts`](https://github.com/lonestone/grocery/blob/main/apps/api/src/modules/auth/auth-db.adapter.ts)), replacing the community `better-auth-mikro-orm` package. It includes a CLI integration to auto-generate entity code via `pnpm --filter=api auth:generate`:
 
 ```bash
 pnpm --filter=api auth:generate   # auth generate --config src/modules/auth/auth.cli.mts --yes
@@ -46,7 +46,7 @@ It's good practice to prefix better-auth related entities table names with `auth
 :::caution
 Removing Better Auth from the project is a bit more work than removing other features. It's not recommended.
 
-Deleting the auth module is not enough. Example modules (`posts`, `comments`), API tests and helpers, seeders, and the frontend auth pages also import it. Strip those references — or [remove the examples](/lonestone-boilerplate/core-features/99_examples/#-how-to-remove) first — or the project will not compile.
+Deleting the auth module is not enough. API tests and helpers, seeders, feature modules, and the frontend auth pages also import it. Strip those references or the project will not compile.
 :::
 
 1. Delete the `auth` module from `apps/api/src/modules/auth`
