@@ -27,14 +27,28 @@
       "description": "Créez un compte pour commencer.",
       "name": "Nom",
       "email": "Email",
+      "phone": "Numéro de téléphone",
       "password": "Mot de passe",
       "confirmPassword": "Confirmer le mot de passe",
       "signUp": "S'inscrire",
       "hasAccount": "Vous avez déjà un compte ?",
       "login": "Se connecter",
+      "invalidPhone": "Saisissez un numéro de téléphone valide",
+      "invalidCode": "Code incorrect",
+      "mode": {
+        "email": "Email",
+        "phone": "Téléphone"
+      },
+      "otp": {
+        "title": "Confirmez votre numéro",
+        "description": "Saisissez le code envoyé au {{phone}}.",
+        "confirm": "Confirmer",
+        "resend": "Renvoyer un code"
+      },
       "success": {
         "title": "Inscription réussie",
-        "description": "Vérifiez votre email pour le lien d'activation."
+        "description": "Vérifiez votre email pour le lien d'activation.",
+        "phoneDescription": "Votre numéro est confirmé. Un administrateur va examiner votre demande ; vous pourrez vous connecter une fois qu'elle sera validée."
       },
       "backToLogin": "Retour à la connexion",
       "registrationSuccessful": "Inscription réussie",

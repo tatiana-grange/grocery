@@ -4,6 +4,18 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 11:16] - /speckit.implement
+
+### Changed
+
+- Completed the deferred T035 / T036 — phone sign-up / sign-in UI. **All 99 tasks done.**
+- Register form: an email / phone toggle. Phone sign-up creates the account with a synthesized hidden address (`<digits>@phone.grocery.local`) plus the phone number, sends an OTP, then a confirmation step verifies it (`disableSession: true` so the person stays pending). Login form: the same toggle → `authClient.signIn.phoneNumber`. Forgot-password: the toggle → phone path requests a reset OTP and shows an inline code + new-password form (`authClient.phoneNumber.requestPasswordReset` / `resetPassword`).
+- New `features/auth/lib/identifier.ts` (mode type, phone normalisation, synthesized-email helper). `auth.register` i18n extended (mode labels, phone label, OTP step, phone success copy) in en + fr.
+- Live verification: phone sign-up → OTP verify → `members/me` 403 while pending → admin validates (`identifiers` shows the verified phone, no email) → phone sign-in works → phone password reset works and the new password signs in.
+- Verified: `pnpm typecheck` (all), `pnpm --filter=api test` (145), `pnpm lint`, `pnpm --filter=web-spa build` all pass.
+- **Author**: AI (Claude)
+- **Files**: apps/web-spa/app/features/auth/{lib/identifier.ts,forms/auth-register-form.tsx,forms/auth-login-form.tsx,forms/auth-forgot-password-form.tsx,pages/auth-register-page.tsx,pages/auth-login-page.tsx,pages/auth-forgot-password-page.tsx}, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, specs/foundation/tasks.md
+
 ## [2026-09-02 11:01] - /speckit.implement
 
 ### Changed

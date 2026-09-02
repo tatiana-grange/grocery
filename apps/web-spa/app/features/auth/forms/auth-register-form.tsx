@@ -13,39 +13,71 @@ import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
+import { isLikelyPhone, type IdentifierMode } from '@/features/auth/lib/identifier'
 
-const baseRegisterSchema = z.object({
-  email: z.string().email(),
-  name: z.string().min(1),
-  password: z.string().min(6),
-  confirmPassword: z.string(),
-})
-
-function getRegisterSchema(t: (key: string) => string) {
-  return baseRegisterSchema.refine((data) => data.password === data.confirmPassword, {
-    message: t('errorCodes.PASSWORDS_DO_NOT_MATCH'),
-    path: ['confirmPassword'],
-  })
+function getRegisterSchema(mode: IdentifierMode, t: (key: string) => string) {
+  return z
+    .object({
+      name: z.string().min(1),
+      identifier:
+        mode === 'email'
+          ? z.string().email()
+          : z.string().refine(isLikelyPhone, t('auth.register.invalidPhone')),
+      password: z.string().min(8),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t('errorCodes.PASSWORDS_DO_NOT_MATCH'),
+      path: ['confirmPassword'],
+    })
 }
 
-export type AuthRegisterFormData = z.infer<typeof baseRegisterSchema>
+export interface AuthRegisterFormData {
+  name: string
+  identifier: string
+  password: string
+  confirmPassword: string
+}
 
 interface AuthRegisterFormProps {
-  onSubmit: (data: AuthRegisterFormData) => void
+  mode: IdentifierMode
+  onModeChange: (mode: IdentifierMode) => void
+  onSubmit: (data: AuthRegisterFormData & { mode: IdentifierMode }) => void
   isPending: boolean
 }
 
-export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({ onSubmit, isPending }) => {
+export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({
+  mode,
+  onModeChange,
+  onSubmit,
+  isPending,
+}) => {
   const { t } = useTranslation()
-  const registerSchema = getRegisterSchema(t)
   const form = useForm<AuthRegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(getRegisterSchema(mode, t)),
   })
 
   return (
     <Form {...form}>
-      <form className="mt-8 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-        <FormMessage />
+      <form
+        className="mt-8 space-y-6"
+        onSubmit={form.handleSubmit((data) => onSubmit({ ...data, mode }))}
+      >
+        <div className="flex gap-2">
+          {(['email', 'phone'] as const).map((option) => (
+            <Button
+              key={option}
+              type="button"
+              variant={mode === option ? 'default' : 'outline'}
+              size="sm"
+              className="flex-1"
+              onClick={() => onModeChange(option)}
+            >
+              {t(`auth.register.mode.${option}`)}
+            </Button>
+          ))}
+        </div>
+
         <FormField
           control={form.control}
           name="name"
@@ -59,25 +91,29 @@ export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({ onSubmit, is
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
-          name="email"
+          name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel htmlFor="email">{t('auth.register.email')}</FormLabel>
+              <FormLabel htmlFor="identifier">
+                {mode === 'email' ? t('auth.register.email') : t('auth.register.phone')}
+              </FormLabel>
               <FormControl>
                 <Input
-                  id="email"
+                  id="identifier"
                   {...field}
-                  type="email"
-                  autoComplete="email"
-                  placeholder="your@email.com"
+                  type={mode === 'email' ? 'email' : 'tel'}
+                  autoComplete={mode === 'email' ? 'email' : 'tel'}
+                  placeholder={mode === 'email' ? 'your@email.com' : '+33 6 12 34 56 78'}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="password"
@@ -97,6 +133,7 @@ export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({ onSubmit, is
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="confirmPassword"
@@ -116,6 +153,7 @@ export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({ onSubmit, is
             </FormItem>
           )}
         />
+
         <Button className="w-full" type="submit" disabled={isPending}>
           {t('auth.register.signUp')}
         </Button>

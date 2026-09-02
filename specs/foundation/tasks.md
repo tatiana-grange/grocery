@@ -92,8 +92,8 @@ path also verified. No catalogue or self-service work needed.
 - [x] T032 [US1] Implement `members.mapper.ts`: `toMemberSelf`, `toMemberListItem`, `toMemberDetail` (collections guarded with `isInitialized()` + `getItems()`) (depends on T015)
 - [x] T033 [US1] Implement `apps/api/src/modules/members/members.controller.ts` admin routes: `GET /admin/members`, `GET /admin/members/:id`, `POST /admin/members`, `POST /admin/members/:id/validation`, `GET`+`PUT /admin/membership-intake`, all `@AdminOnly()` (depends on T028–T032)
 - [x] T034 [US1] Run `pnpm generate` (depends on T033)
-- [ ] T035 [P] [US1] Frontend: email/phone toggle on the register form in `apps/web-spa/app/features/auth/forms/auth-register-form.tsx` — DEFERRED: self-registration by email already works end to end; the phone sign-up UI (synthesized address + OTP step) plus a matching login toggle is carried to a follow-up.
-- [ ] T036 [P] [US1] Frontend: phone OTP confirmation step/page under `apps/web-spa/app/features/auth/pages/` — DEFERRED with T035.
+- [x] T035 [P] [US1] Frontend: email/phone toggle on the register form in `apps/web-spa/app/features/auth/forms/auth-register-form.tsx`
+- [x] T036 [P] [US1] Frontend: phone OTP confirmation step/page under `apps/web-spa/app/features/auth/pages/`
 - [x] T037 [P] [US1] Frontend: `apps/web-spa/app/features/admin-members/utils/admin-members-queries.ts` (list, detail, mutations) (depends on T034)
 - [x] T038 [US1] Frontend: pending-queue and member-list pages in `apps/web-spa/app/features/admin-members/components/` (depends on T037)
 - [x] T039 [US1] Frontend: member-detail page with validate / reject actions and status history in `apps/web-spa/app/features/admin-members/components/` (depends on T037)

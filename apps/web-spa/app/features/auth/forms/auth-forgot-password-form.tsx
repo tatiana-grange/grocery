@@ -13,43 +13,72 @@ import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
+import { isLikelyPhone, type IdentifierMode } from '@/features/auth/lib/identifier'
 
-const forgotPasswordSchema = z.object({
-  email: z.string().email(),
-})
+function getSchema(mode: IdentifierMode) {
+  return z.object({
+    identifier: mode === 'email' ? z.string().email() : z.string().refine(isLikelyPhone),
+  })
+}
 
-export type AuthForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
+export interface AuthForgotPasswordFormData {
+  identifier: string
+}
 
-interface AuthForgotPasswordFormProps {
-  onSubmit: (data: AuthForgotPasswordFormData) => void
+interface Props {
+  mode: IdentifierMode
+  onModeChange: (mode: IdentifierMode) => void
+  onSubmit: (data: AuthForgotPasswordFormData & { mode: IdentifierMode }) => void
   isPending: boolean
 }
 
-export const AuthForgotPasswordForm: React.FC<AuthForgotPasswordFormProps> = ({
+export const AuthForgotPasswordForm: React.FC<Props> = ({
+  mode,
+  onModeChange,
   onSubmit,
   isPending,
 }) => {
   const { t } = useTranslation()
   const form = useForm<AuthForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(getSchema(mode)),
   })
 
   return (
     <Form {...form}>
-      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-4"
+        onSubmit={form.handleSubmit((data) => onSubmit({ ...data, mode }))}
+      >
+        <div className="flex gap-2">
+          {(['email', 'phone'] as const).map((option) => (
+            <Button
+              key={option}
+              type="button"
+              variant={mode === option ? 'default' : 'outline'}
+              size="sm"
+              className="flex-1"
+              onClick={() => onModeChange(option)}
+            >
+              {t(`auth.register.mode.${option}`)}
+            </Button>
+          ))}
+        </div>
+
         <FormField
           control={form.control}
-          name="email"
+          name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel htmlFor="email">{t('auth.forgotPassword.email')}</FormLabel>
+              <FormLabel htmlFor="identifier">
+                {mode === 'email' ? t('auth.forgotPassword.email') : t('auth.register.phone')}
+              </FormLabel>
               <FormControl>
                 <Input
-                  id="email"
+                  id="identifier"
                   {...field}
-                  type="email"
-                  autoComplete="email"
-                  placeholder="your@email.com"
+                  type={mode === 'email' ? 'email' : 'tel'}
+                  autoComplete={mode === 'email' ? 'email' : 'tel'}
+                  placeholder={mode === 'email' ? 'your@email.com' : '+33 6 12 34 56 78'}
                 />
               </FormControl>
               <FormMessage />

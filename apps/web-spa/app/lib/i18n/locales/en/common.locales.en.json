@@ -27,14 +27,28 @@
       "description": "Create an account to get started.",
       "name": "Name",
       "email": "Email",
+      "phone": "Phone number",
       "password": "Password",
       "confirmPassword": "Confirm password",
       "signUp": "Sign up",
       "hasAccount": "Already have an account?",
       "login": "Sign in",
+      "invalidPhone": "Enter a valid phone number",
+      "invalidCode": "Incorrect code",
+      "mode": {
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "otp": {
+        "title": "Confirm your phone number",
+        "description": "Enter the code we sent to {{phone}}.",
+        "confirm": "Confirm",
+        "resend": "Send a new code"
+      },
       "success": {
         "title": "Registration successful",
-        "description": "Check your email for the activation link."
+        "description": "Check your email for the activation link.",
+        "phoneDescription": "Your phone number is confirmed. An administrator will review your request; you can sign in once it is approved."
       },
       "backToLogin": "Back to sign in",
       "registrationSuccessful": "Registration successful",
