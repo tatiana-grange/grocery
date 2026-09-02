@@ -68,6 +68,25 @@ describe('membersController (e2e)', () => {
       )
     })
 
+    it('lets an admin create a member directly', async (context) => {
+      const { em, request } = context
+      const adminSession = await arrangeAdmin(em)
+
+      const res = await request
+        .withSession(adminSession)
+        .post('/admin/members')
+        .send({ name: 'Zoé Martin', email: `zoe-${Math.random().toString(36).slice(2)}@example.com` })
+      expect(res.status).toBe(201)
+      expect(res.body).toMatchObject({ name: 'Zoé Martin', status: 'active' })
+      expect(res.body.membershipNumber).toMatch(/^MEM-/)
+
+      const dup = await request
+        .withSession(adminSession)
+        .post('/admin/members')
+        .send({ name: 'Someone Else', email: res.body.identifiers.email })
+      expect(dup.status).toBe(409)
+    })
+
     it('returns 401 unauthenticated and 403 for a plain member', async (context) => {
       const { em, request } = context
       const { user: plain } = await createMemberData(em, { roles: ['member'], status: 'active' })

@@ -58,10 +58,19 @@ export default function ProductDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" render={<Link to="/admin/catalog" />}>
-        <ArrowLeft className="mr-2 size-4" />
-        {t('catalog.backToCatalogue')}
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" render={<Link to="/admin/catalog" />}>
+          <ArrowLeft className="mr-2 size-4" />
+          {t('catalog.backToCatalogue')}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          render={<Link to={`/admin/catalog/products/${productId}/edit`} />}
+        >
+          {t('catalog.edit')}
+        </Button>
+      </div>
 
       <div className="flex items-start justify-between gap-4">
         <div>

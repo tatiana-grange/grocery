@@ -1002,6 +1002,47 @@ export const zMemberStatus = z.enum([
 export const zUserRole = z.enum(['member', 'admin']);
 
 /**
+ * CreateMember
+ *
+ * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
+ */
+export const zCreateMember = z.object({
+    name: z.string().min(2),
+    email: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    phoneNumber: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    profile: z.optional(z.object({
+        addressLine1: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        addressLine2: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        postalCode: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        city: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        phone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ]))
+    })),
+    roles: z.array(zUserRole).min(1).default(['member']),
+    status: z.enum(['pending', 'active'])
+});
+
+/**
  * SetMemberRoles
  *
  * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
@@ -1774,6 +1815,51 @@ export const zAdminMembersControllerListData = z.object({
  * A paginated list of members
  */
 export const zAdminMembersControllerListResponse = zMembersList;
+
+export const zAdminMembersControllerCreateData = z.object({
+    body: z.object({
+        name: z.string().min(2),
+        email: z.optional(z.union([
+            z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+            z.null()
+        ])),
+        phoneNumber: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        profile: z.optional(z.object({
+            addressLine1: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            addressLine2: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            postalCode: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            city: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            phone: z.optional(z.union([
+                z.string(),
+                z.null()
+            ]))
+        })),
+        roles: z.array(z.enum(['member', 'admin'])).min(1).default(['member']),
+        status: z.enum(['pending', 'active'])
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerCreateResponse = zMemberDetail;
 
 export const zAdminMembersControllerDetailData = z.object({
     body: z.optional(z.never()),

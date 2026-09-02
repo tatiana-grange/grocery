@@ -30,6 +30,11 @@ export default [
     route('admin/catalog', 'features/catalog/components/catalog-page.tsx'),
     route('admin/catalog/products/new', 'features/catalog/components/product-form-page.tsx'),
     route(
+      'admin/catalog/products/:productId/edit',
+      'features/catalog/components/product-form-page.tsx',
+      { id: 'product-edit' },
+    ),
+    route(
       'admin/catalog/products/:productId',
       'features/catalog/components/product-detail-page.tsx',
     ),

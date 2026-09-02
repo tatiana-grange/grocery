@@ -306,6 +306,13 @@
       "title": "End this membership",
       "reasonPlaceholder": "Reason (shown to the member)"
     },
+    "create": {
+      "new": "New member",
+      "title": "Create a member",
+      "hint": "Give an email or a phone number. The person sets their own password via \"forgot password\".",
+      "done": "Member created",
+      "duplicate": "An account already uses that email or phone number"
+    },
     "toasts": {
       "validated": "Member validated",
       "rejected": "Request rejected",
@@ -372,11 +379,13 @@
       "category": "Category",
       "price": "Price",
       "saleMode": "Sale mode",
+      "saleModeLocked": "cannot change once a price is set",
       "pricePerKg": "Price per kg (€)",
       "pricePerPiece": "Price per piece (€)",
       "labels": "Labels",
       "searchPlaceholder": "Search name or barcode…",
       "new": "New product",
+      "edit": "Edit product",
       "empty": "No products yet.",
       "count": "{{count}} product",
       "count_other": "{{count}} products",

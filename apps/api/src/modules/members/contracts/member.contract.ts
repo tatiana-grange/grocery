@@ -175,6 +175,27 @@ export const memberValidationSchema = z
 
 export type MemberValidationInput = z.infer<typeof memberValidationSchema>
 
+export const createMemberSchema = z
+  .object({
+    name: z.string().min(2),
+    email: z.string().email().nullish(),
+    phoneNumber: z.string().nullish(),
+    profile: memberProfileSchema.partial().optional(),
+    roles: z.array(userRoleSchema).min(1).default(['member']),
+    status: z.enum(['pending', 'active']).default('active'),
+  })
+  .refine((data) => Boolean(data.email || data.phoneNumber), {
+    message: 'provide an email address or a phone number',
+  })
+  .meta({
+    title: 'CreateMember',
+    description:
+      'An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.',
+    examples: [{ name: 'Zoé Martin', email: 'zoe@example.com', status: 'active' }],
+  })
+
+export type CreateMemberInput = z.infer<typeof createMemberSchema>
+
 export const membershipIntakeSchema = z
   .object({ open: z.boolean() })
   .meta({

@@ -94,6 +94,159 @@
             }
           }
         }
+      },
+      "post": {
+        "operationId": "AdminMembersController_create",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "An administrator creates a member directly. The person receives no password — they use \"forgot password\" to set one.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "email",
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "phoneNumber": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "profile": {
+                    "type": "object",
+                    "properties": {
+                      "addressLine1": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "addressLine2": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "postalCode": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "city": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "phone": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "roles": {
+                    "default": [
+                      "member"
+                    ],
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "member",
+                        "admin"
+                      ],
+                      "title": "UserRole",
+                      "description": "Access role. \"admin\" is a superset of \"member\". \"grocer\" is added in lot 4."
+                    }
+                  },
+                  "status": {
+                    "default": "active",
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "active"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "roles",
+                  "status"
+                ],
+                "additionalProperties": false,
+                "title": "CreateMember",
+                "description": "An administrator creates a member directly. The person receives no password — they use \"forgot password\" to set one.",
+                "examples": [
+                  {
+                    "name": "Zoé Martin",
+                    "email": "zoe@example.com",
+                    "status": "active"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/admin/members/{id}": {
@@ -5289,6 +5442,126 @@
         "additionalProperties": false,
         "title": "UpdatePostSchema",
         "description": "Schema for updating a post"
+      },
+      "CreateMember": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phoneNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "addressLine1": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "addressLine2": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "postalCode": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "city": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "phone": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "roles": {
+            "default": [
+              "member"
+            ],
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          },
+          "status": {
+            "default": "active",
+            "type": "string",
+            "enum": [
+              "pending",
+              "active"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "roles",
+          "status"
+        ],
+        "additionalProperties": false,
+        "title": "CreateMember",
+        "description": "An administrator creates a member directly. The person receives no password — they use \"forgot password\" to set one.",
+        "examples": [
+          {
+            "name": "Zoé Martin",
+            "email": "zoe@example.com",
+            "status": "active"
+          }
+        ]
       },
       "MemberValidation": {
         "oneOf": [

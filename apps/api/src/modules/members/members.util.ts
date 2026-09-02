@@ -14,6 +14,16 @@ export async function generateMembershipNumber(em: EntityManager): Promise<strin
   return `MEM-${String(count + 1).padStart(6, '0')}`
 }
 
+export const PHONE_EMAIL_DOMAIN = 'phone.grocery.local'
+
+/**
+ * The synthesized hidden email for a phone-only account. Mirrors the frontend helper —
+ * `user.email` is NOT NULL, so a phone-only member gets an address they never see.
+ */
+export function synthesizedPhoneEmail(phoneNumber: string): string {
+  return `${phoneNumber.replace(/[^0-9]/g, '')}@${PHONE_EMAIL_DOMAIN}`
+}
+
 /** Whether self-registration is currently accepted. Defaults to open when no row exists yet. */
 export async function isMembershipIntakeOpen(em: EntityManager): Promise<boolean> {
   const [setting] = await em.find(MembershipIntakeSetting, {}, { limit: 1 })

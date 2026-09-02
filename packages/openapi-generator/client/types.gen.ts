@@ -266,6 +266,26 @@ export type UpdatePostSchema = {
 };
 
 /**
+ * CreateMember
+ *
+ * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
+ */
+export type CreateMember = {
+    name: string;
+    email?: string | null;
+    phoneNumber?: string | null;
+    profile?: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+    };
+    roles: Array<UserRole>;
+    status: 'pending' | 'active';
+};
+
+/**
  * MemberValidation
  *
  * Validate a pending member (moves them to active) or reject them with a reason
@@ -1531,6 +1551,40 @@ export type AdminMembersControllerListResponses = {
 };
 
 export type AdminMembersControllerListResponse = AdminMembersControllerListResponses[keyof AdminMembersControllerListResponses];
+
+export type AdminMembersControllerCreateData = {
+    /**
+     * CreateMember
+     *
+     * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
+     */
+    body: {
+        name: string;
+        email?: string | null;
+        phoneNumber?: string | null;
+        profile?: {
+            addressLine1?: string | null;
+            addressLine2?: string | null;
+            postalCode?: string | null;
+            city?: string | null;
+            phone?: string | null;
+        };
+        roles: Array<'member' | 'admin'>;
+        status: 'pending' | 'active';
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/members';
+};
+
+export type AdminMembersControllerCreateResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerCreateResponse = AdminMembersControllerCreateResponses[keyof AdminMembersControllerCreateResponses];
 
 export type AdminMembersControllerDetailData = {
     body?: never;

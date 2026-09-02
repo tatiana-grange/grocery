@@ -1,7 +1,17 @@
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@grocery/ui/components/primitives/dialog'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
+import { toast } from '@grocery/ui/components/primitives/sonner'
 import {
   Table,
   TableBody,
@@ -11,12 +21,14 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { Tabs, TabsList, TabsTrigger } from '@grocery/ui/components/primitives/tabs'
-import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ChevronLeft, ChevronRight, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
+import { handleMutationError } from '@/features/common/lib/api-error'
 import {
+  createMember,
   MEMBERS_PAGE_SIZE,
   membersListQueryOptions,
 } from '@/features/admin-members/utils/admin-members-queries'
@@ -71,15 +83,18 @@ export default function MembersListPage() {
             ))}
           </TabsList>
         </Tabs>
-        <Input
-          className="w-64"
-          placeholder={t('adminMembers.searchPlaceholder')}
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
-          }}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            className="w-56"
+            placeholder={t('adminMembers.searchPlaceholder')}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
+            }}
+          />
+          <CreateMemberDialog />
+        </div>
       </div>
 
       <div className="rounded-lg border border-border">
@@ -161,5 +176,78 @@ export default function MembersListPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function CreateMemberDialog() {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      createMember({
+        name: name.trim(),
+        email: email.trim() || undefined,
+        phoneNumber: phoneNumber.trim() || undefined,
+      }),
+    onSuccess: () => {
+      toast.success(t('adminMembers.create.done'))
+      setName('')
+      setEmail('')
+      setPhoneNumber('')
+      void queryClient.invalidateQueries({ queryKey: ['admin-members'] })
+    },
+    onError: (error) =>
+      handleMutationError(error, toast.error, {
+        conflict: t('adminMembers.create.duplicate'),
+        fallback: t('adminMembers.toasts.error'),
+      }),
+  })
+
+  return (
+    <Dialog>
+      <DialogTrigger render={<Button size="sm" />}>
+        <UserPlus className="mr-2 size-4" />
+        {t('adminMembers.create.new')}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('adminMembers.create.title')}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <Input
+            placeholder={t('adminMembers.columns.name')}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+          <Input
+            type="email"
+            placeholder={t('auth.register.email')}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+          <Input
+            type="tel"
+            placeholder={t('auth.register.phone')}
+            value={phoneNumber}
+            onChange={(event) => setPhoneNumber(event.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">{t('adminMembers.create.hint')}</p>
+        </div>
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
+          <DialogClose
+            render={<Button />}
+            disabled={name.trim().length < 2 || !(email.trim() || phoneNumber.trim())}
+            onClick={() => mutation.mutate()}
+          >
+            {t('adminMembers.create.new')}
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

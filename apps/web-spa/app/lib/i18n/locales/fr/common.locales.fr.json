@@ -306,6 +306,13 @@
       "title": "Résilier cette adhésion",
       "reasonPlaceholder": "Motif (communiqué à l'adhérent)"
     },
+    "create": {
+      "new": "Nouvel adhérent",
+      "title": "Créer un adhérent",
+      "hint": "Renseignez un email ou un téléphone. La personne définit son mot de passe via « mot de passe oublié ».",
+      "done": "Adhérent créé",
+      "duplicate": "Un compte utilise déjà cet email ou ce téléphone"
+    },
     "toasts": {
       "validated": "Adhérent validé",
       "rejected": "Demande refusée",
@@ -372,11 +379,13 @@
       "category": "Catégorie",
       "price": "Prix",
       "saleMode": "Mode de vente",
+      "saleModeLocked": "non modifiable une fois un prix défini",
       "pricePerKg": "Prix au kg (€)",
       "pricePerPiece": "Prix à la pièce (€)",
       "labels": "Labels",
       "searchPlaceholder": "Rechercher un nom ou un code-barres…",
       "new": "Nouveau produit",
+      "edit": "Modifier le produit",
       "empty": "Aucun produit pour le moment.",
       "count": "{{count}} produit",
       "count_other": "{{count}} produits",

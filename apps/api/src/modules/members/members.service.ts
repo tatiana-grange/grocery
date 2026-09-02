@@ -6,11 +6,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import { randomBytes, randomUUID } from 'node:crypto'
+import { hashPassword } from 'better-auth/crypto'
 import { config } from '../../config/env.config'
-import { Session, User } from '../auth/auth.entity'
+import { Account, Session, User } from '../auth/auth.entity'
 import { SmsService } from '../auth/sms.service'
 import { EmailService } from '../email/email.service'
 import type {
+  CreateMemberInput,
   MemberFiltering,
   MemberPagination,
   MemberSorting,
@@ -27,7 +30,12 @@ import { MembershipIntakeSetting } from './entities/membership-intake-setting.en
 import { MembershipPayment } from './entities/membership-payment.entity'
 import { Member } from './entities/member.entity'
 import { MembersMapper } from './members.mapper'
-import { parseRoles, serializeRoles } from './members.util'
+import {
+  generateMembershipNumber,
+  parseRoles,
+  serializeRoles,
+  synthesizedPhoneEmail,
+} from './members.util'
 
 export interface MembersListResult {
   members: Member[]
@@ -129,6 +137,77 @@ export class MembersService {
     )
     if (!member) throw new NotFoundException('Member not found')
     return member
+  }
+
+  /**
+   * Admin-created member: makes the auth user + credential account + `Member` row (+ fee row
+   * if active) in one transaction. No password is set — the person uses "forgot password" to
+   * choose one, which works because the admin vouches for the identifier (marked verified).
+   */
+  async createMember(input: CreateMemberInput, adminUserId: string): Promise<Member> {
+    return this.em.transactional(async (em) => {
+      const email = input.email ?? synthesizedPhoneEmail(input.phoneNumber!)
+
+      const clash = await em.findOne(User, {
+        $or: [
+          { email },
+          ...(input.phoneNumber ? [{ phoneNumber: input.phoneNumber }] : []),
+        ],
+      })
+      if (clash) {
+        throw new ConflictException('An account already uses that email or phone number')
+      }
+
+      const user = em.create(User, {
+        name: input.name,
+        email,
+        emailVerified: Boolean(input.email),
+        phoneNumber: input.phoneNumber ?? undefined,
+        phoneNumberVerified: Boolean(input.phoneNumber),
+        role: serializeRoles(input.roles),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      em.create(Account, {
+        user,
+        providerId: 'credential',
+        accountId: randomUUID(),
+        // Unusable placeholder — replaced when the member sets a password via reset.
+        password: await hashPassword(randomBytes(24).toString('hex')),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+
+      const member = new Member()
+      member.user = user
+      member.membershipNumber = await generateMembershipNumber(em)
+      member.status = 'pending'
+      const firstChange = new MemberStatusChange()
+      firstChange.member = member
+      firstChange.toStatus = 'pending'
+      firstChange.changedByUser = em.getReference(User, adminUserId)
+      member.statusChanges.add(firstChange)
+      em.persist([member, firstChange])
+
+      if (input.status === 'active') {
+        const activation = new MemberStatusChange()
+        activation.member = member
+        activation.fromStatus = 'pending'
+        activation.toStatus = 'active'
+        activation.changedByUser = em.getReference(User, adminUserId)
+        member.statusChanges.add(activation)
+        member.status = 'active'
+        member.joinedAt = new Date()
+
+        const fee = new MembershipFee()
+        fee.member = member
+        fee.expectedAmountCents = config.members.membershipFeeDefaultCents
+        em.persist([activation, fee])
+      }
+
+      await em.flush()
+      return member
+    })
   }
 
   /** Derived fee state per member id, for list rows. */

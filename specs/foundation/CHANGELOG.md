@@ -4,6 +4,17 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 11:48] - /speckit.analyze remediation (G3 + U2)
+
+### Changed
+
+- **G3**: `POST /admin/members` implemented — an admin creates a member directly. `createMemberSchema` (name + email-or-phone + roles/status); `MembersService.createMember` makes the auth user + a credential Account with an unusable placeholder password + the `Member` row (+ fee if active) in one transaction, with a 409 on a duplicate identifier. The person sets their own password via "forgot password" (the admin vouches for the identifier, so it is marked verified). Frontend: a "New member" dialog on the back-office member list. e2e added.
+- **U2**: product edit UI — `product-form-page.tsx` now handles `/admin/catalog/products/:productId/edit` (loads the detail, prefills, `PUT`s; `saleMode` and the initial price are hidden in edit mode since they are locked once a price exists). "Edit" button on the product detail page; route added.
+- `members.util.ts` gains `synthesizedPhoneEmail` (backend twin of the frontend helper). Client regenerated. Suite: 147 passed. Full gate (`lint`, `typecheck` all, `web-spa build`) green. Live-checked: admin-create → active member + 409 on duplicate; product edit updates labels.
+- **This closes all 12 `/speckit.analyze` findings** (4 narrowed in the spec, 8 fixed in code).
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/members/{contracts/member.contract.ts,members.controller.ts,members.service.ts,members.util.ts,tests/members.controller.e2e-spec.ts}, apps/web-spa/app/features/{admin-members/components/members-list-page.tsx,admin-members/utils/admin-members-queries.ts,catalog/components/product-form-page.tsx,catalog/components/product-detail-page.tsx}, apps/web-spa/app/routes.ts, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, packages/openapi-generator/client/**
+
 ## [2026-09-02 11:41] - /speckit.analyze remediation (small fixes)
 
 ### Changed

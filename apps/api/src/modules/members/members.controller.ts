@@ -13,6 +13,8 @@ import { LoggedInBetterAuthSession } from '../auth/auth.config'
 import { AdminOnly, MemberScoped, Session } from '../auth/auth.decorator'
 import { AuthGuard } from '../auth/auth.guard'
 import {
+  type CreateMemberInput,
+  createMemberSchema,
   feePaymentsListSchema,
   feeSummarySchema,
   type MemberDetail,
@@ -72,6 +74,19 @@ export class AdminMembersController {
     const member = await this.membersService.getMemberDetail(id)
     const fee = await this.membersService.getFeeForMember(member.id)
     return this.membersMapper.toMemberDetail(member, fee)
+  }
+
+  @TypedRoute.Post('', memberDetailSchema)
+  async create(
+    @Session() session: LoggedInBetterAuthSession,
+    @TypedBody(createMemberSchema) body: CreateMemberInput,
+  ): Promise<MemberDetail> {
+    const created = await this.membersService.createMember(body, session.user.id)
+    const member = await this.membersService.getMemberDetail(created.id)
+    return this.membersMapper.toMemberDetail(
+      member,
+      await this.membersService.getFeeForMember(created.id),
+    )
   }
 
   @TypedRoute.Post(':id/validation', memberDetailSchema)

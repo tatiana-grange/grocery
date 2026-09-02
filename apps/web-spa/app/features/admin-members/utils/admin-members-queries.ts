@@ -5,6 +5,7 @@ import type {
   AdminMembersControllerUpdateProfileData,
 } from '@grocery/openapi-generator/client/types.gen'
 import {
+  adminMembersControllerCreate,
   adminMembersControllerDecide,
   adminMembersControllerDetail,
   adminMembersControllerList,
@@ -99,6 +100,17 @@ export function feePaymentsQueryOptions(id: string) {
     queryFn: async () => unwrap(await adminMembersControllerListFeePayments({ path: { id } })),
   }
 }
+
+export const createMember = async (input: {
+  name: string
+  email?: string
+  phoneNumber?: string
+}) =>
+  unwrap(
+    await adminMembersControllerCreate({
+      body: { ...input, roles: ['member'], status: 'active' },
+    }),
+  )
 
 export const setMemberRoles = async (
   id: string,
