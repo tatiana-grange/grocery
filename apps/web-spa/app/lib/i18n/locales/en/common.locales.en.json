@@ -80,6 +80,15 @@
       "redirecting": "Redirecting to sign in...",
       "pleaseWait": "Please wait...",
       "redirectNow": "Redirect now"
+    },
+    "aside": {
+      "title": "Welcome to the shop",
+      "body": "Sign in to do your shopping, manage your membership and keep an eye on your wallet.",
+      "points": {
+        "shop": "Browse the catalogue and order in a few clicks",
+        "pay": "Pay with your wallet, topped up online",
+        "history": "Find your past orders and reorder in one tap"
+      }
     }
   },
   "dashboard": {

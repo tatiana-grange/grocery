@@ -80,6 +80,15 @@
       "redirecting": "Redirection vers la connexion...",
       "pleaseWait": "Veuillez patienter...",
       "redirectNow": "Rediriger maintenant"
+    },
+    "aside": {
+      "title": "Bienvenue à l'épicerie",
+      "body": "Connectez-vous pour faire vos courses, gérer votre adhésion et suivre votre porte-monnaie.",
+      "points": {
+        "shop": "Parcourez le catalogue et commandez en quelques clics",
+        "pay": "Payez avec votre porte-monnaie, rechargeable en ligne",
+        "history": "Retrouvez vos commandes passées et reprenez-les en un geste"
+      }
     }
   },
   "dashboard": {
