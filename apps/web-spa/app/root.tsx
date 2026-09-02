@@ -9,7 +9,6 @@ import { useI18nStore } from '@/lib/i18n/i18n-client'
 import { queryClient } from '@/lib/query-client'
 import useTheme from './hooks/useTheme'
 import '@/lib/i18n/i18n-client'
-import '@fontsource/source-sans-pro'
 import '@grocery/ui/globals.css'
 
 client.setConfig({

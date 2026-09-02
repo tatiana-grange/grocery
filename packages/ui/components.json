@@ -16,5 +16,8 @@
     "lib": "@grocery/ui/lib",
     "hooks": "@grocery/ui/hooks"
   },
-  "iconLibrary": "lucide"
+  "iconLibrary": "lucide",
+  "registries": {
+    "@shadcnblocks": "https://shadcnblocks.com/r/{name}.json"
+  }
 }

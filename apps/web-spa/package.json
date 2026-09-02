@@ -11,7 +11,6 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@fontsource/source-sans-pro": "^5.3.0",
     "@grocery/i18n": "workspace:*",
     "@grocery/openapi-generator": "workspace:*",
     "@grocery/ui": "workspace:*",
