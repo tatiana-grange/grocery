@@ -6,7 +6,6 @@ import { APP_FILTER } from '@nestjs/core'
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup'
 import { LoggerModule } from 'nestjs-pino'
 import { AppController } from './app.controller'
-import { AiModule } from './modules/ai/ai.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { DbModule } from './modules/db/db.module'
 import { CatalogModule } from './modules/catalog/catalog.module'
@@ -94,7 +93,6 @@ interface ExpressResponse extends ServerResponse<IncomingMessage> {
     DbModule,
     AuthModule,
     EmailModule,
-    AiModule,
     NestConfigModule,
     MembersModule,
     CatalogModule,

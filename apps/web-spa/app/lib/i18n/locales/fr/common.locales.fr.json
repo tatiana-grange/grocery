@@ -86,7 +86,6 @@
     "title": "Tableau de bord",
     "brand": "Lonestone - Tableau de bord",
     "newPost": "Nouveau post",
-    "ai": "IA",
     "userMenu": "Menu utilisateur",
     "settings": "Paramètres",
     "lightMode": "Mode clair",
@@ -111,7 +110,6 @@
     "items": {
       "dashboard": "Tableau de bord",
       "newPost": "Nouveau post",
-      "ai": "Terrain de jeu IA",
       "components": "Composants",
       "profile": "Profil",
       "toggleTheme": "Changer le thème",
@@ -124,7 +122,6 @@
     "posts": "Articles",
     "newPost": "Nouvel article",
     "editPost": "Modifier l'article",
-    "ai": "IA",
     "components": "Composants",
     "profile": "Profil"
   },
@@ -150,16 +147,6 @@
       "feedback": "Retour utilisateur",
       "dataDisplay": "Données & Tableaux",
       "overlays": "Superpositions"
-    }
-  },
-  "ai": {
-    "title": "Terrain de jeu IA",
-    "subtitle": "Démos interactives",
-    "description": "Explorez les vraies capacités IA propulsées par le boilerplate Lonestone. Chaque démo se connecte à l'API en direct.",
-    "sections": {
-      "textGeneration": "Génération de texte",
-      "structuredOutput": "Sortie structurée",
-      "chatStream": "Chat en streaming"
     }
   },
   "posts": {
