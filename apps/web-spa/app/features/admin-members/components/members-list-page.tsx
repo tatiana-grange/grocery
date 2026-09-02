@@ -40,8 +40,10 @@ export default function MembersListPage() {
   const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const status = (searchParams.get('status') ?? 'pending') as (typeof STATUS_TABS)[number]
-  const page = Number(searchParams.get('page') ?? '1')
-  const [search, setSearch] = useState(searchParams.get('q') ?? '')
+  const committedSearch = searchParams.get('q') ?? ''
+  const pageParam = Number(searchParams.get('page'))
+  const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1
+  const [search, setSearch] = useState(committedSearch)
 
   const updateParams = (next: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams)
@@ -55,7 +57,7 @@ export default function MembersListPage() {
   const { data, isLoading } = useQuery(
     membersListQueryOptions({
       page,
-      search: search || undefined,
+      search: committedSearch || undefined,
       status: status === 'all' ? undefined : status,
     }),
   )

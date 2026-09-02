@@ -20,5 +20,7 @@ export function synthesizedEmailFor(phoneNumber: string): string {
 }
 
 export function isLikelyPhone(value: string): boolean {
-  return /^\+?[0-9\s().-]{6,}$/.test(value.trim())
+  const trimmed = value.trim()
+  if (!/^\+?[0-9\s().-]+$/.test(trimmed)) return false
+  return trimmed.replace(/[^0-9]/g, '').length >= 6
 }

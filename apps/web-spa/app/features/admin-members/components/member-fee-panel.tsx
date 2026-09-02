@@ -90,7 +90,16 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
             onChange={(event) => setExpectedEur(event.target.value)}
           />
         </label>
-        <Button size="sm" variant="outline" onClick={() => setFee.mutate()}>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={
+            !Number.isFinite(Number(expectedEur)) ||
+            Number(expectedEur) < 0 ||
+            setFee.isPending
+          }
+          onClick={() => setFee.mutate()}
+        >
           {t('catalog.save')}
         </Button>
       </div>

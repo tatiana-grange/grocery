@@ -212,6 +212,19 @@ describe('membersController (e2e)', () => {
         .send({ city: 'Rennes', version: member.version })
       expect(stale.status).toBe(409)
     })
+
+    it('lets an admin edit a member’s details', async (context) => {
+      const { em, request } = context
+      const adminSession = await arrangeAdmin(em)
+      const { member } = await createMemberData(em, { status: 'active' })
+
+      const res = await request
+        .withSession(adminSession)
+        .put(`/admin/members/${member.id}/profile`)
+        .send({ name: 'Corrected Name', city: 'Angers', version: member.version })
+      expect(res.status).toBe(200)
+      expect(res.body).toMatchObject({ name: 'Corrected Name', profile: { city: 'Angers' } })
+    })
   })
 
   describe('roles', () => {

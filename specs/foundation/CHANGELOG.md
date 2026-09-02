@@ -4,6 +4,22 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 13:49] - code-review remediation
+
+### Fixed
+
+- **CRITICAL — suppliers list broken**: `suppliersQueryOptions` requested `pageSize: 200`; nzoth caps it at 100, so the Suppliers tab returned 400 and every product create/edit form had an empty supplier select (no product could be saved via the UI). Now `pageSize: 100`. Verified: 200 → 400, 100 → 200.
+- **Members list search**: the query now keys off the committed `?q=` URL param, not the live input state — no more one-request-per-keystroke, and page is reset on a new search.
+- **Account form clobbered on save**: the populate-from-server effect now runs once per member (a `useRef` guard), so the refetch a save triggers no longer discards in-progress edits.
+- **Wrong toast on product restore**: archive / unarchive now report "Archived" vs "Restored" correctly (was always "Archived").
+- **Fee panel NaN → 400**: the "set expected fee" button is disabled for a non-numeric or negative amount.
+- **`isLikelyPhone` too loose**: a string of punctuation with zero digits passed as a phone number; now requires at least 6 digits.
+- **Admin member-profile edit was dead code**: `updateMemberProfile` had a client wrapper but no UI. Added a "Edit details" dialog on the member-detail page (name + address + phone, optimistic version). e2e added.
+- **`page` NaN**: `?page=abc` gave `NaN` (pager stuck, `NaN / n` label). Both the members list and the products tab now fall back to page 1 for a non-integer param.
+- Suite: 148 passed. `pnpm typecheck` (all), `pnpm lint`, `pnpm --filter=web-spa build` green.
+- **Author**: AI (Claude)
+- **Files**: apps/web-spa/app/features/{catalog/utils/catalog-queries.ts,catalog/components/{products-tab.tsx,product-detail-page.tsx},admin-members/components/{members-list-page.tsx,member-detail-page.tsx,member-fee-panel.tsx,member-profile-edit.tsx},account/components/account-page.tsx,auth/lib/identifier.ts}, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, apps/api/src/modules/members/tests/members.controller.e2e-spec.ts
+
 ## [2026-09-02 11:48] - /speckit.analyze remediation (G3 + U2)
 
 ### Changed

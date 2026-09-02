@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { MemberFeePanel } from '@/features/admin-members/components/member-fee-panel'
+import { MemberProfileEdit } from '@/features/admin-members/components/member-profile-edit'
 import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
 import {
   decideMember,
@@ -97,7 +98,10 @@ export default function MemberDetailPage() {
           <h1 className="text-2xl font-black tracking-tight">{member.name}</h1>
           <p className="font-mono text-xs text-muted-foreground">{member.membershipNumber}</p>
         </div>
-        <MemberStatusBadge status={member.status} />
+        <div className="flex items-center gap-2">
+          <MemberProfileEdit member={member} />
+          <MemberStatusBadge status={member.status} />
+        </div>
       </div>
 
       <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">

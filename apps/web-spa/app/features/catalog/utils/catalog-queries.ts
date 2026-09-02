@@ -44,7 +44,7 @@ export function suppliersQueryOptions(includeArchived = false) {
     queryFn: async () =>
       unwrap(
         await adminSuppliersControllerList({
-          query: { offset: 0, pageSize: 200, includeArchived: String(includeArchived) },
+          query: { offset: 0, pageSize: 100, includeArchived: String(includeArchived) },
         }),
       ),
   }

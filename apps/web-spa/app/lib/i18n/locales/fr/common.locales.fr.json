@@ -279,6 +279,7 @@
     "history": "Historique des statuts",
     "validate": "Valider",
     "reject": "Refuser",
+    "editDetails": "Modifier les coordonnées",
     "makeAdmin": "Nommer administrateur",
     "removeAdmin": "Retirer l'administration",
     "roleUpdated": "Rôles mis à jour",
@@ -396,7 +397,8 @@
     },
     "toasts": {
       "saved": "Enregistré",
-      "archived": "Fait",
+      "archived": "Archivé",
+      "restored": "Restauré",
       "error": "Une erreur est survenue",
       "priceUpdated": "Prix mis à jour"
     }

@@ -44,9 +44,10 @@ export default function ProductDetailPage() {
   })
 
   const archiveMutation = useMutation({
-    mutationFn: () => (product?.archivedAt ? unarchiveProduct(productId) : archiveProduct(productId)),
-    onSuccess: () => {
-      toast.success(t('catalog.toasts.archived'))
+    mutationFn: (archived: boolean) =>
+      archived ? unarchiveProduct(productId) : archiveProduct(productId),
+    onSuccess: (_data, archived) => {
+      toast.success(archived ? t('catalog.toasts.restored') : t('catalog.toasts.archived'))
       invalidate()
     },
     onError: () => toast.error(t('catalog.toasts.error')),
@@ -91,7 +92,7 @@ export default function ProductDetailPage() {
         <Button
           variant={product.archivedAt ? 'outline' : 'ghost'}
           size="sm"
-          onClick={() => archiveMutation.mutate()}
+          onClick={() => archiveMutation.mutate(Boolean(product.archivedAt))}
         >
           {product.archivedAt ? t('catalog.unarchive') : t('catalog.archive')}
         </Button>

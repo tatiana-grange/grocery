@@ -13,7 +13,7 @@ import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { MemberQr } from '@/features/account/components/member-qr'
@@ -48,8 +48,12 @@ export default function AccountPage() {
 
   const [name, setName] = useState('')
   const [profile, setProfile] = useState<Record<string, string>>({})
+  // Populate the form once per member — never on the refetch a save triggers, which would
+  // clobber in-progress edits.
+  const populatedFor = useRef<string | null>(null)
   useEffect(() => {
-    if (account) {
+    if (account && populatedFor.current !== account.id) {
+      populatedFor.current = account.id
       setName(account.name)
       setProfile(
         Object.fromEntries(FIELDS.map((field) => [field, account.profile[field] ?? ''])),

@@ -23,7 +23,8 @@ import {
 export function ProductsTab() {
   const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const page = Number(searchParams.get('page') ?? '1')
+  const pageParam = Number(searchParams.get('page'))
+  const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1
   const [search, setSearch] = useState(searchParams.get('q') ?? '')
 
   const { data, isLoading } = useQuery(

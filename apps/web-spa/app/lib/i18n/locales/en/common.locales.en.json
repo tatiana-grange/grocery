@@ -279,6 +279,7 @@
     "history": "Status history",
     "validate": "Validate",
     "reject": "Reject",
+    "editDetails": "Edit details",
     "makeAdmin": "Make administrator",
     "removeAdmin": "Remove administrator",
     "roleUpdated": "Roles updated",
@@ -396,7 +397,8 @@
     },
     "toasts": {
       "saved": "Saved",
-      "archived": "Done",
+      "archived": "Archived",
+      "restored": "Restored",
       "error": "Something went wrong",
       "priceUpdated": "Price updated"
     }
