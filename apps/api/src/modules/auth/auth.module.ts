@@ -15,6 +15,7 @@ import { AuthModuleOptions, ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } from
 import { Account, Session, User, Verification } from './auth.entity'
 import { AuthGuard } from './auth.guard'
 import { AuthService } from './auth.service'
+import { SmsService } from './sms.service'
 
 @Global()
 @Module({
@@ -28,6 +29,7 @@ import { AuthService } from './auth.service'
       provide: MODULE_OPTIONS_TOKEN,
       useFactory: (
         emailService: EmailService,
+        smsService: SmsService,
         orm: MikroORM,
       ): AuthModuleOptions<BetterAuthType> => {
         const betterAuth = createBetterAuth({
@@ -35,6 +37,18 @@ import { AuthService } from './auth.service'
           secret: config.betterAuth.secret,
           trustedOrigins: config.betterAuth.trustedOrigins,
           orm,
+          sendPhoneOtp: async ({ phoneNumber, code }) => {
+            return smsService.sendSms({
+              to: phoneNumber,
+              content: `Your verification code is ${code}`,
+            })
+          },
+          sendPhonePasswordResetOtp: async ({ phoneNumber, code }) => {
+            return smsService.sendSms({
+              to: phoneNumber,
+              content: `Your password reset code is ${code}`,
+            })
+          },
           sendResetPassword: async (data) => {
             const webUrl = `${config.clients.webApp.url}/reset-password?token=${data.token}`
             return emailService.sendEmail({
@@ -56,12 +70,13 @@ import { AuthService } from './auth.service'
           auth: betterAuth,
         }
       },
-      inject: [EmailService, MikroORM],
+      inject: [EmailService, SmsService, MikroORM],
     },
     AuthService,
     AuthGuard,
+    SmsService,
   ],
-  exports: [AuthService, AuthGuard],
+  exports: [AuthService, AuthGuard, SmsService],
 })
 export class AuthModule extends ConfigurableModuleClass implements NestModule {
   constructor(

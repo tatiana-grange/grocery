@@ -205,6 +205,9 @@
   "errorCodes": {
     "PASSWORDS_DO_NOT_MATCH": "Les mots de passe ne correspondent pas"
   },
+  "members": {},
+  "adminMembers": {},
+  "catalog": {},
   "common": {
     "user": "Utilisateur",
     "active": "Actif",

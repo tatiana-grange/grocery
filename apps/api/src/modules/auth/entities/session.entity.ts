@@ -27,4 +27,7 @@ export class Session {
 
   @ManyToOne(() => User, { fieldName: 'userId' })
   user!: User
+
+  @Property({ nullable: true })
+  impersonatedBy?: string
 }

@@ -205,6 +205,9 @@
   "errorCodes": {
     "PASSWORDS_DO_NOT_MATCH": "Passwords do not match"
   },
+  "members": {},
+  "adminMembers": {},
+  "catalog": {},
   "common": {
     "user": "User",
     "active": "Active",
