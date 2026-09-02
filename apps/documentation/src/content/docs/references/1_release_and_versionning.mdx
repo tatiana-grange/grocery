@@ -5,7 +5,7 @@ description: How a project versions itself, and how environments consume what th
 
 This page describes how a project built on the boilerplate handles versions, releases, and deployments.
 
-The rules for writing commits and pull requests live in [`CONTRIBUTING.md`](https://github.com/lonestone/lonestone-boilerplate/blob/main/CONTRIBUTING.md). If you want to understand why we designed the system this way, read [Contribution and release](/lonestone-boilerplate/explanations/2_contribution-and-release).
+The rules for writing commits and pull requests live in [`CONTRIBUTING.md`](https://github.com/tatiana-grange/grocery/blob/main/CONTRIBUTING.md). If you want to understand why we designed the system this way, read [Contribution and release](/grocery/explanations/2_contribution-and-release).
 
 ## How it works
 
@@ -27,7 +27,7 @@ New projects usually start **without versions**: during early development, every
 
 Both modes share the same build pipeline — a mode is configuration, not a different CD path. The release-please config and workflow already ship with the template, so moving from "without versions" to "versioned" is just a matter of turning those files on.
 
-In versioned mode, [release-please](https://github.com/googleapis/release-please) maintains a Release PR: it accumulates the changes merged on `main`, generates the changelog, and is where the release note is written. Merging it creates the `v*` tag and the versioned images. The PR rebases onto `main` on every push (`always-update`). That update force-pushes, so work done on the Release PR itself (promoted intentions) must happen last — see the [release maintainer runbook](https://github.com/lonestone/lonestone-boilerplate/blob/main/.boilerstone/docs/release-maintainer-runbook.md#working-the-release-pr).
+In versioned mode, [release-please](https://github.com/googleapis/release-please) maintains a Release PR: it accumulates the changes merged on `main`, generates the changelog, and is where the release note is written. Merging it creates the `v*` tag and the versioned images. The PR rebases onto `main` on every push (`always-update`). That update force-pushes, so work done on the Release PR itself (promoted intentions) must happen last — see the [release maintainer runbook](https://github.com/tatiana-grange/grocery/blob/main/.boilerstone/docs/release-maintainer-runbook.md#working-the-release-pr).
 
 :::caution[Never auto-merge the Release PR]
 Green checks mean "this PR is allowed to merge", not "send this to production". A human decides when a release happens. And even then, merging the Release PR only publishes the tag and the images — deploying is a separate step, described in [Promoting a version](#promoting-a-version).
@@ -130,8 +130,8 @@ You can add required reviewers on `production` if a second person must approve t
 
 Two artifacts, two jobs:
 
-- [`CHANGELOG.md`](https://github.com/lonestone/lonestone-boilerplate/blob/main/CHANGELOG.md) is the generated inventory: one line per change, each linking to its commit. Never edit it by hand.
-- [`releases/`](/lonestone-boilerplate/releases) holds the human-written notes: why this version exists.
+- [`CHANGELOG.md`](https://github.com/tatiana-grange/grocery/blob/main/CHANGELOG.md) is the generated inventory: one line per change, each linking to its commit. Never edit it by hand.
+- `releases/` in the documentation app holds the human-written notes: why this version exists.
 
 Release notes are **optional by default**: the CI check on the Release PR passes without one. When your team wants the note to be mandatory, set the repository variable `REQUIRE_RELEASE_NOTE` to `true` (`gh variable set REQUIRE_RELEASE_NOTE --body true`) and the check will block the Release PR until `releases/vX.Y.Z.mdx` exists. The boilerplate repository enforces it.
 
@@ -139,4 +139,4 @@ You can write that file **before** the Release PR exists — on a regular PR int
 
 ## Feature flags
 
-Sometimes two merged changes must not ship together. Prefer a feature flag over holding back a merge — see [Feature flags](/lonestone-boilerplate/guides/feature-flags). For the rare cases where cherry-picking is the only option, the escape hatch is documented in the [release maintainer runbook](https://github.com/lonestone/lonestone-boilerplate/blob/main/.boilerstone/docs/release-maintainer-runbook.md#selective-shipping-d12).
+Sometimes two merged changes must not ship together. Prefer a feature flag over holding back a merge — see [Feature flags](/grocery/guides/feature-flags). For the rare cases where cherry-picking is the only option, the escape hatch is documented in the [release maintainer runbook](https://github.com/tatiana-grange/grocery/blob/main/.boilerstone/docs/release-maintainer-runbook.md#selective-shipping-d12).

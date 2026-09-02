@@ -68,7 +68,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "brand": "Lonestone - Dashboard",
+    "brand": "Grocery",
     "home": {
       "eyebrow": "Overview",
       "title": "Welcome, {{name}}",
@@ -110,7 +110,7 @@
   },
   "components": {
     "title": "Components",
-    "description": "Explore the full @grocery/ui component library — everything included in this boilerplate.",
+    "description": "Explore the full @grocery/ui component library.",
     "subtitle": "Kitchen-sink gallery",
     "sections": {
       "buttons": "Buttons",

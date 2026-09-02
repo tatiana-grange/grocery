@@ -591,9 +591,9 @@ export default function ComponentsPage() {
                 {[
                   {
                     value: 'q1',
-                    trigger: 'What is the Lonestone boilerplate?',
+                    trigger: 'What is this project?',
                     content:
-                      'A production-ready monorepo template with NestJS, React, and a curated component library.',
+                      'A monorepo with a NestJS API, a React SPA, and a curated component library.',
                   },
                   {
                     value: 'q2',

@@ -14,7 +14,7 @@ export async function createUserData(
   password?: string,
 ): Promise<User> {
   const email =
-    overrides?.email ?? `test-${Math.random().toString(36).substring(2, 8)}@lonestone.com`
+    overrides?.email ?? `test-${Math.random().toString(36).substring(2, 8)}@grocery.example`
 
   const existingUser = await em.findOne(User, { email })
   if (existingUser) {

@@ -100,7 +100,7 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
               </div>
               <div className="flex flex-col leading-none">
                 <span className="font-black tracking-tight text-foreground uppercase text-sm">
-                  Lonestone
+                  Grocery
                 </span>
                 <span className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">
                   Dashboard

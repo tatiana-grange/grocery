@@ -87,5 +87,5 @@ Use `mergeObjectProperties: true` when you want nested object fields merged inst
 Do not assign a whole DTO onto an entity whose fields live elsewhere. If, say, some fields live on a child version entity and others arrive as names that must be resolved to references, `wrap(entity).assign(updateDto)` would silently skip them. Assign only what belongs on that entity; keep versioning and collection rebuilds as explicit steps.
 
 :::note [About migrations]
-Migrations are an important part of database management, you can read more about them in the [Database Migrations](/lonestone-boilerplate/explanations/6_database-migrations) page.
+Migrations are an important part of database management, you can read more about them in the [Database Migrations](/grocery/explanations/6_database-migrations) page.
 :::

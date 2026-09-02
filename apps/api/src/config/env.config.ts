@@ -57,7 +57,7 @@ export const configValidationSchema = z.object({
   EMAIL_SECURE: z.stringbool().default(false),
   EMAIL_USER: z.string().optional(),
   EMAIL_PASSWORD: z.string().optional(),
-  EMAIL_FROM: z.string().email().default('noreply@lonestone.io'),
+  EMAIL_FROM: z.string().email().default('noreply@grocery.example'),
 
   // Sentry
   SENTRY_DSN: z.string().optional(),

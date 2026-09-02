@@ -68,7 +68,7 @@
   },
   "dashboard": {
     "title": "Tableau de bord",
-    "brand": "Lonestone - Tableau de bord",
+    "brand": "Grocery",
     "home": {
       "eyebrow": "Aperçu",
       "title": "Bienvenue, {{name}}",
@@ -110,7 +110,7 @@
   },
   "components": {
     "title": "Composants",
-    "description": "Explorez la bibliothèque de composants @grocery/ui — tout ce qui est inclus dans ce boilerplate.",
+    "description": "Explorez la bibliothèque de composants @grocery/ui.",
     "subtitle": "Galerie complète",
     "sections": {
       "buttons": "Boutons",

@@ -3,7 +3,7 @@ title: Contribution et release
 description: Pourquoi les commits, les fichiers et les artefacts sont la mémoire durable — l'histoire, les décisions et leurs raisons
 ---
 
-Cette page explique le raisonnement derrière notre système de contribution et de release. Les règles elles-mêmes vivent dans [`CONTRIBUTING.md`](https://github.com/lonestone/lonestone-boilerplate/blob/main/CONTRIBUTING.md), et la mécanique (versions, releases, déploiements) est décrite sur [Release et versionnement](/lonestone-boilerplate/fr/references/1_release_and_versionning).
+Cette page explique le raisonnement derrière notre système de contribution et de release. Les règles elles-mêmes vivent dans [`CONTRIBUTING.md`](https://github.com/tatiana-grange/grocery/blob/main/CONTRIBUTING.md), et la mécanique (versions, releases, déploiements) est décrite sur [Release et versionnement](/grocery/fr/references/1_release_and_versionning).
 
 ## Le problème que nous résolvons
 
@@ -136,25 +136,25 @@ Nous interdisions les changelogs générés. Cette règle date d'avant les commi
 
 Par défaut, release-please ne met à jour la Release PR que si le changelog généré changerait. Les types masqués (`ci`, `chore`, `test`, `style`, `build`) ne changent jamais ce changelog : un check CI mergé sur `main` laisserait donc la Release PR sur un instantané périmé — les nouveaux checks ne s'y exécuteraient même pas.
 
-Ce défaut est correct pour une PR qui n'est qu'un bump de version généré. La nôtre est aussi une branche de travail (promouvoir les intentions, mettre à jour la version d'exemple). Elle doit rester au-dessus de `main`. `always-update` est l'option officielle pour ça : chaque push rebase la PR. Le coût est un force-push, donc les commits extra sur la Release PR disparaissent quand `main` avance. Promouvoir en dernier ; merger avant le push suivant. Voir le [runbook du mainteneur de release](https://github.com/lonestone/lonestone-boilerplate/blob/main/.boilerstone/docs/release-maintainer-runbook.md#working-the-release-pr).
+Ce défaut est correct pour une PR qui n'est qu'un bump de version généré. La nôtre est aussi une branche de travail (promouvoir les intentions, mettre à jour la version d'exemple). Elle doit rester au-dessus de `main`. `always-update` est l'option officielle pour ça : chaque push rebase la PR. Le coût est un force-push, donc les commits extra sur la Release PR disparaissent quand `main` avance. Promouvoir en dernier ; merger avant le push suivant. Voir le [runbook du mainteneur de release](https://github.com/tatiana-grange/grocery/blob/main/.boilerstone/docs/release-maintainer-runbook.md#working-the-release-pr).
 
 La même config fixe le titre de la Release PR à `chore(ci): release X.Y.Z`. Le titre par défaut utilise le nom de branche comme scope (`chore(main): …`), qui n'est pas un domaine dans `commitlint.config.ts`, donc le lint de PR bloquerait le merge.
 
 ### Pourquoi les notes de release vivent dans l'app de documentation
 
-Une ligne de changelog ne peut pas dire « ces cinq PR ensemble livrent X » — ce contexte traverse les commits et vit en partie hors du dépôt. Chaque release reçoit donc une note humaine dans `apps/documentation/src/content/docs/releases/`, et le corps de la GitHub Release en est un **miroir**, pas l'inverse. L'app de documentation est publiée sur GitHub Pages, donc les notes de release servent aussi de communication produit publique. Les notes sont optionnelles par défaut et imposées par dépôt — voir [Release et versionnement](/lonestone-boilerplate/fr/references/1_release_and_versionning#changelog-et-notes-de-release).
+Une ligne de changelog ne peut pas dire « ces cinq PR ensemble livrent X » — ce contexte traverse les commits et vit en partie hors du dépôt. Chaque release reçoit donc une note humaine dans `apps/documentation/src/content/docs/releases/`, et le corps de la GitHub Release en est un **miroir**, pas l'inverse. L'app de documentation est publiée sur GitHub Pages, donc les notes de release servent aussi de communication produit publique. Les notes sont optionnelles par défaut et imposées par dépôt — voir [Release et versionnement](/grocery/fr/references/1_release_and_versionning#changelog-et-notes-de-release).
 
 ### Pourquoi un humain merge la Release PR
 
 Nous avons envisagé de merger automatiquement la Release PR quand ses checks sont verts, et nous avons rejeté l'idée. Des checks verts signifient que la PR a le *droit* de merger, pas que l'équipe veut publier ce lot. Un projet qui veut chaque merge en production devrait simplement rester en mode « sans versions » plutôt que d'automatiser la seule porte humaine que le versionnement existe à fournir.
 
-Ce qui *peut* être automatisé, c'est tout ce qui suit ce clic : avec [`PROMOTE_ON_RELEASE`](/lonestone-boilerplate/fr/references/1_release_and_versionning#promouvoir-automatiquement-à-la-release), merger la Release PR enchaîne directement sur le déploiement — avec, en option, une pause sur un bouton GitHub « Approve and deploy » quand l'environnement a des required reviewers. La porte se déplace au bon endroit ; elle ne disparaît pas.
+Ce qui *peut* être automatisé, c'est tout ce qui suit ce clic : avec [`PROMOTE_ON_RELEASE`](/grocery/fr/references/1_release_and_versionning#promouvoir-automatiquement-à-la-release), merger la Release PR enchaîne directement sur le déploiement — avec, en option, une pause sur un bouton GitHub « Approve and deploy » quand l'environnement a des required reviewers. La porte se déplace au bon endroit ; elle ne disparaît pas.
 
 ### Pourquoi les environnements de déploiement ne possèdent pas de branche
 
 Nous avons longtemps utilisé des branches d'environnement à la git-flow : merger dans `staging` déployait staging, merger dans `main` déployait la production. Ça fonctionne, mais les branches deviennent lentement des espaces de travail — un hotfix atterrit sur une branche et pas l'autre, et l'historique cesse de dire la vérité.
 
-Dans ce système, aucun environnement ne possède de branche. `main` produit des artefacts (builds, images, tags) et chaque environnement pointe vers un flux d'artefacts — lequel est un choix par environnement, décrit sur [Release et versionnement](/lonestone-boilerplate/fr/references/1_release_and_versionning). Si un hébergeur exige vraiment une branche à surveiller, une branche `deploy/<env>` peut exister comme **pointeur avancé en fast-forward** vers un tag — jamais un espace de travail, jamais de commit direct. C'est une échappatoire, pas le défaut.
+Dans ce système, aucun environnement ne possède de branche. `main` produit des artefacts (builds, images, tags) et chaque environnement pointe vers un flux d'artefacts — lequel est un choix par environnement, décrit sur [Release et versionnement](/grocery/fr/references/1_release_and_versionning). Si un hébergeur exige vraiment une branche à surveiller, une branche `deploy/<env>` peut exister comme **pointeur avancé en fast-forward** vers un tag — jamais un espace de travail, jamais de commit direct. C'est une échappatoire, pas le défaut.
 
 ### Pourquoi lefthook plutôt que husky
 
@@ -162,7 +162,7 @@ Un seul binaire, un seul `lefthook.yml`, des hooks parallèles, pas de couplage 
 
 ### Pourquoi les feature flags avant les cherry-picks
 
-Le problème récurrent « le client veut B sans A » (les deux mergés, A ne doit pas partir) se résout d'abord par un feature flag : A merge mais reste éteint. Voir [Feature flags](/lonestone-boilerplate/fr/guides/feature-flags). L'échappatoire — brancher depuis le dernier tag, cherry-picker le commit de squash de B, sortir un patch — est facile précisément parce que le squash merge donne un commit par PR. Et la porte de release elle-même supprime la plupart des autres cherry-picks : merger ne veut plus dire déployer.
+Le problème récurrent « le client veut B sans A » (les deux mergés, A ne doit pas partir) se résout d'abord par un feature flag : A merge mais reste éteint. Voir [Feature flags](/grocery/fr/guides/feature-flags). L'échappatoire — brancher depuis le dernier tag, cherry-picker le commit de squash de B, sortir un patch — est facile précisément parce que le squash merge donne un commit par PR. Et la porte de release elle-même supprime la plupart des autres cherry-picks : merger ne veut plus dire déployer.
 
 ## Le flux complet
 
@@ -223,13 +223,13 @@ Le même système tourne des deux côtés, avec quelques pièces réservées au 
 | `CONTRIBUTING.md` | ✔ | ✔ livré ; personnaliser les scopes via `commitlint.config.ts` |
 | Script de réglages GitHub | ✔ | ✔ (une fois à la création du projet) |
 
-Sur le dépôt du boilerplate, une PR qui change quelque chose que les consommateurs doivent adapter porte aussi son **intention de migration** — écrite dans la même PR, par l'auteur qui a le contexte, pas reconstruite à la release par le mainteneur. Le travail du mainteneur sur la Release PR est de la plomberie : ordonner les intentions en attente et vérifier leur fraîcheur. La note de release humaine peut être rédigée plus tôt, sur une PR normale, tant que le travail est encore frais. Voir le [runbook du mainteneur de release](https://github.com/lonestone/lonestone-boilerplate/blob/main/.boilerstone/docs/release-maintainer-runbook.md).
+Sur le dépôt du boilerplate, une PR qui change quelque chose que les consommateurs doivent adapter porte aussi son **intention de migration** — écrite dans la même PR, par l'auteur qui a le contexte, pas reconstruite à la release par le mainteneur. Le travail du mainteneur sur la Release PR est de la plomberie : ordonner les intentions en attente et vérifier leur fraîcheur. La note de release humaine peut être rédigée plus tôt, sur une PR normale, tant que le travail est encore frais. Voir le [runbook du mainteneur de release](https://github.com/tatiana-grange/grocery/blob/main/.boilerstone/docs/release-maintainer-runbook.md).
 
 ## Conçu pour les agents
 
 L'équipe committe surtout via des agents, donc le système rend les agents corrects **par construction** plutôt qu'en espérant qu'ils lisent la doc. Quatre couches, par ordre de fiabilité :
 
 1. **Des garde-fous** : commitlint en local, lint de PR / gate d'intention / check de note de release en CI. Chaque message de rejet énonce le correctif — les messages d'erreur sont des prompts.
-2. **Un canon par étape, jamais recopié** : `CONTRIBUTING.md` pour les commits et les PR, le runbook pour les releases du boilerplate, la page [Release et versionnement](/lonestone-boilerplate/fr/references/1_release_and_versionning) pour le versionnement et les déploiements. Les skills et les règles pointent vers ces documents ; les dupliquer les ferait dériver.
+2. **Un canon par étape, jamais recopié** : `CONTRIBUTING.md` pour les commits et les PR, le runbook pour les releases du boilerplate, la page [Release et versionnement](/grocery/fr/references/1_release_and_versionning) pour le versionnement et les déploiements. Les skills et les règles pointent vers ces documents ; les dupliquer les ferait dériver.
 3. **Deux lignes de règles toujours actives, pas plus** (le contexte toujours actif est un budget) : lire `CONTRIBUTING.md` avant de committer, et ne jamais écrire `BREAKING-CHANGE:` sans le vouloir.
 4. **Des skills pour les cérémonies uniquement** (`finalize-pr`, `project-release`, `boilerstone-intention`, `boilerstone-release`) : des procédures occasionnelles en plusieurs étapes. Il n'y a délibérément pas de skill `commit` — on committe des dizaines de fois par jour, et les erreurs correctives de commitlint enseignent plus vite que la prose.

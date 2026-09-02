@@ -7,7 +7,7 @@ const password = 'Password123!'
 
 const defaultUser = {
   name: 'John Doe',
-  email: 'user@lonestone.com',
+  email: 'user@grocery.example',
   password,
 }
 
