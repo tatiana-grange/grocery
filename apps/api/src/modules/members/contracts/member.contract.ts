@@ -155,6 +155,37 @@ export const membersListSchema = paginatedSchema(memberListItemSchema).meta({
 export type MembersList = z.infer<typeof membersListSchema>
 
 // -------------------------------------------------------------------------------------------------
+// Back-office actions
+// -------------------------------------------------------------------------------------------------
+
+export const memberValidationSchema = z
+  .discriminatedUnion('decision', [
+    z.object({ decision: z.literal('validate'), version: z.number().int() }),
+    z.object({
+      decision: z.literal('reject'),
+      reason: z.string().min(1),
+      version: z.number().int(),
+    }),
+  ])
+  .meta({
+    title: 'MemberValidation',
+    description: 'Validate a pending member (moves them to active) or reject them with a reason',
+    examples: [{ decision: 'validate', version: 0 }],
+  })
+
+export type MemberValidationInput = z.infer<typeof memberValidationSchema>
+
+export const membershipIntakeSchema = z
+  .object({ open: z.boolean() })
+  .meta({
+    title: 'MembershipIntake',
+    description: 'Whether self-registration is currently accepted',
+    examples: [{ open: true }],
+  })
+
+export type MembershipIntakeInput = z.infer<typeof membershipIntakeSchema>
+
+// -------------------------------------------------------------------------------------------------
 // List query params
 // -------------------------------------------------------------------------------------------------
 

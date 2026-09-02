@@ -79,25 +79,25 @@ path also verified. No catalogue or self-service work needed.
 
 ### Tests for User Story 1
 
-- [ ] T025 [P] [US1] Create `apps/api/src/modules/members/tests/members.controller.e2e-spec.ts` covering: sign-up (email) → pending; sign-up (phone, OTP stubbed) → pending; member-scoped route → 403 while pending; admin validate → active + `joinedAt` set + fee row exists; admin reject with reason → 403 + reason in history; duplicate email/phone → 409; sign-up while intake closed → refused; unauthenticated → 401; non-admin on `/admin/members` → 403
+- [x] T025 [P] [US1] Create `apps/api/src/modules/members/tests/members.controller.e2e-spec.ts` covering: sign-up (email) → pending; sign-up (phone, OTP stubbed) → pending; member-scoped route → 403 while pending; admin validate → active + `joinedAt` set + fee row exists; admin reject with reason → 403 + reason in history; duplicate email/phone → 409; sign-up while intake closed → refused; unauthenticated → 401; non-admin on `/admin/members` → 403
 
 ### Implementation for User Story 1
 
-- [ ] T026 [P] [US1] Add `createMemberSchema` (email-or-phone refine) and `memberValidationSchema` (discriminated union validate/reject) to `apps/api/src/modules/members/contracts/member.contract.ts`
-- [ ] T027 [P] [US1] Create `apps/api/src/modules/members/contracts/membership-intake.contract.ts` (`{ open: boolean }`)
-- [ ] T028 [US1] Implement `MembersService`: `listMembers` (filters `status`/`feeState`/`role`/`q`, pagination via `@lonestone/nzoth/server` helpers), `getMember`, `createMember` (admin path — Better Auth admin API for the user + `Member` row, in one transaction) in `apps/api/src/modules/members/members.service.ts` (depends on T016)
-- [ ] T029 [US1] Implement `MembersService.validateMember` / `rejectMember`: status transition + `MemberStatusChange` row + set `joinedAt` on validate + create `MembershipFee` (seeded from `MEMBERSHIP_FEE_DEFAULT_CENTS`) on validate + revoke Better Auth sessions on reject, all transactional (depends on T028, T012)
-- [ ] T030 [US1] Implement `MembersService` membership-intake read/write against `MembershipIntakeSetting` (depends on T013)
-- [ ] T031 [US1] Implement decision notifications (validated / rejected) sent to the member's confirmed identifier via `EmailService` or `SmsService`, strings from `@grocery/i18n` (depends on T029, T004)
-- [ ] T032 [US1] Implement `members.mapper.ts`: `toMemberSelf`, `toMemberListItem`, `toMemberDetail` (collections guarded with `isInitialized()` + `getItems()`) (depends on T015)
-- [ ] T033 [US1] Implement `apps/api/src/modules/members/members.controller.ts` admin routes: `GET /admin/members`, `GET /admin/members/:id`, `POST /admin/members`, `POST /admin/members/:id/validation`, `GET`+`PUT /admin/membership-intake`, all `@AdminOnly()` (depends on T028–T032)
-- [ ] T034 [US1] Run `pnpm generate` (depends on T033)
-- [ ] T035 [P] [US1] Frontend: email/phone toggle on the register form in `apps/web-spa/app/features/auth/forms/auth-register-form.tsx`
-- [ ] T036 [P] [US1] Frontend: phone OTP confirmation step/page under `apps/web-spa/app/features/auth/pages/`
-- [ ] T037 [P] [US1] Frontend: `apps/web-spa/app/features/admin-members/utils/admin-members-queries.ts` (list, detail, mutations) (depends on T034)
-- [ ] T038 [US1] Frontend: pending-queue and member-list pages in `apps/web-spa/app/features/admin-members/components/` (depends on T037)
-- [ ] T039 [US1] Frontend: member-detail page with validate / reject actions and status history in `apps/web-spa/app/features/admin-members/components/` (depends on T037)
-- [ ] T040 [US1] Frontend: wire US1 routes in `routes.ts` and fill `members` / `admin` i18n strings (en + fr) (depends on T038, T039, T024)
+- [x] T026 [P] [US1] Add `createMemberSchema` (email-or-phone refine) and `memberValidationSchema` (discriminated union validate/reject) to `apps/api/src/modules/members/contracts/member.contract.ts`
+- [x] T027 [P] [US1] Create `apps/api/src/modules/members/contracts/membership-intake.contract.ts` (`{ open: boolean }`)
+- [x] T028 [US1] Implement `MembersService`: `listMembers` (filters `status`/`feeState`/`role`/`q`, pagination via `@lonestone/nzoth/server` helpers), `getMember`, `createMember` (admin path — Better Auth admin API for the user + `Member` row, in one transaction) in `apps/api/src/modules/members/members.service.ts` (depends on T016)
+- [x] T029 [US1] Implement `MembersService.validateMember` / `rejectMember`: status transition + `MemberStatusChange` row + set `joinedAt` on validate + create `MembershipFee` (seeded from `MEMBERSHIP_FEE_DEFAULT_CENTS`) on validate + revoke Better Auth sessions on reject, all transactional (depends on T028, T012)
+- [x] T030 [US1] Implement `MembersService` membership-intake read/write against `MembershipIntakeSetting` (depends on T013)
+- [x] T031 [US1] Implement decision notifications (validated / rejected) sent to the member's confirmed identifier via `EmailService` or `SmsService`, strings from `@grocery/i18n` (depends on T029, T004)
+- [x] T032 [US1] Implement `members.mapper.ts`: `toMemberSelf`, `toMemberListItem`, `toMemberDetail` (collections guarded with `isInitialized()` + `getItems()`) (depends on T015)
+- [x] T033 [US1] Implement `apps/api/src/modules/members/members.controller.ts` admin routes: `GET /admin/members`, `GET /admin/members/:id`, `POST /admin/members`, `POST /admin/members/:id/validation`, `GET`+`PUT /admin/membership-intake`, all `@AdminOnly()` (depends on T028–T032)
+- [x] T034 [US1] Run `pnpm generate` (depends on T033)
+- [ ] T035 [P] [US1] Frontend: email/phone toggle on the register form in `apps/web-spa/app/features/auth/forms/auth-register-form.tsx` — DEFERRED: self-registration by email already works end to end; the phone sign-up UI (synthesized address + OTP step) plus a matching login toggle is carried to a follow-up.
+- [ ] T036 [P] [US1] Frontend: phone OTP confirmation step/page under `apps/web-spa/app/features/auth/pages/` — DEFERRED with T035.
+- [x] T037 [P] [US1] Frontend: `apps/web-spa/app/features/admin-members/utils/admin-members-queries.ts` (list, detail, mutations) (depends on T034)
+- [x] T038 [US1] Frontend: pending-queue and member-list pages in `apps/web-spa/app/features/admin-members/components/` (depends on T037)
+- [x] T039 [US1] Frontend: member-detail page with validate / reject actions and status history in `apps/web-spa/app/features/admin-members/components/` (depends on T037)
+- [x] T040 [US1] Frontend: wire US1 routes in `routes.ts` and fill `members` / `admin` i18n strings (en + fr) (depends on T038, T039, T024)
 
 **Checkpoint**: US1 is a demoable MVP — the cooperative can register and validate members.
 

@@ -51,10 +51,10 @@ export class AuthGuard implements CanActivate {
       const roles = parseRoles(user.role)
       const isAdmin = roles.includes('admin')
 
-      const requiredRoles = this.reflector.get<string[] | undefined>(
-        ROLES_KEY,
+      const requiredRoles = this.reflector.getAllAndOverride<string[] | undefined>(ROLES_KEY, [
         context.getHandler(),
-      )
+        context.getClass(),
+      ])
       if (requiredRoles?.length) {
         if (!requiredRoles.some((role) => roles.includes(role as (typeof roles)[number]))) {
           throw new ForbiddenException('You do not have access to this resource')
@@ -62,9 +62,9 @@ export class AuthGuard implements CanActivate {
         return true
       }
 
-      const isMemberScoped = this.reflector.get<boolean | undefined>(
+      const isMemberScoped = this.reflector.getAllAndOverride<boolean | undefined>(
         MEMBER_SCOPED_KEY,
-        context.getHandler(),
+        [context.getHandler(), context.getClass()],
       )
       if (isMemberScoped) {
         const hasConfirmedIdentifier = Boolean(user.emailVerified || user.phoneNumberVerified)

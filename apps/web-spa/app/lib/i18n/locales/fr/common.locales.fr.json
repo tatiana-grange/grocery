@@ -213,14 +213,58 @@
     },
     "account": {
       "title": "Mon compte",
-      "comingSoon": "Votre profil, votre statut d'adhésion, votre cotisation et votre QR code apparaîtront ici."
+      "comingSoon": "Votre profil, votre statut d'adhésion, votre cotisation et votre QR code apparaîtront ici.",
+      "identifierConfirmed": "Identifiant confirmé"
+    },
+    "status": {
+      "pending": "En attente",
+      "active": "Actif",
+      "rejected": "Refusé",
+      "terminated": "Résilié"
+    },
+    "feeState": {
+      "unpaid": "Non payée",
+      "partly_paid": "Partiellement payée",
+      "paid": "Payée"
     }
   },
   "adminMembers": {
     "title": "Adhérents",
+    "subtitle": "Traitez les demandes d'adhésion et gérez les adhérents.",
     "backOffice": "Back-office",
     "accessDenied": "Un compte administrateur est nécessaire pour ouvrir le back-office.",
     "comingSoon": "La file d'attente des demandes et la liste des adhérents apparaîtront ici.",
+    "searchPlaceholder": "Rechercher nom, email, téléphone, numéro…",
+    "empty": "Aucun adhérent ici.",
+    "review": "Examiner",
+    "backToList": "Retour aux adhérents",
+    "roles": "Rôles",
+    "history": "Historique des statuts",
+    "validate": "Valider",
+    "reject": "Refuser",
+    "count": "{{count}} adhérent",
+    "count_other": "{{count}} adhérents",
+    "tabs": {
+      "pending": "En attente",
+      "active": "Actifs",
+      "all": "Tous"
+    },
+    "columns": {
+      "number": "Numéro",
+      "name": "Nom",
+      "identifier": "Email / téléphone",
+      "status": "Statut",
+      "fee": "Cotisation"
+    },
+    "rejectDialog": {
+      "title": "Refuser cette demande d'adhésion",
+      "reasonPlaceholder": "Motif (communiqué au demandeur)"
+    },
+    "toasts": {
+      "validated": "Adhérent validé",
+      "rejected": "Demande refusée",
+      "error": "Une erreur est survenue"
+    },
     "nav": {
       "section": "Gestion",
       "members": "Adhérents"
@@ -236,6 +280,7 @@
   "common": {
     "user": "Utilisateur",
     "active": "Actif",
-    "error": "Erreur"
+    "error": "Erreur",
+    "cancel": "Annuler"
   }
 }

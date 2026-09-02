@@ -4,6 +4,24 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 10:06] - /speckit.implement
+
+### Changed
+
+- Completed Phase 3: User Story 1 — a person joins the cooperative (P1 / MVP), minus the deferred phone sign-up UI
+- Tasks completed: T025, T026, T027, T028, T029, T030, T031, T032, T033, T034, T037, T038, T039, T040 (T035, T036 deferred)
+- Backend: `MembersService` gained `listMembers` (status / role / free-text filters, pagination), `getMemberDetail`, `feeStatesFor`, `validateMember` / `rejectMember` (status transition + append-only `MemberStatusChange`, `joinedAt`, membership-fee row creation on validate, session revoke on reject), and the membership-intake read/write. `MembersMapper` maps to `memberSelf` / `memberListItem` / `memberDetail`. New `AdminMembersController` + `MembershipIntakeController` (`GET /admin/members`, `GET /admin/members/:id`, `POST /admin/members/:id/validation`, `GET`/`PUT /admin/membership-intake`), all `@AdminOnly()`. `AuthGuard` now reads class-level `@AdminOnly()` via `getAllAndOverride`. Decision emails/SMS sent to the confirmed identifier.
+- Contract: `memberValidationSchema` (discriminated validate/reject) and `membershipIntakeSchema` added.
+- Client: `pnpm generate` published the member SDK + zod + types (`adminMembersControllerList/Detail/Decide`, `membershipIntakeControllerGet/Set`).
+- Tests: `members.controller.e2e-spec.ts` — 7 cases (list + status filter, 401/403 gating, validate, reject with reason, stale-version 409, non-pending 400, intake switch). `EmailService` / `SmsService` stubbed in the harness. Full api suite: 123 passed.
+- Live verification: admin signs in, a fresh sign-up appears as `MEM-000002` / pending, `POST …/validation` with `version: 1` returns `status: active` + `joinedAt` set + fee row (`unpaid`) + history `[pending, active]`, and the "membership confirmed" email lands in MailDev.
+- Frontend: `admin-members` feature — TanStack Query options + `decideMember` mutation, a members list page (status tabs pending/active/all, free-text search, paginated table, fee badge) and a member detail page (identity, roles, status history, validate button + reject dialog with reason). `MemberStatusBadge`. Route `/admin/members/:memberId` wired. `members` / `adminMembers` i18n filled (en + fr), `common.cancel` added.
+- Deferred: T035 / T036 — the register form still signs up by email only; phone sign-up (synthesized hidden address + OTP step) and the matching login toggle are a follow-up. Self-registration by email works end to end today.
+- `POST /admin/members` (admin-direct member creation) is not implemented in this pass — the MVP flow is self-sign-up + admin validation; direct creation via the Better Auth admin API is a follow-up.
+- Verified: `pnpm typecheck` (all), `pnpm --filter=api test` (123), `pnpm lint`, `pnpm --filter=web-spa build` all pass.
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/members/{members.service.ts,members.mapper.ts,members.controller.ts,members.module.ts,contracts/member.contract.ts,tests/members.controller.e2e-spec.ts}, apps/api/src/modules/auth/auth.guard.ts, apps/web-spa/app/features/admin-members/** (new), apps/web-spa/app/routes.ts, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, packages/openapi-generator/client/**, specs/foundation/tasks.md
+
 ## [2026-09-02 09:53] - /speckit.implement
 
 ### Changed

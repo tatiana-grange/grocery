@@ -135,6 +135,15 @@ export type CreateCommentSchema = {
 };
 
 /**
+ * UpdateCommentSchema
+ *
+ * Schema for updating a comment
+ */
+export type UpdateCommentSchema = {
+    content: string;
+};
+
+/**
  * CreatePostSchema
  *
  * Schema for creating/updating a post
@@ -156,6 +165,29 @@ export type UpdatePostSchema = {
     content?: Array<PostContentSchema>;
     coverImage?: string;
     tags?: Array<string>;
+};
+
+/**
+ * MemberValidation
+ *
+ * Validate a pending member (moves them to active) or reject them with a reason
+ */
+export type MemberValidation = {
+    decision: 'validate';
+    version: number;
+} | {
+    decision: 'reject';
+    reason: string;
+    version: number;
+};
+
+/**
+ * MembershipIntake
+ *
+ * Whether self-registration is currently accepted
+ */
+export type MembershipIntake = {
+    open: boolean;
 };
 
 /**
@@ -515,6 +547,236 @@ export type PublicAuthorPostsSchema = {
 };
 
 /**
+ * MembersList
+ *
+ * A paginated list of members
+ */
+export type MembersList = {
+    data: Array<MemberListItem>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * MemberListItem
+ *
+ * A member as shown in the back-office list
+ */
+export type MemberListItem = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    email?: string | null;
+    phoneNumber?: string | null;
+    /**
+     * MemberStatus
+     *
+     * Lifecycle status of a cooperative member
+     */
+    status: 'pending' | 'active' | 'rejected' | 'terminated';
+    roles: Array<'member' | 'admin'>;
+    /**
+     * MembershipFeeState
+     *
+     * Derived from the sum of recorded payments against the expected amount
+     */
+    feeState: 'unpaid' | 'partly_paid' | 'paid';
+    createdAt: string;
+};
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export const MemberStatus = {
+    PENDING: 'pending',
+    ACTIVE: 'active',
+    REJECTED: 'rejected',
+    TERMINATED: 'terminated'
+} as const;
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export type MemberStatus = typeof MemberStatus[keyof typeof MemberStatus];
+
+/**
+ * UserRole
+ *
+ * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ */
+export const UserRole = { MEMBER: 'member', ADMIN: 'admin' } as const;
+
+/**
+ * UserRole
+ *
+ * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ */
+export type UserRole = typeof UserRole[keyof typeof UserRole];
+
+/**
+ * MembershipFeeState
+ *
+ * Derived from the sum of recorded payments against the expected amount
+ */
+export const MembershipFeeState = {
+    UNPAID: 'unpaid',
+    PARTLY_PAID: 'partly_paid',
+    PAID: 'paid'
+} as const;
+
+/**
+ * MembershipFeeState
+ *
+ * Derived from the sum of recorded payments against the expected amount
+ */
+export type MembershipFeeState = typeof MembershipFeeState[keyof typeof MembershipFeeState];
+
+/**
+ * MemberDetail
+ *
+ * Full back-office view of a member
+ */
+export type MemberDetail = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    identifiers: MemberIdentifiers;
+    status: MemberStatus;
+    roles: Array<UserRole>;
+    profile: MemberProfile;
+    fee: FeeSummary;
+    joinedAt?: string | null;
+    version: number;
+    statusHistory: Array<MemberStatusChange>;
+    payments: Array<MemberPayment>;
+};
+
+/**
+ * MemberIdentifiers
+ *
+ * The email and/or phone the account signs in with
+ */
+export type MemberIdentifiers = {
+    email?: string | null;
+    emailVerified: boolean;
+    phoneNumber?: string | null;
+    phoneNumberVerified: boolean;
+};
+
+/**
+ * MemberProfile
+ *
+ * A member’s editable personal details
+ */
+export type MemberProfile = {
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    postalCode?: string | null;
+    city?: string | null;
+    phone?: string | null;
+};
+
+/**
+ * FeeSummary
+ *
+ * Membership-fee expectation, total paid, and derived state
+ */
+export type FeeSummary = {
+    expectedAmountCents: number;
+    paidAmountCents: number;
+    /**
+     * MembershipFeeState
+     *
+     * Derived from the sum of recorded payments against the expected amount
+     */
+    state: 'unpaid' | 'partly_paid' | 'paid';
+};
+
+/**
+ * MemberStatusChange
+ *
+ * One entry in a member’s status history
+ */
+export type MemberStatusChange = {
+    fromStatus?: 'pending' | 'active' | 'rejected' | 'terminated' | null;
+    /**
+     * MemberStatus
+     *
+     * Lifecycle status of a cooperative member
+     */
+    toStatus: 'pending' | 'active' | 'rejected' | 'terminated';
+    reason?: string | null;
+    changedByName?: string | null;
+    createdAt: string;
+};
+
+/**
+ * MemberPayment
+ *
+ * One recorded membership-fee payment or adjustment
+ */
+export type MemberPayment = {
+    id: string;
+    /**
+     * MembershipPaymentKind
+     *
+     * A correction is recorded as an "adjustment" row, never by editing a payment
+     */
+    kind: 'payment' | 'adjustment';
+    amountCents: number;
+    /**
+     * MembershipPaymentMethod
+     *
+     * How a membership-fee payment was made ("online" is reserved for lot 5)
+     */
+    method: 'cash' | 'transfer' | 'other';
+    paidAt: string;
+    note?: string | null;
+    recordedByName: string;
+    createdAt: string;
+};
+
+/**
+ * MembershipPaymentKind
+ *
+ * A correction is recorded as an "adjustment" row, never by editing a payment
+ */
+export const MembershipPaymentKind = { PAYMENT: 'payment', ADJUSTMENT: 'adjustment' } as const;
+
+/**
+ * MembershipPaymentKind
+ *
+ * A correction is recorded as an "adjustment" row, never by editing a payment
+ */
+export type MembershipPaymentKind = typeof MembershipPaymentKind[keyof typeof MembershipPaymentKind];
+
+/**
+ * MembershipPaymentMethod
+ *
+ * How a membership-fee payment was made ("online" is reserved for lot 5)
+ */
+export const MembershipPaymentMethod = {
+    CASH: 'cash',
+    TRANSFER: 'transfer',
+    OTHER: 'other'
+} as const;
+
+/**
+ * MembershipPaymentMethod
+ *
+ * How a membership-fee payment was made ("online" is reserved for lot 5)
+ */
+export type MembershipPaymentMethod = typeof MembershipPaymentMethod[keyof typeof MembershipPaymentMethod];
+
+/**
  * AiCoreMessage
  *
  * A message in the conversation history following Vercel AI SDK patterns
@@ -718,11 +980,26 @@ export type SortingQueryStringSchema = string;
  *
  * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
  * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: title, tag
+ * <br> Available properties: status, feeState, role, q
  */
 export type FilterQueryStringSchema = string;
 
 export type CommentsControllerPostSlug = string;
+
+export type AdminMembersControllerListFilterItem = {
+    property: 'status' | 'feeState' | 'role' | 'q';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type AdminMembersControllerListFilterArray = Array<AdminMembersControllerListFilterItem>;
+
+export type AdminMembersControllerListSortItem = {
+    property: 'createdAt' | 'name';
+    direction: 'asc' | 'desc';
+};
+
+export type AdminMembersControllerListSortArray = Array<AdminMembersControllerListSortItem>;
 
 export type CommentsControllerGetCommentsFilterItem = {
     property: 'content';
@@ -794,6 +1071,128 @@ export type AppControllerGetHelloResponses = {
     200: unknown;
 };
 
+export type AdminMembersControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: status, feeState, role, q
+         */
+        filter?: AdminMembersControllerListFilterArray;
+        /**
+         * Schema for sorting items
+         */
+        sort?: AdminMembersControllerListSortArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/members';
+};
+
+export type AdminMembersControllerListResponses = {
+    /**
+     * A paginated list of members
+     */
+    200: MembersList;
+};
+
+export type AdminMembersControllerListResponse = AdminMembersControllerListResponses[keyof AdminMembersControllerListResponses];
+
+export type AdminMembersControllerDetailData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}';
+};
+
+export type AdminMembersControllerDetailResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerDetailResponse = AdminMembersControllerDetailResponses[keyof AdminMembersControllerDetailResponses];
+
+export type AdminMembersControllerDecideData = {
+    /**
+     * MemberValidation
+     *
+     * Validate a pending member (moves them to active) or reject them with a reason
+     */
+    body: {
+        decision: 'validate';
+        version: number;
+    } | {
+        decision: 'reject';
+        reason: string;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/validation';
+};
+
+export type AdminMembersControllerDecideResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerDecideResponse = AdminMembersControllerDecideResponses[keyof AdminMembersControllerDecideResponses];
+
+export type MembershipIntakeControllerGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/membership-intake';
+};
+
+export type MembershipIntakeControllerGetResponses = {
+    /**
+     * Whether self-registration is currently accepted
+     */
+    200: MembershipIntake;
+};
+
+export type MembershipIntakeControllerGetResponse = MembershipIntakeControllerGetResponses[keyof MembershipIntakeControllerGetResponses];
+
+export type MembershipIntakeControllerSetData = {
+    /**
+     * MembershipIntake
+     *
+     * Whether self-registration is currently accepted
+     */
+    body: {
+        open: boolean;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/membership-intake';
+};
+
+export type MembershipIntakeControllerSetResponses = {
+    /**
+     * Whether self-registration is currently accepted
+     */
+    200: MembershipIntake;
+};
+
+export type MembershipIntakeControllerSetResponse = MembershipIntakeControllerSetResponses[keyof MembershipIntakeControllerSetResponses];
+
 export type CommentsControllerGetCommentsData = {
     body?: never;
     path: {
@@ -857,6 +1256,46 @@ export type CommentsControllerCreateCommentResponses = {
 
 export type CommentsControllerCreateCommentResponse = CommentsControllerCreateCommentResponses[keyof CommentsControllerCreateCommentResponses];
 
+export type CommentsControllerDeleteCommentData = {
+    body?: never;
+    path: {
+        commentId: string;
+        postSlug: string;
+    };
+    query?: never;
+    url: '/api/posts/{postSlug}/comments/{commentId}';
+};
+
+export type CommentsControllerDeleteCommentResponses = {
+    200: unknown;
+};
+
+export type CommentsControllerUpdateCommentData = {
+    /**
+     * UpdateCommentSchema
+     *
+     * Schema for updating a comment
+     */
+    body: {
+        content: string;
+    };
+    path: {
+        commentId: string;
+        postSlug: string;
+    };
+    query?: never;
+    url: '/api/posts/{postSlug}/comments/{commentId}';
+};
+
+export type CommentsControllerUpdateCommentResponses = {
+    /**
+     * Schema for a comment
+     */
+    200: CommentSchema;
+};
+
+export type CommentsControllerUpdateCommentResponse = CommentsControllerUpdateCommentResponses[keyof CommentsControllerUpdateCommentResponses];
+
 export type CommentsControllerGetCommentCountData = {
     body?: never;
     path: {
@@ -901,20 +1340,6 @@ export type CommentsControllerGetCommentRepliesResponses = {
 };
 
 export type CommentsControllerGetCommentRepliesResponse = CommentsControllerGetCommentRepliesResponses[keyof CommentsControllerGetCommentRepliesResponses];
-
-export type CommentsControllerDeleteCommentData = {
-    body?: never;
-    path: {
-        commentId: string;
-        postSlug: string;
-    };
-    query?: never;
-    url: '/api/posts/{postSlug}/comments/{commentId}';
-};
-
-export type CommentsControllerDeleteCommentResponses = {
-    200: unknown;
-};
 
 export type PostControllerGetUserPostsData = {
     body?: never;

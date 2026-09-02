@@ -62,6 +62,41 @@ export const zCreateCommentSchema = z.object({
 });
 
 /**
+ * UpdateCommentSchema
+ *
+ * Schema for updating a comment
+ */
+export const zUpdateCommentSchema = z.object({
+    content: z.string().min(1).max(1000)
+});
+
+/**
+ * MemberValidation
+ *
+ * Validate a pending member (moves them to active) or reject them with a reason
+ */
+export const zMemberValidation = z.union([
+    z.object({
+        decision: z.literal('validate'),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    z.object({
+        decision: z.literal('reject'),
+        reason: z.string().min(1),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+]);
+
+/**
+ * MembershipIntake
+ *
+ * Whether self-registration is currently accepted
+ */
+export const zMembershipIntake = z.object({
+    open: z.boolean()
+});
+
+/**
  * TokenUsage
  *
  * Token usage information for an AI generation
@@ -448,6 +483,240 @@ export const zPublicAuthorPostsSchema = z.object({
 });
 
 /**
+ * MemberListItem
+ *
+ * A member as shown in the back-office list
+ */
+export const zMemberListItem = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    email: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    phoneNumber: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    status: z.enum([
+        'pending',
+        'active',
+        'rejected',
+        'terminated'
+    ]),
+    roles: z.array(z.enum(['member', 'admin'])),
+    feeState: z.enum([
+        'unpaid',
+        'partly_paid',
+        'paid'
+    ]),
+    createdAt: z.string()
+});
+
+/**
+ * MembersList
+ *
+ * A paginated list of members
+ */
+export const zMembersList = z.object({
+    data: z.array(zMemberListItem),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export const zMemberStatus = z.enum([
+    'pending',
+    'active',
+    'rejected',
+    'terminated'
+]);
+
+/**
+ * UserRole
+ *
+ * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ */
+export const zUserRole = z.enum(['member', 'admin']);
+
+/**
+ * MembershipFeeState
+ *
+ * Derived from the sum of recorded payments against the expected amount
+ */
+export const zMembershipFeeState = z.enum([
+    'unpaid',
+    'partly_paid',
+    'paid'
+]);
+
+/**
+ * MemberIdentifiers
+ *
+ * The email and/or phone the account signs in with
+ */
+export const zMemberIdentifiers = z.object({
+    email: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    emailVerified: z.boolean(),
+    phoneNumber: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    phoneNumberVerified: z.boolean()
+});
+
+/**
+ * MemberProfile
+ *
+ * A member’s editable personal details
+ */
+export const zMemberProfile = z.object({
+    addressLine1: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    addressLine2: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    postalCode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    city: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    phone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * FeeSummary
+ *
+ * Membership-fee expectation, total paid, and derived state
+ */
+export const zFeeSummary = z.object({
+    expectedAmountCents: z.int().gte(0).lte(9007199254740991),
+    paidAmountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    state: z.enum([
+        'unpaid',
+        'partly_paid',
+        'paid'
+    ])
+});
+
+/**
+ * MemberStatusChange
+ *
+ * One entry in a member’s status history
+ */
+export const zMemberStatusChange = z.object({
+    fromStatus: z.optional(z.union([
+        z.enum([
+            'pending',
+            'active',
+            'rejected',
+            'terminated'
+        ]),
+        z.null()
+    ])),
+    toStatus: z.enum([
+        'pending',
+        'active',
+        'rejected',
+        'terminated'
+    ]),
+    reason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    changedByName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    createdAt: z.string()
+});
+
+/**
+ * MemberPayment
+ *
+ * One recorded membership-fee payment or adjustment
+ */
+export const zMemberPayment = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    kind: z.enum(['payment', 'adjustment']),
+    amountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    method: z.enum([
+        'cash',
+        'transfer',
+        'other'
+    ]),
+    paidAt: z.string(),
+    note: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    recordedByName: z.string(),
+    createdAt: z.string()
+});
+
+/**
+ * MemberDetail
+ *
+ * Full back-office view of a member
+ */
+export const zMemberDetail = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    identifiers: zMemberIdentifiers,
+    status: zMemberStatus,
+    roles: z.array(zUserRole),
+    profile: zMemberProfile,
+    fee: zFeeSummary,
+    joinedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    statusHistory: z.array(zMemberStatusChange),
+    payments: z.array(zMemberPayment)
+});
+
+/**
+ * MembershipPaymentKind
+ *
+ * A correction is recorded as an "adjustment" row, never by editing a payment
+ */
+export const zMembershipPaymentKind = z.enum(['payment', 'adjustment']);
+
+/**
+ * MembershipPaymentMethod
+ *
+ * How a membership-fee payment was made ("online" is reserved for lot 5)
+ */
+export const zMembershipPaymentMethod = z.enum([
+    'cash',
+    'transfer',
+    'other'
+]);
+
+/**
  * AiCoreMessage
  *
  * A message in the conversation history following Vercel AI SDK patterns
@@ -755,11 +1024,47 @@ export const zSortingQueryStringSchema = z.string();
  *
  * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
  * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: title, tag
+ * <br> Available properties: status, feeState, role, q
  */
 export const zFilterQueryStringSchema = z.string();
 
 export const zCommentsControllerPostSlug = z.string();
+
+export const zAdminMembersControllerListFilterItem = z.object({
+    property: z.union([
+        z.literal('status'),
+        z.literal('feeState'),
+        z.literal('role'),
+        z.literal('q')
+    ]),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zAdminMembersControllerListFilterArray = z.array(zAdminMembersControllerListFilterItem);
+
+export const zAdminMembersControllerListSortItem = z.object({
+    property: z.union([
+        z.literal('createdAt'),
+        z.literal('name')
+    ]),
+    direction: z.enum(['asc', 'desc'])
+});
+
+export const zAdminMembersControllerListSortArray = z.array(zAdminMembersControllerListSortItem);
 
 export const zCommentsControllerGetCommentsFilterItem = z.object({
     property: z.literal('content'),
@@ -886,6 +1191,82 @@ export const zAppControllerGetHelloData = z.object({
     query: z.optional(z.never())
 });
 
+export const zAdminMembersControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zAdminMembersControllerListFilterArray),
+        sort: z.optional(zAdminMembersControllerListSortArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A paginated list of members
+ */
+export const zAdminMembersControllerListResponse = zMembersList;
+
+export const zAdminMembersControllerDetailData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerDetailResponse = zMemberDetail;
+
+export const zAdminMembersControllerDecideData = z.object({
+    body: z.union([
+        z.object({
+            decision: z.literal('validate'),
+            version: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }),
+        z.object({
+            decision: z.literal('reject'),
+            reason: z.string().min(1),
+            version: z.int().gte(-9007199254740991).lte(9007199254740991)
+        })
+    ]),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerDecideResponse = zMemberDetail;
+
+export const zMembershipIntakeControllerGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Whether self-registration is currently accepted
+ */
+export const zMembershipIntakeControllerGetResponse = zMembershipIntake;
+
+export const zMembershipIntakeControllerSetData = z.object({
+    body: z.object({
+        open: z.boolean()
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Whether self-registration is currently accepted
+ */
+export const zMembershipIntakeControllerSetResponse = zMembershipIntake;
+
 export const zCommentsControllerGetCommentsData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -920,6 +1301,31 @@ export const zCommentsControllerCreateCommentData = z.object({
  */
 export const zCommentsControllerCreateCommentResponse = zCommentSchema;
 
+export const zCommentsControllerDeleteCommentData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        commentId: z.string(),
+        postSlug: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zCommentsControllerUpdateCommentData = z.object({
+    body: z.object({
+        content: z.string().min(1).max(1000)
+    }),
+    path: z.object({
+        commentId: z.string(),
+        postSlug: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Schema for a comment
+ */
+export const zCommentsControllerUpdateCommentResponse = zCommentSchema;
+
 export const zCommentsControllerGetCommentCountData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -945,15 +1351,6 @@ export const zCommentsControllerGetCommentRepliesData = z.object({
  * Schema for a paginated list of comments
  */
 export const zCommentsControllerGetCommentRepliesResponse = zCommentsSchema;
-
-export const zCommentsControllerDeleteCommentData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        commentId: z.string(),
-        postSlug: z.string()
-    }),
-    query: z.optional(z.never())
-});
 
 export const zPostControllerGetUserPostsData = z.object({
     body: z.optional(z.never()),

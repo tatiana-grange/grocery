@@ -26,6 +26,7 @@ export default [
   ]),
   layout('features/common/components/back-office-layout.tsx', [
     route('admin/members', 'features/admin-members/components/members-list-page.tsx'),
+    route('admin/members/:memberId', 'features/admin-members/components/member-detail-page.tsx'),
     route('admin/catalog', 'features/catalog/components/catalog-page.tsx'),
   ]),
 ] satisfies RouteConfig

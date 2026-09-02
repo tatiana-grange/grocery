@@ -213,14 +213,58 @@
     },
     "account": {
       "title": "My account",
-      "comingSoon": "Your profile, membership status, fee and QR code will appear here."
+      "comingSoon": "Your profile, membership status, fee and QR code will appear here.",
+      "identifierConfirmed": "Identifier confirmed"
+    },
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "rejected": "Rejected",
+      "terminated": "Terminated"
+    },
+    "feeState": {
+      "unpaid": "Unpaid",
+      "partly_paid": "Partly paid",
+      "paid": "Paid"
     }
   },
   "adminMembers": {
     "title": "Members",
+    "subtitle": "Review membership requests and manage members.",
     "backOffice": "Back office",
     "accessDenied": "You need an administrator account to open the back office.",
     "comingSoon": "The pending queue and member list will appear here.",
+    "searchPlaceholder": "Search name, email, phone, number…",
+    "empty": "No members here.",
+    "review": "Review",
+    "backToList": "Back to members",
+    "roles": "Roles",
+    "history": "Status history",
+    "validate": "Validate",
+    "reject": "Reject",
+    "count": "{{count}} member",
+    "count_other": "{{count}} members",
+    "tabs": {
+      "pending": "Pending",
+      "active": "Active",
+      "all": "All"
+    },
+    "columns": {
+      "number": "Number",
+      "name": "Name",
+      "identifier": "Email / phone",
+      "status": "Status",
+      "fee": "Fee"
+    },
+    "rejectDialog": {
+      "title": "Reject this membership request",
+      "reasonPlaceholder": "Reason (shown to the applicant)"
+    },
+    "toasts": {
+      "validated": "Member validated",
+      "rejected": "Request rejected",
+      "error": "Something went wrong"
+    },
     "nav": {
       "section": "Management",
       "members": "Members"
@@ -236,6 +280,7 @@
   "common": {
     "user": "User",
     "active": "Active",
-    "error": "Error"
+    "error": "Error",
+    "cancel": "Cancel"
   }
 }
