@@ -1,8 +1,17 @@
-import type { AdminMembersControllerListData } from '@grocery/openapi-generator/client/types.gen'
+import type {
+  AdminMembersControllerListData,
+  AdminMembersControllerRecordFeePaymentData,
+  AdminMembersControllerSetFeeData,
+  AdminMembersControllerUpdateProfileData,
+} from '@grocery/openapi-generator/client/types.gen'
 import {
   adminMembersControllerDecide,
   adminMembersControllerDetail,
   adminMembersControllerList,
+  adminMembersControllerListFeePayments,
+  adminMembersControllerRecordFeePayment,
+  adminMembersControllerSetFee,
+  adminMembersControllerUpdateProfile,
 } from '@grocery/openapi-generator/client/sdk.gen'
 import { FilterRule } from '@lonestone/nzoth/client'
 
@@ -59,4 +68,31 @@ export async function decideMember(
   const response = await adminMembersControllerDecide({ path: { id }, body })
   if (response.error) throw response.error
   return response.data
+}
+
+function unwrap<T>(response: { data?: T; error?: unknown }): T {
+  if (response.error) throw response.error
+  return response.data as T
+}
+
+export const updateMemberProfile = async (
+  id: string,
+  body: AdminMembersControllerUpdateProfileData['body'],
+) => unwrap(await adminMembersControllerUpdateProfile({ path: { id }, body }))
+
+export const setMemberFee = async (
+  id: string,
+  body: AdminMembersControllerSetFeeData['body'],
+) => unwrap(await adminMembersControllerSetFee({ path: { id }, body }))
+
+export const recordFeePayment = async (
+  id: string,
+  body: AdminMembersControllerRecordFeePaymentData['body'],
+) => unwrap(await adminMembersControllerRecordFeePayment({ path: { id }, body }))
+
+export function feePaymentsQueryOptions(id: string) {
+  return {
+    queryKey: ['admin-members', 'fee-payments', id],
+    queryFn: async () => unwrap(await adminMembersControllerListFeePayments({ path: { id } })),
+  }
 }

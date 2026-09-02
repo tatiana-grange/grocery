@@ -186,6 +186,59 @@ export const membershipIntakeSchema = z
 export type MembershipIntakeInput = z.infer<typeof membershipIntakeSchema>
 
 // -------------------------------------------------------------------------------------------------
+// Self-service and fee management
+// -------------------------------------------------------------------------------------------------
+
+export const updateProfileSchema = memberProfileSchema
+  .partial()
+  .extend({ version: z.number().int() })
+  .meta({
+    title: 'UpdateMemberProfile',
+    description: 'Update a member’s personal details (send the version you loaded)',
+    examples: [{ city: 'Nantes', phone: '+33612345678', version: 1 }],
+  })
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
+
+export const setFeeSchema = z
+  .object({
+    expectedAmountCents: z.number().int().nonnegative(),
+    version: z.number().int(),
+  })
+  .meta({
+    title: 'SetMembershipFee',
+    description: 'Set the expected membership fee for a member (the "variable fee")',
+    examples: [{ expectedAmountCents: 2000, version: 1 }],
+  })
+
+export type SetFeeInput = z.infer<typeof setFeeSchema>
+
+export const recordFeePaymentSchema = z
+  .object({
+    kind: membershipPaymentKindSchema.default('payment'),
+    amountCents: z.number().int().refine((value) => value !== 0, 'amount must be non-zero'),
+    method: membershipPaymentMethodSchema,
+    paidAt: z.coerce.date(),
+    note: z.string().nullish(),
+  })
+  .refine(
+    (data) => data.kind === 'adjustment' || data.amountCents > 0,
+    'a payment must be positive; use kind "adjustment" for a correction',
+  )
+  .meta({
+    title: 'RecordFeePayment',
+    description: 'Record a membership-fee payment (positive) or an adjustment (any non-zero)',
+    examples: [{ kind: 'payment', amountCents: 1000, method: 'cash', paidAt: '2026-09-02' }],
+  })
+
+export type RecordFeePaymentInput = z.infer<typeof recordFeePaymentSchema>
+
+export const feePaymentsListSchema = z.array(memberPaymentSchema).meta({
+  title: 'FeePaymentsList',
+  description: 'All recorded payments and adjustments against a member’s fee',
+})
+
+// -------------------------------------------------------------------------------------------------
 // List query params
 // -------------------------------------------------------------------------------------------------
 

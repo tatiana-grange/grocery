@@ -214,7 +214,23 @@
     "account": {
       "title": "Mon compte",
       "comingSoon": "Votre profil, votre statut d'adhésion, votre cotisation et votre QR code apparaîtront ici.",
-      "identifierConfirmed": "Identifiant confirmé"
+      "identifierConfirmed": "Identifiant confirmé",
+      "personalDetails": "Coordonnées",
+      "addressLine1": "Adresse",
+      "addressLine2": "Adresse (complément)",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "phone": "Téléphone",
+      "fee": "Cotisation",
+      "save": "Enregistrer",
+      "saved": "Enregistré",
+      "error": "Une erreur est survenue",
+      "qrHint": "Présentez ce code à la distribution pour être identifié·e.",
+      "changePassword": "Changer le mot de passe",
+      "currentPassword": "Mot de passe actuel",
+      "newPassword": "Nouveau mot de passe (8 caractères min.)",
+      "passwordChanged": "Mot de passe modifié",
+      "passwordError": "Impossible de changer le mot de passe"
     },
     "status": {
       "pending": "En attente",
@@ -264,6 +280,17 @@
       "validated": "Adhérent validé",
       "rejected": "Demande refusée",
       "error": "Une erreur est survenue"
+    },
+    "fee": {
+      "title": "Cotisation",
+      "expected": "Attendu (€)",
+      "saved": "Cotisation mise à jour",
+      "recorded": "Paiement enregistré",
+      "recordPayment": "Enregistrer un paiement",
+      "amount": "Montant (€)",
+      "record": "Enregistrer le paiement",
+      "adjustment": "Enregistrer un ajustement",
+      "method": { "cash": "Espèces", "transfer": "Virement", "other": "Autre" }
     },
     "nav": {
       "section": "Gestion",

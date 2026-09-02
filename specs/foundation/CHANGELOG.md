@@ -4,6 +4,20 @@ All notable changes to this feature specification are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## [2026-09-02 10:48] - /speckit.implement
+
+### Changed
+
+- Completed Phase 5: User Story 3 — a member manages their own account (P3)
+- Tasks completed: T064–T076 (T066's `MembershipPayment` entity landed back in Phase 2)
+- Backend: contract additions (`updateProfileSchema`, `setFeeSchema`, `recordFeePaymentSchema` with the kind/adjustment refine, `feePaymentsListSchema`). `MembersService` gained `getMyAccount`, `updateMyProfile` / `updateMemberProfile` (shared `applyProfile` with optimistic version), `setExpectedFee` (fee-row version check), `recordFeePayment` (append-only), and `listFeePayments`. New `MemberSelfController` (`GET /members/me`, `PUT /members/me/profile`, `@MemberScoped()`); `AdminMembersController` gained `PUT /admin/members/:id/profile`, `PUT /admin/members/:id/fee`, `GET`/`POST /admin/members/:id/fee/payments`. Mapper `toFeePayments`.
+- Tests: `members.mapper.spec.ts` (fee-state derivation, 4 cases) and three new e2e cases (self account + 403 for a pending member, profile update + stale-version 409, fee state `unpaid → partly_paid → paid` then back via an adjustment). Full api suite: 139 passed.
+- Live verification: `GET /members/me` returns the account + fee summary, `PUT /members/me/profile` updates the city, admin `PUT .../fee` sets the expected amount, and `POST .../fee/payments` moves paid to 1500 / state `partly_paid`.
+- Frontend: `account` feature — an account page with a status + fee badge, an editable personal-details form (optimistic version), a personal **QR code** (`qrcode.react`, encodes only the membership number), and a password-change form (Better Auth `changePassword`, revokes other sessions). Admin-members detail page gained a **fee panel** (set expected amount, record payment or adjustment with a method, payment history). `members.account` and `adminMembers.fee` i18n filled (en + fr). Added `qrcode.react` to `apps/web-spa`.
+- Verified: `pnpm typecheck` (all), `pnpm --filter=api test` (139), `pnpm lint`, `pnpm --filter=web-spa build` all pass.
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/members/{contracts/member.contract.ts,members.service.ts,members.mapper.ts,members.controller.ts,members.module.ts,tests/members.controller.e2e-spec.ts,tests/members.mapper.spec.ts}, apps/web-spa/app/features/account/** (new), apps/web-spa/app/features/admin-members/{utils/admin-members-queries.ts,components/member-detail-page.tsx,components/member-fee-panel.tsx}, apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json, apps/web-spa/package.json, packages/openapi-generator/client/**, specs/foundation/tasks.md
+
 ## [2026-09-02 10:33] - /speckit.implement
 
 ### Changed

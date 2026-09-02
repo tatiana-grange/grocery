@@ -214,7 +214,23 @@
     "account": {
       "title": "My account",
       "comingSoon": "Your profile, membership status, fee and QR code will appear here.",
-      "identifierConfirmed": "Identifier confirmed"
+      "identifierConfirmed": "Identifier confirmed",
+      "personalDetails": "Personal details",
+      "addressLine1": "Address",
+      "addressLine2": "Address (line 2)",
+      "postalCode": "Postal code",
+      "city": "City",
+      "phone": "Phone",
+      "fee": "Membership fee",
+      "save": "Save",
+      "saved": "Saved",
+      "error": "Something went wrong",
+      "qrHint": "Show this at the distribution to be identified.",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password (min. 8 characters)",
+      "passwordChanged": "Password changed",
+      "passwordError": "Could not change the password"
     },
     "status": {
       "pending": "Pending",
@@ -264,6 +280,17 @@
       "validated": "Member validated",
       "rejected": "Request rejected",
       "error": "Something went wrong"
+    },
+    "fee": {
+      "title": "Membership fee",
+      "expected": "Expected (€)",
+      "saved": "Fee updated",
+      "recorded": "Payment recorded",
+      "recordPayment": "Record payment",
+      "amount": "Amount (€)",
+      "record": "Record payment",
+      "adjustment": "Record adjustment",
+      "method": { "cash": "Cash", "transfer": "Transfer", "other": "Other" }
     },
     "nav": {
       "section": "Management",

@@ -156,22 +156,22 @@ payments watching the state move `unpaid → partly_paid → paid`, then an adju
 
 ### Tests for User Story 3
 
-- [ ] T064 [P] [US3] Extend `members.controller.e2e-spec.ts`: `GET`/`PUT /members/me`, `PUT /members/me/profile` stale `version` → 409, fee state transitions across `POST /admin/members/:id/fee/payments` including a negative `adjustment`
-- [ ] T065 [P] [US3] Create `apps/api/src/modules/members/tests/members.service.spec.ts` unit tests for fee-state derivation (`unpaid` / `partly_paid` / `paid`, boundary at exactly expected)
+- [x] T064 [P] [US3] Extend `members.controller.e2e-spec.ts`: `GET`/`PUT /members/me`, `PUT /members/me/profile` stale `version` → 409, fee state transitions across `POST /admin/members/:id/fee/payments` including a negative `adjustment`
+- [x] T065 [P] [US3] Create `apps/api/src/modules/members/tests/members.service.spec.ts` unit tests for fee-state derivation (`unpaid` / `partly_paid` / `paid`, boundary at exactly expected)
 
 ### Implementation for User Story 3
 
-- [ ] T066 [P] [US3] Append-only `MembershipPayment` entity in `apps/api/src/modules/members/entities/membership-payment.entity.ts` (`kind`, `amountCents`, `method`, `paidAt`, `note`, `recordedByUser`)
-- [ ] T067 [P] [US3] Create `apps/api/src/modules/members/contracts/membership-fee.contract.ts` (`feeSummary`, `setFee`, `recordFeePayment` with kind/adjustment refine, `updateMyProfile`)
-- [ ] T068 [US3] `MembersService` self-service: `getMyAccount`, `updateMyProfile` (optimistic `version`) (depends on T016)
-- [ ] T069 [US3] `MembersService` fee: `setExpectedFee` (`version`), `recordPayment` (append-only; `payment` > 0, `adjustment` any non-zero), `deriveFeeState` (depends on T066)
-- [ ] T070 [US3] `MembersService.updateMemberProfile` (admin edit, `version`) (depends on T016)
-- [ ] T071 [US3] `members.controller.ts`: `GET /members/me`, `PUT /members/me/profile`, `PUT /admin/members/:id/profile`, `PUT /admin/members/:id/fee`, `GET`+`POST /admin/members/:id/fee/payments` (depends on T068–T070)
-- [ ] T072 [US3] Run `pnpm generate` (depends on T071)
-- [ ] T073 [P] [US3] Frontend: `features/members/utils/members-queries.ts` + account page (profile form, status, fee state) in `apps/web-spa/app/features/members/components/` (depends on T072)
-- [ ] T074 [P] [US3] Frontend: personal QR component (encodes `membershipNumber`) in `apps/web-spa/app/features/members/components/`
-- [ ] T075 [US3] Frontend: password-change form (Better Auth `change-password`) and confirm the forgot/reset pages handle the phone path in `apps/web-spa/app/features/auth/` (depends on T072)
-- [ ] T076 [US3] Frontend: fee panel (expected amount + payment list + record payment) and admin profile edit on the member-detail page; wire routes + i18n (depends on T072)
+- [x] T066 [P] [US3] Append-only `MembershipPayment` entity in `apps/api/src/modules/members/entities/membership-payment.entity.ts` (`kind`, `amountCents`, `method`, `paidAt`, `note`, `recordedByUser`)
+- [x] T067 [P] [US3] Create `apps/api/src/modules/members/contracts/membership-fee.contract.ts` (`feeSummary`, `setFee`, `recordFeePayment` with kind/adjustment refine, `updateMyProfile`)
+- [x] T068 [US3] `MembersService` self-service: `getMyAccount`, `updateMyProfile` (optimistic `version`) (depends on T016)
+- [x] T069 [US3] `MembersService` fee: `setExpectedFee` (`version`), `recordPayment` (append-only; `payment` > 0, `adjustment` any non-zero), `deriveFeeState` (depends on T066)
+- [x] T070 [US3] `MembersService.updateMemberProfile` (admin edit, `version`) (depends on T016)
+- [x] T071 [US3] `members.controller.ts`: `GET /members/me`, `PUT /members/me/profile`, `PUT /admin/members/:id/profile`, `PUT /admin/members/:id/fee`, `GET`+`POST /admin/members/:id/fee/payments` (depends on T068–T070)
+- [x] T072 [US3] Run `pnpm generate` (depends on T071)
+- [x] T073 [P] [US3] Frontend: `features/members/utils/members-queries.ts` + account page (profile form, status, fee state) in `apps/web-spa/app/features/members/components/` (depends on T072)
+- [x] T074 [P] [US3] Frontend: personal QR component (encodes `membershipNumber`) in `apps/web-spa/app/features/members/components/`
+- [x] T075 [US3] Frontend: password-change form (Better Auth `change-password`) and confirm the forgot/reset pages handle the phone path in `apps/web-spa/app/features/auth/` (depends on T072)
+- [x] T076 [US3] Frontend: fee panel (expected amount + payment list + record payment) and admin profile edit on the member-detail page; wire routes + i18n (depends on T072)
 
 **Checkpoint**: US1–US3 all work independently.
 

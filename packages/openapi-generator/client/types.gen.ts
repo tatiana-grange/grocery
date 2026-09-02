@@ -280,6 +280,43 @@ export type MemberValidation = {
 };
 
 /**
+ * UpdateMemberProfile
+ *
+ * Update a member’s personal details (send the version you loaded)
+ */
+export type UpdateMemberProfile = {
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    postalCode?: string | null;
+    city?: string | null;
+    phone?: string | null;
+    version: number;
+};
+
+/**
+ * SetMembershipFee
+ *
+ * Set the expected membership fee for a member (the "variable fee")
+ */
+export type SetMembershipFee = {
+    expectedAmountCents: number;
+    version: number;
+};
+
+/**
+ * RecordFeePayment
+ *
+ * Record a membership-fee payment (positive) or an adjustment (any non-zero)
+ */
+export type RecordFeePayment = {
+    kind: MembershipPaymentKind;
+    amountCents: number;
+    method: MembershipPaymentMethod;
+    paidAt: string;
+    note?: string | null;
+};
+
+/**
  * MembershipIntake
  *
  * Whether self-registration is currently accepted
@@ -1079,6 +1116,31 @@ export const MembershipPaymentMethod = {
 export type MembershipPaymentMethod = typeof MembershipPaymentMethod[keyof typeof MembershipPaymentMethod];
 
 /**
+ * FeePaymentsList
+ *
+ * All recorded payments and adjustments against a member’s fee
+ */
+export type FeePaymentsList = Array<MemberPayment>;
+
+/**
+ * MemberSelf
+ *
+ * The signed-in member’s own account
+ */
+export type MemberSelf = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    identifiers: MemberIdentifiers;
+    status: MemberStatus;
+    roles: Array<UserRole>;
+    profile: MemberProfile;
+    fee: FeeSummary;
+    joinedAt?: string | null;
+    version: number;
+};
+
+/**
  * PaginationQuerySchema
  *
  * Schema for pagination query
@@ -1478,6 +1540,163 @@ export type AdminMembersControllerDecideResponses = {
 };
 
 export type AdminMembersControllerDecideResponse = AdminMembersControllerDecideResponses[keyof AdminMembersControllerDecideResponses];
+
+export type AdminMembersControllerUpdateProfileData = {
+    /**
+     * UpdateMemberProfile
+     *
+     * Update a member’s personal details (send the version you loaded)
+     */
+    body: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/profile';
+};
+
+export type AdminMembersControllerUpdateProfileResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerUpdateProfileResponse = AdminMembersControllerUpdateProfileResponses[keyof AdminMembersControllerUpdateProfileResponses];
+
+export type AdminMembersControllerSetFeeData = {
+    /**
+     * SetMembershipFee
+     *
+     * Set the expected membership fee for a member (the "variable fee")
+     */
+    body: {
+        expectedAmountCents: number;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/fee';
+};
+
+export type AdminMembersControllerSetFeeResponses = {
+    /**
+     * Membership-fee expectation, total paid, and derived state
+     */
+    200: FeeSummary;
+};
+
+export type AdminMembersControllerSetFeeResponse = AdminMembersControllerSetFeeResponses[keyof AdminMembersControllerSetFeeResponses];
+
+export type AdminMembersControllerListFeePaymentsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/fee/payments';
+};
+
+export type AdminMembersControllerListFeePaymentsResponses = {
+    /**
+     * All recorded payments and adjustments against a member’s fee
+     */
+    200: FeePaymentsList;
+};
+
+export type AdminMembersControllerListFeePaymentsResponse = AdminMembersControllerListFeePaymentsResponses[keyof AdminMembersControllerListFeePaymentsResponses];
+
+export type AdminMembersControllerRecordFeePaymentData = {
+    /**
+     * RecordFeePayment
+     *
+     * Record a membership-fee payment (positive) or an adjustment (any non-zero)
+     */
+    body: {
+        /**
+         * MembershipPaymentKind
+         *
+         * A correction is recorded as an "adjustment" row, never by editing a payment
+         */
+        kind: 'payment' | 'adjustment';
+        amountCents: number;
+        /**
+         * MembershipPaymentMethod
+         *
+         * How a membership-fee payment was made ("online" is reserved for lot 5)
+         */
+        method: 'cash' | 'transfer' | 'other';
+        paidAt: string;
+        note?: string | null;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/fee/payments';
+};
+
+export type AdminMembersControllerRecordFeePaymentResponses = {
+    /**
+     * Membership-fee expectation, total paid, and derived state
+     */
+    200: FeeSummary;
+};
+
+export type AdminMembersControllerRecordFeePaymentResponse = AdminMembersControllerRecordFeePaymentResponses[keyof AdminMembersControllerRecordFeePaymentResponses];
+
+export type MemberSelfControllerMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/members/me';
+};
+
+export type MemberSelfControllerMeResponses = {
+    /**
+     * The signed-in member’s own account
+     */
+    200: MemberSelf;
+};
+
+export type MemberSelfControllerMeResponse = MemberSelfControllerMeResponses[keyof MemberSelfControllerMeResponses];
+
+export type MemberSelfControllerUpdateProfileData = {
+    /**
+     * UpdateMemberProfile
+     *
+     * Update a member’s personal details (send the version you loaded)
+     */
+    body: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+        version: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/members/me/profile';
+};
+
+export type MemberSelfControllerUpdateProfileResponses = {
+    /**
+     * The signed-in member’s own account
+     */
+    200: MemberSelf;
+};
+
+export type MemberSelfControllerUpdateProfileResponse = MemberSelfControllerUpdateProfileResponses[keyof MemberSelfControllerUpdateProfileResponses];
 
 export type MembershipIntakeControllerGetData = {
     body?: never;

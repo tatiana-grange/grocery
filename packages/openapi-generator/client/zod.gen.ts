@@ -125,6 +125,45 @@ export const zMemberValidation = z.union([
 ]);
 
 /**
+ * UpdateMemberProfile
+ *
+ * Update a member’s personal details (send the version you loaded)
+ */
+export const zUpdateMemberProfile = z.object({
+    addressLine1: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    addressLine2: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    postalCode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    city: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    phone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * SetMembershipFee
+ *
+ * Set the expected membership fee for a member (the "variable fee")
+ */
+export const zSetMembershipFee = z.object({
+    expectedAmountCents: z.int().gte(0).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
  * MembershipIntake
  *
  * Whether self-registration is currently accepted
@@ -1102,6 +1141,50 @@ export const zMembershipPaymentMethod = z.enum([
 ]);
 
 /**
+ * RecordFeePayment
+ *
+ * Record a membership-fee payment (positive) or an adjustment (any non-zero)
+ */
+export const zRecordFeePayment = z.object({
+    kind: zMembershipPaymentKind,
+    amountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    method: zMembershipPaymentMethod,
+    paidAt: z.string(),
+    note: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * FeePaymentsList
+ *
+ * All recorded payments and adjustments against a member’s fee
+ */
+export const zFeePaymentsList = z.array(zMemberPayment);
+
+/**
+ * MemberSelf
+ *
+ * The signed-in member’s own account
+ */
+export const zMemberSelf = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    identifiers: zMemberIdentifiers,
+    status: zMemberStatus,
+    roles: z.array(zUserRole),
+    profile: zMemberProfile,
+    fee: zFeeSummary,
+    joinedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
  * PaginationQuerySchema
  *
  * Schema for pagination query
@@ -1688,6 +1771,140 @@ export const zAdminMembersControllerDecideData = z.object({
  * Full back-office view of a member
  */
 export const zAdminMembersControllerDecideResponse = zMemberDetail;
+
+export const zAdminMembersControllerUpdateProfileData = z.object({
+    body: z.object({
+        addressLine1: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        addressLine2: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        postalCode: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        city: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        phone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerUpdateProfileResponse = zMemberDetail;
+
+export const zAdminMembersControllerSetFeeData = z.object({
+    body: z.object({
+        expectedAmountCents: z.int().gte(0).lte(9007199254740991),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Membership-fee expectation, total paid, and derived state
+ */
+export const zAdminMembersControllerSetFeeResponse = zFeeSummary;
+
+export const zAdminMembersControllerListFeePaymentsData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * All recorded payments and adjustments against a member’s fee
+ */
+export const zAdminMembersControllerListFeePaymentsResponse = zFeePaymentsList;
+
+export const zAdminMembersControllerRecordFeePaymentData = z.object({
+    body: z.object({
+        kind: z.enum(['payment', 'adjustment']),
+        amountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+        method: z.enum([
+            'cash',
+            'transfer',
+            'other'
+        ]),
+        paidAt: z.string(),
+        note: z.optional(z.union([
+            z.string(),
+            z.null()
+        ]))
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Membership-fee expectation, total paid, and derived state
+ */
+export const zAdminMembersControllerRecordFeePaymentResponse = zFeeSummary;
+
+export const zMemberSelfControllerMeData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The signed-in member’s own account
+ */
+export const zMemberSelfControllerMeResponse = zMemberSelf;
+
+export const zMemberSelfControllerUpdateProfileData = z.object({
+    body: z.object({
+        addressLine1: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        addressLine2: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        postalCode: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        city: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        phone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The signed-in member’s own account
+ */
+export const zMemberSelfControllerUpdateProfileResponse = zMemberSelf;
 
 export const zMembershipIntakeControllerGetData = z.object({
     body: z.optional(z.never()),

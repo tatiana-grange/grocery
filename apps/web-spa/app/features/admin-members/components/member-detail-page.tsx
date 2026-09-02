@@ -16,6 +16,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
+import { MemberFeePanel } from '@/features/admin-members/components/member-fee-panel'
 import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
 import {
   decideMember,
@@ -126,6 +127,8 @@ export default function MemberDetailPage() {
           </Dialog>
         </div>
       )}
+
+      {member.status === 'active' && <MemberFeePanel member={member} />}
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">

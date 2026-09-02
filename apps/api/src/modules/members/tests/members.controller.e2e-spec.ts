@@ -159,4 +159,61 @@ describe('membersController (e2e)', () => {
       expect(reread.body).toEqual({ open: false })
     })
   })
+
+  describe('member self-service', () => {
+    it('returns the active member’s own account and refuses a pending one', async (context) => {
+      const { em, request } = context
+      const { user: active } = await createMemberData(em, { status: 'active' })
+      const { user: pending } = await createMemberData(em, { status: 'pending' })
+
+      const mine = await request.withSession(createSessionFromUser(active)).get('/members/me')
+      expect(mine.status).toBe(200)
+      expect(mine.body).toMatchObject({ status: 'active', fee: { state: 'unpaid' } })
+
+      const denied = await request.withSession(createSessionFromUser(pending)).get('/members/me')
+      expect(denied.status).toBe(403)
+    })
+
+    it('updates the profile and rejects a stale version', async (context) => {
+      const { em, request } = context
+      const { user, member } = await createMemberData(em, { status: 'active' })
+      const session = createSessionFromUser(user)
+
+      const ok = await request
+        .withSession(session)
+        .put('/members/me/profile')
+        .send({ city: 'Nantes', version: member.version })
+      expect(ok.status).toBe(200)
+      expect(ok.body.profile.city).toBe('Nantes')
+
+      const stale = await request
+        .withSession(session)
+        .put('/members/me/profile')
+        .send({ city: 'Rennes', version: member.version })
+      expect(stale.status).toBe(409)
+    })
+  })
+
+  describe('membership fee', () => {
+    it('moves through unpaid → partly_paid → paid and back with an adjustment', async (context) => {
+      const { em, request } = context
+      const adminSession = await arrangeAdmin(em)
+      const { member } = await createMemberData(em, { status: 'active', expectedFeeCents: 2000 })
+
+      const pay = (amountCents: number, kind = 'payment') =>
+        request
+          .withSession(adminSession)
+          .post(`/admin/members/${member.id}/fee/payments`)
+          .send({ kind, amountCents, method: 'cash', paidAt: '2026-09-02' })
+
+      expect((await pay(1000)).body.state).toBe('partly_paid')
+      expect((await pay(1000)).body.state).toBe('paid')
+      expect((await pay(-500, 'adjustment')).body.state).toBe('partly_paid')
+
+      const payments = await request
+        .withSession(adminSession)
+        .get(`/admin/members/${member.id}/fee/payments`)
+      expect(payments.body).toHaveLength(3)
+    })
+  })
 })

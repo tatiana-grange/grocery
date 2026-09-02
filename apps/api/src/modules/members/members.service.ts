@@ -17,9 +17,15 @@ import type {
   MemberStatus,
   MembershipFeeState,
 } from './contracts/member.contract'
+import type {
+  RecordFeePaymentInput,
+  SetFeeInput,
+  UpdateProfileInput,
+} from './contracts/member.contract'
 import { MemberStatusChange } from './entities/member-status-change.entity'
 import { MembershipFee } from './entities/membership-fee.entity'
 import { MembershipIntakeSetting } from './entities/membership-intake-setting.entity'
+import { MembershipPayment } from './entities/membership-payment.entity'
 import { Member } from './entities/member.entity'
 import { MembersMapper } from './members.mapper'
 
@@ -153,6 +159,91 @@ export class MembersService {
         { populate: ['payments', 'payments.recordedByUser'] },
       )) ?? undefined
     )
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Self-service
+  // -----------------------------------------------------------------------------------------------
+
+  /** The signed-in member's own account, with their fee. */
+  async getMyAccount(userId: string): Promise<{ member: Member; fee: MembershipFee | undefined }> {
+    const member = await this.em.findOne(Member, { user: userId }, { populate: ['user'] })
+    if (!member) throw new NotFoundException('Member not found')
+    return { member, fee: await this.getFeeForMember(member.id) }
+  }
+
+  async updateMyProfile(userId: string, input: UpdateProfileInput): Promise<Member> {
+    const member = await this.em.findOne(Member, { user: userId }, { populate: ['user'] })
+    if (!member) throw new NotFoundException('Member not found')
+    return this.applyProfile(member, input)
+  }
+
+  async updateMemberProfile(id: string, input: UpdateProfileInput): Promise<Member> {
+    const member = await this.em.findOne(Member, { id }, { populate: ['user'] })
+    if (!member) throw new NotFoundException('Member not found')
+    return this.applyProfile(member, input)
+  }
+
+  private async applyProfile(member: Member, input: UpdateProfileInput): Promise<Member> {
+    if (member.version !== input.version) {
+      throw new ConflictException(
+        'This member changed since you opened it — reload and try again',
+      )
+    }
+    const { version: _version, ...profile } = input
+    for (const [key, value] of Object.entries(profile)) {
+      ;(member as unknown as Record<string, unknown>)[key] = value ?? undefined
+    }
+    await this.em.flush()
+    return member
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Membership fee
+  // -----------------------------------------------------------------------------------------------
+
+  private async requireFee(memberId: string): Promise<MembershipFee> {
+    const fee = await this.em.findOne(
+      MembershipFee,
+      { member: memberId },
+      { populate: ['payments', 'payments.recordedByUser'] },
+    )
+    if (!fee) throw new NotFoundException('This member has no fee record yet')
+    return fee
+  }
+
+  async setExpectedFee(memberId: string, input: SetFeeInput): Promise<MembershipFee> {
+    const fee = await this.requireFee(memberId)
+    if (fee.version !== input.version) {
+      throw new ConflictException('The fee changed since you opened it — reload and try again')
+    }
+    fee.expectedAmountCents = input.expectedAmountCents
+    await this.em.flush()
+    return this.requireFee(memberId)
+  }
+
+  async recordFeePayment(
+    memberId: string,
+    input: RecordFeePaymentInput,
+    adminUserId: string,
+  ): Promise<MembershipFee> {
+    const fee = await this.requireFee(memberId)
+    const payment = new MembershipPayment()
+    payment.fee = fee
+    payment.kind = input.kind
+    payment.amountCents = input.amountCents
+    payment.method = input.method
+    payment.paidAt = input.paidAt
+    payment.note = input.note ?? undefined
+    payment.recordedByUser = this.em.getReference(User, adminUserId)
+    this.em.persist(payment)
+    await this.em.flush()
+    return this.requireFee(memberId)
+  }
+
+  async listFeePayments(memberId: string): Promise<MembershipPayment[]> {
+    const fee = await this.requireFee(memberId)
+    return [...fee.payments.getItems()].sort((a, b) => a.paidAt.getTime() - b.paidAt.getTime())
   }
 
   // -----------------------------------------------------------------------------------------------

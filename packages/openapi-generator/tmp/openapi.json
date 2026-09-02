@@ -220,6 +220,432 @@
         }
       }
     },
+    "/api/admin/members/{id}/profile": {
+      "put": {
+        "operationId": "AdminMembersController_updateProfile",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Update a member’s personal details (send the version you loaded)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "addressLine1": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "addressLine2": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "postalCode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "phone": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateMemberProfile",
+                "description": "Update a member’s personal details (send the version you loaded)",
+                "examples": [
+                  {
+                    "city": "Nantes",
+                    "phone": "+33612345678",
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/fee": {
+      "put": {
+        "operationId": "AdminMembersController_setFee",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Set the expected membership fee for a member (the \"variable fee\")",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedAmountCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedAmountCents",
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "SetMembershipFee",
+                "description": "Set the expected membership fee for a member (the \"variable fee\")",
+                "examples": [
+                  {
+                    "expectedAmountCents": 2000,
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Membership-fee expectation, total paid, and derived state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeeSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/fee/payments": {
+      "get": {
+        "operationId": "AdminMembersController_listFeePayments",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All recorded payments and adjustments against a member’s fee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeePaymentsList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "AdminMembersController_recordFeePayment",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Record a membership-fee payment (positive) or an adjustment (any non-zero)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "default": "payment",
+                    "type": "string",
+                    "enum": [
+                      "payment",
+                      "adjustment"
+                    ],
+                    "title": "MembershipPaymentKind",
+                    "description": "A correction is recorded as an \"adjustment\" row, never by editing a payment"
+                  },
+                  "amountCents": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "cash",
+                      "transfer",
+                      "other"
+                    ],
+                    "title": "MembershipPaymentMethod",
+                    "description": "How a membership-fee payment was made (\"online\" is reserved for lot 5)"
+                  },
+                  "paidAt": {
+                    "type": "string"
+                  },
+                  "note": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "amountCents",
+                  "method",
+                  "paidAt"
+                ],
+                "additionalProperties": false,
+                "title": "RecordFeePayment",
+                "description": "Record a membership-fee payment (positive) or an adjustment (any non-zero)",
+                "examples": [
+                  {
+                    "kind": "payment",
+                    "amountCents": 1000,
+                    "method": "cash",
+                    "paidAt": "2026-09-02"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Membership-fee expectation, total paid, and derived state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeeSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/me": {
+      "get": {
+        "operationId": "MemberSelfController_me",
+        "tags": [
+          "Member self-service"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The signed-in member’s own account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberSelf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/me/profile": {
+      "put": {
+        "operationId": "MemberSelfController_updateProfile",
+        "tags": [
+          "Member self-service"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Update a member’s personal details (send the version you loaded)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "addressLine1": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "addressLine2": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "postalCode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "phone": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateMemberProfile",
+                "description": "Update a member’s personal details (send the version you loaded)",
+                "examples": [
+                  {
+                    "city": "Nantes",
+                    "phone": "+33612345678",
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The signed-in member’s own account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberSelf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/membership-intake": {
       "get": {
         "operationId": "MembershipIntakeController_get",
@@ -4670,6 +5096,153 @@
         ],
         "type": "object"
       },
+      "UpdateMemberProfile": {
+        "type": "object",
+        "properties": {
+          "addressLine1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "addressLine2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postalCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "UpdateMemberProfile",
+        "description": "Update a member’s personal details (send the version you loaded)",
+        "examples": [
+          {
+            "city": "Nantes",
+            "phone": "+33612345678",
+            "version": 1
+          }
+        ]
+      },
+      "SetMembershipFee": {
+        "type": "object",
+        "properties": {
+          "expectedAmountCents": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "expectedAmountCents",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "SetMembershipFee",
+        "description": "Set the expected membership fee for a member (the \"variable fee\")",
+        "examples": [
+          {
+            "expectedAmountCents": 2000,
+            "version": 1
+          }
+        ]
+      },
+      "RecordFeePayment": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/MembershipPaymentKind"
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "method": {
+            "$ref": "#/components/schemas/MembershipPaymentMethod"
+          },
+          "paidAt": {
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "amountCents",
+          "method",
+          "paidAt"
+        ],
+        "additionalProperties": false,
+        "title": "RecordFeePayment",
+        "description": "Record a membership-fee payment (positive) or an adjustment (any non-zero)",
+        "examples": [
+          {
+            "kind": "payment",
+            "amountCents": 1000,
+            "method": "cash",
+            "paidAt": "2026-09-02"
+          }
+        ]
+      },
       "MembershipIntake": {
         "type": "object",
         "properties": {
@@ -6815,6 +7388,7 @@
         "description": "One recorded membership-fee payment or adjustment"
       },
       "MembershipPaymentKind": {
+        "default": "payment",
         "type": "string",
         "enum": [
           "payment",
@@ -6832,6 +7406,77 @@
         ],
         "title": "MembershipPaymentMethod",
         "description": "How a membership-fee payment was made (\"online\" is reserved for lot 5)"
+      },
+      "FeePaymentsList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/MemberPayment"
+        },
+        "title": "FeePaymentsList",
+        "description": "All recorded payments and adjustments against a member’s fee"
+      },
+      "MemberSelf": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "membershipNumber": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "identifiers": {
+            "$ref": "#/components/schemas/MemberIdentifiers"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MemberStatus"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          },
+          "profile": {
+            "$ref": "#/components/schemas/MemberProfile"
+          },
+          "fee": {
+            "$ref": "#/components/schemas/FeeSummary"
+          },
+          "joinedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "membershipNumber",
+          "name",
+          "identifiers",
+          "status",
+          "roles",
+          "profile",
+          "fee",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "MemberSelf",
+        "description": "The signed-in member’s own account"
       },
       "PaginationQuerySchema": {
         "type": "object",

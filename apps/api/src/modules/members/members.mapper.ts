@@ -8,7 +8,10 @@ import {
   type MemberSelf,
   type MembershipFeeState,
 } from './contracts/member.contract'
+import type { z } from 'zod'
+import type { memberPaymentSchema } from './contracts/member.contract'
 import { MembershipFee } from './entities/membership-fee.entity'
+import { MembershipPayment } from './entities/membership-payment.entity'
 import { Member } from './entities/member.entity'
 import type { MembersListResult } from './members.service'
 import { parseRoles } from './members.util'
@@ -121,6 +124,23 @@ export class MembersMapper {
         hasMore: pagination.offset + pagination.pageSize < total,
       },
     }
+  }
+
+  toFeePayment(payment: MembershipPayment): z.infer<typeof memberPaymentSchema> {
+    return {
+      id: payment.id,
+      kind: payment.kind,
+      amountCents: payment.amountCents,
+      method: payment.method,
+      paidAt: payment.paidAt,
+      note: payment.note ?? null,
+      recordedByName: payment.recordedByUser?.name ?? '',
+      createdAt: payment.createdAt,
+    }
+  }
+
+  toFeePayments(payments: MembershipPayment[]): z.infer<typeof memberPaymentSchema>[] {
+    return payments.map((payment) => this.toFeePayment(payment))
   }
 
   private realEmail(email: string | null | undefined): string | null {
