@@ -8,15 +8,25 @@ import { expect, test, withRole } from '../fixtures'
  */
 test.use(withRole('admin'))
 
+// Ce smoke lit l'id d'une entité seedée réelle : il lui faut la baseline complète, quel que
+// soit l'ordre d'exécution (une spec précédente peut avoir archivé tout le catalogue).
+test.beforeEach(async ({ resetDb }) => {
+  await resetDb()
+})
+
 test('toutes les routes rendent leur contenu propre', async ({ page }) => {
   // Ids dynamiques : on prend une entité seedée réelle via l'API (cookie admin partagé).
   const membersRes = await page.request.get(`${E2E.apiUrl}/api/admin/members?offset=0&pageSize=1`)
   expect(membersRes.ok(), await membersRes.text()).toBeTruthy()
-  const memberId = (await membersRes.json()).data[0].id as string
+  const members = (await membersRes.json()).data as { id: string }[]
+  expect(members.length, 'la baseline seedée doit contenir au moins un adhérent').toBeGreaterThan(0)
+  const memberId = members[0].id
 
   const productsRes = await page.request.get(`${E2E.apiUrl}/api/admin/products`)
   expect(productsRes.ok(), await productsRes.text()).toBeTruthy()
-  const productId = (await productsRes.json()).data[0].id as string
+  const products = (await productsRes.json()).data as { id: string }[]
+  expect(products.length, 'la baseline seedée doit contenir au moins un produit').toBeGreaterThan(0)
+  const productId = products[0].id
 
   const routes: { path: string; testId: string }[] = [
     { path: '/dashboard', testId: 'page-dashboard-home' },

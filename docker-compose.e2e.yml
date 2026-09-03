@@ -20,7 +20,7 @@ services:
       retries: 20
 
   maildev:
-    image: maildev/maildev:latest
+    image: maildev/maildev:2.2.1
     container_name: grocery-e2e-maildev
     ports:
       - '1090:1080'

@@ -1,5 +1,6 @@
-import { test as base, expect, request } from '@playwright/test'
-import { E2E, storageStatePath } from './env'
+import { test as base, expect } from '@playwright/test'
+import { storageStatePath } from './env'
+import { resetSeed } from './reset'
 
 export { expect }
 
@@ -16,12 +17,7 @@ interface E2eFixtures {
 export const test = base.extend<E2eFixtures>({
   // eslint-disable-next-line no-empty-pattern -- Playwright exige l'argument fixtures
   resetDb: async ({}, use) => {
-    await use(async () => {
-      const context = await request.newContext({ baseURL: E2E.apiUrl })
-      const response = await context.post('/api/test/seed/reset')
-      expect(response.ok(), await response.text()).toBeTruthy()
-      await context.dispose()
-    })
+    await use(resetSeed)
   },
 })
 

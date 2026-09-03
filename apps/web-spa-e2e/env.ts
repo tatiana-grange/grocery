@@ -1,6 +1,11 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import dotenv from 'dotenv'
+import { E2E_USERS as E2E_USER_RECORDS, type E2eUserKey } from '../api/src/seeders/e2e.fixtures'
+
+// Re-exported straight from the API's shared fixture file — the single source of truth for
+// the E2E accounts, password and search names (`apps/api/src/seeders/e2e.fixtures.ts`).
+export { E2E_PASSWORD, E2E_SEARCH_MEMBER_NAME } from '../api/src/seeders/e2e.fixtures'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(here, '../..')
@@ -34,19 +39,10 @@ export const E2E = {
   storageStateDir: resolve(here, '.auth'),
 } as const
 
-/** Les comptes seedés par `E2eSeeder` (apps/api/src/seeders/e2e.seeder.ts). */
-export const E2E_USERS = {
-  admin: 'admin@e2e.local',
-  member: 'member@e2e.local',
-  pending: 'pending@e2e.local',
-  banned: 'banned@e2e.local',
-  /** Adhérent actif dédié au parcours de résiliation (ses sessions sont révoquées). */
-  resign: 'resign@e2e.local',
-  /** Adhérent actif dédié au changement de mot de passe (ce flux fait tourner la session). */
-  pwtest: 'pwtest@e2e.local',
-} as const
-
-export const E2E_PASSWORD = 'Password123!'
-
-/** Nom d'un adhérent actif seedé, cherché par la spec de recherche de la liste. */
-export const E2E_SEARCH_MEMBER_NAME = 'Zelda Searchable'
+/**
+ * L'email de chaque compte seedé par `E2eSeeder`, indexé par rôle — les specs le saisissent
+ * dans les champs texte. Dérivé des enregistrements partagés pour rester synchronisé.
+ */
+export const E2E_USERS = Object.fromEntries(
+  Object.entries(E2E_USER_RECORDS).map(([key, record]) => [key, record.email]),
+) as Record<E2eUserKey, string>

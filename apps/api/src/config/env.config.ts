@@ -33,6 +33,11 @@ export const configValidationSchema = z.object({
   // Environment
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
+  // Set by the Playwright web-spa e2e run (apps/web-spa-e2e/.env.e2e). Gates the destructive,
+  // unauthenticated `TestSeedModule` so it never mounts during the API's own vitest suites,
+  // which also run with NODE_ENV=test.
+  E2E: z.stringbool().default(false),
+
   // API
   API_BASE_URL: z.url(),
   API_PORT: z.coerce.number(),
@@ -82,6 +87,7 @@ if (!configParsed.success) {
 
 export const config = {
   env: configParsed.data.NODE_ENV,
+  e2e: configParsed.data.E2E,
   api: {
     baseUrl: configParsed.data.API_BASE_URL,
     port: configParsed.data.API_PORT,

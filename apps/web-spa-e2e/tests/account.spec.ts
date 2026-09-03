@@ -1,18 +1,10 @@
-import { request } from '@playwright/test'
-import { E2E, E2E_PASSWORD, E2E_USERS } from '../env'
+import { E2E_PASSWORD, E2E_USERS } from '../env'
 import { expect, test, withRole } from '../fixtures'
-
-/** Remet la baseline après les tests qui mutent l'adhérent connecté. */
-async function reseed(): Promise<void> {
-  const ctx = await request.newContext({ baseURL: E2E.apiUrl })
-  const res = await ctx.post('/api/test/seed/reset')
-  expect(res.ok(), await res.text()).toBeTruthy()
-  await ctx.dispose()
-}
+import { resetSeed } from '../reset'
 
 test.describe('adhérent actif', () => {
   test.use(withRole('member'))
-  test.afterAll(reseed)
+  test.afterAll(resetSeed)
 
   test('affiche le statut et la cotisation', async ({ page }) => {
     await page.goto('/account')
@@ -33,7 +25,7 @@ test.describe('adhérent actif', () => {
 })
 
 test.describe('changement de mot de passe', () => {
-  test.afterAll(reseed)
+  test.afterAll(resetSeed)
 
   test('changer le mot de passe (puis le remettre)', async ({ page }) => {
     // Compte dédié `pwtest@e2e.local` : `changePassword` fait tourner le jeton de session,
@@ -67,7 +59,7 @@ test.describe('adhérent en attente', () => {
 })
 
 test.describe('résiliation', () => {
-  test.afterAll(reseed)
+  test.afterAll(resetSeed)
 
   test('résilier son adhésion déconnecte', async ({ page }) => {
     // Compte dédié `resign@e2e.local` : la résiliation révoque toutes ses sessions.

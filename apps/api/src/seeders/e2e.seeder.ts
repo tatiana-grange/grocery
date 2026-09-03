@@ -1,5 +1,7 @@
 import { EntityManager } from '@mikro-orm/core'
 import { Seeder } from '@mikro-orm/seeder'
+import { hashPassword } from 'better-auth/crypto'
+import { Account } from '../modules/auth/auth.entity'
 import {
   createCategoryData,
   createProductData,
@@ -7,55 +9,11 @@ import {
 } from '../modules/catalog/catalog.factory'
 import { MembershipPayment } from '../modules/members/entities/membership-payment.entity'
 import { createMemberData } from '../modules/members/members.factory'
+import { E2E_PASSWORD, E2E_SEARCH_MEMBER_NAME, E2E_USERS, FILLER_FIRST_NAMES } from './e2e.fixtures'
 
-/**
- * The users the web-spa E2E suite (`apps/web-spa-e2e`) signs in as. Every account shares
- * `E2E_PASSWORD`. `auth.setup.ts` logs `admin` and `member` in once and saves their session.
- */
-export const E2E_USERS = {
-  admin: { email: 'admin@e2e.local', name: 'Ada Admin' },
-  member: { email: 'member@e2e.local', name: 'Milo Member' },
-  pending: { email: 'pending@e2e.local', name: 'Perry Pending' },
-  banned: { email: 'banned@e2e.local', name: 'Ben Banned' },
-  /** Active member the résiliation journey signs in as and terminates (revokes its sessions). */
-  resign: { email: 'resign@e2e.local', name: 'Rosa Resign' },
-  /** Active member the password-change journey signs in as (that flow rotates the session). */
-  pwtest: { email: 'pwtest@e2e.local', name: 'Percy Password' },
-} as const
-
-export const E2E_PASSWORD = 'Password123!'
-
-/** A seeded active member whose name the members-list search spec looks for. */
-export const E2E_SEARCH_MEMBER_NAME = 'Zelda Searchable'
-
-/** First names for the extra members that fill the paginated list (page size is 20). */
-const FILLER_FIRST_NAMES = [
-  'Alice',
-  'Bruno',
-  'Carla',
-  'David',
-  'Elsa',
-  'Femi',
-  'Gaia',
-  'Hugo',
-  'Ines',
-  'Jonas',
-  'Kenza',
-  'Liam',
-  'Maya',
-  'Noah',
-  'Olga',
-  'Paul',
-  'Rita',
-  'Sami',
-  'Tara',
-  'Umar',
-  'Vera',
-  'Waris',
-  'Xena',
-  'Yann',
-  'Zoe',
-] as const
+// Re-exported so existing importers keep working; the definitions live in `e2e.fixtures.ts`,
+// which the `@grocery/web-spa-e2e` package also imports.
+export { E2E_PASSWORD, E2E_SEARCH_MEMBER_NAME, E2E_USERS } from './e2e.fixtures'
 
 /**
  * Deterministic read-only baseline for the web-spa E2E suite. Unlike `DatabaseSeeder` /
@@ -176,6 +134,21 @@ export class E2eSeeder extends Seeder {
       setByUser: adminUser,
       archivedAt: new Date(),
     })
+
+    // --- restore the canonical password ---------------------------------------------------
+    // `POST /api/test/seed/reset` keeps the Better Auth tables, and `createUserData` leaves an
+    // existing account's password untouched. A spec that rotates a password (account.spec)
+    // would otherwise strand that account on the new value, since `afterAll(reseed)` cannot
+    // reach it. Force every seeded credential back to `E2E_PASSWORD` on each run so a reseed
+    // is authoritative.
+    const seededAccounts = await em.find(Account, {
+      providerId: 'credential',
+      user: { email: { $like: '%@e2e.local' } },
+    })
+    const hashed = await hashPassword(E2E_PASSWORD)
+    for (const account of seededAccounts) {
+      account.password = hashed
+    }
 
     await em.flush()
   }
