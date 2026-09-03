@@ -103,6 +103,11 @@ Focus on high-signal findings. Limit to 50 findings total; aggregate remainder i
 - Requirements with zero associated tasks
 - Tasks with no mapped requirement/story
 - Non-functional requirements not reflected in tasks (e.g., performance, security)
+- **E2E coverage** (only when the project has an E2E test suite — a `test:e2e` / `e2e`
+  script, a Playwright or Cypress config, or an `e2e/` folder / `*.e2e-spec.*` / `*.cy.*`
+  files): any user story with no E2E test task covering its primary flow is a HIGH finding;
+  a missing "run the full E2E suite" task in the final phase is a MEDIUM finding; any task
+  that edits, skips, or deletes an existing E2E test is a CRITICAL finding.
 
 #### F. Inconsistency
 

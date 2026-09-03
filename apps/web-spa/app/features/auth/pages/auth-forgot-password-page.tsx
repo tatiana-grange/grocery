@@ -72,7 +72,7 @@ export default function AuthForgotPasswordPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="page-forgot-password">
       <AuthPageHeader
         title={t('auth.forgotPassword.title')}
         description={t('auth.forgotPassword.description')}
@@ -95,7 +95,7 @@ export default function AuthForgotPasswordPage() {
       )}
 
       {step === 'emailSent' && (
-        <div className="space-y-3 text-center">
+        <div className="space-y-3 text-center" data-testid="auth-forgot-sent">
           <p className="text-sm text-muted-foreground">
             {t('auth.forgotPassword.emailSent')}
           </p>

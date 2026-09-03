@@ -40,6 +40,9 @@ catalogs:
   validation:
     zod: ~4.3.6
     zod-openapi: 5.4.6
+  e2e:
+    '@playwright/test': ^1.62.1
+    dotenv: ^17.4.2
 
 onlyBuiltDependencies:
   - '@nestjs/core'

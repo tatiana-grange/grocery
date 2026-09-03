@@ -12,5 +12,9 @@ const VARIANT: Record<Status, 'default' | 'secondary' | 'destructive' | 'outline
 
 export function MemberStatusBadge({ status }: { status: Status }) {
   const { t } = useTranslation()
-  return <Badge variant={VARIANT[status]}>{t(`members.status.${status}`)}</Badge>
+  return (
+    <Badge variant={VARIANT[status]} data-testid={`member-status-${status}`}>
+      {t(`members.status.${status}`)}
+    </Badge>
+  )
 }

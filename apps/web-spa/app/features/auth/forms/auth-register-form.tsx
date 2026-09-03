@@ -68,6 +68,7 @@ export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({
             <Button
               key={option}
               type="button"
+              data-testid={`auth-register-mode-${option}`}
               variant={mode === option ? 'default' : 'outline'}
               size="sm"
               className="flex-1"
@@ -85,7 +86,14 @@ export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({
             <FormItem>
               <FormLabel htmlFor="name">{t('auth.register.name')}</FormLabel>
               <FormControl>
-                <Input id="name" {...field} type="text" autoComplete="name" placeholder="John" />
+                <Input
+                  id="name"
+                  data-testid="auth-register-name"
+                  {...field}
+                  type="text"
+                  autoComplete="name"
+                  placeholder="John"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -103,6 +111,7 @@ export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({
               <FormControl>
                 <Input
                   id="identifier"
+                  data-testid="auth-register-identifier"
                   {...field}
                   type={mode === 'email' ? 'email' : 'tel'}
                   autoComplete={mode === 'email' ? 'email' : 'tel'}
@@ -123,6 +132,7 @@ export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({
               <FormControl>
                 <Input
                   id="password"
+                  data-testid="auth-register-password"
                   {...field}
                   type="password"
                   autoComplete="new-password"
@@ -143,18 +153,24 @@ export const AuthRegisterForm: React.FC<AuthRegisterFormProps> = ({
               <FormControl>
                 <Input
                   id="confirmPassword"
+                  data-testid="auth-register-confirm"
                   {...field}
                   type="password"
                   autoComplete="new-password"
                   placeholder="••••••••"
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage data-testid="auth-register-confirm-error" />
             </FormItem>
           )}
         />
 
-        <Button className="w-full" type="submit" disabled={isPending}>
+        <Button
+          className="w-full"
+          type="submit"
+          data-testid="auth-register-submit"
+          disabled={isPending}
+        >
           {t('auth.register.signUp')}
         </Button>
       </form>

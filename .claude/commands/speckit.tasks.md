@@ -27,6 +27,10 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
    - **Optional**: data-model.md (entities), contracts/ (API endpoints), research.md (decisions), quickstart.md (test scenarios)
    - Note: Not all projects have all documents. Generate tasks based on what's available.
+   - **Detect the E2E test suite**: Check whether the project has an end-to-end test suite
+     (a `test:e2e` / `e2e` script in `package.json`, a Playwright or Cypress config, or a
+     dedicated `e2e/` folder or `*.e2e-spec.*` / `*.cy.*` files). If one exists, E2E test
+     tasks are REQUIRED (see Task Generation Rules).
 
 3. **Execute task generation workflow**:
    - Load plan.md and extract tech stack, libraries, project structure
@@ -79,6 +83,14 @@ The tasks.md should be immediately executable - each task must be specific enoug
 **CRITICAL**: Tasks MUST be organized by user story to enable independent implementation and testing.
 
 **Tests are OPTIONAL**: Only generate test tasks if explicitly requested in the feature specification or if user requests TDD approach.
+
+**E2E tests are the exception**: If the project has an E2E test suite (detected in step 2),
+every user story phase MUST include at least one E2E test task that covers that story's
+primary flow, plus a final task in the Polish phase that runs the full E2E suite and
+confirms it still passes. These tasks are required even when other tests were not requested.
+A new E2E test for a story should be written to describe the intended behaviour and is
+expected to fail before the story is implemented. Never add a task that changes, skips, or
+deletes an existing E2E test.
 
 ### Checklist Format (REQUIRED)
 
@@ -142,6 +154,7 @@ Every task MUST strictly follow this format:
 - **Phase 1**: Setup (project initialization)
 - **Phase 2**: Foundational (blocking prerequisites - MUST complete before user stories)
 - **Phase 3+**: User Stories in priority order (P1, P2, P3...)
-  - Within each story: Tests (if requested) → Models → Services → Endpoints → Integration
+  - Within each story: Tests (if requested) → E2E test for the story (if the project has an E2E suite) → Models → Services → Endpoints → Integration
   - Each phase should be a complete, independently testable increment
 - **Final Phase**: Polish & Cross-Cutting Concerns
+  - If the project has an E2E suite, include a task that runs the full E2E suite and confirms every existing test still passes

@@ -83,7 +83,7 @@ export default function Register() {
 
   if (step === 'done') {
     return (
-      <div>
+      <div data-testid="auth-register-done">
         <AuthPageHeader
           title={t('auth.register.success.title')}
           description={
@@ -144,7 +144,7 @@ export default function Register() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="page-register">
       <AuthPageHeader
         title={t('auth.register.title')}
         description={t('auth.register.description')}

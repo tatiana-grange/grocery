@@ -78,7 +78,11 @@ export function CategoriesTab() {
               </TableRow>
             )}
             {data?.map((category) => (
-              <TableRow key={category.id} className={category.archivedAt ? 'opacity-50' : ''}>
+              <TableRow
+                key={category.id}
+                data-testid={`category-row-${category.name}`}
+                className={category.archivedAt ? 'opacity-50' : ''}
+              >
                 <TableCell className="font-medium">{category.name}</TableCell>
                 <TableCell>{category.productCount}</TableCell>
                 <TableCell className="flex gap-1">
@@ -87,12 +91,18 @@ export function CategoriesTab() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      data-testid="category-unarchive"
                       onClick={() => unarchive.mutate(category.id)}
                     >
                       {t('catalog.unarchive')}
                     </Button>
                   ) : (
-                    <Button variant="ghost" size="sm" onClick={() => archive.mutate(category.id)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      data-testid="category-archive"
+                      onClick={() => archive.mutate(category.id)}
+                    >
                       {t('catalog.archive')}
                     </Button>
                   )}
@@ -124,7 +134,15 @@ function CategoryDialog({ category, onSaved }: { category?: Category; onSaved: (
 
   return (
     <Dialog>
-      <DialogTrigger render={<Button variant={category ? 'ghost' : 'default'} size="sm" />}>
+      <DialogTrigger
+        render={
+          <Button
+            variant={category ? 'ghost' : 'default'}
+            size="sm"
+            data-testid={category ? 'category-edit' : 'category-new'}
+          />
+        }
+      >
         {category ? t('catalog.edit') : t('catalog.categories.new')}
       </DialogTrigger>
       <DialogContent>
@@ -134,6 +152,7 @@ function CategoryDialog({ category, onSaved }: { category?: Category; onSaved: (
           </DialogTitle>
         </DialogHeader>
         <Input
+          data-testid="category-name"
           placeholder={t('catalog.categories.name')}
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -141,7 +160,7 @@ function CategoryDialog({ category, onSaved }: { category?: Category; onSaved: (
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
           <DialogClose
-            render={<Button />}
+            render={<Button data-testid="category-save" />}
             disabled={!name.trim() || mutation.isPending}
             onClick={() => mutation.mutate()}
           >

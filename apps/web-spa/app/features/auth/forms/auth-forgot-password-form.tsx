@@ -54,6 +54,7 @@ export const AuthForgotPasswordForm: React.FC<Props> = ({
             <Button
               key={option}
               type="button"
+              data-testid={`auth-forgot-mode-${option}`}
               variant={mode === option ? 'default' : 'outline'}
               size="sm"
               className="flex-1"
@@ -75,6 +76,7 @@ export const AuthForgotPasswordForm: React.FC<Props> = ({
               <FormControl>
                 <Input
                   id="identifier"
+                  data-testid="auth-forgot-identifier"
                   {...field}
                   type={mode === 'email' ? 'email' : 'tel'}
                   autoComplete={mode === 'email' ? 'email' : 'tel'}
@@ -86,7 +88,12 @@ export const AuthForgotPasswordForm: React.FC<Props> = ({
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isPending}>
+        <Button
+          type="submit"
+          className="w-full"
+          data-testid="auth-forgot-submit"
+          disabled={isPending}
+        >
           {t('auth.forgotPassword.sendResetLink')}
         </Button>
       </form>

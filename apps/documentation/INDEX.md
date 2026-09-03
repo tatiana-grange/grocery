@@ -39,6 +39,7 @@
 - [encrypt-env.mdx](./src/content/docs/guides/encrypt-env.mdx) - Setup env file encryption
 - [feature-flags.mdx](./src/content/docs/guides/feature-flags.mdx) - Ship a merged change dark with a single env-var check
 - [generating-types.mdx](./src/content/docs/guides/generating-types.mdx) - Generate types and SDKs from the OpenAPI schema
+- [web-spa-e2e.mdx](./src/content/docs/guides/web-spa-e2e.mdx) - Playwright end-to-end tests that drive the real API + SPA
 
 ## Project
 

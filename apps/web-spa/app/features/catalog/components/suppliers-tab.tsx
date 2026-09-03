@@ -89,22 +89,34 @@ export function SuppliersTab() {
               </TableRow>
             )}
             {data?.data.map((supplier) => (
-              <TableRow key={supplier.id} className={supplier.archivedAt ? 'opacity-50' : ''}>
+              <TableRow
+                key={supplier.id}
+                data-testid={`supplier-row-${supplier.name}`}
+                className={supplier.archivedAt ? 'opacity-50' : ''}
+              >
                 <TableCell className="font-medium">{supplier.name}</TableCell>
                 <TableCell>
-                  <Badge variant="outline">{t(`catalog.supplierType.${supplier.type}`)}</Badge>
+                  <Badge variant="outline" data-testid="supplier-row-type">
+                    {t(`catalog.supplierType.${supplier.type}`)}
+                  </Badge>
                 </TableCell>
                 <TableCell>{supplier.productCount}</TableCell>
                 <TableCell className="flex gap-1">
                   <SupplierDialog supplier={supplier} onSaved={invalidate} />
                   {supplier.archivedAt ? (
-                    <Button variant="ghost" size="sm" onClick={() => unarchive.mutate(supplier.id)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      data-testid="supplier-unarchive"
+                      onClick={() => unarchive.mutate(supplier.id)}
+                    >
                       {t('catalog.unarchive')}
                     </Button>
                   ) : (
                     <Button
                       variant="ghost"
                       size="sm"
+                      data-testid="supplier-archive"
                       onClick={() => archive.mutate({ id: supplier.id })}
                     >
                       {t('catalog.archive')}
@@ -140,7 +152,13 @@ function SupplierDialog({ supplier, onSaved }: { supplier?: Supplier; onSaved: (
   return (
     <Dialog>
       <DialogTrigger
-        render={<Button variant={supplier ? 'ghost' : 'default'} size="sm" />}
+        render={
+          <Button
+            variant={supplier ? 'ghost' : 'default'}
+            size="sm"
+            data-testid={supplier ? 'supplier-edit' : 'supplier-new'}
+          />
+        }
       >
         {supplier ? t('catalog.edit') : t('catalog.suppliers.new')}
       </DialogTrigger>
@@ -152,6 +170,7 @@ function SupplierDialog({ supplier, onSaved }: { supplier?: Supplier; onSaved: (
         </DialogHeader>
         <div className="space-y-3">
           <Input
+            data-testid="supplier-name"
             placeholder={t('catalog.suppliers.name')}
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -161,6 +180,7 @@ function SupplierDialog({ supplier, onSaved }: { supplier?: Supplier; onSaved: (
               <Button
                 key={option}
                 type="button"
+                data-testid={`supplier-type-${option}`}
                 variant={type === option ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setType(option)}
@@ -173,7 +193,7 @@ function SupplierDialog({ supplier, onSaved }: { supplier?: Supplier; onSaved: (
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
           <DialogClose
-            render={<Button />}
+            render={<Button data-testid="supplier-save" />}
             disabled={!name.trim() || mutation.isPending}
             onClick={() => mutation.mutate()}
           >

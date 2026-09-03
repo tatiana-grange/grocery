@@ -66,15 +66,17 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
   })
 
   return (
-    <section className="space-y-3 rounded-lg border border-border p-4">
+    <section className="space-y-3 rounded-lg border border-border p-4" data-testid="member-fee-panel">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           {t('adminMembers.fee.title')}
         </h2>
-        <Badge variant="outline">{t(`members.feeState.${member.fee.state}`)}</Badge>
+        <Badge variant="outline" data-testid="member-fee-state">
+          {t(`members.feeState.${member.fee.state}`)}
+        </Badge>
       </div>
 
-      <p className="text-sm">
+      <p className="text-sm" data-testid="member-fee-summary">
         {(member.fee.paidAmountCents / 100).toFixed(2)} /{' '}
         {(member.fee.expectedAmountCents / 100).toFixed(2)} €
       </p>
@@ -86,6 +88,7 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
             type="number"
             step="0.01"
             className="w-28"
+            data-testid="member-fee-expected"
             value={expectedEur}
             onChange={(event) => setExpectedEur(event.target.value)}
           />
@@ -93,6 +96,7 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
         <Button
           size="sm"
           variant="outline"
+          data-testid="member-fee-save"
           disabled={
             !Number.isFinite(Number(expectedEur)) ||
             Number(expectedEur) < 0 ||
@@ -105,7 +109,7 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
       </div>
 
       <Dialog>
-        <DialogTrigger render={<Button size="sm" />}>
+        <DialogTrigger render={<Button size="sm" data-testid="member-fee-record-open" />}>
           {t('adminMembers.fee.recordPayment')}
         </DialogTrigger>
         <DialogContent>
@@ -115,6 +119,7 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
           <Input
             type="number"
             step="0.01"
+            data-testid="member-fee-amount"
             placeholder={t('adminMembers.fee.amount')}
             value={amountEur}
             onChange={(event) => setAmountEur(event.target.value)}
@@ -142,7 +147,7 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
               {t('adminMembers.fee.adjustment')}
             </DialogClose>
             <DialogClose
-              render={<Button />}
+              render={<Button data-testid="member-fee-record-confirm" />}
               disabled={!(Number(amountEur) > 0)}
               onClick={() => pay.mutate('payment')}
             >

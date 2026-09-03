@@ -87,7 +87,7 @@ export default function AccountPage() {
 
   if (error && !isForbidden(error)) {
     return (
-      <div className="space-y-4 text-center">
+      <div className="space-y-4 text-center" data-testid="account-load-error">
         <h1 className="text-2xl font-black tracking-tight">{t('members.account.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('members.account.loadError')}</p>
         <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
@@ -99,7 +99,7 @@ export default function AccountPage() {
 
   if (error || !account) {
     return (
-      <div className="space-y-4 text-center">
+      <div className="space-y-4 text-center" data-testid="account-not-active">
         <h1 className="text-2xl font-black tracking-tight">{t('members.account.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('members.account.notActive')}</p>
         <Button
@@ -116,11 +116,14 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-testid="page-account">
       <div>
         <h1 className="text-2xl font-black tracking-tight">{t('members.account.title')}</h1>
         <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-          <Badge variant={account.status === 'active' ? 'default' : 'secondary'}>
+          <Badge
+            variant={account.status === 'active' ? 'default' : 'secondary'}
+            data-testid="account-status"
+          >
             {t(`members.status.${account.status}`)}
           </Badge>
           <span>·</span>
@@ -146,7 +149,11 @@ export default function AccountPage() {
             <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
               {t('members.account.name')}
             </span>
-            <Input value={name} onChange={(event) => setName(event.target.value)} />
+            <Input
+              data-testid="account-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
           </label>
           {FIELDS.map((field) => (
             <label key={field} className="block space-y-1">
@@ -154,6 +161,7 @@ export default function AccountPage() {
                 {t(`members.account.${field}`)}
               </span>
               <Input
+                data-testid={`account-field-${field}`}
                 value={profile[field] ?? ''}
                 onChange={(event) =>
                   setProfile((current) => ({ ...current, [field]: event.target.value }))
@@ -161,7 +169,11 @@ export default function AccountPage() {
               />
             </label>
           ))}
-          <Button disabled={mutation.isPending} onClick={() => mutation.mutate()}>
+          <Button
+            data-testid="account-save"
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
             {t('members.account.save')}
           </Button>
         </section>
@@ -173,7 +185,16 @@ export default function AccountPage() {
 
       <section className="border-t border-border pt-6">
         <Dialog>
-          <DialogTrigger render={<Button variant="ghost" size="sm" className="text-destructive" />}>
+          <DialogTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="sm"
+                data-testid="account-end-open"
+                className="text-destructive"
+              />
+            }
+          >
             {t('members.account.endMembership')}
           </DialogTrigger>
           <DialogContent>
@@ -186,7 +207,7 @@ export default function AccountPage() {
             <DialogFooter>
               <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
               <DialogClose
-                render={<Button variant="destructive" />}
+                render={<Button variant="destructive" data-testid="account-end-confirm" />}
                 disabled={terminate.isPending}
                 onClick={() => terminate.mutate()}
               >

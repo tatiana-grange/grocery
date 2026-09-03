@@ -53,6 +53,11 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **IF EXISTS**: Read research.md for technical decisions and constraints
    - **IF EXISTS**: Read quickstart.md for integration scenarios
 
+   **Detect the E2E test suite**: Check whether the project has an end-to-end test suite
+   (for example a `test:e2e` / `e2e` script in `package.json`, a Playwright or Cypress
+   config, or a dedicated `e2e/` folder or `*.e2e-spec.*` / `*.cy.*` files). Record whether
+   one exists — the E2E gate in steps 8 and 10 only applies when it does.
+
 4. **Project Setup Verification**:
    - **REQUIRED**: Create/verify ignore files based on actual project setup:
 
@@ -124,6 +129,12 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Provide clear error messages with context for debugging
    - Suggest next steps if implementation cannot proceed
    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
+   - **E2E test failures need a human** (only when the project has an E2E suite): if an
+     existing end-to-end test fails, STOP. Do not edit, weaken, skip, or delete that test to
+     make it pass. Report which E2E tests failed and their output, and ask a human to decide
+     whether the test should be updated (the expected behaviour changed on purpose) or the
+     code should be fixed (this is a regression). Only resume once a human has given that
+     direction.
 
 9. **🚨 MANDATORY: Commit After Each Phase** - This step is NON-NEGOTIABLE:
    
@@ -157,5 +168,13 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Validate that tests pass and coverage meets requirements
    - Confirm the implementation follows the technical plan
    - Report final status with summary of completed work
+
+   **E2E gate** (only when the project has an E2E suite): the feature is NOT done until
+   both of these hold:
+
+   - The new feature has its own E2E tests covering its primary user stories, and they pass.
+   - The full existing E2E suite still passes. A feature that breaks any existing E2E test
+     is not valid. Do not mark the feature complete; follow the human-intervention rule in
+     step 8 for every failing test.
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.

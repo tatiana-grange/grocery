@@ -25,7 +25,7 @@ The text the user typed after `/speckit.specify` in the triggering message **is*
 Given that feature description, do this:
 
 1. **Determine branch type and generate short name**:
-   - Follow branch naming conventions from [git-commit/SKILL.md](../../.claude/skills/git-commit/SKILL.md)
+   - Follow branch naming conventions from [git-workflow/SKILL.md](../../.claude/skills/git-workflow/SKILL.md)
    - Branch types: `feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`
    - Determine type from description:
      - `fix/` if description mentions "fix", "bug", "error", "issue"
