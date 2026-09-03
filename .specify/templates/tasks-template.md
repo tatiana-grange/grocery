@@ -10,6 +10,8 @@ description: "Task list template for feature implementation"
 
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
+**E2E tests**: If the project has an end-to-end test suite (a `test:e2e` / `e2e` script, a Playwright or Cypress config, or an `e2e/` folder / `*.e2e-spec.*` / `*.cy.*` files), E2E test tasks are REQUIRED even when other tests are not: one E2E test per user story covering its primary flow, plus a final task that runs the full suite. Never add a task that changes, skips, or deletes an existing E2E test - if one fails, a human decides whether to update the test or fix the code.
+
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
 ## Format: `[ID] [P?] [Story] Description`
@@ -86,6 +88,12 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
 
+### E2E test for User Story 1 (REQUIRED if the project has an E2E suite) ⚠️
+
+> **NOTE: Write this test FIRST, describing the intended behaviour; ensure it FAILS before implementation**
+
+- [ ] T0XX [US1] E2E test for [primary flow of this story] in e2e/[name].spec.ts
+
 ### Implementation for User Story 1
 
 - [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
@@ -156,6 +164,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
+- [ ] TXXX Run the full E2E suite (if the project has one) and confirm every existing test still passes; a failing test blocks the feature and needs a human to decide whether to update the test or fix the behaviour
 
 ---
 
@@ -179,10 +188,12 @@ Examples of foundational tasks (adjust based on your project):
 ### Within Each User Story
 
 - Tests (if included) MUST be written and FAIL before implementation
+- The story's E2E test (if the project has an E2E suite) MUST be written and FAIL before implementation
 - Models before services
 - Services before endpoints
 - Core implementation before integration
 - Story complete before moving to next priority
+- A story is not complete while any E2E test fails; a failing E2E test needs a human to decide whether to update the test or fix the code
 
 ### Parallel Opportunities
 
@@ -246,6 +257,7 @@ With multiple developers:
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
 - Verify tests fail before implementing
+- If the project has an E2E suite: the feature is only valid when its own E2E tests pass and no existing E2E test breaks; never edit or delete an existing E2E test to make it pass - stop and ask a human
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

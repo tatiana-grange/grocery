@@ -21,6 +21,7 @@
 **Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 **Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**E2E suite present?**: [yes/no - a `test:e2e` / `e2e` script, a Playwright or Cypress config, or an `e2e/` folder / `*.e2e-spec.*` / `*.cy.*` files. If yes: the feature must ship with its own E2E tests, is only valid when the full E2E suite passes, and a failing E2E test blocks the feature until a human decides whether to update the test or fix the behaviour.]
 **Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
 **Project Type**: [single/web/mobile - determines source structure]
 **Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]

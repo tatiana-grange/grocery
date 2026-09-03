@@ -26,6 +26,12 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
    - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
+   - In Technical Context, record whether the project has an end-to-end (E2E) test suite
+     (a `test:e2e` / `e2e` script, a Playwright or Cypress config, or a dedicated `e2e/`
+     folder or `*.e2e-spec.*` / `*.cy.*` files). If it does, state in the plan that the
+     feature must ship with its own E2E tests and that it is only valid when the full E2E
+     suite passes; a failing E2E test blocks the feature and needs a human to decide whether
+     to update the test or fix the behaviour.
    - Fill Constitution Check section from constitution
    - Evaluate gates (ERROR if violations unjustified)
    - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
