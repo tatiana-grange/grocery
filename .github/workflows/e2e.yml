@@ -6,11 +6,16 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   web-spa-e2e:
     name: 🎭 web-spa e2e
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      report_ready: ${{ steps.report.outputs.ready }}
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -27,18 +32,68 @@ jobs:
       - name: 🌐 Install Playwright browser
         run: pnpm --filter @grocery/web-spa-e2e exec playwright install --with-deps chromium
 
-      # `pnpm e2e` starts the disposable infra (docker-compose.e2e.yml: Postgres :5433,
-      # maildev :1080/:1025), recreates + seeds the DB, boots the API + SPA via Playwright's
+      # `pnpm e2e` starts the disposable infra (docker-compose.e2e.yml: Postgres :5434,
+      # maildev :1090/:1035), recreates + seeds the DB, boots the API + SPA via Playwright's
       # webServer (reuseExistingServer is false when CI=true) and runs the specs.
       - name: 🎭 Run e2e
         run: pnpm e2e
         env:
           CI: true
 
-      - name: 📤 Upload Playwright report
+      - name: 🔎 Did the run produce a report?
+        id: report
         if: ${{ !cancelled() }}
+        run: |
+          if [ -f apps/web-spa-e2e/playwright-report/index.html ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 📤 Upload Playwright report (download)
+        if: ${{ !cancelled() && steps.report.outputs.ready == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: apps/web-spa-e2e/playwright-report/
           retention-days: 7
+
+      - name: 📦 Package Playwright report for Pages
+        if: ${{ !cancelled() && steps.report.outputs.ready == 'true' }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web-spa-e2e/playwright-report/
+
+  # Publishes the HTML report (traces included) to GitHub Pages so it is one click away
+  # from the run. One site: every run — push to `main` or a PR — replaces the previous
+  # report. Skipped for pull requests from a fork (no Pages permissions).
+  publish-report:
+    name: 📊 publish report
+    needs: web-spa-e2e
+    if: >-
+      ${{ !cancelled()
+      && needs.web-spa-e2e.outputs.report_ready == 'true'
+      && (github.event_name == 'push'
+      || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: 🔗 Link the report in the run summary
+        run: |
+          {
+            echo "### 🎭 Playwright report"
+            echo ""
+            echo "[Open the report](${{ steps.deploy.outputs.page_url }})"
+          } >> "$GITHUB_STEP_SUMMARY"
