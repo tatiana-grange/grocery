@@ -33,12 +33,22 @@ export default function MemberAreaLayout() {
         </Link>
         <div className="flex items-center gap-2">
           {isAdmin && (
-            <Button variant="ghost" size="sm" render={<Link to="/admin/members" />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              data-testid="member-area-back-office"
+              render={<Link to="/admin/members" />}
+            >
               <ShieldCheck className="mr-2 size-4" />
               {t('adminMembers.backOffice')}
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
+          <Button
+            variant="ghost"
+            size="sm"
+            data-testid="nav-logout"
+            onClick={handleLogout}
+          >
             <LogOut className="mr-2 size-4" />
             {t('members.nav.logOut')}
           </Button>

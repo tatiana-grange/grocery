@@ -18,7 +18,7 @@ services:
 
   maildev:
     container_name: grocery-maildev
-    image: netoun/mail-server-dev
+    image: maildev/maildev:latest
     ports:
       - '${SMTP_PORT_WEB}:1080'
       - '${SMTP_PORT}:1025'

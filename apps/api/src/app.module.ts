@@ -6,11 +6,13 @@ import { APP_FILTER } from '@nestjs/core'
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup'
 import { LoggerModule } from 'nestjs-pino'
 import { AppController } from './app.controller'
+import { config } from './config/env.config'
 import { AuthModule } from './modules/auth/auth.module'
 import { DbModule } from './modules/db/db.module'
 import { CatalogModule } from './modules/catalog/catalog.module'
 import { EmailModule } from './modules/email/email.module'
 import { MembersModule } from './modules/members/members.module'
+import { TestSeedModule } from './modules/test-seed/test-seed.module'
 
 // Extended interface for Express requests
 interface ExpressRequest extends IncomingMessage {
@@ -95,6 +97,8 @@ interface ExpressResponse extends ServerResponse<IncomingMessage> {
     NestConfigModule,
     MembersModule,
     CatalogModule,
+    // Test-only fixtures endpoints (`/api/test/seed/*`), never mounted outside `NODE_ENV=test`.
+    ...(config.env === 'test' ? [TestSeedModule] : []),
   ],
   controllers: [AppController],
   providers: [

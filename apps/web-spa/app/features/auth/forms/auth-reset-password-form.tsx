@@ -56,6 +56,7 @@ export const AuthResetPasswordForm: React.FC<AuthResetPasswordFormProps> = ({
               <FormControl>
                 <Input
                   id="password"
+                  data-testid="auth-reset-password"
                   {...field}
                   type="password"
                   autoComplete="new-password"
@@ -77,6 +78,7 @@ export const AuthResetPasswordForm: React.FC<AuthResetPasswordFormProps> = ({
               <FormControl>
                 <Input
                   id="confirmPassword"
+                  data-testid="auth-reset-confirm"
                   {...field}
                   type="password"
                   autoComplete="new-password"
@@ -87,7 +89,12 @@ export const AuthResetPasswordForm: React.FC<AuthResetPasswordFormProps> = ({
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isPending}>
+        <Button
+          type="submit"
+          className="w-full"
+          data-testid="auth-reset-submit"
+          disabled={isPending}
+        >
           {t('auth.resetPassword.reset')}
         </Button>
       </form>

@@ -57,6 +57,7 @@ export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             <Button
               key={option}
               type="button"
+              data-testid={`auth-login-mode-${option}`}
               variant={mode === option ? 'default' : 'outline'}
               size="sm"
               className="flex-1"
@@ -78,6 +79,7 @@ export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
               <FormControl>
                 <Input
                   id="identifier"
+                  data-testid="auth-login-identifier"
                   {...field}
                   type={mode === 'email' ? 'email' : 'tel'}
                   autoComplete={mode === 'email' ? 'email' : 'tel'}
@@ -103,6 +105,7 @@ export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
               <FormControl>
                 <Input
                   id="password"
+                  data-testid="auth-login-password"
                   {...field}
                   autoComplete="current-password"
                   placeholder="••••••••"
@@ -114,7 +117,12 @@ export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           )}
         />
 
-        <Button className="w-full" type="submit" disabled={isPending}>
+        <Button
+          className="w-full"
+          type="submit"
+          data-testid="auth-login-submit"
+          disabled={isPending}
+        >
           {t('auth.login.signIn')}
         </Button>
       </form>

@@ -66,7 +66,7 @@ export default function MembersListPage() {
   const pageCount = Math.max(1, Math.ceil(total / MEMBERS_PAGE_SIZE))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="page-members-list">
       <div>
         <h1 className="text-2xl font-black tracking-tight">{t('adminMembers.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('adminMembers.subtitle')}</p>
@@ -79,7 +79,7 @@ export default function MembersListPage() {
         >
           <TabsList>
             {STATUS_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab}>
+              <TabsTrigger key={tab} value={tab} data-testid={`members-tab-${tab}`}>
                 {t(`adminMembers.tabs.${tab}`)}
               </TabsTrigger>
             ))}
@@ -88,6 +88,7 @@ export default function MembersListPage() {
         <div className="flex items-center gap-2">
           <Input
             className="w-56"
+            data-testid="members-search"
             placeholder={t('adminMembers.searchPlaceholder')}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -123,16 +124,22 @@ export default function MembersListPage() {
 
             {!isLoading && data?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="py-10 text-center text-muted-foreground"
+                  data-testid="members-empty"
+                >
                   {t('adminMembers.empty')}
                 </TableCell>
               </TableRow>
             )}
 
             {data?.data.map((member) => (
-              <TableRow key={member.id}>
+              <TableRow key={member.id} data-testid={`members-row-${member.membershipNumber}`}>
                 <TableCell className="font-mono text-xs">{member.membershipNumber}</TableCell>
-                <TableCell className="font-medium">{member.name}</TableCell>
+                <TableCell className="font-medium" data-testid="members-row-name">
+                  {member.name}
+                </TableCell>
                 <TableCell className="text-muted-foreground">
                   {member.email ?? member.phoneNumber ?? '—'}
                 </TableCell>
@@ -143,7 +150,12 @@ export default function MembersListPage() {
                   <Badge variant="outline">{t(`members.feeState.${member.feeState}`)}</Badge>
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" render={<Link to={`/admin/members/${member.id}`} />}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    data-testid="members-row-review"
+                    render={<Link to={`/admin/members/${member.id}`} />}
+                  >
                     {t('adminMembers.review')}
                   </Button>
                 </TableCell>
@@ -154,22 +166,24 @@ export default function MembersListPage() {
       </div>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{t('adminMembers.count', { count: total })}</span>
+        <span data-testid="members-count">{t('adminMembers.count', { count: total })}</span>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
+            data-testid="members-page-prev"
             disabled={page <= 1}
             onClick={() => updateParams({ page: String(page - 1) })}
           >
             <ChevronLeft className="size-4" />
           </Button>
-          <span>
+          <span data-testid="members-page-indicator">
             {page} / {pageCount}
           </span>
           <Button
             variant="outline"
             size="icon"
+            data-testid="members-page-next"
             disabled={page >= pageCount}
             onClick={() => updateParams({ page: String(page + 1) })}
           >
@@ -211,7 +225,7 @@ function CreateMemberDialog() {
 
   return (
     <Dialog>
-      <DialogTrigger render={<Button size="sm" />}>
+      <DialogTrigger render={<Button size="sm" data-testid="members-create-open" />}>
         <UserPlus className="mr-2 size-4" />
         {t('adminMembers.create.new')}
       </DialogTrigger>
@@ -221,18 +235,21 @@ function CreateMemberDialog() {
         </DialogHeader>
         <div className="space-y-3">
           <Input
+            data-testid="members-create-name"
             placeholder={t('adminMembers.columns.name')}
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
           <Input
             type="email"
+            data-testid="members-create-email"
             placeholder={t('auth.register.email')}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
           <Input
             type="tel"
+            data-testid="members-create-phone"
             placeholder={t('auth.register.phone')}
             value={phoneNumber}
             onChange={(event) => setPhoneNumber(event.target.value)}
@@ -242,7 +259,7 @@ function CreateMemberDialog() {
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
           <DialogClose
-            render={<Button />}
+            render={<Button data-testid="members-create-submit" />}
             disabled={name.trim().length < 2 || !(email.trim() || phoneNumber.trim())}
             onClick={() => mutation.mutate()}
           >

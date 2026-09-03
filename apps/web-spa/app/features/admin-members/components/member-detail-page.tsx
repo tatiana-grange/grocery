@@ -87,8 +87,13 @@ export default function MemberDetailPage() {
   const isAdmin = member.roles.includes('admin')
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" render={<Link to="/admin/members" />}>
+    <div className="space-y-6" data-testid="page-member-detail">
+      <Button
+        variant="ghost"
+        size="sm"
+        data-testid="member-back-to-list"
+        render={<Link to="/admin/members" />}
+      >
         <ArrowLeft className="mr-2 size-4" />
         {t('adminMembers.backToList')}
       </Button>
@@ -115,12 +120,17 @@ export default function MemberDetailPage() {
           }
         />
         <Field label={t('adminMembers.columns.fee')} value={t(`members.feeState.${member.fee.state}`)} />
-        <Field label={t('adminMembers.roles')} value={member.roles.join(', ')} />
+        <Field
+          label={t('adminMembers.roles')}
+          value={member.roles.join(', ')}
+          testId="member-roles"
+        />
       </dl>
 
       {isPending && (
         <div className="flex gap-3 rounded-lg border border-border p-4">
           <Button
+            data-testid="member-validate"
             disabled={mutation.isPending}
             onClick={() => mutation.mutate({ decision: 'validate', version: member.version })}
           >
@@ -128,7 +138,15 @@ export default function MemberDetailPage() {
           </Button>
 
           <Dialog>
-            <DialogTrigger render={<Button variant="destructive" disabled={mutation.isPending} />}>
+            <DialogTrigger
+              render={
+                <Button
+                  variant="destructive"
+                  data-testid="member-reject-open"
+                  disabled={mutation.isPending}
+                />
+              }
+            >
               {t('adminMembers.reject')}
             </DialogTrigger>
             <DialogContent>
@@ -136,6 +154,7 @@ export default function MemberDetailPage() {
                 <DialogTitle>{t('adminMembers.rejectDialog.title')}</DialogTitle>
               </DialogHeader>
               <Textarea
+                data-testid="member-reject-reason"
                 value={rejectReason}
                 onChange={(event) => setRejectReason(event.target.value)}
                 placeholder={t('adminMembers.rejectDialog.reasonPlaceholder')}
@@ -145,7 +164,7 @@ export default function MemberDetailPage() {
                   {t('common.cancel')}
                 </DialogClose>
                 <DialogClose
-                  render={<Button variant="destructive" />}
+                  render={<Button variant="destructive" data-testid="member-reject-confirm" />}
                   disabled={!rejectReason.trim()}
                   onClick={() =>
                     mutation.mutate({
@@ -168,6 +187,7 @@ export default function MemberDetailPage() {
           <Button
             variant="outline"
             size="sm"
+            data-testid="member-toggle-admin"
             disabled={roleMutation.isPending}
             onClick={() => roleMutation.mutate(isAdmin ? ['member'] : ['member', 'admin'])}
           >
@@ -175,7 +195,9 @@ export default function MemberDetailPage() {
           </Button>
 
           <Dialog>
-            <DialogTrigger render={<Button variant="destructive" size="sm" />}>
+            <DialogTrigger
+              render={<Button variant="destructive" size="sm" data-testid="member-terminate-open" />}
+            >
               {t('adminMembers.terminate')}
             </DialogTrigger>
             <DialogContent>
@@ -183,6 +205,7 @@ export default function MemberDetailPage() {
                 <DialogTitle>{t('adminMembers.terminateDialog.title')}</DialogTitle>
               </DialogHeader>
               <Textarea
+                data-testid="member-terminate-reason"
                 value={terminateReason}
                 onChange={(event) => setTerminateReason(event.target.value)}
                 placeholder={t('adminMembers.terminateDialog.reasonPlaceholder')}
@@ -190,7 +213,7 @@ export default function MemberDetailPage() {
               <DialogFooter>
                 <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
                 <DialogClose
-                  render={<Button variant="destructive" />}
+                  render={<Button variant="destructive" data-testid="member-terminate-confirm" />}
                   disabled={!terminateReason.trim()}
                   onClick={() =>
                     lifecycleMutation.mutate({ type: 'terminate', reason: terminateReason.trim() })
@@ -208,6 +231,7 @@ export default function MemberDetailPage() {
         <div className="rounded-lg border border-border p-4">
           <Button
             size="sm"
+            data-testid="member-reactivate"
             disabled={lifecycleMutation.isPending}
             onClick={() => lifecycleMutation.mutate({ type: 'reactivate' })}
           >
@@ -242,13 +266,15 @@ export default function MemberDetailPage() {
   )
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, testId }: { label: string; value: string; testId?: string }) {
   return (
     <div className="bg-background p-4">
       <dt className="mb-1 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
         {label}
       </dt>
-      <dd className="text-sm font-medium">{value}</dd>
+      <dd className="text-sm font-medium" data-testid={testId}>
+        {value}
+      </dd>
     </div>
   )
 }

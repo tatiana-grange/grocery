@@ -52,6 +52,10 @@
       "ignoreDependencies": ["tailwindcss"],
       "entry": ["app/lib/i18n/i18n-client.ts!"]
     },
+    "apps/web-spa-e2e": {
+      "entry": ["auth.setup.ts!"],
+      "ignoreBinaries": ["mikro-orm"]
+    },
     "apps/documentation": {
       "ignoreDependencies": ["zod"]
     },

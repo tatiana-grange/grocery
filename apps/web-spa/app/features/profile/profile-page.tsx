@@ -2,13 +2,15 @@ import { Avatar, AvatarFallback } from '@grocery/ui/components/primitives/avatar
 import { useTranslation } from 'react-i18next'
 import { authClient } from '@/lib/auth-client'
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, testId }: { label: string; value: string; testId?: string }) {
   return (
     <div className="bg-background p-5">
       <dt className="mb-1 text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
         {label}
       </dt>
-      <dd className="text-sm font-medium text-foreground break-words">{value}</dd>
+      <dd className="text-sm font-medium text-foreground break-words" data-testid={testId}>
+        {value}
+      </dd>
     </div>
   )
 }
@@ -27,7 +29,7 @@ export default function ProfilePage() {
     .slice(0, 2)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-testid="page-profile">
       {/* Header */}
       <div className="border-b border-border pb-6">
         <p className="mb-1 text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
@@ -52,13 +54,14 @@ export default function ProfilePage() {
 
       {/* Details */}
       <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
-        <Field label={t('profile.name')} value={user?.name ?? '—'} />
-        <Field label={t('profile.email')} value={user?.email ?? '—'} />
+        <Field label={t('profile.name')} value={user?.name ?? '—'} testId="profile-name" />
+        <Field label={t('profile.email')} value={user?.email ?? '—'} testId="profile-email" />
         <Field
           label={t('profile.emailVerified')}
           value={user?.emailVerified ? t('profile.verified') : t('profile.unverified')}
+          testId="profile-email-verified"
         />
-        <Field label={t('profile.userId')} value={user?.id ?? '—'} />
+        <Field label={t('profile.userId')} value={user?.id ?? '—'} testId="profile-user-id" />
       </dl>
     </div>
   )

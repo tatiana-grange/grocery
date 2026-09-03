@@ -59,6 +59,7 @@ function BackOfficeSidebar() {
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton
                     tooltip={item.label}
+                    data-testid={`back-office-nav-${item.to.split('/').pop()}`}
                     isActive={location.pathname.startsWith(item.to)}
                     render={<Link to={item.to} />}
                   >
@@ -82,7 +83,11 @@ function BackOfficeSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} className="text-destructive">
+              <SidebarMenuButton
+                data-testid="nav-logout"
+                onClick={handleLogout}
+                className="text-destructive"
+              >
                 <LogOut className="h-4 w-4" />
                 <span>{t('members.nav.logOut')}</span>
               </SidebarMenuButton>
@@ -103,7 +108,10 @@ export default function BackOfficeLayout() {
   if (!sessionData) return <Navigate to="/login" replace />
   if (!isAdmin) {
     return (
-      <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
+      <div
+        className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center"
+        data-testid="rbac-access-denied"
+      >
         <ShieldCheck className="size-10 text-muted-foreground" />
         <p className="text-lg font-semibold">{t('adminMembers.accessDenied')}</p>
         <Button render={<Link to="/account" />}>{t('members.nav.myAccount')}</Button>

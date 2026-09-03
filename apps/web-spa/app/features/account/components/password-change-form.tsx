@@ -37,6 +37,7 @@ export function PasswordChangeForm() {
       <Input
         type="password"
         autoComplete="current-password"
+        data-testid="account-password-current"
         placeholder={t('members.account.currentPassword')}
         value={currentPassword}
         onChange={(event) => setCurrentPassword(event.target.value)}
@@ -44,12 +45,14 @@ export function PasswordChangeForm() {
       <Input
         type="password"
         autoComplete="new-password"
+        data-testid="account-password-new"
         placeholder={t('members.account.newPassword')}
         value={newPassword}
         onChange={(event) => setNewPassword(event.target.value)}
       />
       <Button
         variant="outline"
+        data-testid="account-password-submit"
         disabled={!currentPassword || newPassword.length < 8 || mutation.isPending}
         onClick={() => mutation.mutate()}
       >

@@ -13,7 +13,7 @@ export default function CatalogPage() {
   const tab = (searchParams.get('tab') ?? 'products') as (typeof TABS)[number]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="page-catalog">
       <div>
         <h1 className="text-2xl font-black tracking-tight">{t('catalog.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('catalog.subtitle')}</p>
@@ -29,7 +29,7 @@ export default function CatalogPage() {
       >
         <TabsList>
           {TABS.map((name) => (
-            <TabsTrigger key={name} value={name}>
+            <TabsTrigger key={name} value={name} data-testid={`catalog-tab-${name}`}>
               {t(`catalog.tabs.${name}`)}
             </TabsTrigger>
           ))}

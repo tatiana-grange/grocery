@@ -58,7 +58,7 @@ export default function ProductDetailPage() {
   const unit = t(`catalog.pricingUnit.${product.pricingUnit}`)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="page-product-detail">
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" render={<Link to="/admin/catalog" />}>
           <ArrowLeft className="mr-2 size-4" />
@@ -67,6 +67,7 @@ export default function ProductDetailPage() {
         <Button
           variant="outline"
           size="sm"
+          data-testid="product-detail-edit"
           render={<Link to={`/admin/catalog/products/${productId}/edit`} />}
         >
           {t('catalog.edit')}
@@ -75,7 +76,9 @@ export default function ProductDetailPage() {
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">{product.name}</h1>
+          <h1 className="text-2xl font-black tracking-tight" data-testid="product-detail-name">
+            {product.name}
+          </h1>
           <p className="text-sm text-muted-foreground">
             {product.supplier.name} · {product.category.name}
           </p>
@@ -86,12 +89,17 @@ export default function ProductDetailPage() {
                 {t(`catalog.label.${label}`)}
               </Badge>
             ))}
-            {product.archivedAt && <Badge variant="destructive">{t('catalog.archived')}</Badge>}
+            {product.archivedAt && (
+              <Badge variant="destructive" data-testid="product-archived-badge">
+                {t('catalog.archived')}
+              </Badge>
+            )}
           </div>
         </div>
         <Button
           variant={product.archivedAt ? 'outline' : 'ghost'}
           size="sm"
+          data-testid="product-detail-archive-toggle"
           onClick={() => archiveMutation.mutate(Boolean(product.archivedAt))}
         >
           {product.archivedAt ? t('catalog.unarchive') : t('catalog.archive')}
@@ -104,14 +112,14 @@ export default function ProductDetailPage() {
             <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
               {t('catalog.products.currentPrice')}
             </p>
-            <p className="text-xl font-bold">
+            <p className="text-xl font-bold" data-testid="product-current-price">
               {product.currentPriceEur != null
                 ? `${product.currentPriceEur.toFixed(2)} € / ${unit}`
                 : '—'}
             </p>
           </div>
           <Dialog>
-            <DialogTrigger render={<Button size="sm" />}>
+            <DialogTrigger render={<Button size="sm" data-testid="product-price-open" />}>
               {t('catalog.products.changePrice')}
             </DialogTrigger>
             <DialogContent>
@@ -121,6 +129,7 @@ export default function ProductDetailPage() {
               <Input
                 type="number"
                 step="0.01"
+                data-testid="product-price-amount"
                 placeholder={`€ / ${unit}`}
                 value={newPrice}
                 onChange={(event) => setNewPrice(event.target.value)}
@@ -130,7 +139,7 @@ export default function ProductDetailPage() {
                   {t('common.cancel')}
                 </DialogClose>
                 <DialogClose
-                  render={<Button />}
+                  render={<Button data-testid="product-price-confirm" />}
                   disabled={!(Number(newPrice) > 0) || priceMutation.isPending}
                   onClick={() => priceMutation.mutate()}
                 >
@@ -146,13 +155,17 @@ export default function ProductDetailPage() {
         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           {t('catalog.products.priceHistory')}
         </h2>
-        <ul className="space-y-1 text-sm">
+        <ul className="space-y-1 text-sm" data-testid="product-price-history">
           {[...product.priceHistory].reverse().map((window) => (
-            <li key={window.id} className="flex justify-between border-b border-border py-1">
+            <li
+              key={window.id}
+              data-testid="product-price-history-item"
+              className="flex justify-between border-b border-border py-1"
+            >
               <span className="font-medium">
                 {window.amountEur.toFixed(2)} € / {unit}
                 {!window.validTo && (
-                  <Badge variant="outline" className="ml-2">
+                  <Badge variant="outline" className="ml-2" data-testid="product-price-current">
                     {t('catalog.products.current')}
                   </Badge>
                 )}

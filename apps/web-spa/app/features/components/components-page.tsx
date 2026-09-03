@@ -282,7 +282,7 @@ export default function ComponentsPage() {
 
   return (
     <TooltipProvider>
-      <div className="flex gap-8">
+      <div className="flex gap-8" data-testid="page-components">
         {/* Sticky TOC */}
         <aside className="hidden xl:block w-44 shrink-0">
           <nav className="sticky top-6 space-y-1">

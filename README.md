@@ -132,7 +132,9 @@ Docker Compose provides:
 
 ### Tests
 
-- **Run tests**: `pnpm test`
+- **Run unit + API tests**: `pnpm test`
+- **Run the web-spa end-to-end suite** (Playwright, real API + SPA, disposable Docker infra):
+  `pnpm e2e` — see [Web SPA E2E](apps/documentation/src/content/docs/guides/web-spa-e2e.mdx)
 
 ## 💻 Development
 

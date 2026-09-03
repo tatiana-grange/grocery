@@ -94,8 +94,13 @@ export default function ProductFormPage() {
   if (isEdit && isLoading) return <Skeleton className="h-96 w-full" />
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" render={<Link to="/admin/catalog" />}>
+    <div className="space-y-6" data-testid="page-product-form">
+      <Button
+        variant="ghost"
+        size="sm"
+        data-testid="product-form-back"
+        render={<Link to="/admin/catalog" />}
+      >
         <ArrowLeft className="mr-2 size-4" />
         {t('catalog.backToCatalogue')}
       </Button>
@@ -105,14 +110,23 @@ export default function ProductFormPage() {
 
       <div className="max-w-lg space-y-4">
         <Field label={t('catalog.products.name')}>
-          <Input value={name} onChange={(event) => setName(event.target.value)} />
+          <Input
+            data-testid="product-form-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
         </Field>
         <Field label={t('catalog.products.description')}>
-          <Textarea value={description} onChange={(event) => setDescription(event.target.value)} />
+          <Textarea
+            data-testid="product-form-description"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
         </Field>
         <Field label={t('catalog.products.supplier')}>
           <select
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            data-testid="product-form-supplier"
             value={supplierId}
             onChange={(event) => setSupplierId(event.target.value)}
           >
@@ -127,6 +141,7 @@ export default function ProductFormPage() {
         <Field label={t('catalog.products.category')}>
           <select
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            data-testid="product-form-category"
             value={categoryId}
             onChange={(event) => setCategoryId(event.target.value)}
           >
@@ -140,7 +155,10 @@ export default function ProductFormPage() {
         </Field>
         <Field label={t('catalog.products.saleMode')}>
           {isEdit ? (
-            <p className="text-sm text-muted-foreground">
+            <p
+              className="text-sm text-muted-foreground"
+              data-testid="product-form-salemode-locked"
+            >
               {t(`catalog.saleMode.${saleMode}`)} · {t('catalog.products.saleModeLocked')}
             </p>
           ) : (
@@ -149,6 +167,7 @@ export default function ProductFormPage() {
                 <Button
                   key={mode}
                   type="button"
+                  data-testid={`product-form-salemode-${mode}`}
                   variant={saleMode === mode ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSaleMode(mode)}
@@ -170,6 +189,7 @@ export default function ProductFormPage() {
             <Input
               type="number"
               step="0.01"
+              data-testid="product-form-price"
               value={priceEur}
               onChange={(event) => setPriceEur(event.target.value)}
             />
@@ -197,7 +217,11 @@ export default function ProductFormPage() {
           </div>
         </Field>
 
-        <Button disabled={!canSubmit || mutation.isPending} onClick={() => mutation.mutate()}>
+        <Button
+          data-testid="product-form-submit"
+          disabled={!canSubmit || mutation.isPending}
+          onClick={() => mutation.mutate()}
+        >
           {t('catalog.save')}
         </Button>
       </div>

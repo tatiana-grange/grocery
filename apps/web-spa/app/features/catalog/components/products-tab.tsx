@@ -46,6 +46,7 @@ export function ProductsTab() {
       <div className="flex items-center justify-between gap-3">
         <Input
           className="w-64"
+          data-testid="products-search"
           placeholder={t('catalog.products.searchPlaceholder')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -53,7 +54,7 @@ export function ProductsTab() {
             if (event.key === 'Enter') setParam('q', search || undefined)
           }}
         />
-        <Button render={<Link to="/admin/catalog/products/new" />}>
+        <Button data-testid="products-new" render={<Link to="/admin/catalog/products/new" />}>
           <PlusCircle className="mr-2 size-4" />
           {t('catalog.products.new')}
         </Button>
@@ -80,13 +81,17 @@ export function ProductsTab() {
             )}
             {!isLoading && data?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="py-10 text-center text-muted-foreground"
+                  data-testid="products-empty"
+                >
                   {t('catalog.products.empty')}
                 </TableCell>
               </TableRow>
             )}
             {data?.data.map((product) => (
-              <TableRow key={product.id}>
+              <TableRow key={product.id} data-testid={`product-row-${product.name}`}>
                 <TableCell className="font-medium">
                   {product.name}
                   {product.saleMode === 'weight' && (
@@ -108,6 +113,7 @@ export function ProductsTab() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    data-testid="product-row-open"
                     render={<Link to={`/admin/catalog/products/${product.id}`} />}
                   >
                     {t('catalog.open')}
@@ -120,22 +126,24 @@ export function ProductsTab() {
       </div>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{t('catalog.products.count', { count: total })}</span>
+        <span data-testid="products-count">{t('catalog.products.count', { count: total })}</span>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
+            data-testid="products-page-prev"
             disabled={page <= 1}
             onClick={() => setParam('page', String(page - 1))}
           >
             <ChevronLeft className="size-4" />
           </Button>
-          <span>
+          <span data-testid="products-page-indicator">
             {page} / {pageCount}
           </span>
           <Button
             variant="outline"
             size="icon"
+            data-testid="products-page-next"
             disabled={page >= pageCount}
             onClick={() => setParam('page', String(page + 1))}
           >

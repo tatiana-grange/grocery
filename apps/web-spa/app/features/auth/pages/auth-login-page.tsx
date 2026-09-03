@@ -43,7 +43,7 @@ export default function Login() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="page-login">
       <AuthPageHeader title={t('auth.login.title')} description={t('auth.login.description')} />
       <AuthLoginForm
         mode={mode}
@@ -53,7 +53,12 @@ export default function Login() {
       />
       <div className="h-10">
         {error ? (
-          <div className="text-sm font-medium text-red-500">
+          <div
+            className="text-sm font-medium text-red-500"
+            data-testid={
+              error.message === 'BANNED_USER' ? 'auth-login-error-banned' : 'auth-login-error'
+            }
+          >
             {error.message === 'BANNED_USER'
               ? t('auth.login.bannedUser')
               : t('auth.login.badCredentials')}
