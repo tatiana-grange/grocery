@@ -45,13 +45,15 @@ Endpoints: `admin/suppliers*`, `admin/categories*`, `admin/products*`.
 
 ## Frontend
 
-`apps/web-spa/app/features/` — `common` (role hooks, the back-office and member-area layout
-shells), `admin-members` (validation queue, member detail with fee panel and lifecycle
-actions), `account` (self-service + QR), and `catalog` (tabbed suppliers / categories /
-products, product detail with the price-history timeline). Routes are grouped under
-`/account` and `/admin/*`.
+`apps/web-spa/app/features/` — `auth` (login, register, and forgot-password screens with an
+email / phone toggle, plus the OTP step for phone sign-up), `common` (role hooks, the
+back-office and member-area layout shells), `admin-members` (validation queue, member detail
+with fee panel and lifecycle actions), `account` (self-service + QR), and `catalog` (tabbed
+suppliers / categories / products, product detail with the price-history timeline). Routes
+are grouped under `/account` and `/admin/*`.
 
 ## Not in lot 1
 
-The phone sign-up / sign-in UI (the backend plugin works; the React screens are a
-follow-up), admin-direct member creation, and a production SMS provider.
+Admin-direct member creation and a production SMS provider. In development the one-time code
+is logged to the API console by `SmsService`; wiring a real provider (Twilio, OVH, etc.) is
+an infrastructure task left open in `apps/api/src/modules/auth/sms.service.ts`.
