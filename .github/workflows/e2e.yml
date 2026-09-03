@@ -67,6 +67,11 @@ jobs:
   # Publishes the HTML report (traces included) to GitHub Pages so it is one click away
   # from the run. One site: every run — push to `main` or a PR — replaces the previous
   # report. Skipped for pull requests from a fork (no Pages permissions).
+  #
+  # The deploy is best-effort: Pages on a private repo needs a plan that supports it and a
+  # one-time Settings → Pages → Source: "GitHub Actions". Until then the step fails, so it
+  # is `continue-on-error` — the `playwright-report` artifact (uploaded above, 7 days) is
+  # the fallback: download it and open `index.html`.
   publish-report:
     name: 📊 publish report
     needs: web-spa-e2e
@@ -88,6 +93,7 @@ jobs:
     steps:
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
+        continue-on-error: true
         uses: actions/deploy-pages@v4
 
       - name: 🔗 Link the report in the run summary
@@ -95,5 +101,9 @@ jobs:
           {
             echo "### 🎭 Playwright report"
             echo ""
-            echo "[Open the report](${{ steps.deploy.outputs.page_url }})"
+            if [ -n "${{ steps.deploy.outputs.page_url }}" ]; then
+              echo "[Open the report](${{ steps.deploy.outputs.page_url }})"
+            else
+              echo "Pages deploy unavailable — download the \`playwright-report\` artifact from this run and open \`index.html\`."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
