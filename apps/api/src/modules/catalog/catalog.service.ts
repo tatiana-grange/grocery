@@ -9,10 +9,11 @@ import {
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { User } from '../auth/auth.entity'
 import { eurToCents } from './catalog.util'
+import type { CreateCategoryInput, UpdateCategoryInput } from './contracts/category.contract'
 import type {
-  CreateCategoryInput,
-  UpdateCategoryInput,
-} from './contracts/category.contract'
+  CreateProducerCategoryInput,
+  UpdateProducerCategoryInput,
+} from './contracts/producer-category.contract'
 import type { SetProductPriceInput } from './contracts/product-price.contract'
 import type {
   CreateProductInput,
@@ -21,6 +22,7 @@ import type {
   ProductSorting,
   UpdateProductInput,
 } from './contracts/product.contract'
+import type { CreateReferentInput, UpdateReferentInput } from './contracts/referent.contract'
 import type {
   ShopProductFiltering,
   ShopProductPagination,
@@ -33,8 +35,10 @@ import type {
   UpdateSupplierInput,
 } from './contracts/supplier.contract'
 import { Category } from './entities/category.entity'
+import { ProducerCategory } from './entities/producer-category.entity'
 import { ProductPrice } from './entities/product-price.entity'
 import { Product } from './entities/product.entity'
+import { Referent } from './entities/referent.entity'
 import { Supplier } from './entities/supplier.entity'
 
 interface ListOptions {
@@ -72,36 +76,64 @@ export class CatalogService {
       orderBy: { name: QueryOrder.ASC },
       limit: pagination.pageSize,
       offset: pagination.offset,
+      populate: ['referent', 'producerCategories'],
     })
     return { suppliers, total, pagination }
   }
 
   async getSupplier(id: string): Promise<Supplier> {
-    const supplier = await this.em.findOne(Supplier, { id })
+    const supplier = await this.em.findOne(
+      Supplier,
+      { id },
+      { populate: ['referent', 'producerCategories'] },
+    )
     if (!supplier) throw new NotFoundException('Supplier not found')
     return supplier
   }
 
   async createSupplier(input: CreateSupplierInput): Promise<Supplier> {
+    const { referentId, producerCategoryIds, ...rest } = this.stripNullish(input)
     const supplier = new Supplier()
-    wrap(supplier).assign(this.stripNullish(input))
+    wrap(supplier).assign(rest)
+    if (referentId) supplier.referent = this.em.getReference(Referent, referentId)
+    if (producerCategoryIds && producerCategoryIds.length > 0) {
+      supplier.producerCategories.set(
+        producerCategoryIds.map((catId) => this.em.getReference(ProducerCategory, catId)),
+      )
+    }
     this.em.persist(supplier)
     await this.em.flush()
-    return supplier
+    // Reload so `referent` and `producerCategories` come back fully populated instead of the
+    // bare references assigned above (same reason Product's create re-fetches before mapping).
+    return this.getSupplier(supplier.id)
   }
 
   async updateSupplier(id: string, input: UpdateSupplierInput): Promise<Supplier> {
     const supplier = await this.getSupplier(id)
     this.assertVersion(supplier.version, input.version)
-    const { version: _version, ...rest } = input
+    const { version: _version, referentId, producerCategoryIds, ...rest } = input
     wrap(supplier).assign(this.stripNullish(rest))
+    if (referentId !== undefined) {
+      supplier.referent = referentId ? this.em.getReference(Referent, referentId) : undefined
+    }
+    if (producerCategoryIds !== undefined) {
+      supplier.producerCategories.set(
+        (producerCategoryIds ?? []).map((catId) => this.em.getReference(ProducerCategory, catId)),
+      )
+    }
     await this.em.flush()
-    return supplier
+    return referentId !== undefined || producerCategoryIds !== undefined
+      ? this.getSupplier(supplier.id)
+      : supplier
   }
 
   async archiveSupplier(id: string, cascade: boolean): Promise<Supplier> {
     return this.em.transactional(async (em) => {
-      const supplier = await em.findOne(Supplier, { id }, { populate: ['products'] })
+      const supplier = await em.findOne(
+        Supplier,
+        { id },
+        { populate: ['products', 'referent', 'producerCategories'] },
+      )
       if (!supplier) throw new NotFoundException('Supplier not found')
 
       const activeProducts = supplier.products.getItems().filter((p) => !p.archivedAt)
@@ -125,6 +157,69 @@ export class CatalogService {
     supplier.archivedAt = undefined
     await this.em.flush()
     return supplier
+  }
+
+  // ============================================================================================
+  // Referents
+  // ============================================================================================
+
+  async listReferents(): Promise<Referent[]> {
+    return this.em.find(Referent, {}, { orderBy: { lastName: QueryOrder.ASC } })
+  }
+
+  async getReferent(id: string): Promise<Referent> {
+    const referent = await this.em.findOne(Referent, { id })
+    if (!referent) throw new NotFoundException('Referent not found')
+    return referent
+  }
+
+  async createReferent(input: CreateReferentInput): Promise<Referent> {
+    const { userId, ...rest } = this.stripNullish(input)
+    const referent = new Referent()
+    wrap(referent).assign(rest)
+    if (userId) referent.user = this.em.getReference(User, userId)
+    this.em.persist(referent)
+    await this.em.flush()
+    return referent
+  }
+
+  async updateReferent(id: string, input: UpdateReferentInput): Promise<Referent> {
+    const referent = await this.getReferent(id)
+    this.assertVersion(referent.version, input.version)
+    const { version: _version, userId, ...rest } = input
+    wrap(referent).assign(this.stripNullish(rest))
+    if (userId !== undefined) {
+      referent.user = userId ? this.em.getReference(User, userId) : undefined
+    }
+    await this.em.flush()
+    return referent
+  }
+
+  async deleteReferent(id: string): Promise<void> {
+    const referent = await this.getReferent(id)
+    const linkedSuppliers = await this.em.count(Supplier, { referent: id })
+    if (linkedSuppliers > 0) {
+      throw new ConflictException({
+        message: 'Reassign this referent’s suppliers before removing it',
+        supplierCount: linkedSuppliers,
+      })
+    }
+    await this.em.remove(referent).flush()
+  }
+
+  async supplierCountForReferents(referentIds: string[]): Promise<Map<string, number>> {
+    const result = new Map<string, number>()
+    if (referentIds.length === 0) return result
+    const rows = await this.em.find(
+      Supplier,
+      { referent: { $in: referentIds }, archivedAt: null } as FilterQuery<Supplier>,
+      { fields: ['referent'] },
+    )
+    for (const row of rows) {
+      const key = (row.referent as unknown as { id: string }).id
+      result.set(key, (result.get(key) ?? 0) + 1)
+    }
+    return result
   }
 
   // ============================================================================================
@@ -158,9 +253,7 @@ export class CatalogService {
     this.assertVersion(category.version, input.version)
     if (input.name !== undefined) category.name = input.name
     if (input.parentId !== undefined) {
-      category.parent = input.parentId
-        ? await this.resolveParent(id, input.parentId)
-        : undefined
+      category.parent = input.parentId ? await this.resolveParent(id, input.parentId) : undefined
     }
     await this.em.flush()
     return category
@@ -210,6 +303,82 @@ export class CatalogService {
     category.archivedAt = undefined
     await this.em.flush()
     return category
+  }
+
+  // ============================================================================================
+  // Producer categories
+  // ============================================================================================
+
+  async listProducerCategories(options: ListOptions = {}): Promise<ProducerCategory[]> {
+    const where: FilterQuery<ProducerCategory> = options.includeArchived ? {} : { archivedAt: null }
+    return this.em.find(ProducerCategory, where, { orderBy: { name: QueryOrder.ASC } })
+  }
+
+  async getProducerCategory(id: string): Promise<ProducerCategory> {
+    const category = await this.em.findOne(ProducerCategory, { id })
+    if (!category) throw new NotFoundException('Producer category not found')
+    return category
+  }
+
+  async createProducerCategory(input: CreateProducerCategoryInput): Promise<ProducerCategory> {
+    const category = new ProducerCategory()
+    category.name = input.name
+    this.em.persist(category)
+    await this.em.flush()
+    return category
+  }
+
+  async updateProducerCategory(
+    id: string,
+    input: UpdateProducerCategoryInput,
+  ): Promise<ProducerCategory> {
+    const category = await this.getProducerCategory(id)
+    this.assertVersion(category.version, input.version)
+    if (input.name !== undefined) category.name = input.name
+    await this.em.flush()
+    return category
+  }
+
+  async archiveProducerCategory(id: string): Promise<ProducerCategory> {
+    const category = await this.getProducerCategory(id)
+    const activeSuppliers = await this.em.count(Supplier, {
+      producerCategories: id,
+      archivedAt: null,
+    } as FilterQuery<Supplier>)
+    if (activeSuppliers > 0) {
+      throw new ConflictException({
+        message: 'Reassign this category’s active suppliers before removing it',
+        supplierCount: activeSuppliers,
+      })
+    }
+    category.archivedAt = new Date()
+    await this.em.flush()
+    return category
+  }
+
+  async unarchiveProducerCategory(id: string): Promise<ProducerCategory> {
+    const category = await this.getProducerCategory(id)
+    category.archivedAt = undefined
+    await this.em.flush()
+    return category
+  }
+
+  async supplierCountForProducerCategories(categoryIds: string[]): Promise<Map<string, number>> {
+    const result = new Map<string, number>()
+    if (categoryIds.length === 0) return result
+    const suppliers = await this.em.find(
+      Supplier,
+      { producerCategories: { $in: categoryIds }, archivedAt: null } as FilterQuery<Supplier>,
+      { populate: ['producerCategories'] },
+    )
+    for (const supplier of suppliers) {
+      for (const category of supplier.producerCategories.getItems()) {
+        if (categoryIds.includes(category.id)) {
+          result.set(category.id, (result.get(category.id) ?? 0) + 1)
+        }
+      }
+    }
+    return result
   }
 
   async productCountFor(categoryIds: string[]): Promise<Map<string, number>> {
@@ -350,11 +519,7 @@ export class CatalogService {
     return product
   }
 
-  async setProductPrice(
-    id: string,
-    input: SetProductPriceInput,
-    userId: string,
-  ): Promise<Product> {
+  async setProductPrice(id: string, input: SetProductPriceInput, userId: string): Promise<Product> {
     return this.em.transactional(async (em) => {
       // Lock the product row so two concurrent price changes serialise: without this both
       // readers see the same open row, both close it, and both insert a new open row —
@@ -367,9 +532,7 @@ export class CatalogService {
       const current = product.prices.getItems().find((price) => !price.validTo)
       if (current) {
         if (effectiveFrom < current.validFrom) {
-          throw new ConflictException(
-            'The new price cannot start before the current price began',
-          )
+          throw new ConflictException('The new price cannot start before the current price began')
         }
         current.validTo = effectiveFrom
         // Close the open row before inserting its replacement: the partial unique index
@@ -389,9 +552,7 @@ export class CatalogService {
         await em.flush()
       } catch (error) {
         if (error instanceof UniqueConstraintViolationException) {
-          throw new ConflictException(
-            'This product’s price just changed — reload and try again',
-          )
+          throw new ConflictException('This product’s price just changed — reload and try again')
         }
         throw error
       }
@@ -408,11 +569,7 @@ export class CatalogService {
   }
 
   async unarchiveProduct(id: string): Promise<Product> {
-    const product = await this.em.findOne(
-      Product,
-      { id },
-      { populate: ['supplier', 'category'] },
-    )
+    const product = await this.em.findOne(Product, { id }, { populate: ['supplier', 'category'] })
     if (!product) throw new NotFoundException('Product not found')
 
     if (product.supplier.archivedAt) {

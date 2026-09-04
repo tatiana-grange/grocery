@@ -3,6 +3,10 @@ import { centsToEur, pricingUnitFor } from './catalog.util'
 import type { Category as CategoryContract } from './contracts/category.contract'
 import type { PriceWindow } from './contracts/product-price.contract'
 import type {
+  ProducerCategory as ProducerCategoryContract,
+  ProducerCategoriesList,
+} from './contracts/producer-category.contract'
+import type {
   ShopCategory,
   ShopProduct,
   ShopProductDetail,
@@ -13,10 +17,13 @@ import type {
   ProductDetail,
   ProductsList,
 } from './contracts/product.contract'
+import type { Referent as ReferentContract, ReferentsList } from './contracts/referent.contract'
 import type { Supplier as SupplierContract, SuppliersList } from './contracts/supplier.contract'
 import { Category } from './entities/category.entity'
+import { ProducerCategory } from './entities/producer-category.entity'
 import { ProductPrice } from './entities/product-price.entity'
 import { Product } from './entities/product.entity'
+import { Referent } from './entities/referent.entity'
 import { Supplier } from './entities/supplier.entity'
 import type { ProductsListResult } from './catalog.service'
 
@@ -31,11 +38,64 @@ export class CatalogMapper {
       contactEmail: supplier.contactEmail ?? null,
       contactPhone: supplier.contactPhone ?? null,
       notes: supplier.notes ?? null,
+      deliveryMode: supplier.deliveryMode ?? null,
+      referent: supplier.referent
+        ? {
+            id: supplier.referent.id,
+            firstName: supplier.referent.firstName ?? null,
+            lastName: supplier.referent.lastName,
+          }
+        : null,
+      producerCategories: supplier.producerCategories.isInitialized()
+        ? supplier.producerCategories.getItems().map((category) => ({
+            id: category.id,
+            name: category.name,
+          }))
+        : [],
       archivedAt: supplier.archivedAt ?? null,
       productCount,
       version: supplier.version,
       createdAt: supplier.createdAt,
     }
+  }
+
+  toReferent(referent: Referent, supplierCount: number): ReferentContract {
+    return {
+      id: referent.id,
+      firstName: referent.firstName ?? null,
+      lastName: referent.lastName,
+      contactEmail: referent.contactEmail ?? null,
+      contactPhone: referent.contactPhone ?? null,
+      userId: referent.user?.id ?? null,
+      supplierCount,
+      version: referent.version,
+      createdAt: referent.createdAt,
+    }
+  }
+
+  toReferentsList(referents: Referent[], supplierCounts: Map<string, number>): ReferentsList {
+    return referents.map((referent) =>
+      this.toReferent(referent, supplierCounts.get(referent.id) ?? 0),
+    )
+  }
+
+  toProducerCategory(category: ProducerCategory, supplierCount: number): ProducerCategoryContract {
+    return {
+      id: category.id,
+      name: category.name,
+      archivedAt: category.archivedAt ?? null,
+      supplierCount,
+      version: category.version,
+    }
+  }
+
+  toProducerCategoriesList(
+    categories: ProducerCategory[],
+    supplierCounts: Map<string, number>,
+  ): ProducerCategoriesList {
+    return categories.map((category) =>
+      this.toProducerCategory(category, supplierCounts.get(category.id) ?? 0),
+    )
   }
 
   toSuppliersList(
@@ -107,9 +167,7 @@ export class CatalogMapper {
 
   toProductDetail(product: Product): ProductDetail {
     const history = product.prices.isInitialized()
-      ? [...product.prices.getItems()].sort(
-          (a, b) => a.validFrom.getTime() - b.validFrom.getTime(),
-        )
+      ? [...product.prices.getItems()].sort((a, b) => a.validFrom.getTime() - b.validFrom.getTime())
       : []
 
     return {

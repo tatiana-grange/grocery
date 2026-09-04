@@ -1,6 +1,12 @@
 import { Dictionary, EntityManager } from '@mikro-orm/core'
 import { Seeder } from '@mikro-orm/seeder'
-import { createCategoryData, createProductData, createSupplierData } from './catalog.factory'
+import {
+  createCategoryData,
+  createProducerCategoryData,
+  createProductData,
+  createReferentData,
+  createSupplierData,
+} from './catalog.factory'
 
 /**
  * Seeds a small catalogue for manual testing: two suppliers, two categories, and a spread of
@@ -9,7 +15,15 @@ import { createCategoryData, createProductData, createSupplierData } from './cat
  */
 export class CatalogSeeder extends Seeder {
   async run(em: EntityManager, context: Dictionary): Promise<void> {
-    const producer = await createSupplierData(em, { name: 'Ferme des Prés', type: 'producer' })
+    const referent = await createReferentData(em, { firstName: 'Alain', lastName: 'Grolleau' })
+    const producerCategory = await createProducerCategoryData(em, { name: 'Fruits & légumes' })
+    const producer = await createSupplierData(em, {
+      name: 'Ferme des Prés',
+      type: 'producer',
+      deliveryMode: 'livraison',
+      referent,
+      producerCategories: [producerCategory],
+    })
     await createSupplierData(em, { name: 'Grossiste Bio Sud', type: 'wholesaler' })
     const category = await createCategoryData(em, { name: 'Fruits & légumes' })
     const emptyCategory = await createCategoryData(em, { name: 'Épicerie (archivée)' })

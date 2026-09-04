@@ -12,6 +12,25 @@ export const supplierTypeSchema = z.enum(SUPPLIER_TYPES).meta({
 })
 export type SupplierType = z.infer<typeof supplierTypeSchema>
 
+export const SUPPLIER_DELIVERY_MODES = ['livraison', 'collecte'] as const
+export const supplierDeliveryModeSchema = z.enum(SUPPLIER_DELIVERY_MODES).meta({
+  title: 'SupplierDeliveryMode',
+  description:
+    'Whether the supplier delivers to the épicerie ("livraison") or a member picks the order up ("collecte")',
+})
+export type SupplierDeliveryMode = z.infer<typeof supplierDeliveryModeSchema>
+
+const supplierReferentRefSchema = z.object({
+  id: z.string().uuid(),
+  firstName: z.string().nullish(),
+  lastName: z.string(),
+})
+
+const supplierProducerCategoryRefSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+})
+
 export const supplierSchema = z
   .object({
     id: z.string().uuid(),
@@ -21,6 +40,9 @@ export const supplierSchema = z
     contactEmail: z.string().email().nullish(),
     contactPhone: z.string().nullish(),
     notes: z.string().nullish(),
+    deliveryMode: supplierDeliveryModeSchema.nullish(),
+    referent: supplierReferentRefSchema.nullish(),
+    producerCategories: z.array(supplierProducerCategoryRefSchema),
     archivedAt: z.date().nullish(),
     productCount: z.number().int(),
     version: z.number().int(),
@@ -44,6 +66,9 @@ export const createSupplierSchema = z
     contactEmail: z.string().email().nullish(),
     contactPhone: z.string().nullish(),
     notes: z.string().nullish(),
+    deliveryMode: supplierDeliveryModeSchema.nullish(),
+    referentId: z.string().uuid().nullish(),
+    producerCategoryIds: z.array(z.string().uuid()).nullish(),
   })
   .meta({
     title: 'CreateSupplier',
