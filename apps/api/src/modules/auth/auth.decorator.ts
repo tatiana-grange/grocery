@@ -8,6 +8,24 @@ export const HOOK_KEY = Symbol('HOOK')
 export const Public = () => SetMetadata('PUBLIC', true)
 export const Optional = () => SetMetadata('OPTIONAL', true)
 
+export const ROLES_KEY = 'ROLES'
+export const MEMBER_SCOPED_KEY = 'MEMBER_SCOPED'
+
+/**
+ * Require the current user to hold at least one of the given roles.
+ * Generic so lot 4 can add `@Roles('grocer')` without touching the guard.
+ */
+export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles)
+
+/** Shorthand for `@Roles('admin')` — back-office only. */
+export const AdminOnly = () => SetMetadata(ROLES_KEY, ['admin'])
+
+/**
+ * Require the caller to be an active cooperative member with a confirmed identifier.
+ * Admins bypass the active-status check (an admin is a member "plus").
+ */
+export const MemberScoped = () => SetMetadata(MEMBER_SCOPED_KEY, true)
+
 export const Session = createParamDecorator((_data: never, context: ExecutionContext) => {
   const request = context.switchToHttp().getRequest()
   return request.session

@@ -14,9 +14,7 @@
 - [1_auth.mdx](./src/content/docs/core-features/1_auth.mdx) - How the authentication system works, how to use it. Better Auth explanation.
 - [2_monitoring.mdx](./src/content/docs/core-features/2_monitoring.mdx) - How to report errors, log traces and monitor your project with Sentry
 - [3_filestorage.mdx](./src/content/docs/core-features/3_filestorage.mdx) - File storage explanation
-- [4_ai.mdx](./src/content/docs/core-features/4_ai.mdx) - How to use LLMs in your code (Langfuse, Vercel AI SDK, etc.)
 - [5_email.mdx](./src/content/docs/core-features/5_email.mdx) - Email explanation
-- [99_examples.mdx](./src/content/docs/core-features/99_examples.mdx) - Provided examples
 
 ## Explanations
 
@@ -41,30 +39,26 @@
 - [encrypt-env.mdx](./src/content/docs/guides/encrypt-env.mdx) - Setup env file encryption
 - [feature-flags.mdx](./src/content/docs/guides/feature-flags.mdx) - Ship a merged change dark with a single env-var check
 - [generating-types.mdx](./src/content/docs/guides/generating-types.mdx) - Generate types and SDKs from the OpenAPI schema
+- [web-spa-e2e.mdx](./src/content/docs/guides/web-spa-e2e.mdx) - Playwright end-to-end tests that drive the real API + SPA
 
 ## Project
 
 - [architecture-plan.mdx](./src/content/docs/project/architecture-plan.mdx) - How the MonÉpi features map onto this stack — modules, entities, delivery lots, risks
 - [index.mdx](./src/content/docs/project/index.mdx) - What this project is and where the planning notes live
+- [lot-1-foundation.mdx](./src/content/docs/project/lot-1-foundation.mdx) - What the members and catalog modules deliver, and how they are shaped
 - [monepi-features.mdx](./src/content/docs/project/monepi-features.mdx) - Every feature found on the MonÉpi wiki, grouped by area
 
 ## References
 
 - [0_documentation.mdx](./src/content/docs/references/0_documentation.mdx) - Documentation explanation
 - [1_release_and_versionning.mdx](./src/content/docs/references/1_release_and_versionning.mdx) - How a project versions itself, and how environments consume what the pipeline builds
-- [backend.mdx](./src/content/docs/references/backend.mdx) - Guidelines for the backend of the Lonestone project.
-- [frontend.mdx](./src/content/docs/references/frontend.mdx) - Guidelines for the front-end of the Lonestone project.
+- [backend.mdx](./src/content/docs/references/backend.mdx) - Guidelines for the backend of the Grocery project.
+- [frontend.mdx](./src/content/docs/references/frontend.mdx) - Guidelines for the front-end of the Grocery project.
 - [general.mdx](./src/content/docs/references/general.mdx) - Common guidelines for development on the project
-
-## Releases
-
-- [index.mdx](./src/content/docs/releases/index.mdx) - Why each release exists — the human story, not the changelog
-- [v1.0.0.mdx](./src/content/docs/releases/v1.0.0.mdx) - First public release of the Lonestone boilerplate
-- [v1.1.0.mdx](./src/content/docs/releases/v1.1.0.mdx) - From writing a commit to deploying in production — one squash message, and everything else derives from it
 
 ## Root
 
-- [index.mdx](./src/content/docs/index.mdx) - Let's code, fast!
+- [index.mdx](./src/content/docs/index.mdx) - Architecture, conventions, and guides for the Grocery project.
 - [quickstart.mdx](./src/content/docs/quickstart.mdx) - Get started.
 
 ## Tutorials

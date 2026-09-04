@@ -31,7 +31,6 @@
         "src/modules/auth/auth-schema-codegen.ts!",
         "src/config/env.config.ts!",
         "src/modules/db/query-order.util.ts!",
-        "src/modules/example/ai-example/tools/coingecko.tools.ts!",
         "src/modules/auth/auth.config.ts!",
         "src/modules/auth/auth.guard.ts!",
         "src/test/helpers/test-app.helper.ts!",
@@ -52,6 +51,10 @@
     "apps/web-spa": {
       "ignoreDependencies": ["tailwindcss"],
       "entry": ["app/lib/i18n/i18n-client.ts!"]
+    },
+    "apps/web-spa-e2e": {
+      "entry": ["auth.setup.ts!"],
+      "ignoreBinaries": ["mikro-orm"]
     },
     "apps/documentation": {
       "ignoreDependencies": ["zod"]

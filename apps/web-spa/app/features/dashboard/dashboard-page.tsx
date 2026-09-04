@@ -27,7 +27,6 @@ import {
 import { Avatar, AvatarFallback } from '@grocery/ui/components/primitives/avatar'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import {
-  Brain,
   ChevronUp,
   Command,
   Component,
@@ -36,7 +35,6 @@ import {
   LogOut,
   Moon,
   Pen,
-  PlusCircle,
   Sun,
   User,
 } from 'lucide-react'
@@ -85,11 +83,6 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
       icon: LayoutDashboard,
     },
     {
-      label: t('dashboard.ai'),
-      to: '/ai',
-      icon: Brain,
-    },
-    {
       label: t('dashboard.components'),
       to: '/components',
       icon: Component,
@@ -107,7 +100,7 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
               </div>
               <div className="flex flex-col leading-none">
                 <span className="font-black tracking-tight text-foreground uppercase text-sm">
-                  Lonestone
+                  Grocery
                 </span>
                 <span className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">
                   Dashboard
@@ -134,6 +127,7 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton
                       tooltip={item.label}
+                      data-testid={`nav-${item.to.replace(/^\//, '').replace(/\//g, '-')}`}
                       isActive={isActive}
                       render={<Link to={item.to} />}
                       className={
@@ -160,15 +154,12 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton render={<Link to="/dashboard/posts/new" />}>
-                  <PlusCircle className="h-4 w-4" />
-                  <span>{t('dashboard.newPost')}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               {/* Command palette trigger */}
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={onOpenCommandPalette}>
+                <SidebarMenuButton
+                  data-testid="dashboard-command-trigger"
+                  onClick={onOpenCommandPalette}
+                >
                   <Command className="h-4 w-4" />
                   <span className="flex-1">{t('commandPalette.title')}</span>
                   <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground opacity-100">
@@ -185,7 +176,10 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors outline-none">
+              <DropdownMenuTrigger
+                data-testid="dashboard-user-menu"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors outline-none"
+              >
                 <Avatar size="sm">
                   <AvatarFallback>{userInitials}</AvatarFallback>
                 </Avatar>
@@ -200,14 +194,17 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
                 <ChevronUp className="ml-auto size-4 text-muted-foreground" />
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuItem render={<Link to="/dashboard/profile" />}>
+                <DropdownMenuItem
+                  data-testid="dashboard-menu-profile"
+                  render={<Link to="/dashboard/profile" />}
+                >
                   <User className="mr-2 h-4 w-4" />
                   <span>{t('dashboard.profile')}</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={handleThemeToggle}>
+                <DropdownMenuItem data-testid="dashboard-menu-theme" onClick={handleThemeToggle}>
                   {theme === 'dark' ? (
                     <Sun className="mr-2 h-4 w-4" />
                   ) : (
@@ -219,7 +216,7 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
                 </DropdownMenuItem>
 
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
+                  <DropdownMenuSubTrigger data-testid="dashboard-lang-trigger">
                     <Globe className="mr-2 h-4 w-4" />
                     <span>{t('dashboard.language')}</span>
                   </DropdownMenuSubTrigger>
@@ -227,7 +224,11 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
                     {(Object.keys(SUPPORTED_LOCALES) as SupportedLocale[]).map((key) => {
                       const config = SUPPORTED_LOCALES[key]
                       return (
-                        <DropdownMenuItem key={key} onClick={() => handleLanguageChange(key)}>
+                        <DropdownMenuItem
+                          key={key}
+                          data-testid={`dashboard-lang-${key}`}
+                          onClick={() => handleLanguageChange(key)}
+                        >
                           <span>
                             {config.flag} {config.name}
                           </span>
@@ -245,6 +246,7 @@ function AppSidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
+                  data-testid="nav-logout"
                   onClick={handleLogout}
                   className="text-destructive focus:text-destructive"
                 >

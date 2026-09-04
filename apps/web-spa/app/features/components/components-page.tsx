@@ -282,7 +282,7 @@ export default function ComponentsPage() {
 
   return (
     <TooltipProvider>
-      <div className="flex gap-8">
+      <div className="flex gap-8" data-testid="page-components">
         {/* Sticky TOC */}
         <aside className="hidden xl:block w-44 shrink-0">
           <nav className="sticky top-6 space-y-1">
@@ -575,13 +575,13 @@ export default function ComponentsPage() {
                   <TabsTrigger value="tab3">Drafts</TabsTrigger>
                 </TabsList>
                 <TabsContent value="tab1" className="mt-2 text-sm text-muted-foreground">
-                  All posts
+                  All items
                 </TabsContent>
                 <TabsContent value="tab2" className="mt-2 text-sm text-muted-foreground">
-                  Published posts
+                  Published items
                 </TabsContent>
                 <TabsContent value="tab3" className="mt-2 text-sm text-muted-foreground">
-                  Draft posts
+                  Draft items
                 </TabsContent>
               </Tabs>
             </DemoBlock>
@@ -591,9 +591,9 @@ export default function ComponentsPage() {
                 {[
                   {
                     value: 'q1',
-                    trigger: 'What is the Lonestone boilerplate?',
+                    trigger: 'What is this project?',
                     content:
-                      'A production-ready monorepo template with NestJS, React, and a curated component library.',
+                      'A monorepo with a NestJS API, a React SPA, and a curated component library.',
                   },
                   {
                     value: 'q2',

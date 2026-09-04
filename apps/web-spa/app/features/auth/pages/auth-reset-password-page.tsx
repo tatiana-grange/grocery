@@ -33,7 +33,7 @@ export default function AuthResetPasswordPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="page-reset-password">
       <AuthPageHeader
         title={t('auth.resetPassword.title')}
         description={t('auth.resetPassword.description')}

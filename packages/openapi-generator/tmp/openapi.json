@@ -17,7 +17,9 @@
     "/api": {
       "get": {
         "operationId": "AppController_getHello",
-        "tags": ["App"],
+        "tags": [
+          "App"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -26,10 +28,2207 @@
         }
       }
     },
+    "/api/admin/members": {
+      "get": {
+        "operationId": "AdminMembersController_list",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AdminMembersController_list_filterArray"
+            },
+            "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: status, feeState, role, q",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AdminMembersController_list_sortArray"
+            },
+            "description": "Schema for sorting items",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "description": "Starting position of the query",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "description": "Number of items to return",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembersList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "AdminMembersController_create",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "An administrator creates a member directly. The person receives no password — they use \"forgot password\" to set one.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "email",
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "phoneNumber": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "profile": {
+                    "type": "object",
+                    "properties": {
+                      "addressLine1": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "addressLine2": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "postalCode": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "city": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "phone": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "roles": {
+                    "default": [
+                      "member"
+                    ],
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "member",
+                        "admin"
+                      ],
+                      "title": "UserRole",
+                      "description": "Access role. \"admin\" is a superset of \"member\". \"grocer\" is added in lot 4."
+                    }
+                  },
+                  "status": {
+                    "default": "active",
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "active"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "roles",
+                  "status"
+                ],
+                "additionalProperties": false,
+                "title": "CreateMember",
+                "description": "An administrator creates a member directly. The person receives no password — they use \"forgot password\" to set one.",
+                "examples": [
+                  {
+                    "name": "Zoé Martin",
+                    "email": "zoe@example.com",
+                    "status": "active"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}": {
+      "get": {
+        "operationId": "AdminMembersController_detail",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/validation": {
+      "post": {
+        "operationId": "AdminMembersController_decide",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Validate a pending member (moves them to active) or reject them with a reason",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "const": "validate"
+                      },
+                      "version": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "decision",
+                      "version"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "const": "reject"
+                      },
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "version": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "decision",
+                      "reason",
+                      "version"
+                    ],
+                    "additionalProperties": false
+                  }
+                ],
+                "title": "MemberValidation",
+                "description": "Validate a pending member (moves them to active) or reject them with a reason",
+                "examples": [
+                  {
+                    "decision": "validate",
+                    "version": 0
+                  }
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/profile": {
+      "put": {
+        "operationId": "AdminMembersController_updateProfile",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Update a member’s name and personal details (send the version you loaded)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "addressLine1": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "addressLine2": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "postalCode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "phone": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateMemberProfile",
+                "description": "Update a member’s name and personal details (send the version you loaded)",
+                "examples": [
+                  {
+                    "name": "Zoé Martin",
+                    "city": "Nantes",
+                    "phone": "+33612345678",
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/fee": {
+      "put": {
+        "operationId": "AdminMembersController_setFee",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Set the expected membership fee for a member (the \"variable fee\")",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedAmountCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedAmountCents",
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "SetMembershipFee",
+                "description": "Set the expected membership fee for a member (the \"variable fee\")",
+                "examples": [
+                  {
+                    "expectedAmountCents": 2000,
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Membership-fee expectation, total paid, and derived state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeeSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/fee/payments": {
+      "get": {
+        "operationId": "AdminMembersController_listFeePayments",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All recorded payments and adjustments against a member’s fee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeePaymentsList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "AdminMembersController_recordFeePayment",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Record a membership-fee payment (positive) or an adjustment (any non-zero)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "default": "payment",
+                    "type": "string",
+                    "enum": [
+                      "payment",
+                      "adjustment"
+                    ],
+                    "title": "MembershipPaymentKind",
+                    "description": "A correction is recorded as an \"adjustment\" row, never by editing a payment"
+                  },
+                  "amountCents": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "cash",
+                      "transfer",
+                      "other"
+                    ],
+                    "title": "MembershipPaymentMethod",
+                    "description": "How a membership-fee payment was made (\"online\" is reserved for lot 5)"
+                  },
+                  "paidAt": {
+                    "type": "string"
+                  },
+                  "note": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "amountCents",
+                  "method",
+                  "paidAt"
+                ],
+                "additionalProperties": false,
+                "title": "RecordFeePayment",
+                "description": "Record a membership-fee payment (positive) or an adjustment (any non-zero)",
+                "examples": [
+                  {
+                    "kind": "payment",
+                    "amountCents": 1000,
+                    "method": "cash",
+                    "paidAt": "2026-09-02"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Membership-fee expectation, total paid, and derived state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeeSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/roles": {
+      "put": {
+        "operationId": "AdminMembersController_setRoles",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Replace a member’s access roles. Every member keeps \"member\"; adding \"admin\" grants the back office.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "member",
+                        "admin"
+                      ],
+                      "title": "UserRole",
+                      "description": "Access role. \"admin\" is a superset of \"member\". \"grocer\" is added in lot 4."
+                    }
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "roles",
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "SetMemberRoles",
+                "description": "Replace a member’s access roles. Every member keeps \"member\"; adding \"admin\" grants the back office.",
+                "examples": [
+                  {
+                    "roles": [
+                      "member",
+                      "admin"
+                    ],
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/termination": {
+      "post": {
+        "operationId": "AdminMembersController_terminate",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Terminate a member with a reason (admin action)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "reason",
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "TerminateMember",
+                "description": "Terminate a member with a reason (admin action)",
+                "examples": [
+                  {
+                    "reason": "Moved away",
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{id}/reactivation": {
+      "post": {
+        "operationId": "AdminMembersController_reactivate",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Return a terminated member to active",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "ReactivateMember",
+                "description": "Return a terminated member to active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full back-office view of a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/me": {
+      "get": {
+        "operationId": "MemberSelfController_me",
+        "tags": [
+          "Member self-service"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The signed-in member’s own account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberSelf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/me/profile": {
+      "put": {
+        "operationId": "MemberSelfController_updateProfile",
+        "tags": [
+          "Member self-service"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Update a member’s name and personal details (send the version you loaded)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "addressLine1": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "addressLine2": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "postalCode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "phone": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateMemberProfile",
+                "description": "Update a member’s name and personal details (send the version you loaded)",
+                "examples": [
+                  {
+                    "name": "Zoé Martin",
+                    "city": "Nantes",
+                    "phone": "+33612345678",
+                    "version": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The signed-in member’s own account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberSelf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/me/termination": {
+      "post": {
+        "operationId": "MemberSelfController_terminate",
+        "tags": [
+          "Member self-service"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "A member ending their own membership",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "confirm"
+                ],
+                "additionalProperties": false,
+                "title": "SelfTerminate",
+                "description": "A member ending their own membership"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The signed-in member’s own account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberSelf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/membership-intake": {
+      "get": {
+        "operationId": "MembershipIntakeController_get",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Whether self-registration is currently accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembershipIntake"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "MembershipIntakeController_set",
+        "tags": [
+          "Admin Members"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Whether self-registration is currently accepted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "open": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "open"
+                ],
+                "additionalProperties": false,
+                "title": "MembershipIntake",
+                "description": "Whether self-registration is currently accepted",
+                "examples": [
+                  {
+                    "open": true
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Whether self-registration is currently accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembershipIntake"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/suppliers": {
+      "get": {
+        "operationId": "AdminSuppliersController_list",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "includeArchived",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AdminSuppliersController_list_filterArray"
+            },
+            "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: type, q",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "description": "Starting position of the query",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "description": "Number of items to return",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of suppliers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSuppliersList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "AdminSuppliersController_create",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Create a supplier",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "producer",
+                      "wholesaler"
+                    ],
+                    "title": "SupplierType",
+                    "description": "Whether the supplier is a producer or a wholesaler"
+                  },
+                  "contactName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactEmail": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "email",
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactPhone": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ],
+                "additionalProperties": false,
+                "title": "CreateSupplier",
+                "description": "Create a supplier",
+                "examples": [
+                  {
+                    "name": "Ferme des Prés",
+                    "type": "producer"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A source of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSupplier"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/suppliers/{id}": {
+      "get": {
+        "operationId": "AdminSuppliersController_get",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A source of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSupplier"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "AdminSuppliersController_update",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Update a supplier (send the loaded version)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "producer",
+                      "wholesaler"
+                    ],
+                    "title": "SupplierType",
+                    "description": "Whether the supplier is a producer or a wholesaler"
+                  },
+                  "contactName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactEmail": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "email",
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactPhone": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateSupplier",
+                "description": "Update a supplier (send the loaded version)"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A source of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSupplier"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/suppliers/{id}/archive": {
+      "post": {
+        "operationId": "AdminSuppliersController_archive",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "cascade",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A source of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSupplier"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/suppliers/{id}/unarchive": {
+      "post": {
+        "operationId": "AdminSuppliersController_unarchive",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A source of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSupplier"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/categories": {
+      "get": {
+        "operationId": "AdminCategoriesController_list",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "includeArchived",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All categories (one nesting level)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCategoriesList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "AdminCategoriesController_create",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Create a category",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "parentId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false,
+                "title": "CreateCategory",
+                "description": "Create a category",
+                "examples": [
+                  {
+                    "name": "Fruits & vegetables"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A grouping for products in the catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/categories/{id}": {
+      "put": {
+        "operationId": "AdminCategoriesController_update",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Rename or reparent a category",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "parentId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateCategory",
+                "description": "Rename or reparent a category"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A grouping for products in the catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/categories/{id}/archive": {
+      "post": {
+        "operationId": "AdminCategoriesController_archive",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A grouping for products in the catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/categories/{id}/unarchive": {
+      "post": {
+        "operationId": "AdminCategoriesController_unarchive",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A grouping for products in the catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/products": {
+      "get": {
+        "operationId": "AdminProductsController_list",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "includeArchived",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AdminProductsController_list_filterArray"
+            },
+            "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: supplierId, categoryId, saleMode, label, q",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AdminProductsController_list_sortArray"
+            },
+            "description": "Schema for sorting items",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "description": "Starting position of the query",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "description": "Number of items to return",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProductsList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "AdminProductsController_create",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Create a catalogue product with its first price. pricingUnit is derived from saleMode.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "supplierId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "categoryId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "saleMode": {
+                    "type": "string",
+                    "enum": [
+                      "unit",
+                      "weight"
+                    ],
+                    "title": "ProductSaleMode",
+                    "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
+                  },
+                  "photos": {
+                    "default": [],
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "labels": {
+                    "default": [],
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "organic",
+                        "local",
+                        "vegetarian",
+                        "vegan"
+                      ],
+                      "title": "ProductLabel",
+                      "description": "Informational badges shown on the product"
+                    }
+                  },
+                  "barcode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "averageWeightGrams": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "weightTolerancePercent": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "initialPriceEur": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "name",
+                  "supplierId",
+                  "categoryId",
+                  "saleMode",
+                  "photos",
+                  "labels",
+                  "initialPriceEur"
+                ],
+                "additionalProperties": false,
+                "title": "CreateProduct",
+                "description": "Create a catalogue product with its first price. pricingUnit is derived from saleMode.",
+                "examples": [
+                  {
+                    "name": "Carrots (loose)",
+                    "supplierId": "00000000-0000-0000-0000-000000000000",
+                    "categoryId": "00000000-0000-0000-0000-000000000000",
+                    "saleMode": "weight",
+                    "labels": [
+                      "local",
+                      "organic"
+                    ],
+                    "initialPriceEur": 2.4
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A product with its full price history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProductDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/products/{id}": {
+      "get": {
+        "operationId": "AdminProductsController_get",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A product with its full price history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProductDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "AdminProductsController_update",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Update a product (not its price)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "supplierId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "categoryId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "saleMode": {
+                    "type": "string",
+                    "enum": [
+                      "unit",
+                      "weight"
+                    ],
+                    "title": "ProductSaleMode",
+                    "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
+                  },
+                  "photos": {
+                    "default": [],
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "labels": {
+                    "default": [],
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "organic",
+                        "local",
+                        "vegetarian",
+                        "vegan"
+                      ],
+                      "title": "ProductLabel",
+                      "description": "Informational badges shown on the product"
+                    }
+                  },
+                  "barcode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "averageWeightGrams": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "weightTolerancePercent": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateProduct",
+                "description": "Update a product (not its price)"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A product with its full price history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProductDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/products/{id}/price": {
+      "post": {
+        "operationId": "AdminProductsController_setPrice",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Set a new current price; the previous window is closed at effectiveFrom (or now)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amountEur": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "effectiveFrom": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "amountEur"
+                ],
+                "additionalProperties": false,
+                "title": "SetProductPrice",
+                "description": "Set a new current price; the previous window is closed at effectiveFrom (or now)",
+                "examples": [
+                  {
+                    "amountEur": 2.4
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A product with its full price history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProductDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/products/{id}/archive": {
+      "post": {
+        "operationId": "AdminProductsController_archive",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An item the cooperative offers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProduct"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/products/{id}/unarchive": {
+      "post": {
+        "operationId": "AdminProductsController_unarchive",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An item the cooperative offers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProduct"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/posts/{postSlug}/comments": {
       "post": {
         "operationId": "CommentsController_createComment",
-        "tags": ["Comments"],
+        "tags": [
+          "Comments"
+        ],
         "parameters": [
           {
             "name": "postSlug",
@@ -59,7 +2258,9 @@
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   }
                 },
-                "required": ["content"],
+                "required": [
+                  "content"
+                ],
                 "additionalProperties": false,
                 "title": "CreateCommentSchema",
                 "description": "Schema for creating a comment"
@@ -82,7 +2283,9 @@
       },
       "get": {
         "operationId": "CommentsController_getComments",
-        "tags": ["Comments"],
+        "tags": [
+          "Comments"
+        ],
         "parameters": [
           {
             "name": "filter",
@@ -153,10 +2356,103 @@
         }
       }
     },
+    "/api/posts/{postSlug}/comments/{commentId}": {
+      "patch": {
+        "operationId": "CommentsController_updateComment",
+        "tags": [
+          "Comments"
+        ],
+        "parameters": [
+          {
+            "name": "commentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postSlug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Schema for updating a comment",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "content"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateCommentSchema",
+                "description": "Schema for updating a comment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Schema for a comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentSchema"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "CommentsController_deleteComment",
+        "tags": [
+          "Comments"
+        ],
+        "parameters": [
+          {
+            "name": "commentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postSlug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/posts/{postSlug}/comments/count": {
       "get": {
         "operationId": "CommentsController_getCommentCount",
-        "tags": ["Comments"],
+        "tags": [
+          "Comments"
+        ],
         "parameters": [
           {
             "name": "postSlug",
@@ -177,7 +2473,9 @@
     "/api/posts/{postSlug}/comments/{commentId}/replies": {
       "get": {
         "operationId": "CommentsController_getCommentReplies",
-        "tags": ["Comments"],
+        "tags": [
+          "Comments"
+        ],
         "parameters": [
           {
             "name": "sort",
@@ -245,39 +2543,12 @@
         }
       }
     },
-    "/api/posts/{postSlug}/comments/{commentId}": {
-      "delete": {
-        "operationId": "CommentsController_deleteComment",
-        "tags": ["Comments"],
-        "parameters": [
-          {
-            "name": "commentId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "postSlug",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
     "/api/admin/posts": {
       "post": {
         "operationId": "PostController_createPost",
-        "tags": ["Admin Posts"],
+        "tags": [
+          "Admin Posts"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -306,7 +2577,10 @@
                               "type": "string"
                             }
                           },
-                          "required": ["type", "data"],
+                          "required": [
+                            "type",
+                            "data"
+                          ],
                           "additionalProperties": false
                         },
                         {
@@ -320,7 +2594,10 @@
                               "type": "string"
                             }
                           },
-                          "required": ["type", "data"],
+                          "required": [
+                            "type",
+                            "data"
+                          ],
                           "additionalProperties": false
                         },
                         {
@@ -334,7 +2611,10 @@
                               "type": "string"
                             }
                           },
-                          "required": ["type", "data"],
+                          "required": [
+                            "type",
+                            "data"
+                          ],
                           "additionalProperties": false
                         }
                       ],
@@ -354,7 +2634,10 @@
                     }
                   }
                 },
-                "required": ["title", "content"],
+                "required": [
+                  "title",
+                  "content"
+                ],
                 "additionalProperties": false,
                 "title": "CreatePostSchema",
                 "description": "Schema for creating/updating a post"
@@ -377,7 +2660,9 @@
       },
       "get": {
         "operationId": "PostController_getUserPosts",
-        "tags": ["Admin Posts"],
+        "tags": [
+          "Admin Posts"
+        ],
         "parameters": [
           {
             "name": "filter",
@@ -443,7 +2728,9 @@
     "/api/admin/posts/{id}": {
       "put": {
         "operationId": "PostController_updatePost",
-        "tags": ["Admin Posts"],
+        "tags": [
+          "Admin Posts"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -481,7 +2768,10 @@
                               "type": "string"
                             }
                           },
-                          "required": ["type", "data"],
+                          "required": [
+                            "type",
+                            "data"
+                          ],
                           "additionalProperties": false
                         },
                         {
@@ -495,7 +2785,10 @@
                               "type": "string"
                             }
                           },
-                          "required": ["type", "data"],
+                          "required": [
+                            "type",
+                            "data"
+                          ],
                           "additionalProperties": false
                         },
                         {
@@ -509,7 +2802,10 @@
                               "type": "string"
                             }
                           },
-                          "required": ["type", "data"],
+                          "required": [
+                            "type",
+                            "data"
+                          ],
                           "additionalProperties": false
                         }
                       ],
@@ -551,7 +2847,9 @@
       },
       "get": {
         "operationId": "PostController_getUserPost",
-        "tags": ["Admin Posts"],
+        "tags": [
+          "Admin Posts"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -579,7 +2877,9 @@
     "/api/admin/posts/{id}/publish": {
       "patch": {
         "operationId": "PostController_publishPost",
-        "tags": ["Admin Posts"],
+        "tags": [
+          "Admin Posts"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -600,7 +2900,9 @@
     "/api/admin/posts/{id}/unpublish": {
       "patch": {
         "operationId": "PostController_unpublishPost",
-        "tags": ["Admin Posts"],
+        "tags": [
+          "Admin Posts"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -621,7 +2923,9 @@
     "/api/public/posts/random": {
       "get": {
         "operationId": "PublicPostController_getRandomPost",
-        "tags": ["Public Posts"],
+        "tags": [
+          "Public Posts"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -640,7 +2944,9 @@
     "/api/public/posts/{slug}": {
       "get": {
         "operationId": "PublicPostController_getPost",
-        "tags": ["Public Posts"],
+        "tags": [
+          "Public Posts"
+        ],
         "parameters": [
           {
             "name": "slug",
@@ -668,7 +2974,9 @@
     "/api/public/posts": {
       "get": {
         "operationId": "PublicPostController_getPosts",
-        "tags": ["Public Posts"],
+        "tags": [
+          "Public Posts"
+        ],
         "parameters": [
           {
             "name": "filter",
@@ -734,7 +3042,9 @@
     "/api/public/posts/{slug}/like": {
       "post": {
         "operationId": "PublicPostController_likePost",
-        "tags": ["Public Posts"],
+        "tags": [
+          "Public Posts"
+        ],
         "parameters": [
           {
             "name": "slug",
@@ -762,7 +3072,9 @@
     "/api/public/authors/{slug}/posts": {
       "get": {
         "operationId": "PublicAuthorController_getAuthorPosts",
-        "tags": ["Public Authors"],
+        "tags": [
+          "Public Authors"
+        ],
         "parameters": [
           {
             "name": "sort",
@@ -825,7 +3137,9 @@
     "/api/ai/generate-text": {
       "post": {
         "operationId": "AiExampleController_generateText",
-        "tags": ["AiExample"],
+        "tags": [
+          "AiExample"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -890,7 +3204,10 @@
                           "traceMode": {
                             "description": "Trace strategy. Use \"inherit\" to keep the active OTEL trace, or \"split\" to create a new (Langfuse) trace for this LLM call.",
                             "type": "string",
-                            "enum": ["inherit", "split"]
+                            "enum": [
+                              "inherit",
+                              "split"
+                            ]
                           },
                           "traceId": {
                             "description": "Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.",
@@ -936,7 +3253,9 @@
                     "description": "Options for an AI generation"
                   }
                 },
-                "required": ["prompt"],
+                "required": [
+                  "prompt"
+                ],
                 "additionalProperties": false,
                 "title": "GenerateTextRequest",
                 "description": "Request for simple text generation with a single prompt"
@@ -961,7 +3280,9 @@
     "/api/ai/generate-object": {
       "post": {
         "operationId": "AiExampleController_generateObject",
-        "tags": ["AiExample"],
+        "tags": [
+          "AiExample"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -977,7 +3298,12 @@
                   },
                   "schemaType": {
                     "type": "string",
-                    "enum": ["userProfile", "task", "product", "recipe"]
+                    "enum": [
+                      "userProfile",
+                      "task",
+                      "product",
+                      "recipe"
+                    ]
                   },
                   "model": {
                     "type": "string",
@@ -1030,7 +3356,10 @@
                           "traceMode": {
                             "description": "Trace strategy. Use \"inherit\" to keep the active OTEL trace, or \"split\" to create a new (Langfuse) trace for this LLM call.",
                             "type": "string",
-                            "enum": ["inherit", "split"]
+                            "enum": [
+                              "inherit",
+                              "split"
+                            ]
                           },
                           "traceId": {
                             "description": "Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.",
@@ -1076,7 +3405,10 @@
                     "description": "Options for an AI generation"
                   }
                 },
-                "required": ["prompt", "schemaType"],
+                "required": [
+                  "prompt",
+                  "schemaType"
+                ],
                 "additionalProperties": false,
                 "title": "GenerateObjectRequest",
                 "description": "Request for structured object generation with a predefined schema type"
@@ -1101,7 +3433,9 @@
     "/api/ai/chat": {
       "post": {
         "operationId": "AiExampleController_chat",
-        "tags": ["AiExample"],
+        "tags": [
+          "AiExample"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1119,7 +3453,12 @@
                       "properties": {
                         "role": {
                           "type": "string",
-                          "enum": ["user", "assistant", "system", "tool"]
+                          "enum": [
+                            "user",
+                            "assistant",
+                            "system",
+                            "tool"
+                          ]
                         },
                         "content": {
                           "type": "string"
@@ -1144,7 +3483,11 @@
                                   "type": "number"
                                 }
                               },
-                              "required": ["promptTokens", "completionTokens", "totalTokens"],
+                              "required": [
+                                "promptTokens",
+                                "completionTokens",
+                                "totalTokens"
+                              ],
                               "additionalProperties": false,
                               "title": "TokenUsage"
                             },
@@ -1177,7 +3520,11 @@
                                     "additionalProperties": {}
                                   }
                                 },
-                                "required": ["toolCallId", "toolName", "args"],
+                                "required": [
+                                  "toolCallId",
+                                  "toolName",
+                                  "args"
+                                ],
                                 "additionalProperties": false,
                                 "title": "ToolCall",
                                 "description": "A tool call made by the AI"
@@ -1189,7 +3536,13 @@
                             },
                             "schemaType": {
                               "type": "string",
-                              "enum": ["userProfile", "task", "product", "recipe", "none"],
+                              "enum": [
+                                "userProfile",
+                                "task",
+                                "product",
+                                "recipe",
+                                "none"
+                              ],
                               "title": "ChatSchemaType",
                               "description": "Predefined schema types for testing structured output"
                             }
@@ -1197,7 +3550,10 @@
                           "additionalProperties": false
                         }
                       },
-                      "required": ["role", "content"],
+                      "required": [
+                        "role",
+                        "content"
+                      ],
                       "additionalProperties": false,
                       "title": "ChatMessageWithSchemaType",
                       "description": "A message with optional schemaType metadata for identifying structured output"
@@ -1254,7 +3610,10 @@
                           "traceMode": {
                             "description": "Trace strategy. Use \"inherit\" to keep the active OTEL trace, or \"split\" to create a new (Langfuse) trace for this LLM call.",
                             "type": "string",
-                            "enum": ["inherit", "split"]
+                            "enum": [
+                              "inherit",
+                              "split"
+                            ]
                           },
                           "traceId": {
                             "description": "Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.",
@@ -1301,12 +3660,20 @@
                   },
                   "schemaType": {
                     "type": "string",
-                    "enum": ["userProfile", "task", "product", "recipe", "none"],
+                    "enum": [
+                      "userProfile",
+                      "task",
+                      "product",
+                      "recipe",
+                      "none"
+                    ],
                     "title": "ChatSchemaType",
                     "description": "Predefined schema types for testing structured output"
                   }
                 },
-                "required": ["messages"],
+                "required": [
+                  "messages"
+                ],
                 "additionalProperties": false,
                 "title": "ChatRequest",
                 "description": "Request for multi-turn AI conversation with message history. schemaType can be used to request structured output."
@@ -1331,7 +3698,9 @@
     "/api/ai/stream-text": {
       "post": {
         "operationId": "AiExampleController_streamText",
-        "tags": ["AiExample"],
+        "tags": [
+          "AiExample"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1396,7 +3765,10 @@
                           "traceMode": {
                             "description": "Trace strategy. Use \"inherit\" to keep the active OTEL trace, or \"split\" to create a new (Langfuse) trace for this LLM call.",
                             "type": "string",
-                            "enum": ["inherit", "split"]
+                            "enum": [
+                              "inherit",
+                              "split"
+                            ]
                           },
                           "traceId": {
                             "description": "Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.",
@@ -1442,7 +3814,9 @@
                     "description": "Options for an AI generation"
                   }
                 },
-                "required": ["prompt"],
+                "required": [
+                  "prompt"
+                ],
                 "additionalProperties": false,
                 "title": "StreamTextRequest",
                 "description": "Request for streaming text generation with a single prompt"
@@ -1460,7 +3834,9 @@
     "/api/ai/stream-object": {
       "post": {
         "operationId": "AiExampleController_streamObject",
-        "tags": ["AiExample"],
+        "tags": [
+          "AiExample"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1476,7 +3852,12 @@
                   },
                   "schemaType": {
                     "type": "string",
-                    "enum": ["userProfile", "task", "product", "recipe"]
+                    "enum": [
+                      "userProfile",
+                      "task",
+                      "product",
+                      "recipe"
+                    ]
                   },
                   "model": {
                     "type": "string",
@@ -1529,7 +3910,10 @@
                           "traceMode": {
                             "description": "Trace strategy. Use \"inherit\" to keep the active OTEL trace, or \"split\" to create a new (Langfuse) trace for this LLM call.",
                             "type": "string",
-                            "enum": ["inherit", "split"]
+                            "enum": [
+                              "inherit",
+                              "split"
+                            ]
                           },
                           "traceId": {
                             "description": "Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.",
@@ -1575,7 +3959,10 @@
                     "description": "Options for an AI generation"
                   }
                 },
-                "required": ["prompt", "schemaType"],
+                "required": [
+                  "prompt",
+                  "schemaType"
+                ],
                 "additionalProperties": false,
                 "title": "StreamObjectRequest",
                 "description": "Request for streaming structured object generation"
@@ -1593,7 +3980,9 @@
     "/api/ai/stream-chat": {
       "post": {
         "operationId": "AiExampleController_streamChat",
-        "tags": ["AiExample"],
+        "tags": [
+          "AiExample"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1611,7 +4000,12 @@
                       "properties": {
                         "role": {
                           "type": "string",
-                          "enum": ["user", "assistant", "system", "tool"]
+                          "enum": [
+                            "user",
+                            "assistant",
+                            "system",
+                            "tool"
+                          ]
                         },
                         "content": {
                           "type": "string"
@@ -1636,7 +4030,11 @@
                                   "type": "number"
                                 }
                               },
-                              "required": ["promptTokens", "completionTokens", "totalTokens"],
+                              "required": [
+                                "promptTokens",
+                                "completionTokens",
+                                "totalTokens"
+                              ],
                               "additionalProperties": false,
                               "title": "TokenUsage"
                             },
@@ -1669,7 +4067,11 @@
                                     "additionalProperties": {}
                                   }
                                 },
-                                "required": ["toolCallId", "toolName", "args"],
+                                "required": [
+                                  "toolCallId",
+                                  "toolName",
+                                  "args"
+                                ],
                                 "additionalProperties": false,
                                 "title": "ToolCall",
                                 "description": "A tool call made by the AI"
@@ -1681,7 +4083,13 @@
                             },
                             "schemaType": {
                               "type": "string",
-                              "enum": ["userProfile", "task", "product", "recipe", "none"],
+                              "enum": [
+                                "userProfile",
+                                "task",
+                                "product",
+                                "recipe",
+                                "none"
+                              ],
                               "title": "ChatSchemaType",
                               "description": "Predefined schema types for testing structured output"
                             }
@@ -1689,7 +4097,10 @@
                           "additionalProperties": false
                         }
                       },
-                      "required": ["role", "content"],
+                      "required": [
+                        "role",
+                        "content"
+                      ],
                       "additionalProperties": false,
                       "title": "ChatMessageWithSchemaType",
                       "description": "A message with optional schemaType metadata for identifying structured output"
@@ -1746,7 +4157,10 @@
                           "traceMode": {
                             "description": "Trace strategy. Use \"inherit\" to keep the active OTEL trace, or \"split\" to create a new (Langfuse) trace for this LLM call.",
                             "type": "string",
-                            "enum": ["inherit", "split"]
+                            "enum": [
+                              "inherit",
+                              "split"
+                            ]
                           },
                           "traceId": {
                             "description": "Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.",
@@ -1792,7 +4206,9 @@
                     "description": "Options for an AI generation"
                   }
                 },
-                "required": ["messages"],
+                "required": [
+                  "messages"
+                ],
                 "additionalProperties": false,
                 "title": "StreamChatRequest",
                 "description": "Request for streaming multi-turn AI conversation"
@@ -1810,7 +4226,9 @@
     "/api/ai/examples/use-case-1-single-generation": {
       "post": {
         "operationId": "AiExampleUseCasesController_useCase1SingleGeneration",
-        "tags": ["AiExampleUseCases"],
+        "tags": [
+          "AiExampleUseCases"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1875,7 +4293,10 @@
                           "traceMode": {
                             "description": "Trace strategy. Use \"inherit\" to keep the active OTEL trace, or \"split\" to create a new (Langfuse) trace for this LLM call.",
                             "type": "string",
-                            "enum": ["inherit", "split"]
+                            "enum": [
+                              "inherit",
+                              "split"
+                            ]
                           },
                           "traceId": {
                             "description": "Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.",
@@ -1921,7 +4342,9 @@
                     "description": "Options for an AI generation"
                   }
                 },
-                "required": ["prompt"],
+                "required": [
+                  "prompt"
+                ],
                 "additionalProperties": false,
                 "title": "UseCase1SingleGenerationRequest",
                 "description": "Single generation; trace is finalized with name/output so Langfuse shows them"
@@ -1946,7 +4369,9 @@
     "/api/ai/examples/use-case-2-grouped-calls": {
       "post": {
         "operationId": "AiExampleUseCasesController_useCase2GroupedCalls",
-        "tags": ["AiExampleUseCases"],
+        "tags": [
+          "AiExampleUseCases"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1977,7 +4402,9 @@
                     ]
                   }
                 },
-                "required": ["prompts"],
+                "required": [
+                  "prompts"
+                ],
                 "additionalProperties": false,
                 "title": "UseCase2GroupedCallsRequest",
                 "description": "Multiple LLM calls in one request; one trace in Langfuse, finalized at end"
@@ -2002,7 +4429,9 @@
     "/api/ai/examples/use-case-3-logical-units": {
       "post": {
         "operationId": "AiExampleUseCasesController_useCase3LogicalUnits",
-        "tags": ["AiExampleUseCases"],
+        "tags": [
+          "AiExampleUseCases"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -2033,7 +4462,9 @@
                     ]
                   }
                 },
-                "required": ["workflowPrompts"],
+                "required": [
+                  "workflowPrompts"
+                ],
                 "additionalProperties": false,
                 "title": "UseCase3LogicalUnitsRequest",
                 "description": "Multiple workflows; each workflow gets its own Langfuse trace (split per unit)"
@@ -2058,7 +4489,9 @@
     "/api/ai/examples/use-case-4-chat-session": {
       "post": {
         "operationId": "AiExampleUseCasesController_useCase4ChatSession",
-        "tags": ["AiExampleUseCases"],
+        "tags": [
+          "AiExampleUseCases"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -2088,7 +4521,10 @@
                     ]
                   }
                 },
-                "required": ["prompt", "sessionId"],
+                "required": [
+                  "prompt",
+                  "sessionId"
+                ],
                 "additionalProperties": false,
                 "title": "UseCase4ChatSessionRequest",
                 "description": "Simple generateText with sessionId for grouping traces across requests"
@@ -2113,7 +4549,9 @@
     "/api/ai/examples/use-case-5-chat-session-with-turns-merged": {
       "post": {
         "operationId": "AiExampleUseCasesController_useCase5ChatSessionWithTurnsMerged",
-        "tags": ["AiExampleUseCases"],
+        "tags": [
+          "AiExampleUseCases"
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -2143,7 +4581,10 @@
                     ]
                   }
                 },
-                "required": ["prompt", "sessionId"],
+                "required": [
+                  "prompt",
+                  "sessionId"
+                ],
                 "additionalProperties": false,
                 "title": "UseCase4ChatSessionRequest",
                 "description": "Simple generateText with sessionId for grouping traces across requests"
@@ -2168,6 +4609,425 @@
   },
   "components": {
     "schemas": {
+      "CreateSupplier": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "$ref": "#/components/schemas/SupplierType"
+          },
+          "contactName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactEmail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactPhone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "additionalProperties": false,
+        "title": "CreateSupplier",
+        "description": "Create a supplier",
+        "examples": [
+          {
+            "name": "Ferme des Prés",
+            "type": "producer"
+          }
+        ]
+      },
+      "UpdateSupplier": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "$ref": "#/components/schemas/SupplierType"
+          },
+          "contactName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactEmail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactPhone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "UpdateSupplier",
+        "description": "Update a supplier (send the loaded version)"
+      },
+      "CreateCategory": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "title": "CreateCategory",
+        "description": "Create a category",
+        "examples": [
+          {
+            "name": "Fruits & vegetables"
+          }
+        ]
+      },
+      "UpdateCategory": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "UpdateCategory",
+        "description": "Rename or reparent a category"
+      },
+      "CreateProduct": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "saleMode": {
+            "$ref": "#/components/schemas/ProductSaleMode"
+          },
+          "photos": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductLabel"
+            }
+          },
+          "barcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "averageWeightGrams": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weightTolerancePercent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "initialPriceEur": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "name",
+          "supplierId",
+          "categoryId",
+          "saleMode",
+          "photos",
+          "labels",
+          "initialPriceEur"
+        ],
+        "additionalProperties": false,
+        "title": "CreateProduct",
+        "description": "Create a catalogue product with its first price. pricingUnit is derived from saleMode.",
+        "examples": [
+          {
+            "name": "Carrots (loose)",
+            "supplierId": "00000000-0000-0000-0000-000000000000",
+            "categoryId": "00000000-0000-0000-0000-000000000000",
+            "saleMode": "weight",
+            "labels": [
+              "local",
+              "organic"
+            ],
+            "initialPriceEur": 2.4
+          }
+        ]
+      },
+      "UpdateProduct": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "saleMode": {
+            "$ref": "#/components/schemas/ProductSaleMode"
+          },
+          "photos": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductLabel"
+            }
+          },
+          "barcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "averageWeightGrams": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weightTolerancePercent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "UpdateProduct",
+        "description": "Update a product (not its price)"
+      },
+      "SetProductPrice": {
+        "type": "object",
+        "properties": {
+          "amountEur": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "effectiveFrom": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amountEur"
+        ],
+        "additionalProperties": false,
+        "title": "SetProductPrice",
+        "description": "Set a new current price; the previous window is closed at effectiveFrom (or now)",
+        "examples": [
+          {
+            "amountEur": 2.4
+          }
+        ]
+      },
       "UseCase1SingleGenerationRequest": {
         "type": "object",
         "properties": {
@@ -2189,7 +5049,9 @@
             "$ref": "#/components/schemas/AiGenerateOptions"
           }
         },
-        "required": ["prompt"],
+        "required": [
+          "prompt"
+        ],
         "additionalProperties": false,
         "title": "UseCase1SingleGenerationRequest",
         "description": "Single generation; trace is finalized with name/output so Langfuse shows them"
@@ -2218,7 +5080,9 @@
             ]
           }
         },
-        "required": ["prompts"],
+        "required": [
+          "prompts"
+        ],
         "additionalProperties": false,
         "title": "UseCase2GroupedCallsRequest",
         "description": "Multiple LLM calls in one request; one trace in Langfuse, finalized at end"
@@ -2247,7 +5111,9 @@
             ]
           }
         },
-        "required": ["workflowPrompts"],
+        "required": [
+          "workflowPrompts"
+        ],
         "additionalProperties": false,
         "title": "UseCase3LogicalUnitsRequest",
         "description": "Multiple workflows; each workflow gets its own Langfuse trace (split per unit)"
@@ -2275,7 +5141,10 @@
             ]
           }
         },
-        "required": ["prompt", "sessionId"],
+        "required": [
+          "prompt",
+          "sessionId"
+        ],
         "additionalProperties": false,
         "title": "UseCase4ChatSessionRequest",
         "description": "Simple generateText with sessionId for grouping traces across requests"
@@ -2301,7 +5170,9 @@
             "$ref": "#/components/schemas/AiGenerateOptions"
           }
         },
-        "required": ["prompt"],
+        "required": [
+          "prompt"
+        ],
         "additionalProperties": false,
         "title": "GenerateTextRequest",
         "description": "Request for simple text generation with a single prompt"
@@ -2315,7 +5186,12 @@
           },
           "schemaType": {
             "type": "string",
-            "enum": ["userProfile", "task", "product", "recipe"]
+            "enum": [
+              "userProfile",
+              "task",
+              "product",
+              "recipe"
+            ]
           },
           "model": {
             "type": "string",
@@ -2331,7 +5207,10 @@
             "$ref": "#/components/schemas/AiGenerateOptions"
           }
         },
-        "required": ["prompt", "schemaType"],
+        "required": [
+          "prompt",
+          "schemaType"
+        ],
         "additionalProperties": false,
         "title": "GenerateObjectRequest",
         "description": "Request for structured object generation with a predefined schema type"
@@ -2363,7 +5242,9 @@
             "$ref": "#/components/schemas/ChatSchemaType"
           }
         },
-        "required": ["messages"],
+        "required": [
+          "messages"
+        ],
         "additionalProperties": false,
         "title": "ChatRequest",
         "description": "Request for multi-turn AI conversation with message history. schemaType can be used to request structured output."
@@ -2389,7 +5270,9 @@
             "$ref": "#/components/schemas/AiGenerateOptions"
           }
         },
-        "required": ["prompt"],
+        "required": [
+          "prompt"
+        ],
         "additionalProperties": false,
         "title": "StreamTextRequest",
         "description": "Request for streaming text generation with a single prompt"
@@ -2403,7 +5286,12 @@
           },
           "schemaType": {
             "type": "string",
-            "enum": ["userProfile", "task", "product", "recipe"]
+            "enum": [
+              "userProfile",
+              "task",
+              "product",
+              "recipe"
+            ]
           },
           "model": {
             "type": "string",
@@ -2419,7 +5307,10 @@
             "$ref": "#/components/schemas/AiGenerateOptions"
           }
         },
-        "required": ["prompt", "schemaType"],
+        "required": [
+          "prompt",
+          "schemaType"
+        ],
         "additionalProperties": false,
         "title": "StreamObjectRequest",
         "description": "Request for streaming structured object generation"
@@ -2448,7 +5339,9 @@
             "$ref": "#/components/schemas/AiGenerateOptions"
           }
         },
-        "required": ["messages"],
+        "required": [
+          "messages"
+        ],
         "additionalProperties": false,
         "title": "StreamChatRequest",
         "description": "Request for streaming multi-turn AI conversation"
@@ -2467,10 +5360,28 @@
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
-        "required": ["content"],
+        "required": [
+          "content"
+        ],
         "additionalProperties": false,
         "title": "CreateCommentSchema",
         "description": "Schema for creating a comment"
+      },
+      "UpdateCommentSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "additionalProperties": false,
+        "title": "UpdateCommentSchema",
+        "description": "Schema for updating a comment"
       },
       "CreatePostSchema": {
         "type": "object",
@@ -2496,7 +5407,10 @@
             }
           }
         },
-        "required": ["title", "content"],
+        "required": [
+          "title",
+          "content"
+        ],
         "additionalProperties": false,
         "title": "CreatePostSchema",
         "description": "Schema for creating/updating a post"
@@ -2529,6 +5443,1062 @@
         "title": "UpdatePostSchema",
         "description": "Schema for updating a post"
       },
+      "CreateMember": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phoneNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "addressLine1": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "addressLine2": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "postalCode": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "city": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "phone": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "roles": {
+            "default": [
+              "member"
+            ],
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          },
+          "status": {
+            "default": "active",
+            "type": "string",
+            "enum": [
+              "pending",
+              "active"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "roles",
+          "status"
+        ],
+        "additionalProperties": false,
+        "title": "CreateMember",
+        "description": "An administrator creates a member directly. The person receives no password — they use \"forgot password\" to set one.",
+        "examples": [
+          {
+            "name": "Zoé Martin",
+            "email": "zoe@example.com",
+            "status": "active"
+          }
+        ]
+      },
+      "MemberValidation": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "decision": {
+                "type": "string",
+                "const": "validate"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "decision",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "decision": {
+                "type": "string",
+                "const": "reject"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "decision",
+              "reason",
+              "version"
+            ],
+            "additionalProperties": false
+          }
+        ],
+        "title": "MemberValidation",
+        "description": "Validate a pending member (moves them to active) or reject them with a reason",
+        "examples": [
+          {
+            "decision": "validate",
+            "version": 0
+          }
+        ],
+        "type": "object"
+      },
+      "UpdateMemberProfile": {
+        "type": "object",
+        "properties": {
+          "addressLine1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "addressLine2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postalCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "UpdateMemberProfile",
+        "description": "Update a member’s name and personal details (send the version you loaded)",
+        "examples": [
+          {
+            "name": "Zoé Martin",
+            "city": "Nantes",
+            "phone": "+33612345678",
+            "version": 1
+          }
+        ]
+      },
+      "SetMembershipFee": {
+        "type": "object",
+        "properties": {
+          "expectedAmountCents": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "expectedAmountCents",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "SetMembershipFee",
+        "description": "Set the expected membership fee for a member (the \"variable fee\")",
+        "examples": [
+          {
+            "expectedAmountCents": 2000,
+            "version": 1
+          }
+        ]
+      },
+      "RecordFeePayment": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/MembershipPaymentKind"
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "method": {
+            "$ref": "#/components/schemas/MembershipPaymentMethod"
+          },
+          "paidAt": {
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "amountCents",
+          "method",
+          "paidAt"
+        ],
+        "additionalProperties": false,
+        "title": "RecordFeePayment",
+        "description": "Record a membership-fee payment (positive) or an adjustment (any non-zero)",
+        "examples": [
+          {
+            "kind": "payment",
+            "amountCents": 1000,
+            "method": "cash",
+            "paidAt": "2026-09-02"
+          }
+        ]
+      },
+      "SetMemberRoles": {
+        "type": "object",
+        "properties": {
+          "roles": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "roles",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "SetMemberRoles",
+        "description": "Replace a member’s access roles. Every member keeps \"member\"; adding \"admin\" grants the back office.",
+        "examples": [
+          {
+            "roles": [
+              "member",
+              "admin"
+            ],
+            "version": 1
+          }
+        ]
+      },
+      "TerminateMember": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "reason",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "TerminateMember",
+        "description": "Terminate a member with a reason (admin action)",
+        "examples": [
+          {
+            "reason": "Moved away",
+            "version": 1
+          }
+        ]
+      },
+      "ReactivateMember": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "ReactivateMember",
+        "description": "Return a terminated member to active"
+      },
+      "SelfTerminate": {
+        "type": "object",
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "additionalProperties": false,
+        "title": "SelfTerminate",
+        "description": "A member ending their own membership"
+      },
+      "MembershipIntake": {
+        "type": "object",
+        "properties": {
+          "open": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "open"
+        ],
+        "additionalProperties": false,
+        "title": "MembershipIntake",
+        "description": "Whether self-registration is currently accepted",
+        "examples": [
+          {
+            "open": true
+          }
+        ]
+      },
+      "CatalogSuppliersList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogSupplier"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "itemCount": {
+                "type": "number"
+              },
+              "hasMore": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogSuppliersList",
+        "description": "A paginated list of suppliers"
+      },
+      "CatalogSupplier": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SupplierType"
+          },
+          "contactName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactEmail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactPhone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "archivedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "productCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "productCount",
+          "version",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogSupplier",
+        "description": "A source of products"
+      },
+      "SupplierType": {
+        "type": "string",
+        "enum": [
+          "producer",
+          "wholesaler"
+        ],
+        "title": "SupplierType",
+        "description": "Whether the supplier is a producer or a wholesaler"
+      },
+      "CatalogCategoriesList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/CatalogCategory"
+        },
+        "title": "CatalogCategoriesList",
+        "description": "All categories (one nesting level)"
+      },
+      "CatalogCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "archivedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "productCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "productCount",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogCategory",
+        "description": "A grouping for products in the catalogue"
+      },
+      "CatalogProductsList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogProduct"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "itemCount": {
+                "type": "number"
+              },
+              "hasMore": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogProductsList",
+        "description": "A paginated list of products"
+      },
+      "CatalogProduct": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supplier": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "category": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "saleMode": {
+            "$ref": "#/components/schemas/ProductSaleMode"
+          },
+          "pricingUnit": {
+            "$ref": "#/components/schemas/ProductPricingUnit"
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductLabel"
+            }
+          },
+          "barcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currentPriceEur": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "archivedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "supplier",
+          "category",
+          "saleMode",
+          "pricingUnit",
+          "photos",
+          "labels",
+          "version",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogProduct",
+        "description": "An item the cooperative offers"
+      },
+      "ProductSaleMode": {
+        "type": "string",
+        "enum": [
+          "unit",
+          "weight"
+        ],
+        "title": "ProductSaleMode",
+        "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
+      },
+      "ProductPricingUnit": {
+        "type": "string",
+        "enum": [
+          "piece",
+          "kg"
+        ],
+        "title": "ProductPricingUnit",
+        "description": "Derived from the sale mode: unit → piece, weight → kg"
+      },
+      "ProductLabel": {
+        "type": "string",
+        "enum": [
+          "organic",
+          "local",
+          "vegetarian",
+          "vegan"
+        ],
+        "title": "ProductLabel",
+        "description": "Informational badges shown on the product"
+      },
+      "CatalogProductDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supplier": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "category": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "saleMode": {
+            "$ref": "#/components/schemas/ProductSaleMode"
+          },
+          "pricingUnit": {
+            "$ref": "#/components/schemas/ProductPricingUnit"
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductLabel"
+            }
+          },
+          "barcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currentPriceEur": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "archivedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "priceHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogPriceWindow"
+            }
+          },
+          "averageWeightGrams": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weightTolerancePercent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "supplier",
+          "category",
+          "saleMode",
+          "pricingUnit",
+          "photos",
+          "labels",
+          "version",
+          "createdAt",
+          "priceHistory"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogProductDetail",
+        "description": "A product with its full price history"
+      },
+      "CatalogPriceWindow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "amountEur": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "currency": {
+            "type": "string"
+          },
+          "validFrom": {
+            "type": "string"
+          },
+          "validTo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "setByName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "amountEur",
+          "currency",
+          "validFrom"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogPriceWindow",
+        "description": "One entry in a product’s price history"
+      },
       "GenerateTextResponse": {
         "type": "object",
         "properties": {
@@ -2554,7 +6524,9 @@
             "type": "string"
           }
         },
-        "required": ["result"],
+        "required": [
+          "result"
+        ],
         "additionalProperties": false,
         "title": "GenerateTextResponse",
         "description": "Response from text generation"
@@ -2572,7 +6544,11 @@
             "type": "number"
           }
         },
-        "required": ["promptTokens", "completionTokens", "totalTokens"],
+        "required": [
+          "promptTokens",
+          "completionTokens",
+          "totalTokens"
+        ],
         "additionalProperties": false,
         "title": "TokenUsage",
         "description": "Token usage information for an AI generation"
@@ -2594,7 +6570,11 @@
             "additionalProperties": {}
           }
         },
-        "required": ["toolCallId", "toolName", "args"],
+        "required": [
+          "toolCallId",
+          "toolName",
+          "args"
+        ],
         "additionalProperties": false,
         "title": "ToolCall",
         "description": "A tool call made by the AI"
@@ -2610,7 +6590,11 @@
           },
           "result": {}
         },
-        "required": ["toolCallId", "toolName", "result"],
+        "required": [
+          "toolCallId",
+          "toolName",
+          "result"
+        ],
         "additionalProperties": false,
         "title": "ToolResult",
         "description": "The result of a tool call"
@@ -2631,7 +6615,10 @@
             "$ref": "#/components/schemas/TokenUsage"
           }
         },
-        "required": ["traceName", "results"],
+        "required": [
+          "traceName",
+          "results"
+        ],
         "additionalProperties": false,
         "title": "UseCase2GroupedCallsResponse",
         "description": "Combined results from grouped LLM calls"
@@ -2654,12 +6641,17 @@
                   "$ref": "#/components/schemas/TokenUsage"
                 }
               },
-              "required": ["index", "result"],
+              "required": [
+                "index",
+                "result"
+              ],
               "additionalProperties": false
             }
           }
         },
-        "required": ["workflows"],
+        "required": [
+          "workflows"
+        ],
         "additionalProperties": false,
         "title": "UseCase3LogicalUnitsResponse",
         "description": "One result per workflow (each in its own trace)"
@@ -2687,7 +6679,9 @@
           },
           "result": {}
         },
-        "required": ["result"],
+        "required": [
+          "result"
+        ],
         "additionalProperties": false,
         "title": "GenerateObjectResponse",
         "description": "Response from structured object generation"
@@ -2723,7 +6717,10 @@
             }
           }
         },
-        "required": ["result", "messages"],
+        "required": [
+          "result",
+          "messages"
+        ],
         "additionalProperties": false,
         "title": "ChatResponse",
         "description": "Response from AI chat conversation"
@@ -2733,7 +6730,12 @@
         "properties": {
           "role": {
             "type": "string",
-            "enum": ["user", "assistant", "system", "tool"]
+            "enum": [
+              "user",
+              "assistant",
+              "system",
+              "tool"
+            ]
           },
           "content": {
             "type": "string"
@@ -2758,7 +6760,11 @@
                     "type": "number"
                   }
                 },
-                "required": ["promptTokens", "completionTokens", "totalTokens"],
+                "required": [
+                  "promptTokens",
+                  "completionTokens",
+                  "totalTokens"
+                ],
                 "additionalProperties": false,
                 "title": "TokenUsage"
               },
@@ -2791,7 +6797,11 @@
                       "additionalProperties": {}
                     }
                   },
-                  "required": ["toolCallId", "toolName", "args"],
+                  "required": [
+                    "toolCallId",
+                    "toolName",
+                    "args"
+                  ],
                   "additionalProperties": false,
                   "title": "ToolCall",
                   "description": "A tool call made by the AI"
@@ -2803,7 +6813,13 @@
               },
               "schemaType": {
                 "type": "string",
-                "enum": ["userProfile", "task", "product", "recipe", "none"],
+                "enum": [
+                  "userProfile",
+                  "task",
+                  "product",
+                  "recipe",
+                  "none"
+                ],
                 "title": "ChatSchemaType",
                 "description": "Predefined schema types for testing structured output"
               }
@@ -2811,14 +6827,23 @@
             "additionalProperties": false
           }
         },
-        "required": ["role", "content"],
+        "required": [
+          "role",
+          "content"
+        ],
         "additionalProperties": false,
         "title": "ChatMessageWithSchemaType",
         "description": "A message with optional schemaType metadata for identifying structured output"
       },
       "ChatSchemaType": {
         "type": "string",
-        "enum": ["userProfile", "task", "product", "recipe", "none"],
+        "enum": [
+          "userProfile",
+          "task",
+          "product",
+          "recipe",
+          "none"
+        ],
         "title": "ChatSchemaType",
         "description": "Predefined schema types for testing structured output"
       },
@@ -2860,7 +6885,10 @@
                     "type": "string"
                   }
                 },
-                "required": ["id", "name"],
+                "required": [
+                  "id",
+                  "name"
+                ],
                 "additionalProperties": false
               },
               {
@@ -2892,7 +6920,14 @@
             "type": "number"
           }
         },
-        "required": ["id", "content", "authorName", "createdAt", "user", "parentId"],
+        "required": [
+          "id",
+          "content",
+          "authorName",
+          "createdAt",
+          "user",
+          "parentId"
+        ],
         "additionalProperties": false,
         "title": "CommentSchema",
         "description": "Schema for a comment"
@@ -2922,11 +6957,19 @@
                 "type": "boolean"
               }
             },
-            "required": ["offset", "pageSize", "itemCount", "hasMore"],
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
             "additionalProperties": false
           }
         },
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "additionalProperties": false,
         "title": "CommentsSchema",
         "description": "Schema for a paginated list of comments"
@@ -2976,7 +7019,10 @@
           },
           "type": {
             "type": "string",
-            "enum": ["published", "draft"]
+            "enum": [
+              "published",
+              "draft"
+            ]
           },
           "commentCount": {
             "type": "number"
@@ -2992,7 +7038,14 @@
             }
           }
         },
-        "required": ["id", "title", "content", "versions", "type", "tags"],
+        "required": [
+          "id",
+          "title",
+          "content",
+          "versions",
+          "type",
+          "tags"
+        ],
         "additionalProperties": false,
         "title": "UserPostSchema",
         "description": "Schema for a user's post"
@@ -3010,7 +7063,10 @@
                 "type": "string"
               }
             },
-            "required": ["type", "data"],
+            "required": [
+              "type",
+              "data"
+            ],
             "additionalProperties": false
           },
           {
@@ -3024,7 +7080,10 @@
                 "type": "string"
               }
             },
-            "required": ["type", "data"],
+            "required": [
+              "type",
+              "data"
+            ],
             "additionalProperties": false
           },
           {
@@ -3038,7 +7097,10 @@
                 "type": "string"
               }
             },
-            "required": ["type", "data"],
+            "required": [
+              "type",
+              "data"
+            ],
             "additionalProperties": false
           }
         ],
@@ -3061,7 +7123,11 @@
             "type": "string"
           }
         },
-        "required": ["id", "title", "createdAt"],
+        "required": [
+          "id",
+          "title",
+          "createdAt"
+        ],
         "additionalProperties": false,
         "title": "PostVersionSchema",
         "description": "Schema for a post version"
@@ -3081,7 +7147,11 @@
             "type": "string"
           }
         },
-        "required": ["id", "name", "slug"],
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ],
         "additionalProperties": false,
         "title": "TagSchema",
         "description": "A tag attached to a post"
@@ -3130,7 +7200,10 @@
                 },
                 "type": {
                   "type": "string",
-                  "enum": ["published", "draft"]
+                  "enum": [
+                    "published",
+                    "draft"
+                  ]
                 },
                 "commentCount": {
                   "type": "number"
@@ -3149,7 +7222,14 @@
                   "$ref": "#/components/schemas/PostContentSchema"
                 }
               },
-              "required": ["id", "title", "versions", "type", "tags", "contentPreview"],
+              "required": [
+                "id",
+                "title",
+                "versions",
+                "type",
+                "tags",
+                "contentPreview"
+              ],
               "additionalProperties": false
             }
           },
@@ -3169,11 +7249,19 @@
                 "type": "boolean"
               }
             },
-            "required": ["offset", "pageSize", "itemCount", "hasMore"],
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
             "additionalProperties": false
           }
         },
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "additionalProperties": false,
         "title": "UserPostsSchema",
         "description": "Schema for a list of user's posts"
@@ -3191,7 +7279,9 @@
                 "type": "string"
               }
             },
-            "required": ["name"],
+            "required": [
+              "name"
+            ],
             "additionalProperties": false
           },
           "content": {
@@ -3223,7 +7313,14 @@
             }
           }
         },
-        "required": ["title", "author", "content", "publishedAt", "likesCount", "tags"],
+        "required": [
+          "title",
+          "author",
+          "content",
+          "publishedAt",
+          "likesCount",
+          "tags"
+        ],
         "additionalProperties": false,
         "title": "PublicPostSchema",
         "description": "A public post"
@@ -3246,7 +7343,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["name"],
+                  "required": [
+                    "name"
+                  ],
                   "additionalProperties": false
                 },
                 "publishedAt": {
@@ -3302,11 +7401,19 @@
                 "type": "boolean"
               }
             },
-            "required": ["offset", "pageSize", "itemCount", "hasMore"],
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
             "additionalProperties": false
           }
         },
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "additionalProperties": false,
         "title": "PublicPostsSchema",
         "description": "A list of public posts"
@@ -3329,7 +7436,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["name"],
+                  "required": [
+                    "name"
+                  ],
                   "additionalProperties": false
                 },
                 "publishedAt": {
@@ -3385,21 +7494,742 @@
                 "type": "boolean"
               }
             },
-            "required": ["offset", "pageSize", "itemCount", "hasMore"],
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
             "additionalProperties": false
           }
         },
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "additionalProperties": false,
         "title": "PublicAuthorPostsSchema",
         "description": "A list of posts from a specific author"
+      },
+      "MembersList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberListItem"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "itemCount": {
+                "type": "number"
+              },
+              "hasMore": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "title": "MembersList",
+        "description": "A paginated list of members"
+      },
+      "MemberListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "membershipNumber": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phoneNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "rejected",
+              "terminated"
+            ],
+            "title": "MemberStatus",
+            "description": "Lifecycle status of a cooperative member"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "member",
+                "admin"
+              ],
+              "title": "UserRole",
+              "description": "Access role. \"admin\" is a superset of \"member\". \"grocer\" is added in lot 4."
+            }
+          },
+          "feeState": {
+            "type": "string",
+            "enum": [
+              "unpaid",
+              "partly_paid",
+              "paid"
+            ],
+            "title": "MembershipFeeState",
+            "description": "Derived from the sum of recorded payments against the expected amount"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "membershipNumber",
+          "name",
+          "status",
+          "roles",
+          "feeState",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "MemberListItem",
+        "description": "A member as shown in the back-office list"
+      },
+      "MemberStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "active",
+          "rejected",
+          "terminated"
+        ],
+        "title": "MemberStatus",
+        "description": "Lifecycle status of a cooperative member"
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "member",
+          "admin"
+        ],
+        "title": "UserRole",
+        "description": "Access role. \"admin\" is a superset of \"member\". \"grocer\" is added in lot 4."
+      },
+      "MembershipFeeState": {
+        "type": "string",
+        "enum": [
+          "unpaid",
+          "partly_paid",
+          "paid"
+        ],
+        "title": "MembershipFeeState",
+        "description": "Derived from the sum of recorded payments against the expected amount"
+      },
+      "MemberDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "membershipNumber": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "identifiers": {
+            "$ref": "#/components/schemas/MemberIdentifiers"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MemberStatus"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          },
+          "profile": {
+            "$ref": "#/components/schemas/MemberProfile"
+          },
+          "fee": {
+            "$ref": "#/components/schemas/FeeSummary"
+          },
+          "joinedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "statusHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberStatusChange"
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberPayment"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "membershipNumber",
+          "name",
+          "identifiers",
+          "status",
+          "roles",
+          "profile",
+          "fee",
+          "version",
+          "statusHistory",
+          "payments"
+        ],
+        "additionalProperties": false,
+        "title": "MemberDetail",
+        "description": "Full back-office view of a member"
+      },
+      "MemberIdentifiers": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "phoneNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phoneNumberVerified": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "emailVerified",
+          "phoneNumberVerified"
+        ],
+        "additionalProperties": false,
+        "title": "MemberIdentifiers",
+        "description": "The email and/or phone the account signs in with"
+      },
+      "MemberProfile": {
+        "type": "object",
+        "properties": {
+          "addressLine1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "addressLine2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postalCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "title": "MemberProfile",
+        "description": "A member’s editable personal details"
+      },
+      "FeeSummary": {
+        "type": "object",
+        "properties": {
+          "expectedAmountCents": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "paidAmountCents": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "unpaid",
+              "partly_paid",
+              "paid"
+            ],
+            "title": "MembershipFeeState",
+            "description": "Derived from the sum of recorded payments against the expected amount"
+          }
+        },
+        "required": [
+          "expectedAmountCents",
+          "paidAmountCents",
+          "state"
+        ],
+        "additionalProperties": false,
+        "title": "FeeSummary",
+        "description": "Membership-fee expectation, total paid, and derived state"
+      },
+      "MemberStatusChange": {
+        "type": "object",
+        "properties": {
+          "fromStatus": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "active",
+                  "rejected",
+                  "terminated"
+                ],
+                "title": "MemberStatus",
+                "description": "Lifecycle status of a cooperative member"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "toStatus": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "rejected",
+              "terminated"
+            ],
+            "title": "MemberStatus",
+            "description": "Lifecycle status of a cooperative member"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "changedByName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "toStatus",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "MemberStatusChange",
+        "description": "One entry in a member’s status history"
+      },
+      "MemberPayment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "payment",
+              "adjustment"
+            ],
+            "title": "MembershipPaymentKind",
+            "description": "A correction is recorded as an \"adjustment\" row, never by editing a payment"
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "transfer",
+              "other"
+            ],
+            "title": "MembershipPaymentMethod",
+            "description": "How a membership-fee payment was made (\"online\" is reserved for lot 5)"
+          },
+          "paidAt": {
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recordedByName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "amountCents",
+          "method",
+          "paidAt",
+          "recordedByName",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "MemberPayment",
+        "description": "One recorded membership-fee payment or adjustment"
+      },
+      "MembershipPaymentKind": {
+        "type": "string",
+        "enum": [
+          "payment",
+          "adjustment"
+        ],
+        "title": "MembershipPaymentKind",
+        "description": "A correction is recorded as an \"adjustment\" row, never by editing a payment"
+      },
+      "MembershipPaymentMethod": {
+        "type": "string",
+        "enum": [
+          "cash",
+          "transfer",
+          "other"
+        ],
+        "title": "MembershipPaymentMethod",
+        "description": "How a membership-fee payment was made (\"online\" is reserved for lot 5)"
+      },
+      "FeePaymentsList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/MemberPayment"
+        },
+        "title": "FeePaymentsList",
+        "description": "All recorded payments and adjustments against a member’s fee"
+      },
+      "MemberSelf": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "membershipNumber": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "identifiers": {
+            "$ref": "#/components/schemas/MemberIdentifiers"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MemberStatus"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          },
+          "profile": {
+            "$ref": "#/components/schemas/MemberProfile"
+          },
+          "fee": {
+            "$ref": "#/components/schemas/FeeSummary"
+          },
+          "joinedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "membershipNumber",
+          "name",
+          "identifiers",
+          "status",
+          "roles",
+          "profile",
+          "fee",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "MemberSelf",
+        "description": "The signed-in member’s own account"
+      },
+      "PaginationQuerySchema": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "default": 0,
+            "description": "Starting position of the query",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "default": 20,
+            "description": "Number of items to return",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "offset",
+          "pageSize"
+        ],
+        "additionalProperties": false,
+        "title": "PaginationQuerySchema",
+        "description": "Schema for pagination query"
+      },
+      "FilterQueryStringSchema": {
+        "title": "FilterQueryStringSchema",
+        "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: status, feeState, role, q",
+        "example": "name:eq:John;age:gt:30",
+        "type": "string",
+        "items": {
+          "type": "object",
+          "properties": {
+            "property": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "status"
+                },
+                {
+                  "type": "string",
+                  "const": "feeState"
+                },
+                {
+                  "type": "string",
+                  "const": "role"
+                },
+                {
+                  "type": "string",
+                  "const": "q"
+                }
+              ]
+            },
+            "rule": {
+              "type": "string",
+              "enum": [
+                "eq",
+                "neq",
+                "gt",
+                "gte",
+                "lt",
+                "lte",
+                "like",
+                "nlike",
+                "in",
+                "nin",
+                "isnull",
+                "isnotnull"
+              ]
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "property",
+            "rule"
+          ],
+          "additionalProperties": false,
+          "title": "FilteringSchema",
+          "description": "Schema for a single filtering item"
+        },
+        "format": "filter"
+      },
+      "SortingQueryStringSchema": {
+        "title": "SortingQueryStringSchema",
+        "description": "Schema for sorting items",
+        "example": "name:asc,age:desc",
+        "type": "string",
+        "items": {
+          "title": "SortingStringSchema",
+          "description": "Schema for sorting items",
+          "type": "object",
+          "properties": {
+            "property": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "createdAt"
+                },
+                {
+                  "type": "string",
+                  "const": "name"
+                }
+              ]
+            },
+            "direction": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          "required": [
+            "property",
+            "direction"
+          ],
+          "additionalProperties": false
+        },
+        "format": "sort"
       },
       "AiCoreMessage": {
         "type": "object",
         "properties": {
           "role": {
             "type": "string",
-            "enum": ["user", "assistant", "system", "tool"]
+            "enum": [
+              "user",
+              "assistant",
+              "system",
+              "tool"
+            ]
           },
           "content": {
             "type": "string"
@@ -3437,7 +8267,10 @@
             "additionalProperties": false
           }
         },
-        "required": ["role", "content"],
+        "required": [
+          "role",
+          "content"
+        ],
         "additionalProperties": false,
         "title": "AiCoreMessage",
         "description": "A message in the conversation history following Vercel AI SDK patterns"
@@ -3455,7 +8288,10 @@
                 "type": "string"
               }
             },
-            "required": ["type", "text"],
+            "required": [
+              "type",
+              "text"
+            ],
             "additionalProperties": false,
             "title": "AiStreamTextChunkEvent",
             "description": "A text chunk event during streaming"
@@ -3481,7 +8317,12 @@
                 "additionalProperties": {}
               }
             },
-            "required": ["type", "toolCallId", "toolName", "args"],
+            "required": [
+              "type",
+              "toolCallId",
+              "toolName",
+              "args"
+            ],
             "additionalProperties": false,
             "title": "AiStreamToolCallEvent",
             "description": "Event when a tool is being called during streaming"
@@ -3501,7 +8342,12 @@
               },
               "result": {}
             },
-            "required": ["type", "toolCallId", "toolName", "result"],
+            "required": [
+              "type",
+              "toolCallId",
+              "toolName",
+              "result"
+            ],
             "additionalProperties": false,
             "title": "AiStreamToolResultEvent",
             "description": "Event when a tool returns a result during streaming"
@@ -3529,7 +8375,11 @@
                     "type": "number"
                   }
                 },
-                "required": ["promptTokens", "completionTokens", "totalTokens"],
+                "required": [
+                  "promptTokens",
+                  "completionTokens",
+                  "totalTokens"
+                ],
                 "additionalProperties": false,
                 "title": "AiStreamUsage",
                 "description": "Token usage information for the stream"
@@ -3538,7 +8388,10 @@
                 "type": "string"
               }
             },
-            "required": ["type", "fullText"],
+            "required": [
+              "type",
+              "fullText"
+            ],
             "additionalProperties": false,
             "title": "AiStreamDoneEvent",
             "description": "Final event when streaming is complete"
@@ -3554,7 +8407,10 @@
                 "type": "string"
               }
             },
-            "required": ["type", "message"],
+            "required": [
+              "type",
+              "message"
+            ],
             "additionalProperties": false,
             "title": "AiStreamErrorEvent",
             "description": "Error event during streaming"
@@ -3575,7 +8431,11 @@
           },
           "priority": {
             "type": "string",
-            "enum": ["low", "medium", "high"]
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
           },
           "dueDate": {
             "type": "string"
@@ -3587,7 +8447,11 @@
             }
           }
         },
-        "required": ["title", "description", "priority"],
+        "required": [
+          "title",
+          "description",
+          "priority"
+        ],
         "additionalProperties": false,
         "title": "Task",
         "description": "A task"
@@ -3617,7 +8481,13 @@
             }
           }
         },
-        "required": ["name", "price", "description", "category", "inStock"],
+        "required": [
+          "name",
+          "price",
+          "description",
+          "category",
+          "inStock"
+        ],
         "additionalProperties": false,
         "title": "Product",
         "description": "A product"
@@ -3642,7 +8512,11 @@
           },
           "difficulty": {
             "type": "string",
-            "enum": ["easy", "medium", "hard"]
+            "enum": [
+              "easy",
+              "medium",
+              "hard"
+            ]
           },
           "ingredients": {
             "type": "array",
@@ -3656,7 +8530,10 @@
                   "type": "string"
                 }
               },
-              "required": ["name", "quantity"],
+              "required": [
+                "name",
+                "quantity"
+              ],
               "additionalProperties": false
             }
           },
@@ -3711,7 +8588,11 @@
             }
           }
         },
-        "required": ["name", "age", "email"],
+        "required": [
+          "name",
+          "age",
+          "email"
+        ],
         "additionalProperties": false,
         "title": "UserProfile",
         "description": "A user profile"
@@ -3757,7 +8638,10 @@
               "traceMode": {
                 "description": "Trace strategy. Use \"inherit\" to keep the active OTEL trace, or \"split\" to create a new (Langfuse) trace for this LLM call.",
                 "type": "string",
-                "enum": ["inherit", "split"]
+                "enum": [
+                  "inherit",
+                  "split"
+                ]
               },
               "traceId": {
                 "description": "Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.",
@@ -3802,111 +8686,242 @@
         "title": "AiGenerateOptions",
         "description": "Options for an AI generation"
       },
-      "PaginationQuerySchema": {
-        "type": "object",
-        "properties": {
-          "offset": {
-            "default": 0,
-            "description": "Starting position of the query",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
-          },
-          "pageSize": {
-            "default": 20,
-            "description": "Number of items to return",
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100
-          }
-        },
-        "required": ["offset", "pageSize"],
-        "additionalProperties": false,
-        "title": "PaginationQuerySchema",
-        "description": "Schema for pagination query"
-      },
-      "SortingQueryStringSchema": {
-        "title": "SortingQueryStringSchema",
-        "description": "Schema for sorting items",
-        "example": "name:asc,age:desc",
-        "type": "string",
-        "items": {
-          "title": "SortingStringSchema",
-          "description": "Schema for sorting items",
-          "type": "object",
-          "properties": {
-            "property": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "const": "title"
-                },
-                {
-                  "type": "string",
-                  "const": "createdAt"
-                }
-              ]
-            },
-            "direction": {
-              "type": "string",
-              "enum": ["asc", "desc"]
-            }
-          },
-          "required": ["property", "direction"],
-          "additionalProperties": false
-        },
-        "format": "sort"
-      },
-      "FilterQueryStringSchema": {
-        "title": "FilterQueryStringSchema",
-        "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: title, tag",
-        "example": "name:eq:John;age:gt:30",
-        "type": "string",
-        "items": {
-          "type": "object",
-          "properties": {
-            "property": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "const": "title"
-                },
-                {
-                  "type": "string",
-                  "const": "tag"
-                }
-              ]
-            },
-            "rule": {
-              "type": "string",
-              "enum": [
-                "eq",
-                "neq",
-                "gt",
-                "gte",
-                "lt",
-                "lte",
-                "like",
-                "nlike",
-                "in",
-                "nin",
-                "isnull",
-                "isnotnull"
-              ]
-            },
-            "value": {
-              "type": "string"
-            }
-          },
-          "required": ["property", "rule"],
-          "additionalProperties": false,
-          "title": "FilteringSchema",
-          "description": "Schema for a single filtering item"
-        },
-        "format": "filter"
-      },
       "CommentsController_postSlug": {
         "type": "string"
+      },
+      "AdminMembersController_list_filterItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "status"
+              },
+              {
+                "type": "string",
+                "const": "feeState"
+              },
+              {
+                "type": "string",
+                "const": "role"
+              },
+              {
+                "type": "string",
+                "const": "q"
+              }
+            ]
+          },
+          "rule": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "like",
+              "nlike",
+              "in",
+              "nin",
+              "isnull",
+              "isnotnull"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "property",
+          "rule"
+        ],
+        "additionalProperties": false
+      },
+      "AdminMembersController_list_filterArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AdminMembersController_list_filterItem"
+        }
+      },
+      "AdminMembersController_list_sortItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "createdAt"
+              },
+              {
+                "type": "string",
+                "const": "name"
+              }
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          }
+        },
+        "required": [
+          "property",
+          "direction"
+        ],
+        "additionalProperties": false
+      },
+      "AdminMembersController_list_sortArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AdminMembersController_list_sortItem"
+        }
+      },
+      "AdminSuppliersController_list_filterItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "type"
+              },
+              {
+                "type": "string",
+                "const": "q"
+              }
+            ]
+          },
+          "rule": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "like",
+              "nlike",
+              "in",
+              "nin",
+              "isnull",
+              "isnotnull"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "property",
+          "rule"
+        ],
+        "additionalProperties": false
+      },
+      "AdminSuppliersController_list_filterArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AdminSuppliersController_list_filterItem"
+        }
+      },
+      "AdminProductsController_list_filterItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "supplierId"
+              },
+              {
+                "type": "string",
+                "const": "categoryId"
+              },
+              {
+                "type": "string",
+                "const": "saleMode"
+              },
+              {
+                "type": "string",
+                "const": "label"
+              },
+              {
+                "type": "string",
+                "const": "q"
+              }
+            ]
+          },
+          "rule": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "like",
+              "nlike",
+              "in",
+              "nin",
+              "isnull",
+              "isnotnull"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "property",
+          "rule"
+        ],
+        "additionalProperties": false
+      },
+      "AdminProductsController_list_filterArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AdminProductsController_list_filterItem"
+        }
+      },
+      "AdminProductsController_list_sortItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "name"
+              },
+              {
+                "type": "string",
+                "const": "createdAt"
+              }
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          }
+        },
+        "required": [
+          "property",
+          "direction"
+        ],
+        "additionalProperties": false
+      },
+      "AdminProductsController_list_sortArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AdminProductsController_list_sortItem"
+        }
       },
       "CommentsController_getComments_filterItem": {
         "type": "object",
@@ -3940,7 +8955,10 @@
             "type": "string"
           }
         },
-        "required": ["property", "rule"],
+        "required": [
+          "property",
+          "rule"
+        ],
         "additionalProperties": false
       },
       "CommentsController_getComments_filterArray": {
@@ -3966,10 +8984,16 @@
           },
           "direction": {
             "type": "string",
-            "enum": ["asc", "desc"]
+            "enum": [
+              "asc",
+              "desc"
+            ]
           }
         },
-        "required": ["property", "direction"],
+        "required": [
+          "property",
+          "direction"
+        ],
         "additionalProperties": false
       },
       "CommentsController_getComments_sortArray": {
@@ -3995,10 +9019,16 @@
           },
           "direction": {
             "type": "string",
-            "enum": ["asc", "desc"]
+            "enum": [
+              "asc",
+              "desc"
+            ]
           }
         },
-        "required": ["property", "direction"],
+        "required": [
+          "property",
+          "direction"
+        ],
         "additionalProperties": false
       },
       "CommentsController_getCommentReplies_sortArray": {
@@ -4043,7 +9073,10 @@
             "type": "string"
           }
         },
-        "required": ["property", "rule"],
+        "required": [
+          "property",
+          "rule"
+        ],
         "additionalProperties": false
       },
       "PostController_getUserPosts_filterArray": {
@@ -4069,10 +9102,16 @@
           },
           "direction": {
             "type": "string",
-            "enum": ["asc", "desc"]
+            "enum": [
+              "asc",
+              "desc"
+            ]
           }
         },
-        "required": ["property", "direction"],
+        "required": [
+          "property",
+          "direction"
+        ],
         "additionalProperties": false
       },
       "PostController_getUserPosts_sortArray": {
@@ -4117,7 +9156,10 @@
             "type": "string"
           }
         },
-        "required": ["property", "rule"],
+        "required": [
+          "property",
+          "rule"
+        ],
         "additionalProperties": false
       },
       "PublicPostController_getPosts_filterArray": {
@@ -4143,10 +9185,16 @@
           },
           "direction": {
             "type": "string",
-            "enum": ["asc", "desc"]
+            "enum": [
+              "asc",
+              "desc"
+            ]
           }
         },
-        "required": ["property", "direction"],
+        "required": [
+          "property",
+          "direction"
+        ],
         "additionalProperties": false
       },
       "PublicPostController_getPosts_sortArray": {
@@ -4172,10 +9220,16 @@
           },
           "direction": {
             "type": "string",
-            "enum": ["asc", "desc"]
+            "enum": [
+              "asc",
+              "desc"
+            ]
           }
         },
-        "required": ["property", "direction"],
+        "required": [
+          "property",
+          "direction"
+        ],
         "additionalProperties": false
       },
       "PublicAuthorController_getAuthorPosts_sortArray": {

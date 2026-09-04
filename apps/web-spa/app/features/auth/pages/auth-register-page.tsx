@@ -1,74 +1,169 @@
-import type { AuthRegisterFormData } from '../forms/auth-register-form'
+import { Button } from '@grocery/ui/components/primitives/button'
+import { Input } from '@grocery/ui/components/primitives/input'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router'
+import { Link } from 'react-router'
+import {
+  normalizePhone,
+  synthesizedEmailFor,
+  type IdentifierMode,
+} from '@/features/auth/lib/identifier'
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
-import { AuthRegisterForm } from '../forms/auth-register-form'
+import { AuthRegisterForm, type AuthRegisterFormData } from '../forms/auth-register-form'
+
+type Step = 'form' | 'otp' | 'done'
 
 export default function Register() {
   const { t } = useTranslation()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [mode, setMode] = useState<IdentifierMode>('email')
+  const [step, setStep] = useState<Step>('form')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
 
-  const {
-    mutate: register,
-    isPending,
-    isSuccess,
-    error: errorRegister,
-  } = useMutation({
-    mutationFn: async (data: AuthRegisterFormData) => {
-      const response = await authClient.signUp.email({
-        email: data.email,
-        password: data.password,
-        name: data.name,
-        callbackURL: '/',
-      })
+  const register = useMutation({
+    mutationFn: async (data: AuthRegisterFormData & { mode: IdentifierMode }) => {
+      if (data.mode === 'phone') {
+        const phone = normalizePhone(data.identifier)
+        const signUp = await authClient.signUp.email({
+          name: data.name,
+          email: synthesizedEmailFor(phone),
+          password: data.password,
+          phoneNumber: phone,
+        })
+        if (signUp.error) throw new Error(signUp.error.code)
 
-      if (response.error) {
-        throw new Error(response.error.code)
+        const otp = await authClient.phoneNumber.sendOtp({ phoneNumber: phone })
+        if (otp.error) throw new Error(otp.error.code)
+        return { mode: 'phone' as const, phone }
       }
 
-      return response.data
+      const signUp = await authClient.signUp.email({
+        name: data.name,
+        email: data.identifier,
+        password: data.password,
+        callbackURL: '/',
+      })
+      if (signUp.error) throw new Error(signUp.error.code)
+      return { mode: 'email' as const, email: data.identifier }
     },
-    onSuccess: (data) => {
-      setSearchParams({ email: data.user.email })
+    onSuccess: (result) => {
       toast.success(t('auth.register.registrationSuccessful'))
+      if (result.mode === 'phone') {
+        setPhoneNumber(result.phone)
+        setStep('otp')
+      } else {
+        setEmail(result.email)
+        setStep('done')
+      }
     },
   })
 
-  const handleRegister = (data: AuthRegisterFormData) => {
-    register(data)
+  const resendEmail = useMutation({
+    mutationFn: () => authClient.sendVerificationEmail({ email, callbackURL: '/' }),
+    onSuccess: () => toast.success(t('auth.register.resendEmail')),
+  })
+
+  const verify = useMutation({
+    mutationFn: async () => {
+      const response = await authClient.phoneNumber.verify({
+        phoneNumber,
+        code,
+        disableSession: true,
+      })
+      if (response.error) throw new Error(response.error.code)
+      return response.data
+    },
+    onSuccess: () => setStep('done'),
+    onError: () => toast.error(t('auth.register.invalidCode')),
+  })
+
+  if (step === 'done') {
+    return (
+      <div data-testid="auth-register-done">
+        <AuthPageHeader
+          title={t('auth.register.success.title')}
+          description={
+            mode === 'phone'
+              ? t('auth.register.success.phoneDescription')
+              : t('auth.register.success.description')
+          }
+        />
+        {mode === 'email' && (
+          <Button
+            variant="ghost"
+            className="mt-4 w-full"
+            disabled={resendEmail.isPending}
+            onClick={() => resendEmail.mutate()}
+          >
+            {t('auth.register.resendEmail')}
+          </Button>
+        )}
+        <div className="mt-4 text-center text-sm">
+          <Link to="/login" className="font-medium">
+            {t('auth.register.backToLogin')}
+          </Link>
+        </div>
+      </div>
+    )
   }
 
-  return isSuccess || searchParams.get('email') ? (
-    <div>
-      <AuthPageHeader
-        title={t('auth.register.success.title')}
-        description={t('auth.register.success.description')}
-      />
-      <div className="text-sm text-center mt-4">
-        <Link to="/login" className="font-medium transition-colors">
-          {t('auth.register.backToLogin')}
-        </Link>
+  if (step === 'otp') {
+    return (
+      <div className="space-y-6">
+        <AuthPageHeader
+          title={t('auth.register.otp.title')}
+          description={t('auth.register.otp.description', { phone: phoneNumber })}
+        />
+        <Input
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          placeholder="123456"
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+        />
+        <Button
+          className="w-full"
+          disabled={code.trim().length < 4 || verify.isPending}
+          onClick={() => verify.mutate()}
+        >
+          {t('auth.register.otp.confirm')}
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full"
+          onClick={() => authClient.phoneNumber.sendOtp({ phoneNumber })}
+        >
+          {t('auth.register.otp.resend')}
+        </Button>
       </div>
-    </div>
-  ) : (
-    <div className="space-y-6">
+    )
+  }
+
+  return (
+    <div className="space-y-6" data-testid="page-register">
       <AuthPageHeader
         title={t('auth.register.title')}
         description={t('auth.register.description')}
       />
-      <AuthRegisterForm onSubmit={handleRegister} isPending={isPending} />
-      <div className="h-10">
-        {errorRegister ? (
+      <AuthRegisterForm
+        mode={mode}
+        onModeChange={setMode}
+        onSubmit={(data) => register.mutate(data)}
+        isPending={register.isPending}
+      />
+      <div className="h-6">
+        {register.error ? (
           <div className="text-sm font-medium text-red-500">
             {t('auth.register.failedToRegister')}
           </div>
         ) : null}
       </div>
-      <div className="text-sm text-center">
-        <Link to="/login" className="font-medium transition-colors">
+      <div className="text-center text-sm">
+        <Link to="/login" className="font-medium">
           {t('auth.register.hasAccount')} {t('auth.register.login')}
         </Link>
       </div>

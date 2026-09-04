@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install *)",
+      "Bash(git checkout *)",
+      "Bash(npm view *)",
+      "Bash(node -e \"console.log\\(require\\('./package.json'\\).devDependencies.tsx\\)\")"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -qE '(^|[;&| ])(git (commit|push|merge|rebase|cherry-pick|revert)|git checkout -b|git switch -c|gh pr (create|merge))' && jq -Rs '{hookSpecificOutput:{hookEventName:\"PreToolUse\",additionalContext:.}}' \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/git-workflow-reminder.md\" || true",
+            "timeout": 10,
+            "statusMessage": "Loading git workflow"
+          }
+        ]
+      }
+    ]
+  }
+}

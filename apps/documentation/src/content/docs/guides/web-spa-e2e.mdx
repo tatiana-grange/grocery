@@ -1,0 +1,84 @@
+---
+title: Web SPA E2E
+description: Playwright end-to-end tests that drive the real API + SPA
+---
+
+`apps/web-spa-e2e` runs [Playwright](https://playwright.dev) against the **real** app: the
+API and the SPA boot on dedicated ports, Postgres and maildev run in disposable Docker
+containers. Nothing is mocked.
+
+Inspired by the same setup on `lonestone-os`.
+
+## Run it
+
+One command starts the infra, recreates + seeds the database, boots the API (`:3060`) and
+the SPA (`:5273`) via Playwright's `webServer`, and runs the specs:
+
+```bash
+pnpm e2e            # from anywhere in the repo
+```
+
+```bash
+pnpm e2e:dev        # same, in the interactive Playwright UI
+pnpm e2e:show       # reopen the last HTML report
+pnpm --filter @grocery/web-spa-e2e exec playwright install chromium   # first time only
+```
+
+Add `E2E_VERBOSE=1` to see the API / SPA server logs.
+
+## How it fits together
+
+| Piece | Role |
+|---|---|
+| `docker-compose.e2e.yml` | Postgres (`:5434`) + maildev (`:1090` / `:1035`), project `grocery-e2e`, no volumes |
+| `.env.e2e` | committed, no secrets — dedicated ports so a running `pnpm dev` does not collide |
+| `global-setup.ts` → `scripts/reset-db.ts` | `mikro-orm schema:fresh --run --seed E2eSeeder` |
+| `e2e.fixtures.ts` (`apps/api/src/seeders/`) | the accounts, password and search names — one import-free file, imported by both `E2eSeeder` and `apps/web-spa-e2e/env.ts` |
+| `E2eSeeder` (`apps/api/src/seeders/e2e.seeder.ts`) | deterministic baseline: `admin@e2e.local`, `member@e2e.local`, `pending@e2e.local`, `banned@e2e.local` (password `Password123!`), ~30 members, a small catalogue |
+| `auth.setup.ts` | logs `admin` / `member` / `pending` in once, saves `.auth/<role>.json` |
+| `fixtures.ts` / `reset.ts` | `resetDb()` fixture + the shared `resetSeed()` it wraps (`POST /api/test/seed/reset`), plus `withRole()` |
+| `TestSeedModule` (`apps/api/src/modules/test-seed/`) | the `/api/test/seed/reset` route — mounted **only** when the dedicated `E2E` env flag is set (`.env.e2e`), not on `NODE_ENV` alone |
+
+`POST /api/test/seed/reset` truncates the business tables and re-runs `E2eSeeder`. It keeps
+the Better Auth tables, so a saved `storageState` stays valid — specs that mutate shared data
+just call `resetDb()` in a `beforeEach`. `E2eSeeder` also resets every seeded credential back
+to `Password123!` on each run, so a spec that rotates a password (`account.spec.ts`) is
+healed by the next reseed.
+
+## Selectors
+
+Specs use **`getByTestId` only** — no `getByRole` / `getByText` / `getByLabel`. Every element
+a spec touches carries a `data-testid` named `<feature>-<element>[-<variant>]`
+(`auth-login-submit`, `members-tab-pending`, `product-price-confirm`, …). Each route's root
+carries `page-<name>`; `root.tsx`'s error boundary carries `route-error-boundary`.
+
+## Adding a journey
+
+Add `tests/<journey>.spec.ts`:
+
+```ts
+import { test, expect, withRole } from '../fixtures'
+
+test.use(withRole('member'))
+
+test('…', async ({ page }) => {
+  await page.goto('/dashboard')
+  await expect(page.getByTestId('page-dashboard-home')).toBeVisible()
+})
+```
+
+Call `resetDb()` (in a `beforeEach`) only in specs that mutate shared data.
+
+## CI
+
+`.github/workflows/e2e.yml` runs `pnpm e2e` on pull requests to `main` — a standard
+`ubuntu-latest` runner with Docker, no paid services.
+
+On a **push to `main`** (so, when a PR merges) it publishes the HTML report (traces
+included) to **GitHub Pages** at `https://tatiana-grange.github.io/grocery/` and links it
+from the run summary — a single site, each merge replaces the previous report. It does not
+run on the PR itself: the `github-pages` environment only accepts deployments from `main`.
+Pages is configured with **Settings → Pages → Build and deployment → Source: "GitHub
+Actions"** (needs a public repo, or a plan that allows Pages on a private one). On a PR,
+read the run's `playwright-report` artefact instead (kept 7 days); open it locally with
+`npx playwright show-report <extracted-dir>`.

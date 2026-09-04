@@ -3,734 +3,811 @@
 import { z } from 'zod';
 
 /**
- * UseCase2GroupedCallsRequest
+ * CreateCategory
  *
- * Multiple LLM calls in one request; one trace in Langfuse, finalized at end
+ * Create a category
  */
-export const zUseCase2GroupedCallsRequest = z.object({
-    prompts: z.array(z.string().min(1)).min(1).max(5),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
-    ]))
-});
-
-/**
- * UseCase3LogicalUnitsRequest
- *
- * Multiple workflows; each workflow gets its own Langfuse trace (split per unit)
- */
-export const zUseCase3LogicalUnitsRequest = z.object({
-    workflowPrompts: z.array(z.string().min(1)).min(1).max(5),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
-    ]))
-});
-
-/**
- * UseCase4ChatSessionRequest
- *
- * Simple generateText with sessionId for grouping traces across requests
- */
-export const zUseCase4ChatSessionRequest = z.object({
-    prompt: z.string().min(1),
-    sessionId: z.string().min(1),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
-    ]))
-});
-
-/**
- * CreateCommentSchema
- *
- * Schema for creating a comment
- */
-export const zCreateCommentSchema = z.object({
-    content: z.string().min(1).max(1000),
-    parentId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/))
-});
-
-/**
- * TokenUsage
- *
- * Token usage information for an AI generation
- */
-export const zTokenUsage = z.object({
-    promptTokens: z.number(),
-    completionTokens: z.number(),
-    totalTokens: z.number()
-});
-
-/**
- * ToolCall
- *
- * A tool call made by the AI
- */
-export const zToolCall = z.object({
-    toolCallId: z.string(),
-    toolName: z.string(),
-    args: z.record(z.string(), z.unknown())
-});
-
-/**
- * ToolResult
- *
- * The result of a tool call
- */
-export const zToolResult = z.object({
-    toolCallId: z.string(),
-    toolName: z.string(),
-    result: z.unknown()
-});
-
-/**
- * GenerateTextResponse
- *
- * Response from text generation
- */
-export const zGenerateTextResponse = z.object({
-    usage: z.optional(zTokenUsage),
-    finishReason: z.optional(z.string()),
-    toolCalls: z.optional(z.array(zToolCall)),
-    toolResults: z.optional(z.array(zToolResult)),
-    result: z.string()
-});
-
-/**
- * UseCase2GroupedCallsResponse
- *
- * Combined results from grouped LLM calls
- */
-export const zUseCase2GroupedCallsResponse = z.object({
-    traceName: z.string(),
-    results: z.array(z.string()),
-    usage: z.optional(zTokenUsage)
-});
-
-/**
- * UseCase3LogicalUnitsResponse
- *
- * One result per workflow (each in its own trace)
- */
-export const zUseCase3LogicalUnitsResponse = z.object({
-    workflows: z.array(z.object({
-        index: z.number(),
-        result: z.string(),
-        usage: z.optional(zTokenUsage)
-    }))
-});
-
-/**
- * GenerateObjectResponse
- *
- * Response from structured object generation
- */
-export const zGenerateObjectResponse = z.object({
-    usage: z.optional(zTokenUsage),
-    finishReason: z.optional(z.string()),
-    toolCalls: z.optional(z.array(zToolCall)),
-    toolResults: z.optional(z.array(zToolResult)),
-    result: z.unknown()
-});
-
-/**
- * ChatMessageWithSchemaType
- *
- * A message with optional schemaType metadata for identifying structured output
- */
-export const zChatMessageWithSchemaType = z.object({
-    role: z.enum([
-        'user',
-        'assistant',
-        'system',
-        'tool'
-    ]),
-    content: z.string(),
-    metadata: z.optional(z.object({
-        isConsideredSystemMessage: z.optional(z.boolean()),
-        usage: z.optional(z.object({
-            promptTokens: z.number(),
-            completionTokens: z.number(),
-            totalTokens: z.number()
-        })),
-        finishReason: z.optional(z.string()),
-        timestamp: z.optional(z.iso.datetime().regex(/^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$/)),
-        toolCalls: z.optional(z.array(z.object({
-            toolCallId: z.string(),
-            toolName: z.string(),
-            args: z.record(z.string(), z.unknown())
-        }))),
-        reasonning: z.optional(z.string()),
-        schemaType: z.optional(z.enum([
-            'userProfile',
-            'task',
-            'product',
-            'recipe',
-            'none'
-        ]))
-    }))
-});
-
-/**
- * ChatResponse
- *
- * Response from AI chat conversation
- */
-export const zChatResponse = z.object({
-    usage: z.optional(zTokenUsage),
-    finishReason: z.optional(z.string()),
-    toolCalls: z.optional(z.array(zToolCall)),
-    toolResults: z.optional(z.array(zToolResult)),
-    result: z.string(),
-    messages: z.array(zChatMessageWithSchemaType)
-});
-
-/**
- * ChatSchemaType
- *
- * Predefined schema types for testing structured output
- */
-export const zChatSchemaType = z.enum([
-    'userProfile',
-    'task',
-    'product',
-    'recipe',
-    'none'
-]);
-
-/**
- * CommentSchema
- *
- * Schema for a comment
- */
-export const zCommentSchema = z.object({
-    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-    content: z.string(),
-    authorName: z.union([
-        z.string(),
-        z.null()
-    ]),
-    createdAt: z.string(),
-    user: z.union([
-        z.object({
-            id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-            name: z.string()
-        }),
-        z.null()
-    ]),
-    parentId: z.union([
+export const zCreateCategory = z.object({
+    name: z.string().min(1),
+    parentId: z.optional(z.union([
         z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         z.null()
-    ]),
-    replyIds: z.optional(z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/))),
-    replyCount: z.optional(z.number())
+    ]))
 });
 
 /**
- * CommentsSchema
+ * UpdateCategory
  *
- * Schema for a paginated list of comments
+ * Rename or reparent a category
  */
-export const zCommentsSchema = z.object({
-    data: z.array(zCommentSchema),
-    meta: z.object({
-        offset: z.number(),
-        pageSize: z.number(),
-        itemCount: z.number(),
-        hasMore: z.boolean()
-    })
+export const zUpdateCategory = z.object({
+    name: z.optional(z.string().min(1)),
+    parentId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
 /**
- * PostContentSchema
+ * SetProductPrice
  *
- * Schema for content items (text, image, video)
+ * Set a new current price; the previous window is closed at effectiveFrom (or now)
  */
-export const zPostContentSchema = z.union([
+export const zSetProductPrice = z.object({
+    amountEur: z.number().gt(0),
+    effectiveFrom: z.optional(z.string())
+});
+
+/**
+ * MemberValidation
+ *
+ * Validate a pending member (moves them to active) or reject them with a reason
+ */
+export const zMemberValidation = z.union([
     z.object({
-        type: z.literal('text'),
-        data: z.string()
+        decision: z.literal('validate'),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
     }),
     z.object({
-        type: z.literal('image'),
-        data: z.string()
-    }),
-    z.object({
-        type: z.literal('video'),
-        data: z.string()
+        decision: z.literal('reject'),
+        reason: z.string().min(1),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
     })
 ]);
 
 /**
- * CreatePostSchema
+ * UpdateMemberProfile
  *
- * Schema for creating/updating a post
+ * Update a member’s name and personal details (send the version you loaded)
  */
-export const zCreatePostSchema = z.object({
-    title: z.string().min(1),
-    content: z.array(zPostContentSchema),
-    coverImage: z.optional(z.url()),
-    tags: z.optional(z.array(z.string()))
+export const zUpdateMemberProfile = z.object({
+    addressLine1: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    addressLine2: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    postalCode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    city: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    phone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    name: z.optional(z.string().min(2)),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
 /**
- * UpdatePostSchema
+ * SetMembershipFee
  *
- * Schema for updating a post
+ * Set the expected membership fee for a member (the "variable fee"). Send the member version you loaded — a stale value returns 409.
  */
-export const zUpdatePostSchema = z.object({
-    title: z.optional(z.string().min(1)),
-    content: z.optional(z.array(zPostContentSchema)),
-    coverImage: z.optional(z.url()),
-    tags: z.optional(z.array(z.string()))
+export const zSetMembershipFee = z.object({
+    expectedAmountCents: z.int().gte(0).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
 /**
- * PostVersionSchema
+ * TerminateMember
  *
- * Schema for a post version
+ * Terminate a member with a reason (admin action)
  */
-export const zPostVersionSchema = z.object({
+export const zTerminateMember = z.object({
+    reason: z.string().min(1),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * ReactivateMember
+ *
+ * Return a terminated member to active
+ */
+export const zReactivateMember = z.object({
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * SelfTerminate
+ *
+ * A member ending their own membership
+ */
+export const zSelfTerminate = z.object({
+    confirm: z.literal(true)
+});
+
+/**
+ * MembershipIntake
+ *
+ * Whether self-registration is currently accepted
+ */
+export const zMembershipIntake = z.object({
+    open: z.boolean()
+});
+
+/**
+ * SupplierType
+ *
+ * Whether the supplier is a producer or a wholesaler
+ */
+export const zSupplierType = z.enum(['producer', 'wholesaler']);
+
+/**
+ * CreateSupplier
+ *
+ * Create a supplier
+ */
+export const zCreateSupplier = z.object({
+    name: z.string().min(1),
+    type: zSupplierType,
+    contactName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    notes: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * UpdateSupplier
+ *
+ * Update a supplier (send the loaded version)
+ */
+export const zUpdateSupplier = z.object({
+    name: z.optional(z.string().min(1)),
+    type: z.optional(zSupplierType),
+    contactName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    notes: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * CatalogSupplier
+ *
+ * A source of products
+ */
+export const zCatalogSupplier = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-    title: z.string(),
+    name: z.string(),
+    type: zSupplierType,
+    contactName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    notes: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    archivedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    productCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
     createdAt: z.string()
 });
 
 /**
- * TagSchema
+ * CatalogSuppliersList
  *
- * A tag attached to a post
+ * A paginated list of suppliers
  */
-export const zTagSchema = z.object({
+export const zCatalogSuppliersList = z.object({
+    data: z.array(zCatalogSupplier),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * CatalogCategory
+ *
+ * A grouping for products in the catalogue
+ */
+export const zCatalogCategory = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     name: z.string(),
-    slug: z.string()
-});
-
-/**
- * UserPostSchema
- *
- * Schema for a user's post
- */
-export const zUserPostSchema = z.object({
-    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-    slug: z.optional(z.union([
+    parentId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    archivedAt: z.optional(z.union([
         z.string(),
         z.null()
     ])),
-    title: z.string(),
-    content: z.array(zPostContentSchema),
-    versions: z.array(zPostVersionSchema),
-    publishedAt: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    type: z.enum(['published', 'draft']),
-    commentCount: z.optional(z.number()),
-    coverImage: z.optional(z.url()),
-    tags: z.array(zTagSchema)
+    productCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
 /**
- * UserPostsSchema
+ * CatalogCategoriesList
  *
- * Schema for a list of user's posts
+ * All categories (one nesting level)
  */
-export const zUserPostsSchema = z.object({
-    data: z.array(z.object({
-        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-        slug: z.optional(z.union([
-            z.string(),
-            z.null()
-        ])),
-        title: z.string(),
-        versions: z.array(zPostVersionSchema),
-        publishedAt: z.optional(z.union([
-            z.string(),
-            z.null()
-        ])),
-        type: z.enum(['published', 'draft']),
-        commentCount: z.optional(z.number()),
-        coverImage: z.optional(z.url()),
-        tags: z.array(zTagSchema),
-        contentPreview: zPostContentSchema
-    })),
-    meta: z.object({
-        offset: z.number(),
-        pageSize: z.number(),
-        itemCount: z.number(),
-        hasMore: z.boolean()
-    })
-});
+export const zCatalogCategoriesList = z.array(zCatalogCategory);
 
 /**
- * PublicPostSchema
+ * ProductSaleMode
  *
- * A public post
+ * "unit" is sold per piece, "weight" is priced per kilogram
  */
-export const zPublicPostSchema = z.object({
-    title: z.string(),
-    author: z.object({
-        name: z.string()
-    }),
-    content: z.array(zPostContentSchema),
-    publishedAt: z.string(),
-    slug: z.optional(z.string()),
-    commentCount: z.optional(z.number()),
-    coverImage: z.optional(z.url()),
-    likesCount: z.number(),
-    tags: z.array(zTagSchema)
-});
+export const zProductSaleMode = z.enum(['unit', 'weight']);
 
 /**
- * PublicPostsSchema
+ * ProductPricingUnit
  *
- * A list of public posts
+ * Derived from the sale mode: unit → piece, weight → kg
  */
-export const zPublicPostsSchema = z.object({
-    data: z.array(z.object({
-        title: z.string(),
-        author: z.object({
-            name: z.string()
-        }),
-        publishedAt: z.string(),
-        slug: z.optional(z.string()),
-        commentCount: z.optional(z.number()),
-        coverImage: z.optional(z.url()),
-        likesCount: z.number(),
-        tags: z.array(zTagSchema),
-        contentPreview: zPostContentSchema
-    })),
-    meta: z.object({
-        offset: z.number(),
-        pageSize: z.number(),
-        itemCount: z.number(),
-        hasMore: z.boolean()
-    })
-});
+export const zProductPricingUnit = z.enum(['piece', 'kg']);
 
 /**
- * PublicAuthorPostsSchema
+ * ProductLabel
  *
- * A list of posts from a specific author
+ * Informational badges shown on the product
  */
-export const zPublicAuthorPostsSchema = z.object({
-    data: z.array(z.object({
-        title: z.string(),
-        author: z.object({
-            name: z.string()
-        }),
-        publishedAt: z.string(),
-        slug: z.optional(z.string()),
-        commentCount: z.optional(z.number()),
-        coverImage: z.optional(z.url()),
-        likesCount: z.number(),
-        tags: z.array(zTagSchema),
-        contentPreview: zPostContentSchema
-    })),
-    meta: z.object({
-        offset: z.number(),
-        pageSize: z.number(),
-        itemCount: z.number(),
-        hasMore: z.boolean()
-    })
-});
-
-/**
- * AiCoreMessage
- *
- * A message in the conversation history following Vercel AI SDK patterns
- */
-export const zAiCoreMessage = z.object({
-    role: z.enum([
-        'user',
-        'assistant',
-        'system',
-        'tool'
-    ]),
-    content: z.string(),
-    metadata: z.optional(z.object({
-        isConsideredSystemMessage: z.optional(z.boolean()),
-        usage: z.optional(zTokenUsage),
-        finishReason: z.optional(z.string()),
-        timestamp: z.optional(z.iso.datetime().regex(/^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$/)),
-        toolCalls: z.optional(z.array(zToolCall)),
-        reasonning: z.optional(z.string())
-    }))
-});
-
-/**
- * AiStreamEvent
- *
- * SSE event for AI text streaming with tool support
- */
-export const zAiStreamEvent = z.union([
-    z.object({
-        type: z.literal('chunk'),
-        text: z.string()
-    }),
-    z.object({
-        type: z.literal('tool-call'),
-        toolCallId: z.string(),
-        toolName: z.string(),
-        args: z.record(z.string(), z.unknown())
-    }),
-    z.object({
-        type: z.literal('tool-result'),
-        toolCallId: z.string(),
-        toolName: z.string(),
-        result: z.unknown()
-    }),
-    z.object({
-        type: z.literal('done'),
-        fullText: z.string(),
-        usage: z.optional(z.object({
-            promptTokens: z.number(),
-            completionTokens: z.number(),
-            totalTokens: z.number()
-        })),
-        finishReason: z.optional(z.string())
-    }),
-    z.object({
-        type: z.literal('error'),
-        message: z.string()
-    })
+export const zProductLabel = z.enum([
+    'organic',
+    'local',
+    'vegetarian',
+    'vegan'
 ]);
 
 /**
- * Task
+ * CreateProduct
  *
- * A task
+ * Create a catalogue product with its first price. pricingUnit is derived from saleMode.
  */
-export const zTask = z.object({
-    title: z.string(),
-    description: z.string(),
-    priority: z.enum([
-        'low',
-        'medium',
-        'high'
-    ]),
-    dueDate: z.optional(z.string()),
-    tags: z.optional(z.array(z.string()))
+export const zCreateProduct = z.object({
+    name: z.string().min(1),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    supplierId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    categoryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    saleMode: zProductSaleMode,
+    photos: z.array(z.string()).default([]),
+    labels: z.array(zProductLabel).default([]),
+    barcode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    averageWeightGrams: z.optional(z.union([
+        z.int().gt(0).lte(9007199254740991),
+        z.null()
+    ])),
+    weightTolerancePercent: z.optional(z.union([
+        z.int().gt(0).lte(9007199254740991),
+        z.null()
+    ])),
+    initialPriceEur: z.number().gt(0)
 });
 
 /**
- * Product
+ * UpdateProduct
  *
- * A product
+ * Update a product (not its price)
  */
-export const zProduct = z.object({
-    name: z.string(),
-    price: z.number(),
-    description: z.string(),
-    category: z.string(),
-    inStock: z.boolean(),
-    features: z.optional(z.array(z.string()))
+export const zUpdateProduct = z.object({
+    name: z.optional(z.string().min(1)),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    supplierId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+    categoryId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+    saleMode: z.optional(zProductSaleMode),
+    photos: z.optional(z.array(z.string())).default([]),
+    labels: z.optional(z.array(zProductLabel)).default([]),
+    barcode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    averageWeightGrams: z.optional(z.union([
+        z.int().gt(0).lte(9007199254740991),
+        z.null()
+    ])),
+    weightTolerancePercent: z.optional(z.union([
+        z.int().gt(0).lte(9007199254740991),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
 /**
- * Recipe
+ * CatalogProduct
  *
- * A recipe
+ * An item the cooperative offers
  */
-export const zRecipe = z.object({
+export const zCatalogProduct = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     name: z.string(),
-    description: z.string(),
-    prepTime: z.string(),
-    cookTime: z.string(),
-    servings: z.number(),
-    difficulty: z.enum([
-        'easy',
-        'medium',
-        'hard'
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    supplier: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    }),
+    category: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    }),
+    saleMode: zProductSaleMode,
+    pricingUnit: zProductPricingUnit,
+    photos: z.array(z.string()),
+    labels: z.array(zProductLabel),
+    barcode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    currentPriceEur: z.optional(z.union([
+        z.number().gt(0),
+        z.null()
+    ])),
+    archivedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    createdAt: z.string()
+});
+
+/**
+ * CatalogProductsList
+ *
+ * A paginated list of products
+ */
+export const zCatalogProductsList = z.object({
+    data: z.array(zCatalogProduct),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * CatalogPriceWindow
+ *
+ * One entry in a product’s price history
+ */
+export const zCatalogPriceWindow = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    amountEur: z.number().gt(0),
+    currency: z.string(),
+    validFrom: z.string(),
+    validTo: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    setByName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * CatalogProductDetail
+ *
+ * A product with its full price history
+ */
+export const zCatalogProductDetail = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    name: z.string(),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    supplier: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    }),
+    category: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    }),
+    saleMode: zProductSaleMode,
+    pricingUnit: zProductPricingUnit,
+    photos: z.array(z.string()),
+    labels: z.array(zProductLabel),
+    barcode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    currentPriceEur: z.optional(z.union([
+        z.number().gt(0),
+        z.null()
+    ])),
+    archivedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    createdAt: z.string(),
+    priceHistory: z.array(zCatalogPriceWindow),
+    averageWeightGrams: z.optional(z.union([
+        z.int().gte(-9007199254740991).lte(9007199254740991),
+        z.null()
+    ])),
+    weightTolerancePercent: z.optional(z.union([
+        z.int().gte(-9007199254740991).lte(9007199254740991),
+        z.null()
+    ]))
+});
+
+/**
+ * MemberListItem
+ *
+ * A member as shown in the back-office list
+ */
+export const zMemberListItem = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    email: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    phoneNumber: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    status: z.enum([
+        'pending',
+        'active',
+        'rejected',
+        'terminated'
     ]),
-    ingredients: z.array(z.object({
-        name: z.string(),
-        quantity: z.string()
+    roles: z.array(z.enum(['member', 'admin'])),
+    feeState: z.enum([
+        'unpaid',
+        'partly_paid',
+        'paid'
+    ]),
+    createdAt: z.string()
+});
+
+/**
+ * MembersList
+ *
+ * A paginated list of members
+ */
+export const zMembersList = z.object({
+    data: z.array(zMemberListItem),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export const zMemberStatus = z.enum([
+    'pending',
+    'active',
+    'rejected',
+    'terminated'
+]);
+
+/**
+ * UserRole
+ *
+ * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ */
+export const zUserRole = z.enum(['member', 'admin']);
+
+/**
+ * CreateMember
+ *
+ * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
+ */
+export const zCreateMember = z.object({
+    name: z.string().min(2),
+    email: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    phoneNumber: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    profile: z.optional(z.object({
+        addressLine1: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        addressLine2: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        postalCode: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        city: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        phone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ]))
     })),
-    instructions: z.array(z.string()),
-    tips: z.optional(z.array(z.string()))
+    roles: z.array(zUserRole).min(1).default(['member']),
+    status: z.enum(['pending', 'active'])
 });
 
 /**
- * UserProfile
+ * SetMemberRoles
  *
- * A user profile
+ * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
  */
-export const zUserProfile = z.object({
+export const zSetMemberRoles = z.object({
+    roles: z.array(zUserRole).min(1),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * MembershipFeeState
+ *
+ * Derived from the sum of recorded payments against the expected amount
+ */
+export const zMembershipFeeState = z.enum([
+    'unpaid',
+    'partly_paid',
+    'paid'
+]);
+
+/**
+ * MemberIdentifiers
+ *
+ * The email and/or phone the account signs in with
+ */
+export const zMemberIdentifiers = z.object({
+    email: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    emailVerified: z.boolean(),
+    phoneNumber: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    phoneNumberVerified: z.boolean()
+});
+
+/**
+ * MemberProfile
+ *
+ * A member’s editable personal details
+ */
+export const zMemberProfile = z.object({
+    addressLine1: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    addressLine2: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    postalCode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    city: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    phone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * FeeSummary
+ *
+ * Membership-fee expectation, total paid, and derived state
+ */
+export const zFeeSummary = z.object({
+    expectedAmountCents: z.int().gte(0).lte(9007199254740991),
+    paidAmountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    state: z.enum([
+        'unpaid',
+        'partly_paid',
+        'paid'
+    ])
+});
+
+/**
+ * MemberStatusChange
+ *
+ * One entry in a member’s status history
+ */
+export const zMemberStatusChange = z.object({
+    fromStatus: z.optional(z.union([
+        z.enum([
+            'pending',
+            'active',
+            'rejected',
+            'terminated'
+        ]),
+        z.null()
+    ])),
+    toStatus: z.enum([
+        'pending',
+        'active',
+        'rejected',
+        'terminated'
+    ]),
+    reason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    changedByName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    createdAt: z.string()
+});
+
+/**
+ * MemberPayment
+ *
+ * One recorded membership-fee payment or adjustment
+ */
+export const zMemberPayment = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    kind: z.enum(['payment', 'adjustment']),
+    amountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    method: z.enum([
+        'cash',
+        'transfer',
+        'other'
+    ]),
+    paidAt: z.string(),
+    note: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    recordedByName: z.string(),
+    createdAt: z.string()
+});
+
+/**
+ * MemberDetail
+ *
+ * Full back-office view of a member
+ */
+export const zMemberDetail = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
     name: z.string(),
-    age: z.number(),
-    email: z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
-    bio: z.optional(z.string()),
-    skills: z.optional(z.array(z.string()))
-});
-
-/**
- * AiGenerateOptions
- *
- * Options for an AI generation
- */
-export const zAiGenerateOptions = z.object({
-    temperature: z.optional(z.number().gte(0).lte(2)),
-    maxTokens: z.optional(z.number().gt(0)),
-    topP: z.optional(z.number().gte(0).lte(1)),
-    frequencyPenalty: z.optional(z.number().gte(-2).lte(2)),
-    presencePenalty: z.optional(z.number().gte(-2).lte(2)),
-    maxSteps: z.optional(z.number().gt(0)),
-    stopWhen: z.optional(z.number().gt(0)),
-    telemetry: z.optional(z.object({
-        traceMode: z.optional(z.enum(['inherit', 'split'])),
-        traceId: z.optional(z.string()),
-        traceName: z.optional(z.string()),
-        spanName: z.optional(z.string()),
-        sessionId: z.optional(z.string()),
-        metadata: z.optional(z.record(z.string(), z.unknown())),
-        langfuseOriginalPrompt: z.optional(z.string())
-    })),
-    metadata: z.optional(z.record(z.string(), z.unknown()))
-});
-
-/**
- * UseCase1SingleGenerationRequest
- *
- * Single generation; trace is finalized with name/output so Langfuse shows them
- */
-export const zUseCase1SingleGenerationRequest = z.object({
-    prompt: z.string().min(1),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
+    identifiers: zMemberIdentifiers,
+    status: zMemberStatus,
+    roles: z.array(zUserRole),
+    profile: zMemberProfile,
+    fee: zFeeSummary,
+    joinedAt: z.optional(z.union([
+        z.string(),
+        z.null()
     ])),
-    options: z.optional(zAiGenerateOptions)
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    statusHistory: z.array(zMemberStatusChange),
+    payments: z.array(zMemberPayment)
 });
 
 /**
- * GenerateTextRequest
+ * MembershipPaymentKind
  *
- * Request for simple text generation with a single prompt
+ * A correction is recorded as an "adjustment" row, never by editing a payment
  */
-export const zGenerateTextRequest = z.object({
-    prompt: z.string().min(1),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
-    ])),
-    options: z.optional(zAiGenerateOptions)
+export const zMembershipPaymentKind = z.enum(['payment', 'adjustment']);
+
+/**
+ * MembershipPaymentMethod
+ *
+ * How a membership-fee payment was made ("online" is reserved for lot 5)
+ */
+export const zMembershipPaymentMethod = z.enum([
+    'cash',
+    'transfer',
+    'other'
+]);
+
+/**
+ * RecordFeePayment
+ *
+ * Record a membership-fee payment (positive) or an adjustment (any non-zero)
+ */
+export const zRecordFeePayment = z.object({
+    kind: zMembershipPaymentKind,
+    amountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    method: zMembershipPaymentMethod,
+    paidAt: z.string(),
+    note: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
 });
 
 /**
- * GenerateObjectRequest
+ * FeePaymentsList
  *
- * Request for structured object generation with a predefined schema type
+ * All recorded payments and adjustments against a member’s fee
  */
-export const zGenerateObjectRequest = z.object({
-    prompt: z.string().min(1),
-    schemaType: z.enum([
-        'userProfile',
-        'task',
-        'product',
-        'recipe'
-    ]),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
-    ])),
-    options: z.optional(zAiGenerateOptions)
-});
+export const zFeePaymentsList = z.array(zMemberPayment);
 
 /**
- * ChatRequest
+ * MemberSelf
  *
- * Request for multi-turn AI conversation with message history. schemaType can be used to request structured output.
+ * The signed-in member’s own account
  */
-export const zChatRequest = z.object({
-    messages: z.array(zChatMessageWithSchemaType).min(1),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
+export const zMemberSelf = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    identifiers: zMemberIdentifiers,
+    status: zMemberStatus,
+    roles: z.array(zUserRole),
+    profile: zMemberProfile,
+    fee: zFeeSummary,
+    joinedAt: z.optional(z.union([
+        z.string(),
+        z.null()
     ])),
-    options: z.optional(zAiGenerateOptions),
-    schemaType: z.optional(zChatSchemaType)
-});
-
-/**
- * StreamTextRequest
- *
- * Request for streaming text generation with a single prompt
- */
-export const zStreamTextRequest = z.object({
-    prompt: z.string().min(1),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
-    ])),
-    options: z.optional(zAiGenerateOptions)
-});
-
-/**
- * StreamObjectRequest
- *
- * Request for streaming structured object generation
- */
-export const zStreamObjectRequest = z.object({
-    prompt: z.string().min(1),
-    schemaType: z.enum([
-        'userProfile',
-        'task',
-        'product',
-        'recipe'
-    ]),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
-    ])),
-    options: z.optional(zAiGenerateOptions)
-});
-
-/**
- * StreamChatRequest
- *
- * Request for streaming multi-turn AI conversation
- */
-export const zStreamChatRequest = z.object({
-    messages: z.array(zChatMessageWithSchemaType).min(1),
-    model: z.optional(z.enum([
-        'OPENAI_GPT_5_NANO',
-        'GOOGLE_GEMINI_3_FLASH',
-        'CLAUDE_HAIKU_3_5',
-        'CLAUDE_OPUS_4_5',
-        'MISTRAL_SMALL'
-    ])),
-    options: z.optional(zAiGenerateOptions)
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
 /**
@@ -744,25 +821,28 @@ export const zPaginationQuerySchema = z.object({
 });
 
 /**
+ * FilterQueryStringSchema
+ *
+ * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+ * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+ * <br> Available properties: status, feeState, role, q
+ */
+export const zFilterQueryStringSchema = z.string();
+
+/**
  * SortingQueryStringSchema
  *
  * Schema for sorting items
  */
 export const zSortingQueryStringSchema = z.string();
 
-/**
- * FilterQueryStringSchema
- *
- * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
- * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: title, tag
- */
-export const zFilterQueryStringSchema = z.string();
-
-export const zCommentsControllerPostSlug = z.string();
-
-export const zCommentsControllerGetCommentsFilterItem = z.object({
-    property: z.literal('content'),
+export const zAdminMembersControllerListFilterItem = z.object({
+    property: z.union([
+        z.literal('status'),
+        z.literal('feeState'),
+        z.literal('role'),
+        z.literal('q')
+    ]),
     rule: z.enum([
         'eq',
         'neq',
@@ -780,32 +860,22 @@ export const zCommentsControllerGetCommentsFilterItem = z.object({
     value: z.optional(z.string())
 });
 
-export const zCommentsControllerGetCommentsFilterArray = z.array(zCommentsControllerGetCommentsFilterItem);
+export const zAdminMembersControllerListFilterArray = z.array(zAdminMembersControllerListFilterItem);
 
-export const zCommentsControllerGetCommentsSortItem = z.object({
+export const zAdminMembersControllerListSortItem = z.object({
     property: z.union([
         z.literal('createdAt'),
-        z.literal('authorName')
+        z.literal('name')
     ]),
     direction: z.enum(['asc', 'desc'])
 });
 
-export const zCommentsControllerGetCommentsSortArray = z.array(zCommentsControllerGetCommentsSortItem);
+export const zAdminMembersControllerListSortArray = z.array(zAdminMembersControllerListSortItem);
 
-export const zCommentsControllerGetCommentRepliesSortItem = z.object({
+export const zAdminSuppliersControllerListFilterItem = z.object({
     property: z.union([
-        z.literal('createdAt'),
-        z.literal('authorName')
-    ]),
-    direction: z.enum(['asc', 'desc'])
-});
-
-export const zCommentsControllerGetCommentRepliesSortArray = z.array(zCommentsControllerGetCommentRepliesSortItem);
-
-export const zPostControllerGetUserPostsFilterItem = z.object({
-    property: z.union([
-        z.literal('title'),
-        z.literal('tag')
+        z.literal('type'),
+        z.literal('q')
     ]),
     rule: z.enum([
         'eq',
@@ -824,22 +894,15 @@ export const zPostControllerGetUserPostsFilterItem = z.object({
     value: z.optional(z.string())
 });
 
-export const zPostControllerGetUserPostsFilterArray = z.array(zPostControllerGetUserPostsFilterItem);
+export const zAdminSuppliersControllerListFilterArray = z.array(zAdminSuppliersControllerListFilterItem);
 
-export const zPostControllerGetUserPostsSortItem = z.object({
+export const zAdminProductsControllerListFilterItem = z.object({
     property: z.union([
-        z.literal('title'),
-        z.literal('createdAt')
-    ]),
-    direction: z.enum(['asc', 'desc'])
-});
-
-export const zPostControllerGetUserPostsSortArray = z.array(zPostControllerGetUserPostsSortItem);
-
-export const zPublicPostControllerGetPostsFilterItem = z.object({
-    property: z.union([
-        z.literal('title'),
-        z.literal('tag')
+        z.literal('supplierId'),
+        z.literal('categoryId'),
+        z.literal('saleMode'),
+        z.literal('label'),
+        z.literal('q')
     ]),
     rule: z.enum([
         'eq',
@@ -858,27 +921,17 @@ export const zPublicPostControllerGetPostsFilterItem = z.object({
     value: z.optional(z.string())
 });
 
-export const zPublicPostControllerGetPostsFilterArray = z.array(zPublicPostControllerGetPostsFilterItem);
+export const zAdminProductsControllerListFilterArray = z.array(zAdminProductsControllerListFilterItem);
 
-export const zPublicPostControllerGetPostsSortItem = z.object({
+export const zAdminProductsControllerListSortItem = z.object({
     property: z.union([
-        z.literal('title'),
+        z.literal('name'),
         z.literal('createdAt')
     ]),
     direction: z.enum(['asc', 'desc'])
 });
 
-export const zPublicPostControllerGetPostsSortArray = z.array(zPublicPostControllerGetPostsSortItem);
-
-export const zPublicAuthorControllerGetAuthorPostsSortItem = z.object({
-    property: z.union([
-        z.literal('title'),
-        z.literal('createdAt')
-    ]),
-    direction: z.enum(['asc', 'desc'])
-});
-
-export const zPublicAuthorControllerGetAuthorPostsSortArray = z.array(zPublicAuthorControllerGetAuthorPostsSortItem);
+export const zAdminProductsControllerListSortArray = z.array(zAdminProductsControllerListSortItem);
 
 export const zAppControllerGetHelloData = z.object({
     body: z.optional(z.never()),
@@ -886,598 +939,358 @@ export const zAppControllerGetHelloData = z.object({
     query: z.optional(z.never())
 });
 
-export const zCommentsControllerGetCommentsData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        postSlug: z.string()
-    }),
-    query: z.object({
-        filter: z.optional(zCommentsControllerGetCommentsFilterArray),
-        sort: z.optional(zCommentsControllerGetCommentsSortArray),
-        offset: z.int().gte(0).lte(9007199254740991).default(0),
-        pageSize: z.int().gte(1).lte(100).default(20)
-    })
-});
-
-/**
- * Schema for a paginated list of comments
- */
-export const zCommentsControllerGetCommentsResponse = zCommentsSchema;
-
-export const zCommentsControllerCreateCommentData = z.object({
-    body: z.object({
-        content: z.string().min(1).max(1000),
-        parentId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/))
-    }),
-    path: z.object({
-        postSlug: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-/**
- * Schema for a comment
- */
-export const zCommentsControllerCreateCommentResponse = zCommentSchema;
-
-export const zCommentsControllerGetCommentCountData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        postSlug: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zCommentsControllerGetCommentRepliesData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        commentId: z.string(),
-        postSlug: z.string()
-    }),
-    query: z.object({
-        sort: z.optional(zCommentsControllerGetCommentRepliesSortArray),
-        offset: z.int().gte(0).lte(9007199254740991).default(0),
-        pageSize: z.int().gte(1).lte(100).default(20)
-    })
-});
-
-/**
- * Schema for a paginated list of comments
- */
-export const zCommentsControllerGetCommentRepliesResponse = zCommentsSchema;
-
-export const zCommentsControllerDeleteCommentData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        commentId: z.string(),
-        postSlug: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zPostControllerGetUserPostsData = z.object({
+export const zAdminMembersControllerListData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
     query: z.object({
-        filter: z.optional(zPostControllerGetUserPostsFilterArray),
-        sort: z.optional(zPostControllerGetUserPostsSortArray),
+        filter: z.optional(zAdminMembersControllerListFilterArray),
+        sort: z.optional(zAdminMembersControllerListSortArray),
         offset: z.int().gte(0).lte(9007199254740991).default(0),
         pageSize: z.int().gte(1).lte(100).default(20)
     })
 });
 
 /**
- * Schema for a list of user's posts
+ * A paginated list of members
  */
-export const zPostControllerGetUserPostsResponse = zUserPostsSchema;
+export const zAdminMembersControllerListResponse = zMembersList;
 
-export const zPostControllerCreatePostData = z.object({
+export const zAdminMembersControllerCreateData = z.object({
     body: z.object({
-        title: z.string().min(1),
-        content: z.array(z.union([
-            z.object({
-                type: z.literal('text'),
-                data: z.string()
-            }),
-            z.object({
-                type: z.literal('image'),
-                data: z.string()
-            }),
-            z.object({
-                type: z.literal('video'),
-                data: z.string()
-            })
+        name: z.string().min(2),
+        email: z.optional(z.union([
+            z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+            z.null()
         ])),
-        coverImage: z.optional(z.url()),
-        tags: z.optional(z.array(z.string()))
-    }),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-/**
- * Schema for a user's post
- */
-export const zPostControllerCreatePostResponse = zUserPostSchema;
-
-export const zPostControllerGetUserPostData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-/**
- * Schema for a user's post
- */
-export const zPostControllerGetUserPostResponse = zUserPostSchema;
-
-export const zPostControllerUpdatePostData = z.object({
-    body: z.object({
-        title: z.optional(z.string().min(1)),
-        content: z.optional(z.array(z.union([
-            z.object({
-                type: z.literal('text'),
-                data: z.string()
-            }),
-            z.object({
-                type: z.literal('image'),
-                data: z.string()
-            }),
-            z.object({
-                type: z.literal('video'),
-                data: z.string()
-            })
-        ]))),
-        coverImage: z.optional(z.url()),
-        tags: z.optional(z.array(z.string()))
-    }),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-/**
- * Schema for a user's post
- */
-export const zPostControllerUpdatePostResponse = zUserPostSchema;
-
-export const zPostControllerPublishPostData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zPostControllerUnpublishPostData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zPublicPostControllerGetRandomPostData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-/**
- * A public post
- */
-export const zPublicPostControllerGetRandomPostResponse = zPublicPostSchema;
-
-export const zPublicPostControllerGetPostData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        slug: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-/**
- * A public post
- */
-export const zPublicPostControllerGetPostResponse = zPublicPostSchema;
-
-export const zPublicPostControllerGetPostsData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.object({
-        filter: z.optional(zPublicPostControllerGetPostsFilterArray),
-        sort: z.optional(zPublicPostControllerGetPostsSortArray),
-        offset: z.int().gte(0).lte(9007199254740991).default(0),
-        pageSize: z.int().gte(1).lte(100).default(20)
-    })
-});
-
-/**
- * A list of public posts
- */
-export const zPublicPostControllerGetPostsResponse = zPublicPostsSchema;
-
-export const zPublicPostControllerLikePostData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        slug: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-/**
- * A public post
- */
-export const zPublicPostControllerLikePostResponse = zPublicPostSchema;
-
-export const zPublicAuthorControllerGetAuthorPostsData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        slug: z.string()
-    }),
-    query: z.object({
-        sort: z.optional(zPublicAuthorControllerGetAuthorPostsSortArray),
-        offset: z.int().gte(0).lte(9007199254740991).default(0),
-        pageSize: z.int().gte(1).lte(100).default(20)
-    })
-});
-
-/**
- * A list of posts from a specific author
- */
-export const zPublicAuthorControllerGetAuthorPostsResponse = zPublicAuthorPostsSchema;
-
-export const zAiExampleControllerGenerateTextData = z.object({
-    body: z.object({
-        prompt: z.string().min(1),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
+        phoneNumber: z.optional(z.union([
+            z.string(),
+            z.null()
         ])),
-        options: z.optional(z.object({
-            temperature: z.optional(z.number().gte(0).lte(2)),
-            maxTokens: z.optional(z.number().gt(0)),
-            topP: z.optional(z.number().gte(0).lte(1)),
-            frequencyPenalty: z.optional(z.number().gte(-2).lte(2)),
-            presencePenalty: z.optional(z.number().gte(-2).lte(2)),
-            maxSteps: z.optional(z.number().gt(0)),
-            stopWhen: z.optional(z.number().gt(0)),
-            telemetry: z.optional(z.object({
-                traceMode: z.optional(z.enum(['inherit', 'split'])),
-                traceId: z.optional(z.string()),
-                traceName: z.optional(z.string()),
-                spanName: z.optional(z.string()),
-                sessionId: z.optional(z.string()),
-                metadata: z.optional(z.record(z.string(), z.unknown())),
-                langfuseOriginalPrompt: z.optional(z.string())
-            })),
-            metadata: z.optional(z.record(z.string(), z.unknown()))
-        }))
-    }),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-/**
- * Response from text generation
- */
-export const zAiExampleControllerGenerateTextResponse = zGenerateTextResponse;
-
-export const zAiExampleControllerGenerateObjectData = z.object({
-    body: z.object({
-        prompt: z.string().min(1),
-        schemaType: z.enum([
-            'userProfile',
-            'task',
-            'product',
-            'recipe'
-        ]),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
-        ])),
-        options: z.optional(z.object({
-            temperature: z.optional(z.number().gte(0).lte(2)),
-            maxTokens: z.optional(z.number().gt(0)),
-            topP: z.optional(z.number().gte(0).lte(1)),
-            frequencyPenalty: z.optional(z.number().gte(-2).lte(2)),
-            presencePenalty: z.optional(z.number().gte(-2).lte(2)),
-            maxSteps: z.optional(z.number().gt(0)),
-            stopWhen: z.optional(z.number().gt(0)),
-            telemetry: z.optional(z.object({
-                traceMode: z.optional(z.enum(['inherit', 'split'])),
-                traceId: z.optional(z.string()),
-                traceName: z.optional(z.string()),
-                spanName: z.optional(z.string()),
-                sessionId: z.optional(z.string()),
-                metadata: z.optional(z.record(z.string(), z.unknown())),
-                langfuseOriginalPrompt: z.optional(z.string())
-            })),
-            metadata: z.optional(z.record(z.string(), z.unknown()))
-        }))
-    }),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-/**
- * Response from structured object generation
- */
-export const zAiExampleControllerGenerateObjectResponse = zGenerateObjectResponse;
-
-export const zAiExampleControllerChatData = z.object({
-    body: z.object({
-        messages: z.array(z.object({
-            role: z.enum([
-                'user',
-                'assistant',
-                'system',
-                'tool'
-            ]),
-            content: z.string(),
-            metadata: z.optional(z.object({
-                isConsideredSystemMessage: z.optional(z.boolean()),
-                usage: z.optional(z.object({
-                    promptTokens: z.number(),
-                    completionTokens: z.number(),
-                    totalTokens: z.number()
-                })),
-                finishReason: z.optional(z.string()),
-                timestamp: z.optional(z.iso.datetime().regex(/^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$/)),
-                toolCalls: z.optional(z.array(z.object({
-                    toolCallId: z.string(),
-                    toolName: z.string(),
-                    args: z.record(z.string(), z.unknown())
-                }))),
-                reasonning: z.optional(z.string()),
-                schemaType: z.optional(z.enum([
-                    'userProfile',
-                    'task',
-                    'product',
-                    'recipe',
-                    'none'
-                ]))
-            }))
-        })).min(1),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
-        ])),
-        options: z.optional(z.object({
-            temperature: z.optional(z.number().gte(0).lte(2)),
-            maxTokens: z.optional(z.number().gt(0)),
-            topP: z.optional(z.number().gte(0).lte(1)),
-            frequencyPenalty: z.optional(z.number().gte(-2).lte(2)),
-            presencePenalty: z.optional(z.number().gte(-2).lte(2)),
-            maxSteps: z.optional(z.number().gt(0)),
-            stopWhen: z.optional(z.number().gt(0)),
-            telemetry: z.optional(z.object({
-                traceMode: z.optional(z.enum(['inherit', 'split'])),
-                traceId: z.optional(z.string()),
-                traceName: z.optional(z.string()),
-                spanName: z.optional(z.string()),
-                sessionId: z.optional(z.string()),
-                metadata: z.optional(z.record(z.string(), z.unknown())),
-                langfuseOriginalPrompt: z.optional(z.string())
-            })),
-            metadata: z.optional(z.record(z.string(), z.unknown()))
+        profile: z.optional(z.object({
+            addressLine1: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            addressLine2: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            postalCode: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            city: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            phone: z.optional(z.union([
+                z.string(),
+                z.null()
+            ]))
         })),
-        schemaType: z.optional(z.enum([
-            'userProfile',
-            'task',
-            'product',
-            'recipe',
-            'none'
-        ]))
+        roles: z.array(z.enum(['member', 'admin'])).min(1).default(['member']),
+        status: z.enum(['pending', 'active'])
     }),
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
 /**
- * Response from AI chat conversation
+ * Full back-office view of a member
  */
-export const zAiExampleControllerChatResponse = zChatResponse;
+export const zAdminMembersControllerCreateResponse = zMemberDetail;
 
-export const zAiExampleControllerStreamTextData = z.object({
-    body: z.object({
-        prompt: z.string().min(1),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
-        ])),
-        options: z.optional(z.object({
-            temperature: z.optional(z.number().gte(0).lte(2)),
-            maxTokens: z.optional(z.number().gt(0)),
-            topP: z.optional(z.number().gte(0).lte(1)),
-            frequencyPenalty: z.optional(z.number().gte(-2).lte(2)),
-            presencePenalty: z.optional(z.number().gte(-2).lte(2)),
-            maxSteps: z.optional(z.number().gt(0)),
-            stopWhen: z.optional(z.number().gt(0)),
-            telemetry: z.optional(z.object({
-                traceMode: z.optional(z.enum(['inherit', 'split'])),
-                traceId: z.optional(z.string()),
-                traceName: z.optional(z.string()),
-                spanName: z.optional(z.string()),
-                sessionId: z.optional(z.string()),
-                metadata: z.optional(z.record(z.string(), z.unknown())),
-                langfuseOriginalPrompt: z.optional(z.string())
-            })),
-            metadata: z.optional(z.record(z.string(), z.unknown()))
-        }))
+export const zAdminMembersControllerDetailData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
     }),
-    path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
-export const zAiExampleControllerStreamObjectData = z.object({
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerDetailResponse = zMemberDetail;
+
+export const zAdminMembersControllerDecideData = z.object({
+    body: z.union([
+        z.object({
+            decision: z.literal('validate'),
+            version: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }),
+        z.object({
+            decision: z.literal('reject'),
+            reason: z.string().min(1),
+            version: z.int().gte(-9007199254740991).lte(9007199254740991)
+        })
+    ]),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerDecideResponse = zMemberDetail;
+
+export const zAdminMembersControllerUpdateProfileData = z.object({
     body: z.object({
-        prompt: z.string().min(1),
-        schemaType: z.enum([
-            'userProfile',
-            'task',
-            'product',
-            'recipe'
+        addressLine1: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        addressLine2: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        postalCode: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        city: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        phone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        name: z.optional(z.string().min(2)),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerUpdateProfileResponse = zMemberDetail;
+
+export const zAdminMembersControllerSetFeeData = z.object({
+    body: z.object({
+        expectedAmountCents: z.int().gte(0).lte(9007199254740991),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Membership-fee expectation, total paid, and derived state
+ */
+export const zAdminMembersControllerSetFeeResponse = zFeeSummary;
+
+export const zAdminMembersControllerListFeePaymentsData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * All recorded payments and adjustments against a member’s fee
+ */
+export const zAdminMembersControllerListFeePaymentsResponse = zFeePaymentsList;
+
+export const zAdminMembersControllerRecordFeePaymentData = z.object({
+    body: z.object({
+        kind: z.enum(['payment', 'adjustment']),
+        amountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+        method: z.enum([
+            'cash',
+            'transfer',
+            'other'
         ]),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
+        paidAt: z.string(),
+        note: z.optional(z.union([
+            z.string(),
+            z.null()
+        ]))
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Membership-fee expectation, total paid, and derived state
+ */
+export const zAdminMembersControllerRecordFeePaymentResponse = zFeeSummary;
+
+export const zAdminMembersControllerSetRolesData = z.object({
+    body: z.object({
+        roles: z.array(z.enum(['member', 'admin'])).min(1),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerSetRolesResponse = zMemberDetail;
+
+export const zAdminMembersControllerTerminateData = z.object({
+    body: z.object({
+        reason: z.string().min(1),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerTerminateResponse = zMemberDetail;
+
+export const zAdminMembersControllerReactivateData = z.object({
+    body: z.object({
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Full back-office view of a member
+ */
+export const zAdminMembersControllerReactivateResponse = zMemberDetail;
+
+export const zMemberSelfControllerMeData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The signed-in member’s own account
+ */
+export const zMemberSelfControllerMeResponse = zMemberSelf;
+
+export const zMemberSelfControllerUpdateProfileData = z.object({
+    body: z.object({
+        addressLine1: z.optional(z.union([
+            z.string(),
+            z.null()
         ])),
-        options: z.optional(z.object({
-            temperature: z.optional(z.number().gte(0).lte(2)),
-            maxTokens: z.optional(z.number().gt(0)),
-            topP: z.optional(z.number().gte(0).lte(1)),
-            frequencyPenalty: z.optional(z.number().gte(-2).lte(2)),
-            presencePenalty: z.optional(z.number().gte(-2).lte(2)),
-            maxSteps: z.optional(z.number().gt(0)),
-            stopWhen: z.optional(z.number().gt(0)),
-            telemetry: z.optional(z.object({
-                traceMode: z.optional(z.enum(['inherit', 'split'])),
-                traceId: z.optional(z.string()),
-                traceName: z.optional(z.string()),
-                spanName: z.optional(z.string()),
-                sessionId: z.optional(z.string()),
-                metadata: z.optional(z.record(z.string(), z.unknown())),
-                langfuseOriginalPrompt: z.optional(z.string())
-            })),
-            metadata: z.optional(z.record(z.string(), z.unknown()))
-        }))
-    }),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zAiExampleControllerStreamChatData = z.object({
-    body: z.object({
-        messages: z.array(z.object({
-            role: z.enum([
-                'user',
-                'assistant',
-                'system',
-                'tool'
-            ]),
-            content: z.string(),
-            metadata: z.optional(z.object({
-                isConsideredSystemMessage: z.optional(z.boolean()),
-                usage: z.optional(z.object({
-                    promptTokens: z.number(),
-                    completionTokens: z.number(),
-                    totalTokens: z.number()
-                })),
-                finishReason: z.optional(z.string()),
-                timestamp: z.optional(z.iso.datetime().regex(/^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$/)),
-                toolCalls: z.optional(z.array(z.object({
-                    toolCallId: z.string(),
-                    toolName: z.string(),
-                    args: z.record(z.string(), z.unknown())
-                }))),
-                reasonning: z.optional(z.string()),
-                schemaType: z.optional(z.enum([
-                    'userProfile',
-                    'task',
-                    'product',
-                    'recipe',
-                    'none'
-                ]))
-            }))
-        })).min(1),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
+        addressLine2: z.optional(z.union([
+            z.string(),
+            z.null()
         ])),
-        options: z.optional(z.object({
-            temperature: z.optional(z.number().gte(0).lte(2)),
-            maxTokens: z.optional(z.number().gt(0)),
-            topP: z.optional(z.number().gte(0).lte(1)),
-            frequencyPenalty: z.optional(z.number().gte(-2).lte(2)),
-            presencePenalty: z.optional(z.number().gte(-2).lte(2)),
-            maxSteps: z.optional(z.number().gt(0)),
-            stopWhen: z.optional(z.number().gt(0)),
-            telemetry: z.optional(z.object({
-                traceMode: z.optional(z.enum(['inherit', 'split'])),
-                traceId: z.optional(z.string()),
-                traceName: z.optional(z.string()),
-                spanName: z.optional(z.string()),
-                sessionId: z.optional(z.string()),
-                metadata: z.optional(z.record(z.string(), z.unknown())),
-                langfuseOriginalPrompt: z.optional(z.string())
-            })),
-            metadata: z.optional(z.record(z.string(), z.unknown()))
-        }))
-    }),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zAiExampleUseCasesControllerUseCase1SingleGenerationData = z.object({
-    body: z.object({
-        prompt: z.string().min(1),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
+        postalCode: z.optional(z.union([
+            z.string(),
+            z.null()
         ])),
-        options: z.optional(z.object({
-            temperature: z.optional(z.number().gte(0).lte(2)),
-            maxTokens: z.optional(z.number().gt(0)),
-            topP: z.optional(z.number().gte(0).lte(1)),
-            frequencyPenalty: z.optional(z.number().gte(-2).lte(2)),
-            presencePenalty: z.optional(z.number().gte(-2).lte(2)),
-            maxSteps: z.optional(z.number().gt(0)),
-            stopWhen: z.optional(z.number().gt(0)),
-            telemetry: z.optional(z.object({
-                traceMode: z.optional(z.enum(['inherit', 'split'])),
-                traceId: z.optional(z.string()),
-                traceName: z.optional(z.string()),
-                spanName: z.optional(z.string()),
-                sessionId: z.optional(z.string()),
-                metadata: z.optional(z.record(z.string(), z.unknown())),
-                langfuseOriginalPrompt: z.optional(z.string())
-            })),
-            metadata: z.optional(z.record(z.string(), z.unknown()))
-        }))
+        city: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        phone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        name: z.optional(z.string().min(2)),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
     }),
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
 /**
- * Response from text generation
+ * The signed-in member’s own account
  */
-export const zAiExampleUseCasesControllerUseCase1SingleGenerationResponse = zGenerateTextResponse;
+export const zMemberSelfControllerUpdateProfileResponse = zMemberSelf;
 
-export const zAiExampleUseCasesControllerUseCase2GroupedCallsData = z.object({
+export const zMemberSelfControllerTerminateData = z.object({
     body: z.object({
-        prompts: z.array(z.string().min(1)).min(1).max(5),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
+        confirm: z.literal(true)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The signed-in member’s own account
+ */
+export const zMemberSelfControllerTerminateResponse = zMemberSelf;
+
+export const zMembershipIntakeControllerGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Whether self-registration is currently accepted
+ */
+export const zMembershipIntakeControllerGetResponse = zMembershipIntake;
+
+export const zMembershipIntakeControllerSetData = z.object({
+    body: z.object({
+        open: z.boolean()
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Whether self-registration is currently accepted
+ */
+export const zMembershipIntakeControllerSetResponse = zMembershipIntake;
+
+export const zAdminSuppliersControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        includeArchived: z.string(),
+        filter: z.optional(zAdminSuppliersControllerListFilterArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A paginated list of suppliers
+ */
+export const zAdminSuppliersControllerListResponse = zCatalogSuppliersList;
+
+export const zAdminSuppliersControllerCreateData = z.object({
+    body: z.object({
+        name: z.string().min(1),
+        type: z.enum(['producer', 'wholesaler']),
+        contactName: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        contactEmail: z.optional(z.union([
+            z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+            z.null()
+        ])),
+        contactPhone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        notes: z.optional(z.union([
+            z.string(),
+            z.null()
         ]))
     }),
     path: z.optional(z.never()),
@@ -1485,19 +1298,103 @@ export const zAiExampleUseCasesControllerUseCase2GroupedCallsData = z.object({
 });
 
 /**
- * Combined results from grouped LLM calls
+ * A source of products
  */
-export const zAiExampleUseCasesControllerUseCase2GroupedCallsResponse = zUseCase2GroupedCallsResponse;
+export const zAdminSuppliersControllerCreateResponse = zCatalogSupplier;
 
-export const zAiExampleUseCasesControllerUseCase3LogicalUnitsData = z.object({
+export const zAdminSuppliersControllerGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A source of products
+ */
+export const zAdminSuppliersControllerGetResponse = zCatalogSupplier;
+
+export const zAdminSuppliersControllerUpdateData = z.object({
     body: z.object({
-        workflowPrompts: z.array(z.string().min(1)).min(1).max(5),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
+        name: z.optional(z.string().min(1)),
+        type: z.optional(z.enum(['producer', 'wholesaler'])),
+        contactName: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        contactEmail: z.optional(z.union([
+            z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+            z.null()
+        ])),
+        contactPhone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        notes: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A source of products
+ */
+export const zAdminSuppliersControllerUpdateResponse = zCatalogSupplier;
+
+export const zAdminSuppliersControllerArchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.object({
+        cascade: z.string()
+    })
+});
+
+/**
+ * A source of products
+ */
+export const zAdminSuppliersControllerArchiveResponse = zCatalogSupplier;
+
+export const zAdminSuppliersControllerUnarchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A source of products
+ */
+export const zAdminSuppliersControllerUnarchiveResponse = zCatalogSupplier;
+
+export const zAdminCategoriesControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        includeArchived: z.string()
+    })
+});
+
+/**
+ * All categories (one nesting level)
+ */
+export const zAdminCategoriesControllerListResponse = zCatalogCategoriesList;
+
+export const zAdminCategoriesControllerCreateData = z.object({
+    body: z.object({
+        name: z.string().min(1),
+        parentId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
         ]))
     }),
     path: z.optional(z.never()),
@@ -1505,48 +1402,206 @@ export const zAiExampleUseCasesControllerUseCase3LogicalUnitsData = z.object({
 });
 
 /**
- * One result per workflow (each in its own trace)
+ * A grouping for products in the catalogue
  */
-export const zAiExampleUseCasesControllerUseCase3LogicalUnitsResponse = zUseCase3LogicalUnitsResponse;
+export const zAdminCategoriesControllerCreateResponse = zCatalogCategory;
 
-export const zAiExampleUseCasesControllerUseCase4ChatSessionData = z.object({
+export const zAdminCategoriesControllerUpdateData = z.object({
     body: z.object({
-        prompt: z.string().min(1),
-        sessionId: z.string().min(1),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
-        ]))
+        name: z.optional(z.string().min(1)),
+        parentId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A grouping for products in the catalogue
+ */
+export const zAdminCategoriesControllerUpdateResponse = zCatalogCategory;
+
+export const zAdminCategoriesControllerArchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A grouping for products in the catalogue
+ */
+export const zAdminCategoriesControllerArchiveResponse = zCatalogCategory;
+
+export const zAdminCategoriesControllerUnarchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A grouping for products in the catalogue
+ */
+export const zAdminCategoriesControllerUnarchiveResponse = zCatalogCategory;
+
+export const zAdminProductsControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        includeArchived: z.string(),
+        filter: z.optional(zAdminProductsControllerListFilterArray),
+        sort: z.optional(zAdminProductsControllerListSortArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A paginated list of products
+ */
+export const zAdminProductsControllerListResponse = zCatalogProductsList;
+
+export const zAdminProductsControllerCreateData = z.object({
+    body: z.object({
+        name: z.string().min(1),
+        description: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        supplierId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        categoryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        saleMode: z.enum(['unit', 'weight']),
+        photos: z.array(z.string()).default([]),
+        labels: z.array(z.enum([
+            'organic',
+            'local',
+            'vegetarian',
+            'vegan'
+        ])).default([]),
+        barcode: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        averageWeightGrams: z.optional(z.union([
+            z.int().gt(0).lte(9007199254740991),
+            z.null()
+        ])),
+        weightTolerancePercent: z.optional(z.union([
+            z.int().gt(0).lte(9007199254740991),
+            z.null()
+        ])),
+        initialPriceEur: z.number().gt(0)
     }),
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
 /**
- * Response from text generation
+ * A product with its full price history
  */
-export const zAiExampleUseCasesControllerUseCase4ChatSessionResponse = zGenerateTextResponse;
+export const zAdminProductsControllerCreateResponse = zCatalogProductDetail;
 
-export const zAiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedData = z.object({
-    body: z.object({
-        prompt: z.string().min(1),
-        sessionId: z.string().min(1),
-        model: z.optional(z.enum([
-            'OPENAI_GPT_5_NANO',
-            'GOOGLE_GEMINI_3_FLASH',
-            'CLAUDE_HAIKU_3_5',
-            'CLAUDE_OPUS_4_5',
-            'MISTRAL_SMALL'
-        ]))
+export const zAdminProductsControllerGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
     }),
-    path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
 /**
- * Response from text generation
+ * A product with its full price history
  */
-export const zAiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedResponse = zGenerateTextResponse;
+export const zAdminProductsControllerGetResponse = zCatalogProductDetail;
+
+export const zAdminProductsControllerUpdateData = z.object({
+    body: z.object({
+        name: z.optional(z.string().min(1)),
+        description: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        supplierId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+        categoryId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+        saleMode: z.optional(z.enum(['unit', 'weight'])),
+        photos: z.optional(z.array(z.string())).default([]),
+        labels: z.optional(z.array(z.enum([
+            'organic',
+            'local',
+            'vegetarian',
+            'vegan'
+        ]))).default([]),
+        barcode: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        averageWeightGrams: z.optional(z.union([
+            z.int().gt(0).lte(9007199254740991),
+            z.null()
+        ])),
+        weightTolerancePercent: z.optional(z.union([
+            z.int().gt(0).lte(9007199254740991),
+            z.null()
+        ])),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A product with its full price history
+ */
+export const zAdminProductsControllerUpdateResponse = zCatalogProductDetail;
+
+export const zAdminProductsControllerSetPriceData = z.object({
+    body: z.object({
+        amountEur: z.number().gt(0),
+        effectiveFrom: z.optional(z.string())
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A product with its full price history
+ */
+export const zAdminProductsControllerSetPriceResponse = zCatalogProductDetail;
+
+export const zAdminProductsControllerArchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * An item the cooperative offers
+ */
+export const zAdminProductsControllerArchiveResponse = zCatalogProduct;
+
+export const zAdminProductsControllerUnarchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * An item the cooperative offers
+ */
+export const zAdminProductsControllerUnarchiveResponse = zCatalogProduct;

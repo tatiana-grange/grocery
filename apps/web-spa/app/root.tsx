@@ -9,7 +9,6 @@ import { useI18nStore } from '@/lib/i18n/i18n-client'
 import { queryClient } from '@/lib/query-client'
 import useTheme from './hooks/useTheme'
 import '@/lib/i18n/i18n-client'
-import '@fontsource/source-sans-pro'
 import '@grocery/ui/globals.css'
 
 client.setConfig({
@@ -48,20 +47,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang={htmlLang}>
       <head>
-        <title>Dashboard</title>
+        <title>Grocery</title>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="author" content="Lonestone" />
-        <meta name="keywords" content="Lonestone, platform, create, share, ideas" />
+        <meta name="author" content="Grocery" />
+        <meta name="keywords" content="Grocery" />
 
-        <meta
-          name="description"
-          content="Lonestone is a platform for creating and sharing your ideas."
-        />
+        <meta name="description" content="Grocery" />
         <Meta />
         <Links />
       </head>
-      <body className="dark bg-gradient-bg">
+      <body className="bg-gradient-bg">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -94,7 +90,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
+    <main className="pt-16 p-4 container mx-auto" data-testid="route-error-boundary">
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (

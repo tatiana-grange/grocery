@@ -1,0 +1,59 @@
+---
+title: Lot 1 — Foundation (members, roles, catalogue)
+description: What the members and catalog modules deliver, and how they are shaped
+---
+
+Delivery lot 1 from the [architecture plan](/grocery/project/architecture-plan).
+Full spec, plan, and task list live in `specs/foundation/`.
+
+## What it delivers
+
+- **Members** — self sign-up (email or phone number), an admin validation queue,
+  membership status history, self-service account (profile, password, personal QR code),
+  membership-fee tracking, admin role management, and termination / reactivation.
+- **Catalogue** — suppliers, categories, and products (per unit or by weight) with an
+  append-only windowed price history and soft archiving.
+
+## Backend modules
+
+### `apps/api/src/modules/auth` (extended)
+
+The Better Auth `admin` and `phoneNumber` plugins are wired in. Roles are `member` and
+`admin` (`admin` is a strict superset; `grocer` is added in lot 4). `SmsService` logs the
+one-time code to the console in development. `AuthGuard` enforces `@AdminOnly()` / `@Roles()`
+and a `@MemberScoped()` mode that requires a confirmed identifier and an active membership.
+
+### `apps/api/src/modules/members`
+
+`Member` is one-to-one with the auth `User`. `MemberStatusChange`, `MembershipPayment`, and
+the fee logic are **append-only** — status, paid amount, and fee state are always derived
+from rows, never overwritten (constitution principle II). A Better Auth `databaseHooks`
+entry creates the pending `Member` on sign-up.
+
+Endpoints: `GET/PUT /members/me`, `POST /members/me/termination`, and the `admin/members*`
+and `admin/membership-intake` back-office routes.
+
+### `apps/api/src/modules/catalog`
+
+`Supplier`, `Category`, `Product`, `ProductPrice`. A price change closes the current open
+window (`validTo`) and inserts a new open row in one transaction; the current price is the
+row with `validTo IS NULL`. Money is stored as integer cents and exchanged as euros.
+Archiving a supplier with active products is a `409` unless `?cascade=true`; a category
+cannot be archived while active products reference it.
+
+Endpoints: `admin/suppliers*`, `admin/categories*`, `admin/products*`.
+
+## Frontend
+
+`apps/web-spa/app/features/` — `auth` (login, register, and forgot-password screens with an
+email / phone toggle, plus the OTP step for phone sign-up), `common` (role hooks, the
+back-office and member-area layout shells), `admin-members` (validation queue, member detail
+with fee panel and lifecycle actions), `account` (self-service + QR), and `catalog` (tabbed
+suppliers / categories / products, product detail with the price-history timeline). Routes
+are grouped under `/account` and `/admin/*`.
+
+## Not in lot 1
+
+Admin-direct member creation and a production SMS provider. In development the one-time code
+is logged to the API console by `SmsService`; wiring a real provider (Twilio, OVH, etc.) is
+an infrastructure task left open in `apps/api/src/modules/auth/sms.service.ts`.

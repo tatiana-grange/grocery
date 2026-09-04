@@ -22,3 +22,10 @@ You must always follow these guidelines.
 
 Before committing or opening a PR, read `CONTRIBUTING.md` and follow it.
 Never write the token `BREAKING-CHANGE:` in a commit message unless you intend to force a major release.
+
+## Active Technologies
+- TypeScript 5.x on Node.js 24.13.0, pnpm 10.28.2 workspace + NestJS, MikroORM (PostgreSQL), Zod, `@lonestone/nzoth/server` (feat/foundation)
+- PostgreSQL via MikroORM; schema evolved with `pnpm --filter=api db:fresh:seed` (feat/foundation)
+
+## Recent Changes
+- feat/foundation: Added TypeScript 5.x on Node.js 24.13.0, pnpm 10.28.2 workspace + NestJS, MikroORM (PostgreSQL), Zod, `@lonestone/nzoth/server`

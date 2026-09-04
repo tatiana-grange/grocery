@@ -8,7 +8,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from '@grocery/ui/components/primitives/command'
-import { Brain, Component, LayoutDashboard, Moon, PlusCircle, Sun, User } from 'lucide-react'
+import { Component, LayoutDashboard, Moon, Sun, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import useTheme from '@/hooks/useTheme'
@@ -41,11 +41,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       description={t('commandPalette.description')}
     >
       <Command>
-        <CommandInput placeholder={t('commandPalette.placeholder')} />
+        <CommandInput
+          data-testid="command-palette-input"
+          placeholder={t('commandPalette.placeholder')}
+        />
         <CommandEmpty>{t('commandPalette.noResults')}</CommandEmpty>
 
         <CommandGroup heading={t('commandPalette.groups.navigate')}>
           <CommandItem
+            data-testid="command-item-dashboard"
             onSelect={() => handleNavigate('/dashboard')}
             keywords={['dashboard', 'home', 'overview']}
           >
@@ -54,14 +58,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <CommandShortcut>D</CommandShortcut>
           </CommandItem>
           <CommandItem
-            onSelect={() => handleNavigate('/ai')}
-            keywords={['ai', 'playground', 'chat', 'artificial intelligence']}
-          >
-            <Brain className="h-4 w-4" />
-            <span>{t('commandPalette.items.ai')}</span>
-            <CommandShortcut>A</CommandShortcut>
-          </CommandItem>
-          <CommandItem
+            data-testid="command-item-components"
             onSelect={() => handleNavigate('/components')}
             keywords={['components', 'ui', 'gallery', 'library']}
           >
@@ -70,6 +67,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <CommandShortcut>C</CommandShortcut>
           </CommandItem>
           <CommandItem
+            data-testid="command-item-profile"
             onSelect={() => handleNavigate('/dashboard/profile')}
             keywords={['profile', 'account', 'user', 'settings']}
           >
@@ -81,21 +79,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
         <CommandSeparator />
 
-        <CommandGroup heading={t('commandPalette.groups.actions')}>
-          <CommandItem
-            onSelect={() => handleNavigate('/dashboard/posts/new')}
-            keywords={['new', 'create', 'post', 'write', 'article']}
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span>{t('commandPalette.items.newPost')}</span>
-            <CommandShortcut>N</CommandShortcut>
-          </CommandItem>
-        </CommandGroup>
-
-        <CommandSeparator />
-
         <CommandGroup heading={t('commandPalette.groups.preferences')}>
-          <CommandItem onSelect={handleToggleTheme} keywords={['theme', 'dark', 'light', 'mode']}>
+          <CommandItem
+            data-testid="command-item-theme"
+            onSelect={handleToggleTheme}
+            keywords={['theme', 'dark', 'light', 'mode']}
+          >
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             <span>
               {theme === 'dark'

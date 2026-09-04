@@ -2,7 +2,7 @@
   "name": "grocery",
   "version": "1.1.0",
   "private": true,
-  "description": "Monorepo for Lonestone project",
+  "description": "Monorepo for the Grocery project",
   "keywords": [],
   "license": "ISC",
   "author": "",
@@ -22,6 +22,9 @@
     "fmt:check": "oxfmt --check",
     "generate": "pnpm --filter=@grocery/openapi-generator run generate",
     "test": "pnpm -r test",
+    "e2e": "pnpm --filter @grocery/web-spa-e2e e2e",
+    "e2e:dev": "pnpm --filter @grocery/web-spa-e2e e2e:dev",
+    "e2e:show": "pnpm --filter @grocery/web-spa-e2e e2e:show",
     "docs-only": "pnpm --filter=@grocery/documentation run dev",
     "knip": "knip --no-exit-code",
     "lint:pr": "tsx ./scripts/lint-pr.ts"

@@ -14,47 +14,83 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { z } from 'zod'
+import { isLikelyPhone, type IdentifierMode } from '@/features/auth/lib/identifier'
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-})
+function getLoginSchema(mode: IdentifierMode) {
+  return z.object({
+    identifier: mode === 'email' ? z.string().email() : z.string().refine(isLikelyPhone),
+    password: z.string().min(1),
+  })
+}
 
-export type AuthLoginFormData = z.infer<typeof loginSchema>
+export interface AuthLoginFormData {
+  identifier: string
+  password: string
+}
 
 interface AuthLoginFormProps {
-  onSubmit: (data: AuthLoginFormData) => void
+  mode: IdentifierMode
+  onModeChange: (mode: IdentifierMode) => void
+  onSubmit: (data: AuthLoginFormData & { mode: IdentifierMode }) => void
   isPending: boolean
 }
 
-export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ onSubmit, isPending }) => {
+export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
+  mode,
+  onModeChange,
+  onSubmit,
+  isPending,
+}) => {
   const { t } = useTranslation()
   const form = useForm<AuthLoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(getLoginSchema(mode)),
   })
 
   return (
     <Form {...form}>
-      <form className="mt-8 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="mt-8 space-y-6"
+        onSubmit={form.handleSubmit((data) => onSubmit({ ...data, mode }))}
+      >
+        <div className="flex gap-2">
+          {(['email', 'phone'] as const).map((option) => (
+            <Button
+              key={option}
+              type="button"
+              data-testid={`auth-login-mode-${option}`}
+              variant={mode === option ? 'default' : 'outline'}
+              size="sm"
+              className="flex-1"
+              onClick={() => onModeChange(option)}
+            >
+              {t(`auth.register.mode.${option}`)}
+            </Button>
+          ))}
+        </div>
+
         <FormField
           control={form.control}
-          name="email"
+          name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel htmlFor="email">{t('auth.login.email')}</FormLabel>
+              <FormLabel htmlFor="identifier">
+                {mode === 'email' ? t('auth.login.email') : t('auth.register.phone')}
+              </FormLabel>
               <FormControl>
                 <Input
-                  id="email"
+                  id="identifier"
+                  data-testid="auth-login-identifier"
                   {...field}
-                  type="email"
-                  autoComplete="email"
-                  placeholder="your@email.com"
+                  type={mode === 'email' ? 'email' : 'tel'}
+                  autoComplete={mode === 'email' ? 'email' : 'tel'}
+                  placeholder={mode === 'email' ? 'your@email.com' : '+33 6 12 34 56 78'}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="password"
@@ -69,6 +105,7 @@ export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ onSubmit, isPendin
               <FormControl>
                 <Input
                   id="password"
+                  data-testid="auth-login-password"
                   {...field}
                   autoComplete="current-password"
                   placeholder="••••••••"
@@ -80,7 +117,12 @@ export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ onSubmit, isPendin
           )}
         />
 
-        <Button className="w-full" type="submit" disabled={isPending}>
+        <Button
+          className="w-full"
+          type="submit"
+          data-testid="auth-login-submit"
+          disabled={isPending}
+        >
           {t('auth.login.signIn')}
         </Button>
       </form>

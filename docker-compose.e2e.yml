@@ -1,0 +1,27 @@
+# Infra jetable pour les tests e2e de la web-spa (apps/web-spa-e2e).
+# Projet Compose distinct + ports dédiés : n'interfère pas avec docker-compose.yml (dev).
+# Aucun volume persistant : `docker compose -f docker-compose.e2e.yml down` efface les données.
+name: grocery-e2e
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: grocery-e2e-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: grocery_e2e
+    ports:
+      - '5434:5432'
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d grocery_e2e']
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  maildev:
+    image: maildev/maildev:2.2.1
+    container_name: grocery-e2e-maildev
+    ports:
+      - '1090:1080'
+      - '1035:1025'

@@ -33,6 +33,11 @@ export const configValidationSchema = z.object({
   // Environment
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
+  // Set by the Playwright web-spa e2e run (apps/web-spa-e2e/.env.e2e). Gates the destructive,
+  // unauthenticated `TestSeedModule` so it never mounts during the API's own vitest suites,
+  // which also run with NODE_ENV=test.
+  E2E: z.stringbool().default(false),
+
   // API
   API_BASE_URL: z.url(),
   API_PORT: z.coerce.number(),
@@ -57,18 +62,14 @@ export const configValidationSchema = z.object({
   EMAIL_SECURE: z.stringbool().default(false),
   EMAIL_USER: z.string().optional(),
   EMAIL_PASSWORD: z.string().optional(),
-  EMAIL_FROM: z.string().email().default('noreply@lonestone.io'),
+  EMAIL_FROM: z.string().email().default('noreply@grocery.example'),
 
-  // AI Providers
-  OPENAI_API_KEY: z.string().optional(), // OpenAI
-  ANTHROPIC_API_KEY: z.string().optional(), // Anthropic
-  GOOGLE_API_KEY: z.string().optional(), // Google
-  MISTRAL_API_KEY: z.string().optional(), // Mistral
+  // SMS (phone-number one-time codes). No provider => codes are logged to the console.
+  SMS_PROVIDER: z.string().optional(),
+  SMS_FROM: z.string().optional(),
 
-  // Langfuse
-  LANGFUSE_SECRET_KEY: z.string().optional(),
-  LANGFUSE_PUBLIC_KEY: z.string().optional(), // Optional
-  LANGFUSE_BASE_URL: z.string().optional(), // Optional, defaults to cloud
+  // Members
+  MEMBERSHIP_FEE_DEFAULT_CENTS: z.coerce.number().int().nonnegative().default(0),
 
   // Sentry
   SENTRY_DSN: z.string().optional(),
@@ -86,6 +87,7 @@ if (!configParsed.success) {
 
 export const config = {
   env: configParsed.data.NODE_ENV,
+  e2e: configParsed.data.E2E,
   api: {
     baseUrl: configParsed.data.API_BASE_URL,
     port: configParsed.data.API_PORT,
@@ -111,30 +113,16 @@ export const config = {
     password: configParsed.data.EMAIL_PASSWORD,
     from: configParsed.data.EMAIL_FROM,
   },
+  sms: {
+    provider: configParsed.data.SMS_PROVIDER,
+    from: configParsed.data.SMS_FROM,
+  },
+  members: {
+    membershipFeeDefaultCents: configParsed.data.MEMBERSHIP_FEE_DEFAULT_CENTS,
+  },
   clients: {
     webApp: {
       url: configParsed.data.CLIENTS_WEB_APP_URL,
-    },
-  },
-  langfuse: {
-    secretKey: configParsed.data.LANGFUSE_SECRET_KEY,
-    publicKey: configParsed.data.LANGFUSE_PUBLIC_KEY,
-    host: configParsed.data.LANGFUSE_BASE_URL,
-  },
-  ai: {
-    providers: {
-      openai: {
-        apiKey: configParsed.data.OPENAI_API_KEY,
-      },
-      anthropic: {
-        apiKey: configParsed.data.ANTHROPIC_API_KEY,
-      },
-      google: {
-        apiKey: configParsed.data.GOOGLE_API_KEY,
-      },
-      mistral: {
-        apiKey: configParsed.data.MISTRAL_API_KEY,
-      },
     },
   },
   sentry: {

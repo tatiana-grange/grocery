@@ -96,6 +96,9 @@ export function createSessionFromUser(user: User): BetterAuthSession {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       image: user.image ?? null,
+      role: user.role ?? 'member',
+      phoneNumber: user.phoneNumber ?? null,
+      phoneNumberVerified: user.phoneNumberVerified ?? false,
     },
   } as BetterAuthSession
 }

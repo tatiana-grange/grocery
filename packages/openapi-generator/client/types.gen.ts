@@ -5,480 +5,433 @@ export type ClientOptions = {
 };
 
 /**
- * UseCase1SingleGenerationRequest
+ * CreateSupplier
  *
- * Single generation; trace is finalized with name/output so Langfuse shows them
+ * Create a supplier
  */
-export type UseCase1SingleGenerationRequest = {
-    prompt: string;
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    options?: AiGenerateOptions;
+export type CreateSupplier = {
+    name: string;
+    type: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
 };
 
 /**
- * UseCase2GroupedCallsRequest
+ * UpdateSupplier
  *
- * Multiple LLM calls in one request; one trace in Langfuse, finalized at end
+ * Update a supplier (send the loaded version)
  */
-export type UseCase2GroupedCallsRequest = {
-    /**
-     * Prompts for each step (same trace)
-     */
-    prompts: Array<string>;
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
+export type UpdateSupplier = {
+    name?: string;
+    type?: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
+    version: number;
 };
 
 /**
- * UseCase3LogicalUnitsRequest
+ * CreateCategory
  *
- * Multiple workflows; each workflow gets its own Langfuse trace (split per unit)
+ * Create a category
  */
-export type UseCase3LogicalUnitsRequest = {
-    /**
-     * One prompt per logical workflow; each gets its own trace
-     */
-    workflowPrompts: Array<string>;
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
+export type CreateCategory = {
+    name: string;
+    parentId?: string | null;
 };
 
 /**
- * UseCase4ChatSessionRequest
+ * UpdateCategory
  *
- * Simple generateText with sessionId for grouping traces across requests
+ * Rename or reparent a category
  */
-export type UseCase4ChatSessionRequest = {
-    prompt: string;
-    /**
-     * Session ID to group traces in Langfuse (e.g. conversation or thread)
-     */
-    sessionId: string;
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
+export type UpdateCategory = {
+    name?: string;
+    parentId?: string | null;
+    version: number;
 };
 
 /**
- * GenerateTextRequest
+ * CreateProduct
  *
- * Request for simple text generation with a single prompt
+ * Create a catalogue product with its first price. pricingUnit is derived from saleMode.
  */
-export type GenerateTextRequest = {
-    prompt: string;
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    options?: AiGenerateOptions;
+export type CreateProduct = {
+    name: string;
+    description?: string | null;
+    supplierId: string;
+    categoryId: string;
+    saleMode: ProductSaleMode;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
+    initialPriceEur: number;
 };
 
 /**
- * GenerateObjectRequest
+ * UpdateProduct
  *
- * Request for structured object generation with a predefined schema type
+ * Update a product (not its price)
  */
-export type GenerateObjectRequest = {
-    prompt: string;
-    schemaType: 'userProfile' | 'task' | 'product' | 'recipe';
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    options?: AiGenerateOptions;
+export type UpdateProduct = {
+    name?: string;
+    description?: string | null;
+    supplierId?: string;
+    categoryId?: string;
+    saleMode?: ProductSaleMode;
+    photos?: Array<string>;
+    labels?: Array<ProductLabel>;
+    barcode?: string | null;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
+    version: number;
 };
 
 /**
- * ChatRequest
+ * SetProductPrice
  *
- * Request for multi-turn AI conversation with message history. schemaType can be used to request structured output.
+ * Set a new current price; the previous window is closed at effectiveFrom (or now)
  */
-export type ChatRequest = {
-    messages: Array<ChatMessageWithSchemaType>;
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    options?: AiGenerateOptions;
-    schemaType?: ChatSchemaType;
+export type SetProductPrice = {
+    amountEur: number;
+    effectiveFrom?: string;
 };
 
 /**
- * StreamTextRequest
+ * CreateMember
  *
- * Request for streaming text generation with a single prompt
+ * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
  */
-export type StreamTextRequest = {
-    prompt: string;
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    options?: AiGenerateOptions;
+export type CreateMember = {
+    name: string;
+    email?: string | null;
+    phoneNumber?: string | null;
+    profile?: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+    };
+    roles: Array<UserRole>;
+    status: 'pending' | 'active';
 };
 
 /**
- * StreamObjectRequest
+ * MemberValidation
  *
- * Request for streaming structured object generation
+ * Validate a pending member (moves them to active) or reject them with a reason
  */
-export type StreamObjectRequest = {
-    prompt: string;
-    schemaType: 'userProfile' | 'task' | 'product' | 'recipe';
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    options?: AiGenerateOptions;
+export type MemberValidation = {
+    decision: 'validate';
+    version: number;
+} | {
+    decision: 'reject';
+    reason: string;
+    version: number;
 };
 
 /**
- * StreamChatRequest
+ * UpdateMemberProfile
  *
- * Request for streaming multi-turn AI conversation
+ * Update a member’s name and personal details (send the version you loaded)
  */
-export type StreamChatRequest = {
-    messages: Array<ChatMessageWithSchemaType>;
-    model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    options?: AiGenerateOptions;
+export type UpdateMemberProfile = {
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    postalCode?: string | null;
+    city?: string | null;
+    phone?: string | null;
+    name?: string;
+    version: number;
 };
 
 /**
- * CreateCommentSchema
+ * SetMembershipFee
  *
- * Schema for creating a comment
+ * Set the expected membership fee for a member (the "variable fee"). Send the member version you loaded — a stale value returns 409.
  */
-export type CreateCommentSchema = {
-    content: string;
-    parentId?: string;
+export type SetMembershipFee = {
+    expectedAmountCents: number;
+    version: number;
 };
 
 /**
- * CreatePostSchema
+ * RecordFeePayment
  *
- * Schema for creating/updating a post
+ * Record a membership-fee payment (positive) or an adjustment (any non-zero)
  */
-export type CreatePostSchema = {
-    title: string;
-    content: Array<PostContentSchema>;
-    coverImage?: string;
-    tags?: Array<string>;
+export type RecordFeePayment = {
+    kind: MembershipPaymentKind;
+    amountCents: number;
+    method: MembershipPaymentMethod;
+    paidAt: string;
+    note?: string | null;
 };
 
 /**
- * UpdatePostSchema
+ * SetMemberRoles
  *
- * Schema for updating a post
+ * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
  */
-export type UpdatePostSchema = {
-    title?: string;
-    content?: Array<PostContentSchema>;
-    coverImage?: string;
-    tags?: Array<string>;
+export type SetMemberRoles = {
+    roles: Array<UserRole>;
+    version: number;
 };
 
 /**
- * GenerateTextResponse
+ * TerminateMember
  *
- * Response from text generation
+ * Terminate a member with a reason (admin action)
  */
-export type GenerateTextResponse = {
-    usage?: TokenUsage;
-    finishReason?: string;
-    toolCalls?: Array<ToolCall>;
-    toolResults?: Array<ToolResult>;
-    result: string;
+export type TerminateMember = {
+    reason: string;
+    version: number;
 };
 
 /**
- * TokenUsage
+ * ReactivateMember
  *
- * Token usage information for an AI generation
+ * Return a terminated member to active
  */
-export type TokenUsage = {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
+export type ReactivateMember = {
+    version: number;
 };
 
 /**
- * ToolCall
+ * SelfTerminate
  *
- * A tool call made by the AI
+ * A member ending their own membership
  */
-export type ToolCall = {
-    toolCallId: string;
-    toolName: string;
-    args: {
-        [key: string]: unknown;
+export type SelfTerminate = {
+    confirm: true;
+};
+
+/**
+ * MembershipIntake
+ *
+ * Whether self-registration is currently accepted
+ */
+export type MembershipIntake = {
+    open: boolean;
+};
+
+/**
+ * CatalogSuppliersList
+ *
+ * A paginated list of suppliers
+ */
+export type CatalogSuppliersList = {
+    data: Array<CatalogSupplier>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
     };
 };
 
 /**
- * ToolResult
+ * CatalogSupplier
  *
- * The result of a tool call
+ * A source of products
  */
-export type ToolResult = {
-    toolCallId: string;
-    toolName: string;
-    result: unknown;
+export type CatalogSupplier = {
+    id: string;
+    name: string;
+    type: SupplierType;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    notes?: string | null;
+    archivedAt?: string | null;
+    productCount: number;
+    version: number;
+    createdAt: string;
 };
 
 /**
- * UseCase2GroupedCallsResponse
+ * SupplierType
  *
- * Combined results from grouped LLM calls
+ * Whether the supplier is a producer or a wholesaler
  */
-export type UseCase2GroupedCallsResponse = {
-    traceName: string;
-    results: Array<string>;
-    usage?: TokenUsage;
+export const SupplierType = { PRODUCER: 'producer', WHOLESALER: 'wholesaler' } as const;
+
+/**
+ * SupplierType
+ *
+ * Whether the supplier is a producer or a wholesaler
+ */
+export type SupplierType = typeof SupplierType[keyof typeof SupplierType];
+
+/**
+ * CatalogCategoriesList
+ *
+ * All categories (one nesting level)
+ */
+export type CatalogCategoriesList = Array<CatalogCategory>;
+
+/**
+ * CatalogCategory
+ *
+ * A grouping for products in the catalogue
+ */
+export type CatalogCategory = {
+    id: string;
+    name: string;
+    parentId?: string | null;
+    archivedAt?: string | null;
+    productCount: number;
+    version: number;
 };
 
 /**
- * UseCase3LogicalUnitsResponse
+ * CatalogProductsList
  *
- * One result per workflow (each in its own trace)
+ * A paginated list of products
  */
-export type UseCase3LogicalUnitsResponse = {
-    workflows: Array<{
-        index: number;
-        result: string;
-        usage?: TokenUsage;
-    }>;
-};
-
-/**
- * GenerateObjectResponse
- *
- * Response from structured object generation
- */
-export type GenerateObjectResponse = {
-    usage?: TokenUsage;
-    finishReason?: string;
-    toolCalls?: Array<ToolCall>;
-    toolResults?: Array<ToolResult>;
-    result: unknown;
-};
-
-/**
- * ChatResponse
- *
- * Response from AI chat conversation
- */
-export type ChatResponse = {
-    usage?: TokenUsage;
-    finishReason?: string;
-    toolCalls?: Array<ToolCall>;
-    toolResults?: Array<ToolResult>;
-    result: string;
-    messages: Array<ChatMessageWithSchemaType>;
-};
-
-/**
- * ChatMessageWithSchemaType
- *
- * A message with optional schemaType metadata for identifying structured output
- */
-export type ChatMessageWithSchemaType = {
-    role: 'user' | 'assistant' | 'system' | 'tool';
-    content: string;
-    metadata?: {
-        isConsideredSystemMessage?: boolean;
-        /**
-         * TokenUsage
-         *
-         * Total token usage for the message, including tools calls and reasoning steps
-         */
-        usage?: {
-            promptTokens: number;
-            completionTokens: number;
-            totalTokens: number;
-        };
-        finishReason?: string;
-        /**
-         * ISO 8601 timestamp when the message was created
-         */
-        timestamp?: Date;
-        /**
-         * Tool calls made to generate the message
-         */
-        toolCalls?: Array<{
-            toolCallId: string;
-            toolName: string;
-            args: {
-                [key: string]: unknown;
-            };
-        }>;
-        /**
-         * Reasoning text for the message
-         */
-        reasonning?: string;
-        /**
-         * ChatSchemaType
-         *
-         * Predefined schema types for testing structured output
-         */
-        schemaType?: 'userProfile' | 'task' | 'product' | 'recipe' | 'none';
+export type CatalogProductsList = {
+    data: Array<CatalogProduct>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
     };
 };
 
 /**
- * ChatSchemaType
+ * CatalogProduct
  *
- * Predefined schema types for testing structured output
+ * An item the cooperative offers
  */
-export const ChatSchemaType = {
-    USER_PROFILE: 'userProfile',
-    TASK: 'task',
-    PRODUCT: 'product',
-    RECIPE: 'recipe',
-    NONE: 'none'
+export type CatalogProduct = {
+    id: string;
+    name: string;
+    description?: string | null;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    category: {
+        id: string;
+        name: string;
+    };
+    saleMode: ProductSaleMode;
+    pricingUnit: ProductPricingUnit;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    currentPriceEur?: number | null;
+    archivedAt?: string | null;
+    version: number;
+    createdAt: string;
+};
+
+/**
+ * ProductSaleMode
+ *
+ * "unit" is sold per piece, "weight" is priced per kilogram
+ */
+export const ProductSaleMode = { UNIT: 'unit', WEIGHT: 'weight' } as const;
+
+/**
+ * ProductSaleMode
+ *
+ * "unit" is sold per piece, "weight" is priced per kilogram
+ */
+export type ProductSaleMode = typeof ProductSaleMode[keyof typeof ProductSaleMode];
+
+/**
+ * ProductPricingUnit
+ *
+ * Derived from the sale mode: unit → piece, weight → kg
+ */
+export const ProductPricingUnit = { PIECE: 'piece', KG: 'kg' } as const;
+
+/**
+ * ProductPricingUnit
+ *
+ * Derived from the sale mode: unit → piece, weight → kg
+ */
+export type ProductPricingUnit = typeof ProductPricingUnit[keyof typeof ProductPricingUnit];
+
+/**
+ * ProductLabel
+ *
+ * Informational badges shown on the product
+ */
+export const ProductLabel = {
+    ORGANIC: 'organic',
+    LOCAL: 'local',
+    VEGETARIAN: 'vegetarian',
+    VEGAN: 'vegan'
 } as const;
 
 /**
- * ChatSchemaType
+ * ProductLabel
  *
- * Predefined schema types for testing structured output
+ * Informational badges shown on the product
  */
-export type ChatSchemaType = typeof ChatSchemaType[keyof typeof ChatSchemaType];
+export type ProductLabel = typeof ProductLabel[keyof typeof ProductLabel];
 
 /**
- * CommentSchema
+ * CatalogProductDetail
  *
- * Schema for a comment
+ * A product with its full price history
  */
-export type CommentSchema = {
-    id: string;
-    content: string;
-    authorName: string | null;
-    createdAt: string;
-    user: {
-        id: string;
-        name: string;
-    } | null;
-    parentId: string | null;
-    replyIds?: Array<string>;
-    replyCount?: number;
-};
-
-/**
- * CommentsSchema
- *
- * Schema for a paginated list of comments
- */
-export type CommentsSchema = {
-    data: Array<CommentSchema>;
-    meta: {
-        offset: number;
-        pageSize: number;
-        itemCount: number;
-        hasMore: boolean;
-    };
-};
-
-/**
- * UserPostSchema
- *
- * Schema for a user's post
- */
-export type UserPostSchema = {
-    id: string;
-    slug?: string | null;
-    title: string;
-    content: Array<PostContentSchema>;
-    versions: Array<PostVersionSchema>;
-    publishedAt?: string | null;
-    type: 'published' | 'draft';
-    commentCount?: number;
-    coverImage?: string;
-    tags: Array<TagSchema>;
-};
-
-/**
- * PostContentSchema
- *
- * Schema for content items (text, image, video)
- */
-export type PostContentSchema = {
-    type: 'text';
-    data: string;
-} | {
-    type: 'image';
-    data: string;
-} | {
-    type: 'video';
-    data: string;
-};
-
-/**
- * PostVersionSchema
- *
- * Schema for a post version
- */
-export type PostVersionSchema = {
-    id: string;
-    title: string;
-    createdAt: string;
-};
-
-/**
- * TagSchema
- *
- * A tag attached to a post
- */
-export type TagSchema = {
+export type CatalogProductDetail = {
     id: string;
     name: string;
-    slug: string;
-};
-
-/**
- * UserPostsSchema
- *
- * Schema for a list of user's posts
- */
-export type UserPostsSchema = {
-    data: Array<{
+    description?: string | null;
+    supplier: {
         id: string;
-        slug?: string | null;
-        title: string;
-        versions: Array<PostVersionSchema>;
-        publishedAt?: string | null;
-        type: 'published' | 'draft';
-        commentCount?: number;
-        coverImage?: string;
-        tags: Array<TagSchema>;
-        contentPreview: PostContentSchema;
-    }>;
-    meta: {
-        offset: number;
-        pageSize: number;
-        itemCount: number;
-        hasMore: boolean;
-    };
-};
-
-/**
- * PublicPostSchema
- *
- * A public post
- */
-export type PublicPostSchema = {
-    title: string;
-    author: {
         name: string;
     };
-    content: Array<PostContentSchema>;
-    publishedAt: string;
-    slug?: string;
-    commentCount?: number;
-    coverImage?: string;
-    likesCount: number;
-    tags: Array<TagSchema>;
+    category: {
+        id: string;
+        name: string;
+    };
+    saleMode: ProductSaleMode;
+    pricingUnit: ProductPricingUnit;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    barcode?: string | null;
+    currentPriceEur?: number | null;
+    archivedAt?: string | null;
+    version: number;
+    createdAt: string;
+    priceHistory: Array<CatalogPriceWindow>;
+    averageWeightGrams?: number | null;
+    weightTolerancePercent?: number | null;
 };
 
 /**
- * PublicPostsSchema
+ * CatalogPriceWindow
  *
- * A list of public posts
+ * One entry in a product’s price history
  */
-export type PublicPostsSchema = {
-    data: Array<{
-        title: string;
-        author: {
-            name: string;
-        };
-        publishedAt: string;
-        slug?: string;
-        commentCount?: number;
-        coverImage?: string;
-        likesCount: number;
-        tags: Array<TagSchema>;
-        contentPreview: PostContentSchema;
-    }>;
+export type CatalogPriceWindow = {
+    id: string;
+    amountEur: number;
+    currency: string;
+    validFrom: string;
+    validTo?: string | null;
+    setByName?: string | null;
+};
+
+/**
+ * MembersList
+ *
+ * A paginated list of members
+ */
+export type MembersList = {
+    data: Array<MemberListItem>;
     meta: {
         offset: number;
         pageSize: number;
@@ -488,206 +441,243 @@ export type PublicPostsSchema = {
 };
 
 /**
- * PublicAuthorPostsSchema
+ * MemberListItem
  *
- * A list of posts from a specific author
+ * A member as shown in the back-office list
  */
-export type PublicAuthorPostsSchema = {
-    data: Array<{
-        title: string;
-        author: {
-            name: string;
-        };
-        publishedAt: string;
-        slug?: string;
-        commentCount?: number;
-        coverImage?: string;
-        likesCount: number;
-        tags: Array<TagSchema>;
-        contentPreview: PostContentSchema;
-    }>;
-    meta: {
-        offset: number;
-        pageSize: number;
-        itemCount: number;
-        hasMore: boolean;
-    };
-};
-
-/**
- * AiCoreMessage
- *
- * A message in the conversation history following Vercel AI SDK patterns
- */
-export type AiCoreMessage = {
-    role: 'user' | 'assistant' | 'system' | 'tool';
-    content: string;
-    metadata?: {
-        isConsideredSystemMessage?: boolean;
-        usage?: TokenUsage;
-        finishReason?: string;
-        /**
-         * ISO 8601 timestamp when the message was created
-         */
-        timestamp?: Date;
-        /**
-         * Tool calls made to generate the message
-         */
-        toolCalls?: Array<ToolCall>;
-        /**
-         * Reasoning text for the message
-         */
-        reasonning?: string;
-    };
-};
-
-/**
- * AiStreamEvent
- *
- * SSE event for AI text streaming with tool support
- */
-export type AiStreamEvent = {
-    type: 'chunk';
-    text: string;
-} | {
-    type: 'tool-call';
-    toolCallId: string;
-    toolName: string;
-    args: {
-        [key: string]: unknown;
-    };
-} | {
-    type: 'tool-result';
-    toolCallId: string;
-    toolName: string;
-    result: unknown;
-} | {
-    type: 'done';
-    fullText: string;
+export type MemberListItem = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    email?: string | null;
+    phoneNumber?: string | null;
     /**
-     * AiStreamUsage
+     * MemberStatus
      *
-     * Token usage information for the stream
+     * Lifecycle status of a cooperative member
      */
-    usage?: {
-        promptTokens: number;
-        completionTokens: number;
-        totalTokens: number;
-    };
-    finishReason?: string;
-} | {
-    type: 'error';
-    message: string;
+    status: 'pending' | 'active' | 'rejected' | 'terminated';
+    roles: Array<'member' | 'admin'>;
+    /**
+     * MembershipFeeState
+     *
+     * Derived from the sum of recorded payments against the expected amount
+     */
+    feeState: 'unpaid' | 'partly_paid' | 'paid';
+    createdAt: string;
 };
 
 /**
- * Task
+ * MemberStatus
  *
- * A task
+ * Lifecycle status of a cooperative member
  */
-export type Task = {
-    title: string;
-    description: string;
-    priority: 'low' | 'medium' | 'high';
-    dueDate?: string;
-    tags?: Array<string>;
-};
+export const MemberStatus = {
+    PENDING: 'pending',
+    ACTIVE: 'active',
+    REJECTED: 'rejected',
+    TERMINATED: 'terminated'
+} as const;
 
 /**
- * Product
+ * MemberStatus
  *
- * A product
+ * Lifecycle status of a cooperative member
  */
-export type Product = {
+export type MemberStatus = typeof MemberStatus[keyof typeof MemberStatus];
+
+/**
+ * UserRole
+ *
+ * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ */
+export const UserRole = { MEMBER: 'member', ADMIN: 'admin' } as const;
+
+/**
+ * UserRole
+ *
+ * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ */
+export type UserRole = typeof UserRole[keyof typeof UserRole];
+
+/**
+ * MembershipFeeState
+ *
+ * Derived from the sum of recorded payments against the expected amount
+ */
+export const MembershipFeeState = {
+    UNPAID: 'unpaid',
+    PARTLY_PAID: 'partly_paid',
+    PAID: 'paid'
+} as const;
+
+/**
+ * MembershipFeeState
+ *
+ * Derived from the sum of recorded payments against the expected amount
+ */
+export type MembershipFeeState = typeof MembershipFeeState[keyof typeof MembershipFeeState];
+
+/**
+ * MemberDetail
+ *
+ * Full back-office view of a member
+ */
+export type MemberDetail = {
+    id: string;
+    membershipNumber: string;
     name: string;
-    price: number;
-    description: string;
-    category: string;
-    inStock: boolean;
-    features?: Array<string>;
+    identifiers: MemberIdentifiers;
+    status: MemberStatus;
+    roles: Array<UserRole>;
+    profile: MemberProfile;
+    fee: FeeSummary;
+    joinedAt?: string | null;
+    version: number;
+    statusHistory: Array<MemberStatusChange>;
+    payments: Array<MemberPayment>;
 };
 
 /**
- * Recipe
+ * MemberIdentifiers
  *
- * A recipe
+ * The email and/or phone the account signs in with
  */
-export type Recipe = {
+export type MemberIdentifiers = {
+    email?: string | null;
+    emailVerified: boolean;
+    phoneNumber?: string | null;
+    phoneNumberVerified: boolean;
+};
+
+/**
+ * MemberProfile
+ *
+ * A member’s editable personal details
+ */
+export type MemberProfile = {
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    postalCode?: string | null;
+    city?: string | null;
+    phone?: string | null;
+};
+
+/**
+ * FeeSummary
+ *
+ * Membership-fee expectation, total paid, and derived state
+ */
+export type FeeSummary = {
+    expectedAmountCents: number;
+    paidAmountCents: number;
+    /**
+     * MembershipFeeState
+     *
+     * Derived from the sum of recorded payments against the expected amount
+     */
+    state: 'unpaid' | 'partly_paid' | 'paid';
+};
+
+/**
+ * MemberStatusChange
+ *
+ * One entry in a member’s status history
+ */
+export type MemberStatusChange = {
+    fromStatus?: 'pending' | 'active' | 'rejected' | 'terminated' | null;
+    /**
+     * MemberStatus
+     *
+     * Lifecycle status of a cooperative member
+     */
+    toStatus: 'pending' | 'active' | 'rejected' | 'terminated';
+    reason?: string | null;
+    changedByName?: string | null;
+    createdAt: string;
+};
+
+/**
+ * MemberPayment
+ *
+ * One recorded membership-fee payment or adjustment
+ */
+export type MemberPayment = {
+    id: string;
+    /**
+     * MembershipPaymentKind
+     *
+     * A correction is recorded as an "adjustment" row, never by editing a payment
+     */
+    kind: 'payment' | 'adjustment';
+    amountCents: number;
+    /**
+     * MembershipPaymentMethod
+     *
+     * How a membership-fee payment was made ("online" is reserved for lot 5)
+     */
+    method: 'cash' | 'transfer' | 'other';
+    paidAt: string;
+    note?: string | null;
+    recordedByName: string;
+    createdAt: string;
+};
+
+/**
+ * MembershipPaymentKind
+ *
+ * A correction is recorded as an "adjustment" row, never by editing a payment
+ */
+export const MembershipPaymentKind = { PAYMENT: 'payment', ADJUSTMENT: 'adjustment' } as const;
+
+/**
+ * MembershipPaymentKind
+ *
+ * A correction is recorded as an "adjustment" row, never by editing a payment
+ */
+export type MembershipPaymentKind = typeof MembershipPaymentKind[keyof typeof MembershipPaymentKind];
+
+/**
+ * MembershipPaymentMethod
+ *
+ * How a membership-fee payment was made ("online" is reserved for lot 5)
+ */
+export const MembershipPaymentMethod = {
+    CASH: 'cash',
+    TRANSFER: 'transfer',
+    OTHER: 'other'
+} as const;
+
+/**
+ * MembershipPaymentMethod
+ *
+ * How a membership-fee payment was made ("online" is reserved for lot 5)
+ */
+export type MembershipPaymentMethod = typeof MembershipPaymentMethod[keyof typeof MembershipPaymentMethod];
+
+/**
+ * FeePaymentsList
+ *
+ * All recorded payments and adjustments against a member’s fee
+ */
+export type FeePaymentsList = Array<MemberPayment>;
+
+/**
+ * MemberSelf
+ *
+ * The signed-in member’s own account
+ */
+export type MemberSelf = {
+    id: string;
+    membershipNumber: string;
     name: string;
-    description: string;
-    prepTime: string;
-    cookTime: string;
-    servings: number;
-    difficulty: 'easy' | 'medium' | 'hard';
-    ingredients: Array<{
-        name: string;
-        quantity: string;
-    }>;
-    instructions: Array<string>;
-    tips?: Array<string>;
-};
-
-/**
- * UserProfile
- *
- * A user profile
- */
-export type UserProfile = {
-    name: string;
-    age: number;
-    email: string;
-    bio?: string;
-    skills?: Array<string>;
-};
-
-/**
- * AiGenerateOptions
- *
- * Options for an AI generation
- */
-export type AiGenerateOptions = {
-    temperature?: number;
-    maxTokens?: number;
-    topP?: number;
-    frequencyPenalty?: number;
-    presencePenalty?: number;
-    maxSteps?: number;
-    stopWhen?: number;
-    telemetry?: {
-        /**
-         * Trace strategy. Use "inherit" to keep the active OTEL trace, or "split" to create a new (Langfuse) trace for this LLM call.
-         */
-        traceMode?: 'inherit' | 'split';
-        /**
-         * Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.
-         */
-        traceId?: string;
-        /**
-         * Display name used as root span name for the Langfuse trace. This does not control grouping.
-         */
-        traceName?: string;
-        /**
-         * Name for the LLM span. This is forwarded to Vercel telemetry as functionId.
-         */
-        spanName?: string;
-        /**
-         * Optional Langfuse session identifier to group related (Langfuse) traces (e.g. chat thread or job run).
-         */
-        sessionId?: string;
-        /**
-         * Telemetry metadata attached to (Langfuse) trace/span.
-         */
-        metadata?: {
-            [key: string]: unknown;
-        };
-        /**
-         * The original prompt that was used to generate the response. (Use prompt.toJSON())
-         */
-        langfuseOriginalPrompt?: string;
-    };
-    metadata?: {
-        [key: string]: unknown;
-    };
+    identifiers: MemberIdentifiers;
+    status: MemberStatus;
+    roles: Array<UserRole>;
+    profile: MemberProfile;
+    fee: FeeSummary;
+    joinedAt?: string | null;
+    version: number;
 };
 
 /**
@@ -707,81 +697,58 @@ export type PaginationQuerySchema = {
 };
 
 /**
+ * FilterQueryStringSchema
+ *
+ * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+ * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+ * <br> Available properties: status, feeState, role, q
+ */
+export type FilterQueryStringSchema = string;
+
+/**
  * SortingQueryStringSchema
  *
  * Schema for sorting items
  */
 export type SortingQueryStringSchema = string;
 
-/**
- * FilterQueryStringSchema
- *
- * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
- * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: title, tag
- */
-export type FilterQueryStringSchema = string;
-
-export type CommentsControllerPostSlug = string;
-
-export type CommentsControllerGetCommentsFilterItem = {
-    property: 'content';
+export type AdminMembersControllerListFilterItem = {
+    property: 'status' | 'feeState' | 'role' | 'q';
     rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
     value?: string;
 };
 
-export type CommentsControllerGetCommentsFilterArray = Array<CommentsControllerGetCommentsFilterItem>;
+export type AdminMembersControllerListFilterArray = Array<AdminMembersControllerListFilterItem>;
 
-export type CommentsControllerGetCommentsSortItem = {
-    property: 'createdAt' | 'authorName';
+export type AdminMembersControllerListSortItem = {
+    property: 'createdAt' | 'name';
     direction: 'asc' | 'desc';
 };
 
-export type CommentsControllerGetCommentsSortArray = Array<CommentsControllerGetCommentsSortItem>;
+export type AdminMembersControllerListSortArray = Array<AdminMembersControllerListSortItem>;
 
-export type CommentsControllerGetCommentRepliesSortItem = {
-    property: 'createdAt' | 'authorName';
-    direction: 'asc' | 'desc';
-};
-
-export type CommentsControllerGetCommentRepliesSortArray = Array<CommentsControllerGetCommentRepliesSortItem>;
-
-export type PostControllerGetUserPostsFilterItem = {
-    property: 'title' | 'tag';
+export type AdminSuppliersControllerListFilterItem = {
+    property: 'type' | 'q';
     rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
     value?: string;
 };
 
-export type PostControllerGetUserPostsFilterArray = Array<PostControllerGetUserPostsFilterItem>;
+export type AdminSuppliersControllerListFilterArray = Array<AdminSuppliersControllerListFilterItem>;
 
-export type PostControllerGetUserPostsSortItem = {
-    property: 'title' | 'createdAt';
-    direction: 'asc' | 'desc';
-};
-
-export type PostControllerGetUserPostsSortArray = Array<PostControllerGetUserPostsSortItem>;
-
-export type PublicPostControllerGetPostsFilterItem = {
-    property: 'title' | 'tag';
+export type AdminProductsControllerListFilterItem = {
+    property: 'supplierId' | 'categoryId' | 'saleMode' | 'label' | 'q';
     rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
     value?: string;
 };
 
-export type PublicPostControllerGetPostsFilterArray = Array<PublicPostControllerGetPostsFilterItem>;
+export type AdminProductsControllerListFilterArray = Array<AdminProductsControllerListFilterItem>;
 
-export type PublicPostControllerGetPostsSortItem = {
-    property: 'title' | 'createdAt';
+export type AdminProductsControllerListSortItem = {
+    property: 'name' | 'createdAt';
     direction: 'asc' | 'desc';
 };
 
-export type PublicPostControllerGetPostsSortArray = Array<PublicPostControllerGetPostsSortItem>;
-
-export type PublicAuthorControllerGetAuthorPostsSortItem = {
-    property: 'title' | 'createdAt';
-    direction: 'asc' | 'desc';
-};
-
-export type PublicAuthorControllerGetAuthorPostsSortArray = Array<PublicAuthorControllerGetAuthorPostsSortItem>;
+export type AdminProductsControllerListSortArray = Array<AdminProductsControllerListSortItem>;
 
 export type AppControllerGetHelloData = {
     body?: never;
@@ -794,142 +761,20 @@ export type AppControllerGetHelloResponses = {
     200: unknown;
 };
 
-export type CommentsControllerGetCommentsData = {
-    body?: never;
-    path: {
-        postSlug: string;
-    };
-    query: {
-        /**
-         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
-         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
-         * <br> Available properties: content
-         */
-        filter?: CommentsControllerGetCommentsFilterArray;
-        /**
-         * Schema for sorting items
-         */
-        sort?: CommentsControllerGetCommentsSortArray;
-        /**
-         * Starting position of the query
-         */
-        offset: number;
-        /**
-         * Number of items to return
-         */
-        pageSize: number;
-    };
-    url: '/api/posts/{postSlug}/comments';
-};
-
-export type CommentsControllerGetCommentsResponses = {
-    /**
-     * Schema for a paginated list of comments
-     */
-    200: CommentsSchema;
-};
-
-export type CommentsControllerGetCommentsResponse = CommentsControllerGetCommentsResponses[keyof CommentsControllerGetCommentsResponses];
-
-export type CommentsControllerCreateCommentData = {
-    /**
-     * CreateCommentSchema
-     *
-     * Schema for creating a comment
-     */
-    body: {
-        content: string;
-        parentId?: string;
-    };
-    path: {
-        postSlug: string;
-    };
-    query?: never;
-    url: '/api/posts/{postSlug}/comments';
-};
-
-export type CommentsControllerCreateCommentResponses = {
-    /**
-     * Schema for a comment
-     */
-    200: CommentSchema;
-};
-
-export type CommentsControllerCreateCommentResponse = CommentsControllerCreateCommentResponses[keyof CommentsControllerCreateCommentResponses];
-
-export type CommentsControllerGetCommentCountData = {
-    body?: never;
-    path: {
-        postSlug: string;
-    };
-    query?: never;
-    url: '/api/posts/{postSlug}/comments/count';
-};
-
-export type CommentsControllerGetCommentCountResponses = {
-    200: unknown;
-};
-
-export type CommentsControllerGetCommentRepliesData = {
-    body?: never;
-    path: {
-        commentId: string;
-        postSlug: string;
-    };
-    query: {
-        /**
-         * Schema for sorting items
-         */
-        sort?: CommentsControllerGetCommentRepliesSortArray;
-        /**
-         * Starting position of the query
-         */
-        offset: number;
-        /**
-         * Number of items to return
-         */
-        pageSize: number;
-    };
-    url: '/api/posts/{postSlug}/comments/{commentId}/replies';
-};
-
-export type CommentsControllerGetCommentRepliesResponses = {
-    /**
-     * Schema for a paginated list of comments
-     */
-    200: CommentsSchema;
-};
-
-export type CommentsControllerGetCommentRepliesResponse = CommentsControllerGetCommentRepliesResponses[keyof CommentsControllerGetCommentRepliesResponses];
-
-export type CommentsControllerDeleteCommentData = {
-    body?: never;
-    path: {
-        commentId: string;
-        postSlug: string;
-    };
-    query?: never;
-    url: '/api/posts/{postSlug}/comments/{commentId}';
-};
-
-export type CommentsControllerDeleteCommentResponses = {
-    200: unknown;
-};
-
-export type PostControllerGetUserPostsData = {
+export type AdminMembersControllerListData = {
     body?: never;
     path?: never;
     query: {
         /**
          * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
          * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
-         * <br> Available properties: title, tag
+         * <br> Available properties: status, feeState, role, q
          */
-        filter?: PostControllerGetUserPostsFilterArray;
+        filter?: AdminMembersControllerListFilterArray;
         /**
          * Schema for sorting items
          */
-        sort?: PostControllerGetUserPostsSortArray;
+        sort?: AdminMembersControllerListSortArray;
         /**
          * Starting position of the query
          */
@@ -939,192 +784,409 @@ export type PostControllerGetUserPostsData = {
          */
         pageSize: number;
     };
-    url: '/api/admin/posts';
+    url: '/api/admin/members';
 };
 
-export type PostControllerGetUserPostsResponses = {
+export type AdminMembersControllerListResponses = {
     /**
-     * Schema for a list of user's posts
+     * A paginated list of members
      */
-    200: UserPostsSchema;
+    200: MembersList;
 };
 
-export type PostControllerGetUserPostsResponse = PostControllerGetUserPostsResponses[keyof PostControllerGetUserPostsResponses];
+export type AdminMembersControllerListResponse = AdminMembersControllerListResponses[keyof AdminMembersControllerListResponses];
 
-export type PostControllerCreatePostData = {
+export type AdminMembersControllerCreateData = {
     /**
-     * CreatePostSchema
+     * CreateMember
      *
-     * Schema for creating/updating a post
+     * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
      */
     body: {
-        title: string;
-        /**
-         * PostContentSchema
-         *
-         * Schema for content items (text, image, video)
-         */
-        content: Array<{
-            type: 'text';
-            data: string;
-        } | {
-            type: 'image';
-            data: string;
-        } | {
-            type: 'video';
-            data: string;
-        }>;
-        coverImage?: string;
-        tags?: Array<string>;
+        name: string;
+        email?: string | null;
+        phoneNumber?: string | null;
+        profile?: {
+            addressLine1?: string | null;
+            addressLine2?: string | null;
+            postalCode?: string | null;
+            city?: string | null;
+            phone?: string | null;
+        };
+        roles: Array<'member' | 'admin'>;
+        status: 'pending' | 'active';
     };
     path?: never;
     query?: never;
-    url: '/api/admin/posts';
+    url: '/api/admin/members';
 };
 
-export type PostControllerCreatePostResponses = {
+export type AdminMembersControllerCreateResponses = {
     /**
-     * Schema for a user's post
+     * Full back-office view of a member
      */
-    200: UserPostSchema;
+    200: MemberDetail;
 };
 
-export type PostControllerCreatePostResponse = PostControllerCreatePostResponses[keyof PostControllerCreatePostResponses];
+export type AdminMembersControllerCreateResponse = AdminMembersControllerCreateResponses[keyof AdminMembersControllerCreateResponses];
 
-export type PostControllerGetUserPostData = {
+export type AdminMembersControllerDetailData = {
     body?: never;
     path: {
         id: string;
     };
     query?: never;
-    url: '/api/admin/posts/{id}';
+    url: '/api/admin/members/{id}';
 };
 
-export type PostControllerGetUserPostResponses = {
+export type AdminMembersControllerDetailResponses = {
     /**
-     * Schema for a user's post
+     * Full back-office view of a member
      */
-    200: UserPostSchema;
+    200: MemberDetail;
 };
 
-export type PostControllerGetUserPostResponse = PostControllerGetUserPostResponses[keyof PostControllerGetUserPostResponses];
+export type AdminMembersControllerDetailResponse = AdminMembersControllerDetailResponses[keyof AdminMembersControllerDetailResponses];
 
-export type PostControllerUpdatePostData = {
+export type AdminMembersControllerDecideData = {
     /**
-     * UpdatePostSchema
+     * MemberValidation
      *
-     * Schema for updating a post
+     * Validate a pending member (moves them to active) or reject them with a reason
      */
     body: {
-        title?: string;
-        /**
-         * PostContentSchema
-         *
-         * Schema for content items (text, image, video)
-         */
-        content?: Array<{
-            type: 'text';
-            data: string;
-        } | {
-            type: 'image';
-            data: string;
-        } | {
-            type: 'video';
-            data: string;
-        }>;
-        coverImage?: string;
-        tags?: Array<string>;
+        decision: 'validate';
+        version: number;
+    } | {
+        decision: 'reject';
+        reason: string;
+        version: number;
     };
     path: {
         id: string;
     };
     query?: never;
-    url: '/api/admin/posts/{id}';
+    url: '/api/admin/members/{id}/validation';
 };
 
-export type PostControllerUpdatePostResponses = {
+export type AdminMembersControllerDecideResponses = {
     /**
-     * Schema for a user's post
+     * Full back-office view of a member
      */
-    200: UserPostSchema;
+    200: MemberDetail;
 };
 
-export type PostControllerUpdatePostResponse = PostControllerUpdatePostResponses[keyof PostControllerUpdatePostResponses];
+export type AdminMembersControllerDecideResponse = AdminMembersControllerDecideResponses[keyof AdminMembersControllerDecideResponses];
 
-export type PostControllerPublishPostData = {
+export type AdminMembersControllerUpdateProfileData = {
+    /**
+     * UpdateMemberProfile
+     *
+     * Update a member’s name and personal details (send the version you loaded)
+     */
+    body: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+        name?: string;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/profile';
+};
+
+export type AdminMembersControllerUpdateProfileResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerUpdateProfileResponse = AdminMembersControllerUpdateProfileResponses[keyof AdminMembersControllerUpdateProfileResponses];
+
+export type AdminMembersControllerSetFeeData = {
+    /**
+     * SetMembershipFee
+     *
+     * Set the expected membership fee for a member (the "variable fee"). Send the member version you loaded — a stale value returns 409.
+     */
+    body: {
+        expectedAmountCents: number;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/fee';
+};
+
+export type AdminMembersControllerSetFeeResponses = {
+    /**
+     * Membership-fee expectation, total paid, and derived state
+     */
+    200: FeeSummary;
+};
+
+export type AdminMembersControllerSetFeeResponse = AdminMembersControllerSetFeeResponses[keyof AdminMembersControllerSetFeeResponses];
+
+export type AdminMembersControllerListFeePaymentsData = {
     body?: never;
     path: {
         id: string;
     };
     query?: never;
-    url: '/api/admin/posts/{id}/publish';
+    url: '/api/admin/members/{id}/fee/payments';
 };
 
-export type PostControllerPublishPostResponses = {
-    200: unknown;
+export type AdminMembersControllerListFeePaymentsResponses = {
+    /**
+     * All recorded payments and adjustments against a member’s fee
+     */
+    200: FeePaymentsList;
 };
 
-export type PostControllerUnpublishPostData = {
-    body?: never;
+export type AdminMembersControllerListFeePaymentsResponse = AdminMembersControllerListFeePaymentsResponses[keyof AdminMembersControllerListFeePaymentsResponses];
+
+export type AdminMembersControllerRecordFeePaymentData = {
+    /**
+     * RecordFeePayment
+     *
+     * Record a membership-fee payment (positive) or an adjustment (any non-zero)
+     */
+    body: {
+        /**
+         * MembershipPaymentKind
+         *
+         * A correction is recorded as an "adjustment" row, never by editing a payment
+         */
+        kind: 'payment' | 'adjustment';
+        amountCents: number;
+        /**
+         * MembershipPaymentMethod
+         *
+         * How a membership-fee payment was made ("online" is reserved for lot 5)
+         */
+        method: 'cash' | 'transfer' | 'other';
+        paidAt: string;
+        note?: string | null;
+    };
     path: {
         id: string;
     };
     query?: never;
-    url: '/api/admin/posts/{id}/unpublish';
+    url: '/api/admin/members/{id}/fee/payments';
 };
 
-export type PostControllerUnpublishPostResponses = {
-    200: unknown;
+export type AdminMembersControllerRecordFeePaymentResponses = {
+    /**
+     * Membership-fee expectation, total paid, and derived state
+     */
+    200: FeeSummary;
 };
 
-export type PublicPostControllerGetRandomPostData = {
+export type AdminMembersControllerRecordFeePaymentResponse = AdminMembersControllerRecordFeePaymentResponses[keyof AdminMembersControllerRecordFeePaymentResponses];
+
+export type AdminMembersControllerSetRolesData = {
+    /**
+     * SetMemberRoles
+     *
+     * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
+     */
+    body: {
+        roles: Array<'member' | 'admin'>;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/roles';
+};
+
+export type AdminMembersControllerSetRolesResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerSetRolesResponse = AdminMembersControllerSetRolesResponses[keyof AdminMembersControllerSetRolesResponses];
+
+export type AdminMembersControllerTerminateData = {
+    /**
+     * TerminateMember
+     *
+     * Terminate a member with a reason (admin action)
+     */
+    body: {
+        reason: string;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/termination';
+};
+
+export type AdminMembersControllerTerminateResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerTerminateResponse = AdminMembersControllerTerminateResponses[keyof AdminMembersControllerTerminateResponses];
+
+export type AdminMembersControllerReactivateData = {
+    /**
+     * ReactivateMember
+     *
+     * Return a terminated member to active
+     */
+    body: {
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/members/{id}/reactivation';
+};
+
+export type AdminMembersControllerReactivateResponses = {
+    /**
+     * Full back-office view of a member
+     */
+    200: MemberDetail;
+};
+
+export type AdminMembersControllerReactivateResponse = AdminMembersControllerReactivateResponses[keyof AdminMembersControllerReactivateResponses];
+
+export type MemberSelfControllerMeData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/public/posts/random';
+    url: '/api/members/me';
 };
 
-export type PublicPostControllerGetRandomPostResponses = {
+export type MemberSelfControllerMeResponses = {
     /**
-     * A public post
+     * The signed-in member’s own account
      */
-    200: PublicPostSchema;
+    200: MemberSelf;
 };
 
-export type PublicPostControllerGetRandomPostResponse = PublicPostControllerGetRandomPostResponses[keyof PublicPostControllerGetRandomPostResponses];
+export type MemberSelfControllerMeResponse = MemberSelfControllerMeResponses[keyof MemberSelfControllerMeResponses];
 
-export type PublicPostControllerGetPostData = {
-    body?: never;
-    path: {
-        slug: string;
+export type MemberSelfControllerUpdateProfileData = {
+    /**
+     * UpdateMemberProfile
+     *
+     * Update a member’s name and personal details (send the version you loaded)
+     */
+    body: {
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postalCode?: string | null;
+        city?: string | null;
+        phone?: string | null;
+        name?: string;
+        version: number;
     };
+    path?: never;
     query?: never;
-    url: '/api/public/posts/{slug}';
+    url: '/api/members/me/profile';
 };
 
-export type PublicPostControllerGetPostResponses = {
+export type MemberSelfControllerUpdateProfileResponses = {
     /**
-     * A public post
+     * The signed-in member’s own account
      */
-    200: PublicPostSchema;
+    200: MemberSelf;
 };
 
-export type PublicPostControllerGetPostResponse = PublicPostControllerGetPostResponses[keyof PublicPostControllerGetPostResponses];
+export type MemberSelfControllerUpdateProfileResponse = MemberSelfControllerUpdateProfileResponses[keyof MemberSelfControllerUpdateProfileResponses];
 
-export type PublicPostControllerGetPostsData = {
+export type MemberSelfControllerTerminateData = {
+    /**
+     * SelfTerminate
+     *
+     * A member ending their own membership
+     */
+    body: {
+        confirm: true;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/members/me/termination';
+};
+
+export type MemberSelfControllerTerminateResponses = {
+    /**
+     * The signed-in member’s own account
+     */
+    200: MemberSelf;
+};
+
+export type MemberSelfControllerTerminateResponse = MemberSelfControllerTerminateResponses[keyof MemberSelfControllerTerminateResponses];
+
+export type MembershipIntakeControllerGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/membership-intake';
+};
+
+export type MembershipIntakeControllerGetResponses = {
+    /**
+     * Whether self-registration is currently accepted
+     */
+    200: MembershipIntake;
+};
+
+export type MembershipIntakeControllerGetResponse = MembershipIntakeControllerGetResponses[keyof MembershipIntakeControllerGetResponses];
+
+export type MembershipIntakeControllerSetData = {
+    /**
+     * MembershipIntake
+     *
+     * Whether self-registration is currently accepted
+     */
+    body: {
+        open: boolean;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/membership-intake';
+};
+
+export type MembershipIntakeControllerSetResponses = {
+    /**
+     * Whether self-registration is currently accepted
+     */
+    200: MembershipIntake;
+};
+
+export type MembershipIntakeControllerSetResponse = MembershipIntakeControllerSetResponses[keyof MembershipIntakeControllerSetResponses];
+
+export type AdminSuppliersControllerListData = {
     body?: never;
     path?: never;
     query: {
+        includeArchived: string;
         /**
          * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
          * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
-         * <br> Available properties: title, tag
+         * <br> Available properties: type, q
          */
-        filter?: PublicPostControllerGetPostsFilterArray;
-        /**
-         * Schema for sorting items
-         */
-        sort?: PublicPostControllerGetPostsSortArray;
+        filter?: AdminSuppliersControllerListFilterArray;
         /**
          * Starting position of the query
          */
@@ -1134,46 +1196,263 @@ export type PublicPostControllerGetPostsData = {
          */
         pageSize: number;
     };
-    url: '/api/public/posts';
+    url: '/api/admin/suppliers';
 };
 
-export type PublicPostControllerGetPostsResponses = {
+export type AdminSuppliersControllerListResponses = {
     /**
-     * A list of public posts
+     * A paginated list of suppliers
      */
-    200: PublicPostsSchema;
+    200: CatalogSuppliersList;
 };
 
-export type PublicPostControllerGetPostsResponse = PublicPostControllerGetPostsResponses[keyof PublicPostControllerGetPostsResponses];
+export type AdminSuppliersControllerListResponse = AdminSuppliersControllerListResponses[keyof AdminSuppliersControllerListResponses];
 
-export type PublicPostControllerLikePostData = {
+export type AdminSuppliersControllerCreateData = {
+    /**
+     * CreateSupplier
+     *
+     * Create a supplier
+     */
+    body: {
+        name: string;
+        /**
+         * SupplierType
+         *
+         * Whether the supplier is a producer or a wholesaler
+         */
+        type: 'producer' | 'wholesaler';
+        contactName?: string | null;
+        contactEmail?: string | null;
+        contactPhone?: string | null;
+        notes?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/suppliers';
+};
+
+export type AdminSuppliersControllerCreateResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerCreateResponse = AdminSuppliersControllerCreateResponses[keyof AdminSuppliersControllerCreateResponses];
+
+export type AdminSuppliersControllerGetData = {
     body?: never;
     path: {
-        slug: string;
+        id: string;
     };
     query?: never;
-    url: '/api/public/posts/{slug}/like';
+    url: '/api/admin/suppliers/{id}';
 };
 
-export type PublicPostControllerLikePostResponses = {
+export type AdminSuppliersControllerGetResponses = {
     /**
-     * A public post
+     * A source of products
      */
-    200: PublicPostSchema;
+    200: CatalogSupplier;
 };
 
-export type PublicPostControllerLikePostResponse = PublicPostControllerLikePostResponses[keyof PublicPostControllerLikePostResponses];
+export type AdminSuppliersControllerGetResponse = AdminSuppliersControllerGetResponses[keyof AdminSuppliersControllerGetResponses];
 
-export type PublicAuthorControllerGetAuthorPostsData = {
+export type AdminSuppliersControllerUpdateData = {
+    /**
+     * UpdateSupplier
+     *
+     * Update a supplier (send the loaded version)
+     */
+    body: {
+        name?: string;
+        /**
+         * SupplierType
+         *
+         * Whether the supplier is a producer or a wholesaler
+         */
+        type?: 'producer' | 'wholesaler';
+        contactName?: string | null;
+        contactEmail?: string | null;
+        contactPhone?: string | null;
+        notes?: string | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{id}';
+};
+
+export type AdminSuppliersControllerUpdateResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerUpdateResponse = AdminSuppliersControllerUpdateResponses[keyof AdminSuppliersControllerUpdateResponses];
+
+export type AdminSuppliersControllerArchiveData = {
     body?: never;
     path: {
-        slug: string;
+        id: string;
     };
     query: {
+        cascade: string;
+    };
+    url: '/api/admin/suppliers/{id}/archive';
+};
+
+export type AdminSuppliersControllerArchiveResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerArchiveResponse = AdminSuppliersControllerArchiveResponses[keyof AdminSuppliersControllerArchiveResponses];
+
+export type AdminSuppliersControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{id}/unarchive';
+};
+
+export type AdminSuppliersControllerUnarchiveResponses = {
+    /**
+     * A source of products
+     */
+    200: CatalogSupplier;
+};
+
+export type AdminSuppliersControllerUnarchiveResponse = AdminSuppliersControllerUnarchiveResponses[keyof AdminSuppliersControllerUnarchiveResponses];
+
+export type AdminCategoriesControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+    };
+    url: '/api/admin/categories';
+};
+
+export type AdminCategoriesControllerListResponses = {
+    /**
+     * All categories (one nesting level)
+     */
+    200: CatalogCategoriesList;
+};
+
+export type AdminCategoriesControllerListResponse = AdminCategoriesControllerListResponses[keyof AdminCategoriesControllerListResponses];
+
+export type AdminCategoriesControllerCreateData = {
+    /**
+     * CreateCategory
+     *
+     * Create a category
+     */
+    body: {
+        name: string;
+        parentId?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/categories';
+};
+
+export type AdminCategoriesControllerCreateResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerCreateResponse = AdminCategoriesControllerCreateResponses[keyof AdminCategoriesControllerCreateResponses];
+
+export type AdminCategoriesControllerUpdateData = {
+    /**
+     * UpdateCategory
+     *
+     * Rename or reparent a category
+     */
+    body: {
+        name?: string;
+        parentId?: string | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}';
+};
+
+export type AdminCategoriesControllerUpdateResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerUpdateResponse = AdminCategoriesControllerUpdateResponses[keyof AdminCategoriesControllerUpdateResponses];
+
+export type AdminCategoriesControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}/archive';
+};
+
+export type AdminCategoriesControllerArchiveResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerArchiveResponse = AdminCategoriesControllerArchiveResponses[keyof AdminCategoriesControllerArchiveResponses];
+
+export type AdminCategoriesControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/categories/{id}/unarchive';
+};
+
+export type AdminCategoriesControllerUnarchiveResponses = {
+    /**
+     * A grouping for products in the catalogue
+     */
+    200: CatalogCategory;
+};
+
+export type AdminCategoriesControllerUnarchiveResponse = AdminCategoriesControllerUnarchiveResponses[keyof AdminCategoriesControllerUnarchiveResponses];
+
+export type AdminProductsControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: supplierId, categoryId, saleMode, label, q
+         */
+        filter?: AdminProductsControllerListFilterArray;
         /**
          * Schema for sorting items
          */
-        sort?: PublicAuthorControllerGetAuthorPostsSortArray;
+        sort?: AdminProductsControllerListSortArray;
         /**
          * Starting position of the query
          */
@@ -1183,710 +1462,172 @@ export type PublicAuthorControllerGetAuthorPostsData = {
          */
         pageSize: number;
     };
-    url: '/api/public/authors/{slug}/posts';
+    url: '/api/admin/products';
 };
 
-export type PublicAuthorControllerGetAuthorPostsResponses = {
+export type AdminProductsControllerListResponses = {
     /**
-     * A list of posts from a specific author
+     * A paginated list of products
      */
-    200: PublicAuthorPostsSchema;
+    200: CatalogProductsList;
 };
 
-export type PublicAuthorControllerGetAuthorPostsResponse = PublicAuthorControllerGetAuthorPostsResponses[keyof PublicAuthorControllerGetAuthorPostsResponses];
+export type AdminProductsControllerListResponse = AdminProductsControllerListResponses[keyof AdminProductsControllerListResponses];
 
-export type AiExampleControllerGenerateTextData = {
+export type AdminProductsControllerCreateData = {
     /**
-     * GenerateTextRequest
+     * CreateProduct
      *
-     * Request for simple text generation with a single prompt
+     * Create a catalogue product with its first price. pricingUnit is derived from saleMode.
      */
     body: {
-        prompt: string;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
+        name: string;
+        description?: string | null;
+        supplierId: string;
+        categoryId: string;
         /**
-         * AiGenerateOptions
+         * ProductSaleMode
          *
-         * Options for an AI generation
+         * "unit" is sold per piece, "weight" is priced per kilogram
          */
-        options?: {
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            frequencyPenalty?: number;
-            presencePenalty?: number;
-            maxSteps?: number;
-            stopWhen?: number;
-            telemetry?: {
-                /**
-                 * Trace strategy. Use "inherit" to keep the active OTEL trace, or "split" to create a new (Langfuse) trace for this LLM call.
-                 */
-                traceMode?: 'inherit' | 'split';
-                /**
-                 * Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.
-                 */
-                traceId?: string;
-                /**
-                 * Display name used as root span name for the Langfuse trace. This does not control grouping.
-                 */
-                traceName?: string;
-                /**
-                 * Name for the LLM span. This is forwarded to Vercel telemetry as functionId.
-                 */
-                spanName?: string;
-                /**
-                 * Optional Langfuse session identifier to group related (Langfuse) traces (e.g. chat thread or job run).
-                 */
-                sessionId?: string;
-                /**
-                 * Telemetry metadata attached to (Langfuse) trace/span.
-                 */
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                /**
-                 * The original prompt that was used to generate the response. (Use prompt.toJSON())
-                 */
-                langfuseOriginalPrompt?: string;
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
+        saleMode: 'unit' | 'weight';
+        photos: Array<string>;
+        labels: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
+        barcode?: string | null;
+        averageWeightGrams?: number | null;
+        weightTolerancePercent?: number | null;
+        initialPriceEur: number;
     };
     path?: never;
     query?: never;
-    url: '/api/ai/generate-text';
+    url: '/api/admin/products';
 };
 
-export type AiExampleControllerGenerateTextResponses = {
+export type AdminProductsControllerCreateResponses = {
     /**
-     * Response from text generation
+     * A product with its full price history
      */
-    200: GenerateTextResponse;
+    200: CatalogProductDetail;
 };
 
-export type AiExampleControllerGenerateTextResponse = AiExampleControllerGenerateTextResponses[keyof AiExampleControllerGenerateTextResponses];
+export type AdminProductsControllerCreateResponse = AdminProductsControllerCreateResponses[keyof AdminProductsControllerCreateResponses];
 
-export type AiExampleControllerGenerateObjectData = {
+export type AdminProductsControllerGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/products/{id}';
+};
+
+export type AdminProductsControllerGetResponses = {
     /**
-     * GenerateObjectRequest
+     * A product with its full price history
+     */
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerGetResponse = AdminProductsControllerGetResponses[keyof AdminProductsControllerGetResponses];
+
+export type AdminProductsControllerUpdateData = {
+    /**
+     * UpdateProduct
      *
-     * Request for structured object generation with a predefined schema type
+     * Update a product (not its price)
      */
     body: {
-        prompt: string;
-        schemaType: 'userProfile' | 'task' | 'product' | 'recipe';
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
+        name?: string;
+        description?: string | null;
+        supplierId?: string;
+        categoryId?: string;
         /**
-         * AiGenerateOptions
+         * ProductSaleMode
          *
-         * Options for an AI generation
+         * "unit" is sold per piece, "weight" is priced per kilogram
          */
-        options?: {
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            frequencyPenalty?: number;
-            presencePenalty?: number;
-            maxSteps?: number;
-            stopWhen?: number;
-            telemetry?: {
-                /**
-                 * Trace strategy. Use "inherit" to keep the active OTEL trace, or "split" to create a new (Langfuse) trace for this LLM call.
-                 */
-                traceMode?: 'inherit' | 'split';
-                /**
-                 * Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.
-                 */
-                traceId?: string;
-                /**
-                 * Display name used as root span name for the Langfuse trace. This does not control grouping.
-                 */
-                traceName?: string;
-                /**
-                 * Name for the LLM span. This is forwarded to Vercel telemetry as functionId.
-                 */
-                spanName?: string;
-                /**
-                 * Optional Langfuse session identifier to group related (Langfuse) traces (e.g. chat thread or job run).
-                 */
-                sessionId?: string;
-                /**
-                 * Telemetry metadata attached to (Langfuse) trace/span.
-                 */
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                /**
-                 * The original prompt that was used to generate the response. (Use prompt.toJSON())
-                 */
-                langfuseOriginalPrompt?: string;
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
+        saleMode?: 'unit' | 'weight';
+        photos?: Array<string>;
+        labels?: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
+        barcode?: string | null;
+        averageWeightGrams?: number | null;
+        weightTolerancePercent?: number | null;
+        version: number;
     };
-    path?: never;
+    path: {
+        id: string;
+    };
     query?: never;
-    url: '/api/ai/generate-object';
+    url: '/api/admin/products/{id}';
 };
 
-export type AiExampleControllerGenerateObjectResponses = {
+export type AdminProductsControllerUpdateResponses = {
     /**
-     * Response from structured object generation
+     * A product with its full price history
      */
-    200: GenerateObjectResponse;
+    200: CatalogProductDetail;
 };
 
-export type AiExampleControllerGenerateObjectResponse = AiExampleControllerGenerateObjectResponses[keyof AiExampleControllerGenerateObjectResponses];
+export type AdminProductsControllerUpdateResponse = AdminProductsControllerUpdateResponses[keyof AdminProductsControllerUpdateResponses];
 
-export type AiExampleControllerChatData = {
+export type AdminProductsControllerSetPriceData = {
     /**
-     * ChatRequest
+     * SetProductPrice
      *
-     * Request for multi-turn AI conversation with message history. schemaType can be used to request structured output.
+     * Set a new current price; the previous window is closed at effectiveFrom (or now)
      */
     body: {
-        messages: Array<{
-            role: 'user' | 'assistant' | 'system' | 'tool';
-            content: string;
-            metadata?: {
-                isConsideredSystemMessage?: boolean;
-                /**
-                 * TokenUsage
-                 *
-                 * Total token usage for the message, including tools calls and reasoning steps
-                 */
-                usage?: {
-                    promptTokens: number;
-                    completionTokens: number;
-                    totalTokens: number;
-                };
-                finishReason?: string;
-                /**
-                 * ISO 8601 timestamp when the message was created
-                 */
-                timestamp?: Date;
-                /**
-                 * Tool calls made to generate the message
-                 */
-                toolCalls?: Array<{
-                    toolCallId: string;
-                    toolName: string;
-                    args: {
-                        [key: string]: unknown;
-                    };
-                }>;
-                /**
-                 * Reasoning text for the message
-                 */
-                reasonning?: string;
-                /**
-                 * ChatSchemaType
-                 *
-                 * Predefined schema types for testing structured output
-                 */
-                schemaType?: 'userProfile' | 'task' | 'product' | 'recipe' | 'none';
-            };
-        }>;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-        /**
-         * AiGenerateOptions
-         *
-         * Options for an AI generation
-         */
-        options?: {
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            frequencyPenalty?: number;
-            presencePenalty?: number;
-            maxSteps?: number;
-            stopWhen?: number;
-            telemetry?: {
-                /**
-                 * Trace strategy. Use "inherit" to keep the active OTEL trace, or "split" to create a new (Langfuse) trace for this LLM call.
-                 */
-                traceMode?: 'inherit' | 'split';
-                /**
-                 * Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.
-                 */
-                traceId?: string;
-                /**
-                 * Display name used as root span name for the Langfuse trace. This does not control grouping.
-                 */
-                traceName?: string;
-                /**
-                 * Name for the LLM span. This is forwarded to Vercel telemetry as functionId.
-                 */
-                spanName?: string;
-                /**
-                 * Optional Langfuse session identifier to group related (Langfuse) traces (e.g. chat thread or job run).
-                 */
-                sessionId?: string;
-                /**
-                 * Telemetry metadata attached to (Langfuse) trace/span.
-                 */
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                /**
-                 * The original prompt that was used to generate the response. (Use prompt.toJSON())
-                 */
-                langfuseOriginalPrompt?: string;
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
-        /**
-         * ChatSchemaType
-         *
-         * Predefined schema types for testing structured output
-         */
-        schemaType?: 'userProfile' | 'task' | 'product' | 'recipe' | 'none';
+        amountEur: number;
+        effectiveFrom?: string;
     };
-    path?: never;
-    query?: never;
-    url: '/api/ai/chat';
-};
-
-export type AiExampleControllerChatResponses = {
-    /**
-     * Response from AI chat conversation
-     */
-    200: ChatResponse;
-};
-
-export type AiExampleControllerChatResponse = AiExampleControllerChatResponses[keyof AiExampleControllerChatResponses];
-
-export type AiExampleControllerStreamTextData = {
-    /**
-     * StreamTextRequest
-     *
-     * Request for streaming text generation with a single prompt
-     */
-    body: {
-        prompt: string;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-        /**
-         * AiGenerateOptions
-         *
-         * Options for an AI generation
-         */
-        options?: {
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            frequencyPenalty?: number;
-            presencePenalty?: number;
-            maxSteps?: number;
-            stopWhen?: number;
-            telemetry?: {
-                /**
-                 * Trace strategy. Use "inherit" to keep the active OTEL trace, or "split" to create a new (Langfuse) trace for this LLM call.
-                 */
-                traceMode?: 'inherit' | 'split';
-                /**
-                 * Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.
-                 */
-                traceId?: string;
-                /**
-                 * Display name used as root span name for the Langfuse trace. This does not control grouping.
-                 */
-                traceName?: string;
-                /**
-                 * Name for the LLM span. This is forwarded to Vercel telemetry as functionId.
-                 */
-                spanName?: string;
-                /**
-                 * Optional Langfuse session identifier to group related (Langfuse) traces (e.g. chat thread or job run).
-                 */
-                sessionId?: string;
-                /**
-                 * Telemetry metadata attached to (Langfuse) trace/span.
-                 */
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                /**
-                 * The original prompt that was used to generate the response. (Use prompt.toJSON())
-                 */
-                langfuseOriginalPrompt?: string;
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
+    path: {
+        id: string;
     };
-    path?: never;
     query?: never;
-    url: '/api/ai/stream-text';
+    url: '/api/admin/products/{id}/price';
 };
 
-export type AiExampleControllerStreamTextResponses = {
-    201: unknown;
-};
-
-export type AiExampleControllerStreamObjectData = {
+export type AdminProductsControllerSetPriceResponses = {
     /**
-     * StreamObjectRequest
-     *
-     * Request for streaming structured object generation
+     * A product with its full price history
      */
-    body: {
-        prompt: string;
-        schemaType: 'userProfile' | 'task' | 'product' | 'recipe';
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-        /**
-         * AiGenerateOptions
-         *
-         * Options for an AI generation
-         */
-        options?: {
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            frequencyPenalty?: number;
-            presencePenalty?: number;
-            maxSteps?: number;
-            stopWhen?: number;
-            telemetry?: {
-                /**
-                 * Trace strategy. Use "inherit" to keep the active OTEL trace, or "split" to create a new (Langfuse) trace for this LLM call.
-                 */
-                traceMode?: 'inherit' | 'split';
-                /**
-                 * Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.
-                 */
-                traceId?: string;
-                /**
-                 * Display name used as root span name for the Langfuse trace. This does not control grouping.
-                 */
-                traceName?: string;
-                /**
-                 * Name for the LLM span. This is forwarded to Vercel telemetry as functionId.
-                 */
-                spanName?: string;
-                /**
-                 * Optional Langfuse session identifier to group related (Langfuse) traces (e.g. chat thread or job run).
-                 */
-                sessionId?: string;
-                /**
-                 * Telemetry metadata attached to (Langfuse) trace/span.
-                 */
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                /**
-                 * The original prompt that was used to generate the response. (Use prompt.toJSON())
-                 */
-                langfuseOriginalPrompt?: string;
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
+    200: CatalogProductDetail;
+};
+
+export type AdminProductsControllerSetPriceResponse = AdminProductsControllerSetPriceResponses[keyof AdminProductsControllerSetPriceResponses];
+
+export type AdminProductsControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
     };
-    path?: never;
     query?: never;
-    url: '/api/ai/stream-object';
+    url: '/api/admin/products/{id}/archive';
 };
 
-export type AiExampleControllerStreamObjectResponses = {
-    201: unknown;
-};
-
-export type AiExampleControllerStreamChatData = {
+export type AdminProductsControllerArchiveResponses = {
     /**
-     * StreamChatRequest
-     *
-     * Request for streaming multi-turn AI conversation
+     * An item the cooperative offers
      */
-    body: {
-        messages: Array<{
-            role: 'user' | 'assistant' | 'system' | 'tool';
-            content: string;
-            metadata?: {
-                isConsideredSystemMessage?: boolean;
-                /**
-                 * TokenUsage
-                 *
-                 * Total token usage for the message, including tools calls and reasoning steps
-                 */
-                usage?: {
-                    promptTokens: number;
-                    completionTokens: number;
-                    totalTokens: number;
-                };
-                finishReason?: string;
-                /**
-                 * ISO 8601 timestamp when the message was created
-                 */
-                timestamp?: Date;
-                /**
-                 * Tool calls made to generate the message
-                 */
-                toolCalls?: Array<{
-                    toolCallId: string;
-                    toolName: string;
-                    args: {
-                        [key: string]: unknown;
-                    };
-                }>;
-                /**
-                 * Reasoning text for the message
-                 */
-                reasonning?: string;
-                /**
-                 * ChatSchemaType
-                 *
-                 * Predefined schema types for testing structured output
-                 */
-                schemaType?: 'userProfile' | 'task' | 'product' | 'recipe' | 'none';
-            };
-        }>;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-        /**
-         * AiGenerateOptions
-         *
-         * Options for an AI generation
-         */
-        options?: {
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            frequencyPenalty?: number;
-            presencePenalty?: number;
-            maxSteps?: number;
-            stopWhen?: number;
-            telemetry?: {
-                /**
-                 * Trace strategy. Use "inherit" to keep the active OTEL trace, or "split" to create a new (Langfuse) trace for this LLM call.
-                 */
-                traceMode?: 'inherit' | 'split';
-                /**
-                 * Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.
-                 */
-                traceId?: string;
-                /**
-                 * Display name used as root span name for the Langfuse trace. This does not control grouping.
-                 */
-                traceName?: string;
-                /**
-                 * Name for the LLM span. This is forwarded to Vercel telemetry as functionId.
-                 */
-                spanName?: string;
-                /**
-                 * Optional Langfuse session identifier to group related (Langfuse) traces (e.g. chat thread or job run).
-                 */
-                sessionId?: string;
-                /**
-                 * Telemetry metadata attached to (Langfuse) trace/span.
-                 */
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                /**
-                 * The original prompt that was used to generate the response. (Use prompt.toJSON())
-                 */
-                langfuseOriginalPrompt?: string;
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
+    200: CatalogProduct;
+};
+
+export type AdminProductsControllerArchiveResponse = AdminProductsControllerArchiveResponses[keyof AdminProductsControllerArchiveResponses];
+
+export type AdminProductsControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
     };
-    path?: never;
     query?: never;
-    url: '/api/ai/stream-chat';
+    url: '/api/admin/products/{id}/unarchive';
 };
 
-export type AiExampleControllerStreamChatResponses = {
-    201: unknown;
-};
-
-export type AiExampleUseCasesControllerUseCase1SingleGenerationData = {
+export type AdminProductsControllerUnarchiveResponses = {
     /**
-     * UseCase1SingleGenerationRequest
-     *
-     * Single generation; trace is finalized with name/output so Langfuse shows them
+     * An item the cooperative offers
      */
-    body: {
-        prompt: string;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-        /**
-         * AiGenerateOptions
-         *
-         * Options for an AI generation
-         */
-        options?: {
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            frequencyPenalty?: number;
-            presencePenalty?: number;
-            maxSteps?: number;
-            stopWhen?: number;
-            telemetry?: {
-                /**
-                 * Trace strategy. Use "inherit" to keep the active OTEL trace, or "split" to create a new (Langfuse) trace for this LLM call.
-                 */
-                traceMode?: 'inherit' | 'split';
-                /**
-                 * Optional explicit (Langfuse) trace ID for split mode. Reuse the same value to group multiple LLM calls in one (Langfuse) trace.
-                 */
-                traceId?: string;
-                /**
-                 * Display name used as root span name for the Langfuse trace. This does not control grouping.
-                 */
-                traceName?: string;
-                /**
-                 * Name for the LLM span. This is forwarded to Vercel telemetry as functionId.
-                 */
-                spanName?: string;
-                /**
-                 * Optional Langfuse session identifier to group related (Langfuse) traces (e.g. chat thread or job run).
-                 */
-                sessionId?: string;
-                /**
-                 * Telemetry metadata attached to (Langfuse) trace/span.
-                 */
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                /**
-                 * The original prompt that was used to generate the response. (Use prompt.toJSON())
-                 */
-                langfuseOriginalPrompt?: string;
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
-    };
-    path?: never;
-    query?: never;
-    url: '/api/ai/examples/use-case-1-single-generation';
+    200: CatalogProduct;
 };
 
-export type AiExampleUseCasesControllerUseCase1SingleGenerationResponses = {
-    /**
-     * Response from text generation
-     */
-    200: GenerateTextResponse;
-};
-
-export type AiExampleUseCasesControllerUseCase1SingleGenerationResponse = AiExampleUseCasesControllerUseCase1SingleGenerationResponses[keyof AiExampleUseCasesControllerUseCase1SingleGenerationResponses];
-
-export type AiExampleUseCasesControllerUseCase2GroupedCallsData = {
-    /**
-     * UseCase2GroupedCallsRequest
-     *
-     * Multiple LLM calls in one request; one trace in Langfuse, finalized at end
-     */
-    body: {
-        /**
-         * Prompts for each step (same trace)
-         */
-        prompts: Array<string>;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    };
-    path?: never;
-    query?: never;
-    url: '/api/ai/examples/use-case-2-grouped-calls';
-};
-
-export type AiExampleUseCasesControllerUseCase2GroupedCallsResponses = {
-    /**
-     * Combined results from grouped LLM calls
-     */
-    200: UseCase2GroupedCallsResponse;
-};
-
-export type AiExampleUseCasesControllerUseCase2GroupedCallsResponse = AiExampleUseCasesControllerUseCase2GroupedCallsResponses[keyof AiExampleUseCasesControllerUseCase2GroupedCallsResponses];
-
-export type AiExampleUseCasesControllerUseCase3LogicalUnitsData = {
-    /**
-     * UseCase3LogicalUnitsRequest
-     *
-     * Multiple workflows; each workflow gets its own Langfuse trace (split per unit)
-     */
-    body: {
-        /**
-         * One prompt per logical workflow; each gets its own trace
-         */
-        workflowPrompts: Array<string>;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    };
-    path?: never;
-    query?: never;
-    url: '/api/ai/examples/use-case-3-logical-units';
-};
-
-export type AiExampleUseCasesControllerUseCase3LogicalUnitsResponses = {
-    /**
-     * One result per workflow (each in its own trace)
-     */
-    200: UseCase3LogicalUnitsResponse;
-};
-
-export type AiExampleUseCasesControllerUseCase3LogicalUnitsResponse = AiExampleUseCasesControllerUseCase3LogicalUnitsResponses[keyof AiExampleUseCasesControllerUseCase3LogicalUnitsResponses];
-
-export type AiExampleUseCasesControllerUseCase4ChatSessionData = {
-    /**
-     * UseCase4ChatSessionRequest
-     *
-     * Simple generateText with sessionId for grouping traces across requests
-     */
-    body: {
-        prompt: string;
-        /**
-         * Session ID to group traces in Langfuse (e.g. conversation or thread)
-         */
-        sessionId: string;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    };
-    path?: never;
-    query?: never;
-    url: '/api/ai/examples/use-case-4-chat-session';
-};
-
-export type AiExampleUseCasesControllerUseCase4ChatSessionResponses = {
-    /**
-     * Response from text generation
-     */
-    200: GenerateTextResponse;
-};
-
-export type AiExampleUseCasesControllerUseCase4ChatSessionResponse = AiExampleUseCasesControllerUseCase4ChatSessionResponses[keyof AiExampleUseCasesControllerUseCase4ChatSessionResponses];
-
-export type AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedData = {
-    /**
-     * UseCase4ChatSessionRequest
-     *
-     * Simple generateText with sessionId for grouping traces across requests
-     */
-    body: {
-        prompt: string;
-        /**
-         * Session ID to group traces in Langfuse (e.g. conversation or thread)
-         */
-        sessionId: string;
-        model?: 'OPENAI_GPT_5_NANO' | 'GOOGLE_GEMINI_3_FLASH' | 'CLAUDE_HAIKU_3_5' | 'CLAUDE_OPUS_4_5' | 'MISTRAL_SMALL';
-    };
-    path?: never;
-    query?: never;
-    url: '/api/ai/examples/use-case-5-chat-session-with-turns-merged';
-};
-
-export type AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedResponses = {
-    /**
-     * Response from text generation
-     */
-    200: GenerateTextResponse;
-};
-
-export type AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedResponse = AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedResponses[keyof AiExampleUseCasesControllerUseCase5ChatSessionWithTurnsMergedResponses];
+export type AdminProductsControllerUnarchiveResponse = AdminProductsControllerUnarchiveResponses[keyof AdminProductsControllerUnarchiveResponses];
