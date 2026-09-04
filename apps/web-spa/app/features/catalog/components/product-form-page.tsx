@@ -20,6 +20,9 @@ import {
 const LABELS = ['organic', 'local', 'vegetarian', 'vegan'] as const
 type Label = (typeof LABELS)[number]
 
+const ORDERING_MODES = ['pre_order', 'in_store', 'both'] as const
+type OrderingMode = (typeof ORDERING_MODES)[number]
+
 export default function ProductFormPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -39,6 +42,7 @@ export default function ProductFormPage() {
   const [supplierId, setSupplierId] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [saleMode, setSaleMode] = useState<'unit' | 'weight'>('unit')
+  const [orderingMode, setOrderingMode] = useState<OrderingMode>('in_store')
   const [labels, setLabels] = useState<Label[]>([])
   const [priceEur, setPriceEur] = useState('')
 
@@ -49,6 +53,7 @@ export default function ProductFormPage() {
       setSupplierId(existing.supplier.id)
       setCategoryId(existing.category.id)
       setSaleMode(existing.saleMode)
+      setOrderingMode(existing.orderingMode)
       setLabels(existing.labels)
     }
   }, [existing])
@@ -63,6 +68,7 @@ export default function ProductFormPage() {
             description: description.trim() ? description : null,
             supplierId,
             categoryId,
+            orderingMode,
             labels,
             version: existing!.version,
           })
@@ -72,6 +78,7 @@ export default function ProductFormPage() {
             supplierId,
             categoryId,
             saleMode,
+            orderingMode,
             labels,
             photos: [],
             initialPriceEur: Number(priceEur),
@@ -177,6 +184,22 @@ export default function ProductFormPage() {
               ))}
             </div>
           )}
+        </Field>
+        <Field label={t('catalog.products.orderingMode')}>
+          <div className="flex flex-wrap gap-2">
+            {ORDERING_MODES.map((mode) => (
+              <Button
+                key={mode}
+                type="button"
+                data-testid={`product-form-orderingmode-${mode}`}
+                variant={orderingMode === mode ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setOrderingMode(mode)}
+              >
+                {t(`catalog.orderingMode.${mode}`)}
+              </Button>
+            ))}
+          </div>
         </Field>
         {!isEdit && (
           <Field

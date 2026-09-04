@@ -210,7 +210,7 @@
   "adminMembers": {
     "title": "Members",
     "subtitle": "Review membership requests and manage members.",
-    "backOffice": "Back office",
+    "backOffice": "Admin",
     "accessDenied": "You need an administrator account to open the back office.",
     "comingSoon": "The pending queue and member list will appear here.",
     "searchPlaceholder": "Search name, email, phone, number…",
@@ -293,6 +293,11 @@
     "nav": { "catalog": "Catalogue" },
     "tabs": { "products": "Products", "suppliers": "Suppliers", "categories": "Categories" },
     "saleMode": { "unit": "Per unit", "weight": "By weight" },
+    "orderingMode": {
+      "pre_order": "Pre-order",
+      "in_store": "In-store",
+      "both": "Pre-order or in-store"
+    },
     "supplierType": { "producer": "Producer", "wholesaler": "Wholesaler" },
     "pricingUnit": { "piece": "piece", "kg": "kg" },
     "label": {
@@ -323,6 +328,7 @@
       "price": "Price",
       "saleMode": "Sale mode",
       "saleModeLocked": "cannot change once a price is set",
+      "orderingMode": "Ordering mode",
       "pricePerKg": "Price per kg (€)",
       "pricePerPiece": "Price per piece (€)",
       "labels": "Labels",
@@ -345,6 +351,9 @@
       "priceUpdated": "Price updated"
     }
   },
+  "shop": {},
+  "cart": {},
+  "orders": {},
   "common": {
     "user": "User",
     "active": "Active",

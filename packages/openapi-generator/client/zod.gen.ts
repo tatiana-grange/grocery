@@ -284,6 +284,17 @@ export const zProductSaleMode = z.enum(['unit', 'weight']);
 export const zProductPricingUnit = z.enum(['piece', 'kg']);
 
 /**
+ * ProductOrderingMode
+ *
+ * pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart
+ */
+export const zProductOrderingMode = z.enum([
+    'pre_order',
+    'in_store',
+    'both'
+]);
+
+/**
  * ProductLabel
  *
  * Informational badges shown on the product
@@ -309,6 +320,7 @@ export const zCreateProduct = z.object({
     supplierId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     categoryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     saleMode: zProductSaleMode,
+    orderingMode: zProductOrderingMode,
     photos: z.array(z.string()).default([]),
     labels: z.array(zProductLabel).default([]),
     barcode: z.optional(z.union([
@@ -340,6 +352,7 @@ export const zUpdateProduct = z.object({
     supplierId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
     categoryId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
     saleMode: z.optional(zProductSaleMode),
+    orderingMode: z.optional(zProductOrderingMode),
     photos: z.optional(z.array(z.string())).default([]),
     labels: z.optional(z.array(zProductLabel)).default([]),
     barcode: z.optional(z.union([
@@ -379,6 +392,7 @@ export const zCatalogProduct = z.object({
     }),
     saleMode: zProductSaleMode,
     pricingUnit: zProductPricingUnit,
+    orderingMode: zProductOrderingMode,
     photos: z.array(z.string()),
     labels: z.array(zProductLabel),
     barcode: z.optional(z.union([
@@ -454,6 +468,7 @@ export const zCatalogProductDetail = z.object({
     }),
     saleMode: zProductSaleMode,
     pricingUnit: zProductPricingUnit,
+    orderingMode: zProductOrderingMode,
     photos: z.array(z.string()),
     labels: z.array(zProductLabel),
     barcode: z.optional(z.union([
@@ -808,6 +823,17 @@ export const zMemberSelf = z.object({
         z.null()
     ])),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * TestSeedResetResponse
+ *
+ * Result of truncating the E2E database and re-running the E2E seeder
+ */
+export const zTestSeedResetResponse = z.object({
+    ok: z.literal(true),
+    reseeded: z.boolean(),
+    truncatedTables: z.int().gte(0).lte(9007199254740991)
 });
 
 /**
@@ -1479,6 +1505,11 @@ export const zAdminProductsControllerCreateData = z.object({
         supplierId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         categoryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         saleMode: z.enum(['unit', 'weight']),
+        orderingMode: z.enum([
+            'pre_order',
+            'in_store',
+            'both'
+        ]),
         photos: z.array(z.string()).default([]),
         labels: z.array(z.enum([
             'organic',
@@ -1532,6 +1563,11 @@ export const zAdminProductsControllerUpdateData = z.object({
         supplierId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         categoryId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         saleMode: z.optional(z.enum(['unit', 'weight'])),
+        orderingMode: z.optional(z.enum([
+            'pre_order',
+            'in_store',
+            'both'
+        ])),
         photos: z.optional(z.array(z.string())).default([]),
         labels: z.optional(z.array(z.enum([
             'organic',

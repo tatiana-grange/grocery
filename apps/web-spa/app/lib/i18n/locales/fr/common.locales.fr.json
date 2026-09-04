@@ -210,7 +210,7 @@
   "adminMembers": {
     "title": "Adhérents",
     "subtitle": "Traitez les demandes d'adhésion et gérez les adhérents.",
-    "backOffice": "Back-office",
+    "backOffice": "Admin",
     "accessDenied": "Un compte administrateur est nécessaire pour ouvrir le back-office.",
     "comingSoon": "La file d'attente des demandes et la liste des adhérents apparaîtront ici.",
     "searchPlaceholder": "Rechercher nom, email, téléphone, numéro…",
@@ -293,6 +293,11 @@
     "nav": { "catalog": "Catalogue" },
     "tabs": { "products": "Produits", "suppliers": "Fournisseurs", "categories": "Catégories" },
     "saleMode": { "unit": "À l'unité", "weight": "Au poids" },
+    "orderingMode": {
+      "pre_order": "Précommande",
+      "in_store": "Sur stock",
+      "both": "Précommande ou sur stock"
+    },
     "supplierType": { "producer": "Producteur", "wholesaler": "Grossiste" },
     "pricingUnit": { "piece": "pièce", "kg": "kg" },
     "label": {
@@ -323,6 +328,7 @@
       "price": "Prix",
       "saleMode": "Mode de vente",
       "saleModeLocked": "non modifiable une fois un prix défini",
+      "orderingMode": "Mode de commande",
       "pricePerKg": "Prix au kg (€)",
       "pricePerPiece": "Prix à la pièce (€)",
       "labels": "Labels",
@@ -345,6 +351,9 @@
       "priceUpdated": "Prix mis à jour"
     }
   },
+  "shop": {},
+  "cart": {},
+  "orders": {},
   "common": {
     "user": "Utilisateur",
     "active": "Actif",

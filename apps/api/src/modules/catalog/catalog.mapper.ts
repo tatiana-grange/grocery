@@ -77,6 +77,7 @@ export class CatalogMapper {
       category: { id: product.category.id, name: product.category.name },
       saleMode: product.saleMode,
       pricingUnit: pricingUnitFor(product.saleMode),
+      orderingMode: product.orderingMode,
       photos: product.photos,
       labels: product.labels,
       barcode: product.barcode ?? null,

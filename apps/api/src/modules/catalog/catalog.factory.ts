@@ -1,5 +1,5 @@
 import type { EntityManager } from '@mikro-orm/core'
-import type { ProductSaleMode } from './contracts/product.contract'
+import type { ProductOrderingMode, ProductSaleMode } from './contracts/product.contract'
 import type { SupplierType } from './contracts/supplier.contract'
 import { User } from '../auth/auth.entity'
 import { createUserData } from '../auth/auth.factory'
@@ -35,6 +35,7 @@ export async function createCategoryData(
 export interface CreateProductOptions {
   name?: string
   saleMode?: ProductSaleMode
+  orderingMode?: ProductOrderingMode
   priceEur?: number
   supplier?: Supplier
   category?: Category
@@ -58,6 +59,7 @@ export async function createProductData(
   product.supplier = supplier
   product.category = category
   product.saleMode = options.saleMode ?? 'unit'
+  product.orderingMode = options.orderingMode ?? 'in_store'
 
   const price = new ProductPrice()
   price.product = product

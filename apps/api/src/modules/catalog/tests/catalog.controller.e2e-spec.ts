@@ -59,6 +59,7 @@ describe('catalogController (e2e)', () => {
         supplierId: supplier.id,
         categoryId: category.id,
         saleMode: 'unit',
+        orderingMode: 'in_store',
         initialPriceEur: 1.5,
         ...overrides,
       })

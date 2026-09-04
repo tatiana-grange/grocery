@@ -65,6 +65,7 @@ export type CreateProduct = {
     supplierId: string;
     categoryId: string;
     saleMode: ProductSaleMode;
+    orderingMode: ProductOrderingMode;
     photos: Array<string>;
     labels: Array<ProductLabel>;
     barcode?: string | null;
@@ -84,6 +85,7 @@ export type UpdateProduct = {
     supplierId?: string;
     categoryId?: string;
     saleMode?: ProductSaleMode;
+    orderingMode?: ProductOrderingMode;
     photos?: Array<string>;
     labels?: Array<ProductLabel>;
     barcode?: string | null;
@@ -324,6 +326,7 @@ export type CatalogProduct = {
     };
     saleMode: ProductSaleMode;
     pricingUnit: ProductPricingUnit;
+    orderingMode: ProductOrderingMode;
     photos: Array<string>;
     labels: Array<ProductLabel>;
     barcode?: string | null;
@@ -360,6 +363,24 @@ export const ProductPricingUnit = { PIECE: 'piece', KG: 'kg' } as const;
  * Derived from the sale mode: unit → piece, weight → kg
  */
 export type ProductPricingUnit = typeof ProductPricingUnit[keyof typeof ProductPricingUnit];
+
+/**
+ * ProductOrderingMode
+ *
+ * pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart
+ */
+export const ProductOrderingMode = {
+    PRE_ORDER: 'pre_order',
+    IN_STORE: 'in_store',
+    BOTH: 'both'
+} as const;
+
+/**
+ * ProductOrderingMode
+ *
+ * pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart
+ */
+export type ProductOrderingMode = typeof ProductOrderingMode[keyof typeof ProductOrderingMode];
 
 /**
  * ProductLabel
@@ -399,6 +420,7 @@ export type CatalogProductDetail = {
     };
     saleMode: ProductSaleMode;
     pricingUnit: ProductPricingUnit;
+    orderingMode: ProductOrderingMode;
     photos: Array<string>;
     labels: Array<ProductLabel>;
     barcode?: string | null;
@@ -678,6 +700,17 @@ export type MemberSelf = {
     fee: FeeSummary;
     joinedAt?: string | null;
     version: number;
+};
+
+/**
+ * TestSeedResetResponse
+ *
+ * Result of truncating the E2E database and re-running the E2E seeder
+ */
+export type TestSeedResetResponse = {
+    ok: true;
+    reseeded: boolean;
+    truncatedTables: number;
 };
 
 /**
@@ -1491,6 +1524,12 @@ export type AdminProductsControllerCreateData = {
          * "unit" is sold per piece, "weight" is priced per kilogram
          */
         saleMode: 'unit' | 'weight';
+        /**
+         * ProductOrderingMode
+         *
+         * pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart
+         */
+        orderingMode: 'pre_order' | 'in_store' | 'both';
         photos: Array<string>;
         labels: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
         barcode?: string | null;
@@ -1547,6 +1586,12 @@ export type AdminProductsControllerUpdateData = {
          * "unit" is sold per piece, "weight" is priced per kilogram
          */
         saleMode?: 'unit' | 'weight';
+        /**
+         * ProductOrderingMode
+         *
+         * pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart
+         */
+        orderingMode?: 'pre_order' | 'in_store' | 'both';
         photos?: Array<string>;
         labels?: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
         barcode?: string | null;
