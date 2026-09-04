@@ -85,8 +85,10 @@ correctly at each step — without completing checkout.
    removes it, **Then** the cart total updates immediately.
 5. **Given** a visitor who is not signed in, **When** they try to add a product to the cart,
    **Then** they are prompted to sign in or register, and returned to the product afterward.
-6. **Given** a member whose membership is not active, **When** they try to add a product to
-   the cart or check out, **Then** the action is refused with a clear explanation.
+6. **Given** a member whose membership is not active, **When** they try to view their cart,
+   add a product, change or remove a line, or check out, **Then** the action is refused with
+   a clear explanation, and the cart's existing contents are left untouched for when their
+   membership is active again.
 
 ---
 
@@ -184,7 +186,9 @@ stories.
   are no longer orderable? The system leaves the cart unchanged, tells the member that
   nothing could be carried over and why, and creates no order.
 - What happens when a member's membership becomes inactive after items are already in their
-  cart? The cart is preserved but checkout is blocked until the membership is active again.
+  cart? The cart's contents are preserved (nothing is deleted), but every cart action —
+  viewing it, changing a line, and checking out — is blocked until the membership is active
+  again, the same rule the rest of the member area already applies to an inactive member.
 
 ## Requirements *(mandatory)*
 
@@ -206,9 +210,12 @@ stories.
 
 #### Cart
 
-- **FR-007**: The system MUST require a signed-in, active member to add a product to a cart
-  or to check out, and MUST otherwise prompt sign-in or registration while preserving the
-  visitor's intended product.
+- **FR-007**: The system MUST require a signed-in, active member for every cart action —
+  viewing the cart, adding, changing, or removing a line, and checking out — and MUST
+  otherwise prompt sign-in or registration while preserving the visitor's intended product.
+  A signed-in member whose membership is not (or no longer) active is refused the same way,
+  with a clear explanation, per the rest of the member area's existing rule; the cart itself
+  is never deleted by this.
 - **FR-008**: The system MUST let a member set a quantity for a unit-sold product, or a
   weight for a by-weight product, when adding it to the cart.
 - **FR-009**: The system MUST let a member choose the ordering type for a cart line when the
@@ -217,16 +224,20 @@ stories.
   remove it, and MUST recompute the cart total immediately.
 - **FR-011**: The system MUST calculate each cart line's total from the product's current
   price at the time it is shown.
-- **FR-012**: The system MUST flag or remove a cart line whose product has become
-  unorderable (archived, or no longer offered under its chosen ordering type) and MUST
-  explain why.
+- **FR-012**: The system MUST flag — not remove — a cart line whose product has become
+  unorderable (archived, or no longer offered under its chosen ordering type) whenever the
+  cart is viewed, explaining why. The line stays flagged and visible in the cart; it is
+  removed only as part of checkout (see FR-014), never before.
 
 #### Checkout and orders
 
 - **FR-013**: The system MUST refuse to check out an empty cart, with an explanation.
 - **FR-014**: The system MUST create one order per ordering type present at checkout (a
   pre-order and, separately, an in-store order, when the cart holds both), each carrying its
-  own lines, quantities, and the price in effect at checkout.
+  own lines, quantities, and the price in effect at checkout. Any cart line flagged
+  unorderable (FR-012) MUST be dropped at this point rather than carried into an order, and
+  MUST be reported to the member (which product, and why) alongside the resulting order
+  confirmation(s).
 - **FR-015**: The system MUST empty the cart once its contents have become order(s).
 - **FR-016**: The system MUST show the member a confirmation for each order placed,
   including its lines, total, ordering type, and a plain-language explanation of what

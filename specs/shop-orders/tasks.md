@@ -400,8 +400,9 @@ cancelled and it drops out of further processing.
 - **User stories (Phases 3–7)**: each needs Foundational. US1 has no story dependencies.
   US2 adds the add-to-cart control onto US1's product detail page, so build it after US1.
   US3 extends `cart.controller.ts` and the cart page US2 creates. US4 and US5 both extend
-  the `orders.controller.ts` / `order.contract.ts` / `orders.service.ts` /
-  `order-detail-page.tsx` that US3/US4 create, so run them in order (US3 → US4 → US5).
+  `order.contract.ts` and `orders.service.ts`, which US3 starts and US4 continues; US4 alone
+  creates `orders.controller.ts` and `order-detail-page.tsx`, which US5 then extends — so
+  run them in order (US3 → US4 → US5).
 - **Polish (Phase 8)**: after the stories you intend to ship. T068 (migration) should wait
   until the schema stops changing.
 

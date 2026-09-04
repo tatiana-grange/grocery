@@ -182,6 +182,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json,
   apps/web-spa-e2e/tests/checkout.spec.ts
 
+## [2026-09-04 00:00] - /speckit.analyze
+
+### Changed
+
+- Applied the four findings from a `/speckit.analyze` pass (spec.md/plan.md/tasks.md
+  consistency check):
+  - `contracts/orders-api.md`: `checkoutResultSchema.orders` now types as
+    `orderDetailSchema` (with `lines`), not the bare `orderSchema` — the doc previously
+    conflicted with spec.md's US3 Acceptance Scenario 3, which requires the checkout
+    confirmation to show each order's lines.
+  - `spec.md` FR-012: reworded from "flag or remove" (ambiguous about which, and when) to
+    state the two-stage rule explicitly — flagged and left visible in the cart, dropped
+    only at checkout. FR-014 now says explicitly that checkout drops flagged lines and
+    reports them.
+  - `spec.md` FR-007, US2 Acceptance Scenario 6, and the inactive-membership edge case:
+    clarified that every cart action — including just viewing the cart, not only adding or
+    checking out — requires an active membership, matching the rest of the member area's
+    existing rule (and the already-built `@MemberScoped()` guard on the whole cart
+    controller).
+  - `tasks.md` Story dependencies: corrected which files US3 vs. US4 actually create
+    (`orders.controller.ts` and `order-detail-page.tsx` are US4-only, not "US3/US4").
+- **Author**: AI (Claude)
+- **Files**: spec.md, contracts/orders-api.md, tasks.md
+
 ---
 
 <!--

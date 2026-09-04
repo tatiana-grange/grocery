@@ -93,13 +93,17 @@ No request body.
 
 ```ts
 checkoutResultSchema = z.object({
-  orders: z.array(orderSchema),             // see below — one per ordering type present
+  orders: z.array(orderDetailSchema),       // see below — one per ordering type present, with its lines
   droppedLines: z.array(z.object({
     productName: z.string(),
     reason: z.string(),
   })),
 }).meta({ title: 'CheckoutResult' })
 ```
+
+`orders` carries each order's `lines`, not just its summary — the checkout confirmation
+must show them (spec.md US3 Acceptance Scenario 3: "they see its lines, quantities,
+total...").
 
 Errors: `409` empty cart (nothing left to check out after dropping invalid lines) — FR-013.
 
