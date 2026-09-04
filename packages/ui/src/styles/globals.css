@@ -10,6 +10,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Base UI components expose orientation as `data-orientation="horizontal|vertical"`.
+   The primitives (tabs, scroll-area, separator, …) style against the shorthand
+   `data-horizontal:` / `data-vertical:` variants, so bridge them here. */
+@custom-variant data-horizontal (&[data-orientation='horizontal']);
+@custom-variant data-vertical (&[data-orientation='vertical']);
+
 /* ─────────────────────────────────────────────────────────────────────────
    Citrus theme (shadcnblocks) — lime primary, teal secondary.
    Installed with: npx shadcn add @shadcnblocks/theme/citrus
