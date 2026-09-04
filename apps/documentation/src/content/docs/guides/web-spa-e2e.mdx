@@ -74,10 +74,10 @@ Call `resetDb()` (in a `beforeEach`) only in specs that mutate shared data.
 `.github/workflows/e2e.yml` runs `pnpm e2e` on pull requests to `main` — a standard
 `ubuntu-latest` runner with Docker, no paid services.
 
-On every run it tries to publish the HTML report (traces included) to **GitHub Pages** and
-link it from the run summary. It is a single site: each run replaces the previous report.
-This needs a plan that allows Pages on a private repo plus a one-time repo setting —
-**Settings → Pages → Build and deployment → Source: "GitHub Actions"**. The deploy step is
-`continue-on-error`, so until that is in place the job still succeeds and only the Pages
-link is missing. The download artefact (`playwright-report`) stays available for 7 days
-regardless; open it locally with `npx playwright show-report <extracted-dir>`.
+On every run it publishes the HTML report (traces included) to **GitHub Pages** at
+`https://tatiana-grange.github.io/grocery/` and links it from the run summary. It is a
+single site: each run replaces the previous report. Pages is configured with **Settings →
+Pages → Build and deployment → Source: "GitHub Actions"** (needs a public repo, or a plan
+that allows Pages on a private one). The download artefact (`playwright-report`) stays
+available for 7 days regardless; open it locally with
+`npx playwright show-report <extracted-dir>`.
