@@ -3,6 +3,57 @@
 import { z } from 'zod';
 
 /**
+ * CreateReferent
+ *
+ * Create a referent
+ */
+export const zCreateReferent = z.object({
+    firstName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.string().min(1),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    userId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ]))
+});
+
+/**
+ * UpdateReferent
+ *
+ * Update a referent (send the loaded version)
+ */
+export const zUpdateReferent = z.object({
+    firstName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.optional(z.string().min(1)),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    userId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
  * CreateCategory
  *
  * Create a category
@@ -26,6 +77,25 @@ export const zUpdateCategory = z.object({
         z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         z.null()
     ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * CreateProducerCategory
+ *
+ * Create a producer category
+ */
+export const zCreateProducerCategory = z.object({
+    name: z.string().min(1)
+});
+
+/**
+ * UpdateProducerCategory
+ *
+ * Rename a producer category
+ */
+export const zUpdateProducerCategory = z.object({
+    name: z.optional(z.string().min(1)),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
@@ -172,6 +242,18 @@ export const zCreateSupplier = z.object({
     notes: z.optional(z.union([
         z.string(),
         z.null()
+    ])),
+    deliveryMode: z.optional(z.union([
+        z.enum(['livraison', 'collecte']),
+        z.null()
+    ])),
+    referentId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    producerCategoryIds: z.optional(z.union([
+        z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+        z.null()
     ]))
 });
 
@@ -197,6 +279,18 @@ export const zUpdateSupplier = z.object({
     ])),
     notes: z.optional(z.union([
         z.string(),
+        z.null()
+    ])),
+    deliveryMode: z.optional(z.union([
+        z.enum(['livraison', 'collecte']),
+        z.null()
+    ])),
+    referentId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    producerCategoryIds: z.optional(z.union([
+        z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         z.null()
     ])),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
@@ -227,6 +321,25 @@ export const zCatalogSupplier = z.object({
         z.string(),
         z.null()
     ])),
+    deliveryMode: z.optional(z.union([
+        z.enum(['livraison', 'collecte']),
+        z.null()
+    ])),
+    referent: z.optional(z.union([
+        z.object({
+            id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            firstName: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            lastName: z.string()
+        }),
+        z.null()
+    ])),
+    producerCategories: z.array(z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    })),
     archivedAt: z.optional(z.union([
         z.string(),
         z.null()
@@ -250,6 +363,42 @@ export const zCatalogSuppliersList = z.object({
         hasMore: z.boolean()
     })
 });
+
+/**
+ * CatalogReferent
+ *
+ * The co-op member who follows a supplier
+ */
+export const zCatalogReferent = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    firstName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.string(),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    userId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    supplierCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    createdAt: z.string()
+});
+
+/**
+ * CatalogReferentsList
+ *
+ * All referents
+ */
+export const zCatalogReferentsList = z.array(zCatalogReferent);
 
 /**
  * CatalogCategory
@@ -277,6 +426,29 @@ export const zCatalogCategory = z.object({
  * All categories (one nesting level)
  */
 export const zCatalogCategoriesList = z.array(zCatalogCategory);
+
+/**
+ * CatalogProducerCategory
+ *
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zCatalogProducerCategory = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    name: z.string(),
+    archivedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    supplierCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * CatalogProducerCategoriesList
+ *
+ * All producer categories
+ */
+export const zCatalogProducerCategoriesList = z.array(zCatalogProducerCategory);
 
 /**
  * ProductSaleMode
@@ -978,6 +1150,62 @@ export const zAddCartLine = z.object({
 });
 
 /**
+ * OrderDetail
+ */
+export const zOrderDetail = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderingMode: z.enum(['pre_order', 'in_store']),
+    status: z.enum(['pending', 'cancelled']),
+    totalEur: z.number().gte(0),
+    placedAt: z.string(),
+    cancelledAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    lines: z.array(z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        productName: z.string(),
+        quantity: z.number().gt(0),
+        unitPriceEur: z.number().gt(0),
+        lineTotalEur: z.number().gt(0)
+    }))
+});
+
+/**
+ * CheckoutResult
+ *
+ * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
+ */
+export const zCheckoutResult = z.object({
+    orders: z.array(zOrderDetail),
+    droppedLines: z.array(z.object({
+        productName: z.string(),
+        reason: z.string()
+    }))
+});
+
+/**
+ * OrderStatus
+ *
+ * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ */
+export const zOrderStatus = z.enum(['pending', 'cancelled']);
+
+/**
+ * OrderLine
+ *
+ * An immutable snapshot, taken at checkout
+ */
+export const zOrderLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productName: z.string(),
+    quantity: z.number().gt(0),
+    unitPriceEur: z.number().gt(0),
+    lineTotalEur: z.number().gt(0)
+});
+
+/**
  * TestSeedResetResponse
  *
  * Result of truncating the E2E database and re-running the E2E seeder
@@ -1503,6 +1731,18 @@ export const zAdminSuppliersControllerCreateData = z.object({
         notes: z.optional(z.union([
             z.string(),
             z.null()
+        ])),
+        deliveryMode: z.optional(z.union([
+            z.enum(['livraison', 'collecte']),
+            z.null()
+        ])),
+        referentId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        producerCategoryIds: z.optional(z.union([
+            z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+            z.null()
         ]))
     }),
     path: z.optional(z.never()),
@@ -1547,6 +1787,18 @@ export const zAdminSuppliersControllerUpdateData = z.object({
             z.string(),
             z.null()
         ])),
+        deliveryMode: z.optional(z.union([
+            z.enum(['livraison', 'collecte']),
+            z.null()
+        ])),
+        referentId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        producerCategoryIds: z.optional(z.union([
+            z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+            z.null()
+        ])),
         version: z.int().gte(-9007199254740991).lte(9007199254740991)
     }),
     path: z.object({
@@ -1587,6 +1839,101 @@ export const zAdminSuppliersControllerUnarchiveData = z.object({
  * A source of products
  */
 export const zAdminSuppliersControllerUnarchiveResponse = zCatalogSupplier;
+
+export const zAdminReferentsControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * All referents
+ */
+export const zAdminReferentsControllerListResponse = zCatalogReferentsList;
+
+export const zAdminReferentsControllerCreateData = z.object({
+    body: z.object({
+        firstName: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        lastName: z.string().min(1),
+        contactEmail: z.optional(z.union([
+            z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+            z.null()
+        ])),
+        contactPhone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        userId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ]))
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The co-op member who follows a supplier
+ */
+export const zAdminReferentsControllerCreateResponse = zCatalogReferent;
+
+export const zAdminReferentsControllerDeleteData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAdminReferentsControllerDeleteResponse = z.void();
+
+export const zAdminReferentsControllerGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The co-op member who follows a supplier
+ */
+export const zAdminReferentsControllerGetResponse = zCatalogReferent;
+
+export const zAdminReferentsControllerUpdateData = z.object({
+    body: z.object({
+        firstName: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        lastName: z.optional(z.string().min(1)),
+        contactEmail: z.optional(z.union([
+            z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+            z.null()
+        ])),
+        contactPhone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        userId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The co-op member who follows a supplier
+ */
+export const zAdminReferentsControllerUpdateResponse = zCatalogReferent;
 
 export const zAdminCategoriesControllerListData = z.object({
     body: z.optional(z.never()),
@@ -1663,6 +2010,74 @@ export const zAdminCategoriesControllerUnarchiveData = z.object({
  * A grouping for products in the catalogue
  */
 export const zAdminCategoriesControllerUnarchiveResponse = zCatalogCategory;
+
+export const zAdminProducerCategoriesControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        includeArchived: z.string()
+    })
+});
+
+/**
+ * All producer categories
+ */
+export const zAdminProducerCategoriesControllerListResponse = zCatalogProducerCategoriesList;
+
+export const zAdminProducerCategoriesControllerCreateData = z.object({
+    body: z.object({
+        name: z.string().min(1)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zAdminProducerCategoriesControllerCreateResponse = zCatalogProducerCategory;
+
+export const zAdminProducerCategoriesControllerUpdateData = z.object({
+    body: z.object({
+        name: z.optional(z.string().min(1)),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zAdminProducerCategoriesControllerUpdateResponse = zCatalogProducerCategory;
+
+export const zAdminProducerCategoriesControllerArchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zAdminProducerCategoriesControllerArchiveResponse = zCatalogProducerCategory;
+
+export const zAdminProducerCategoriesControllerUnarchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zAdminProducerCategoriesControllerUnarchiveResponse = zCatalogProducerCategory;
 
 export const zAdminProductsControllerListData = z.object({
     body: z.optional(z.never()),
@@ -1921,3 +2336,14 @@ export const zCartControllerUpdateLineData = z.object({
  * The sum of its valid lines
  */
 export const zCartControllerUpdateLineResponse = zCart;
+
+export const zCartControllerCheckoutData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
+ */
+export const zCartControllerCheckoutResponse = zCheckoutResult;

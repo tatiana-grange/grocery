@@ -1248,6 +1248,49 @@
                         "type": "null"
                       }
                     ]
+                  },
+                  "deliveryMode": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "livraison",
+                          "collecte"
+                        ],
+                        "title": "SupplierDeliveryMode",
+                        "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "referentId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "producerCategoryIds": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -1388,6 +1431,49 @@
                       }
                     ]
                   },
+                  "deliveryMode": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "livraison",
+                          "collecte"
+                        ],
+                        "title": "SupplierDeliveryMode",
+                        "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "referentId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "producerCategoryIds": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "version": {
                     "type": "integer",
                     "minimum": -9007199254740991,
@@ -1482,6 +1568,269 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/admin/referents": {
+      "get": {
+        "operationId": "AdminReferentsController_list",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All referents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReferentsList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "AdminReferentsController_create",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Create a referent",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "contactEmail": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "email",
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactPhone": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "userId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "lastName"
+                ],
+                "additionalProperties": false,
+                "title": "CreateReferent",
+                "description": "Create a referent",
+                "examples": [
+                  {
+                    "lastName": "Grolleau"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The co-op member who follows a supplier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReferent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/referents/{id}": {
+      "get": {
+        "operationId": "AdminReferentsController_get",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The co-op member who follows a supplier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReferent"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "AdminReferentsController_update",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Update a referent (send the loaded version)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "contactEmail": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "email",
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactPhone": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "userId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateReferent",
+                "description": "Update a referent (send the loaded version)"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The co-op member who follows a supplier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReferent"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "AdminReferentsController_delete",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
           }
         }
       }
@@ -1698,6 +2047,201 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CatalogCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/producer-categories": {
+      "get": {
+        "operationId": "AdminProducerCategoriesController_list",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "includeArchived",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All producer categories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProducerCategoriesList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "AdminProducerCategoriesController_create",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Create a producer category",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false,
+                "title": "CreateProducerCategory",
+                "description": "Create a producer category",
+                "examples": [
+                  {
+                    "name": "Boissons"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A tag for what a supplier produces (e.g. \"Boissons\", \"Fromages\")",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProducerCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/producer-categories/{id}": {
+      "put": {
+        "operationId": "AdminProducerCategoriesController_update",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Rename a producer category",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "UpdateProducerCategory",
+                "description": "Rename a producer category"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A tag for what a supplier produces (e.g. \"Boissons\", \"Fromages\")",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProducerCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/producer-categories/{id}/archive": {
+      "post": {
+        "operationId": "AdminProducerCategoriesController_archive",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tag for what a supplier produces (e.g. \"Boissons\", \"Fromages\")",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProducerCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/producer-categories/{id}/unarchive": {
+      "post": {
+        "operationId": "AdminProducerCategoriesController_unarchive",
+        "tags": [
+          "Admin Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tag for what a supplier produces (e.g. \"Boissons\", \"Fromages\")",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogProducerCategory"
                 }
               }
             }
@@ -2524,6 +3068,27 @@
           }
         }
       }
+    },
+    "/api/cart/checkout": {
+      "post": {
+        "operationId": "CartController_checkout",
+        "tags": [
+          "Cart"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResult"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2574,6 +3139,49 @@
             "anyOf": [
               {
                 "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deliveryMode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "livraison",
+                  "collecte"
+                ],
+                "title": "SupplierDeliveryMode",
+                "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "referentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "producerCategoryIds": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                }
               },
               {
                 "type": "null"
@@ -2647,6 +3255,49 @@
               }
             ]
           },
+          "deliveryMode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "livraison",
+                  "collecte"
+                ],
+                "title": "SupplierDeliveryMode",
+                "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "referentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "producerCategoryIds": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "version": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -2659,6 +3310,134 @@
         "additionalProperties": false,
         "title": "UpdateSupplier",
         "description": "Update a supplier (send the loaded version)"
+      },
+      "CreateReferent": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contactEmail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactPhone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lastName"
+        ],
+        "additionalProperties": false,
+        "title": "CreateReferent",
+        "description": "Create a referent",
+        "examples": [
+          {
+            "lastName": "Grolleau"
+          }
+        ]
+      },
+      "UpdateReferent": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contactEmail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactPhone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "UpdateReferent",
+        "description": "Update a referent (send the loaded version)"
       },
       "CreateCategory": {
         "type": "object",
@@ -2723,6 +3502,46 @@
         "additionalProperties": false,
         "title": "UpdateCategory",
         "description": "Rename or reparent a category"
+      },
+      "CreateProducerCategory": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "title": "CreateProducerCategory",
+        "description": "Create a producer category",
+        "examples": [
+          {
+            "name": "Boissons"
+          }
+        ]
+      },
+      "UpdateProducerCategory": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "UpdateProducerCategory",
+        "description": "Rename a producer category"
       },
       "CreateProduct": {
         "type": "object",
@@ -3530,6 +4349,78 @@
               }
             ]
           },
+          "deliveryMode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "livraison",
+                  "collecte"
+                ],
+                "title": "SupplierDeliveryMode",
+                "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "referent": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "firstName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "lastName": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "lastName"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "producerCategories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          },
           "archivedAt": {
             "anyOf": [
               {
@@ -3558,6 +4449,7 @@
           "id",
           "name",
           "type",
+          "producerCategories",
           "productCount",
           "version",
           "createdAt"
@@ -3574,6 +4466,94 @@
         ],
         "title": "SupplierType",
         "description": "Whether the supplier is a producer or a wholesaler"
+      },
+      "CatalogReferentsList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/CatalogReferent"
+        },
+        "title": "CatalogReferentsList",
+        "description": "All referents"
+      },
+      "CatalogReferent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "firstName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "contactEmail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contactPhone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supplierCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lastName",
+          "supplierCount",
+          "version",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogReferent",
+        "description": "The co-op member who follows a supplier"
       },
       "CatalogCategoriesList": {
         "type": "array",
@@ -3636,6 +4616,56 @@
         "additionalProperties": false,
         "title": "CatalogCategory",
         "description": "A grouping for products in the catalogue"
+      },
+      "CatalogProducerCategoriesList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/CatalogProducerCategory"
+        },
+        "title": "CatalogProducerCategoriesList",
+        "description": "All producer categories"
+      },
+      "CatalogProducerCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "archivedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supplierCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "supplierCount",
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "CatalogProducerCategory",
+        "description": "A tag for what a supplier produces (e.g. \"Boissons\", \"Fromages\")"
       },
       "CatalogProductsList": {
         "type": "object",
@@ -5043,6 +6073,186 @@
         ],
         "title": "OrderingModeChoice",
         "description": "One concrete ordering type — never \"both\". Types a cart line and an order. A product that supports \"both\" is resolved to one of these when the member adds it to the cart."
+      },
+      "CheckoutResult": {
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderDetail"
+            }
+          },
+          "droppedLines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "productName": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "productName",
+                "reason"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "orders",
+          "droppedLines"
+        ],
+        "additionalProperties": false,
+        "title": "CheckoutResult",
+        "description": "One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added."
+      },
+      "OrderDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "orderingMode": {
+            "type": "string",
+            "enum": [
+              "pre_order",
+              "in_store"
+            ],
+            "title": "OrderingModeChoice",
+            "description": "One concrete ordering type — never \"both\". Types a cart line and an order. A product that supports \"both\" is resolved to one of these when the member adds it to the cart."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "cancelled"
+            ],
+            "title": "OrderStatus",
+            "description": "pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field"
+          },
+          "totalEur": {
+            "type": "number",
+            "minimum": 0
+          },
+          "placedAt": {
+            "type": "string"
+          },
+          "cancelledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "productName": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "unitPriceEur": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "lineTotalEur": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "id",
+                "productName",
+                "quantity",
+                "unitPriceEur",
+                "lineTotalEur"
+              ],
+              "additionalProperties": false,
+              "title": "OrderLine",
+              "description": "An immutable snapshot, taken at checkout"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "orderingMode",
+          "status",
+          "totalEur",
+          "placedAt",
+          "version",
+          "lines"
+        ],
+        "additionalProperties": false,
+        "title": "OrderDetail"
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "cancelled"
+        ],
+        "title": "OrderStatus",
+        "description": "pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field"
+      },
+      "OrderLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "unitPriceEur": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "lineTotalEur": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "productName",
+          "quantity",
+          "unitPriceEur",
+          "lineTotalEur"
+        ],
+        "additionalProperties": false,
+        "title": "OrderLine",
+        "description": "An immutable snapshot, taken at checkout"
       },
       "TestSeedResetResponse": {
         "type": "object",

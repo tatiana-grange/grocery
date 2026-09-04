@@ -16,6 +16,9 @@ export type CreateSupplier = {
     contactEmail?: string | null;
     contactPhone?: string | null;
     notes?: string | null;
+    deliveryMode?: 'livraison' | 'collecte' | null;
+    referentId?: string | null;
+    producerCategoryIds?: Array<string> | null;
 };
 
 /**
@@ -30,6 +33,36 @@ export type UpdateSupplier = {
     contactEmail?: string | null;
     contactPhone?: string | null;
     notes?: string | null;
+    deliveryMode?: 'livraison' | 'collecte' | null;
+    referentId?: string | null;
+    producerCategoryIds?: Array<string> | null;
+    version: number;
+};
+
+/**
+ * CreateReferent
+ *
+ * Create a referent
+ */
+export type CreateReferent = {
+    firstName?: string | null;
+    lastName: string;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    userId?: string | null;
+};
+
+/**
+ * UpdateReferent
+ *
+ * Update a referent (send the loaded version)
+ */
+export type UpdateReferent = {
+    firstName?: string | null;
+    lastName?: string;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    userId?: string | null;
     version: number;
 };
 
@@ -51,6 +84,25 @@ export type CreateCategory = {
 export type UpdateCategory = {
     name?: string;
     parentId?: string | null;
+    version: number;
+};
+
+/**
+ * CreateProducerCategory
+ *
+ * Create a producer category
+ */
+export type CreateProducerCategory = {
+    name: string;
+};
+
+/**
+ * UpdateProducerCategory
+ *
+ * Rename a producer category
+ */
+export type UpdateProducerCategory = {
+    name?: string;
     version: number;
 };
 
@@ -271,6 +323,16 @@ export type CatalogSupplier = {
     contactEmail?: string | null;
     contactPhone?: string | null;
     notes?: string | null;
+    deliveryMode?: 'livraison' | 'collecte' | null;
+    referent?: {
+        id: string;
+        firstName?: string | null;
+        lastName: string;
+    } | null;
+    producerCategories: Array<{
+        id: string;
+        name: string;
+    }>;
     archivedAt?: string | null;
     productCount: number;
     version: number;
@@ -292,6 +354,30 @@ export const SupplierType = { PRODUCER: 'producer', WHOLESALER: 'wholesaler' } a
 export type SupplierType = typeof SupplierType[keyof typeof SupplierType];
 
 /**
+ * CatalogReferentsList
+ *
+ * All referents
+ */
+export type CatalogReferentsList = Array<CatalogReferent>;
+
+/**
+ * CatalogReferent
+ *
+ * The co-op member who follows a supplier
+ */
+export type CatalogReferent = {
+    id: string;
+    firstName?: string | null;
+    lastName: string;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    userId?: string | null;
+    supplierCount: number;
+    version: number;
+    createdAt: string;
+};
+
+/**
  * CatalogCategoriesList
  *
  * All categories (one nesting level)
@@ -309,6 +395,26 @@ export type CatalogCategory = {
     parentId?: string | null;
     archivedAt?: string | null;
     productCount: number;
+    version: number;
+};
+
+/**
+ * CatalogProducerCategoriesList
+ *
+ * All producer categories
+ */
+export type CatalogProducerCategoriesList = Array<CatalogProducerCategory>;
+
+/**
+ * CatalogProducerCategory
+ *
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export type CatalogProducerCategory = {
+    id: string;
+    name: string;
+    archivedAt?: string | null;
+    supplierCount: number;
     version: number;
 };
 
@@ -867,6 +973,76 @@ export const OrderingModeChoice = { PRE_ORDER: 'pre_order', IN_STORE: 'in_store'
  * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
  */
 export type OrderingModeChoice = typeof OrderingModeChoice[keyof typeof OrderingModeChoice];
+
+/**
+ * CheckoutResult
+ *
+ * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
+ */
+export type CheckoutResult = {
+    orders: Array<OrderDetail>;
+    droppedLines: Array<{
+        productName: string;
+        reason: string;
+    }>;
+};
+
+/**
+ * OrderDetail
+ */
+export type OrderDetail = {
+    id: string;
+    /**
+     * OrderingModeChoice
+     *
+     * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+     */
+    orderingMode: 'pre_order' | 'in_store';
+    /**
+     * OrderStatus
+     *
+     * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+     */
+    status: 'pending' | 'cancelled';
+    totalEur: number;
+    placedAt: string;
+    cancelledAt?: string | null;
+    version: number;
+    lines: Array<{
+        id: string;
+        productName: string;
+        quantity: number;
+        unitPriceEur: number;
+        lineTotalEur: number;
+    }>;
+};
+
+/**
+ * OrderStatus
+ *
+ * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ */
+export const OrderStatus = { PENDING: 'pending', CANCELLED: 'cancelled' } as const;
+
+/**
+ * OrderStatus
+ *
+ * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ */
+export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
+
+/**
+ * OrderLine
+ *
+ * An immutable snapshot, taken at checkout
+ */
+export type OrderLine = {
+    id: string;
+    productName: string;
+    quantity: number;
+    unitPriceEur: number;
+    lineTotalEur: number;
+};
 
 /**
  * TestSeedResetResponse
@@ -1440,6 +1616,9 @@ export type AdminSuppliersControllerCreateData = {
         contactEmail?: string | null;
         contactPhone?: string | null;
         notes?: string | null;
+        deliveryMode?: 'livraison' | 'collecte' | null;
+        referentId?: string | null;
+        producerCategoryIds?: Array<string> | null;
     };
     path?: never;
     query?: never;
@@ -1491,6 +1670,9 @@ export type AdminSuppliersControllerUpdateData = {
         contactEmail?: string | null;
         contactPhone?: string | null;
         notes?: string | null;
+        deliveryMode?: 'livraison' | 'collecte' | null;
+        referentId?: string | null;
+        producerCategoryIds?: Array<string> | null;
         version: number;
     };
     path: {
@@ -1546,6 +1728,112 @@ export type AdminSuppliersControllerUnarchiveResponses = {
 };
 
 export type AdminSuppliersControllerUnarchiveResponse = AdminSuppliersControllerUnarchiveResponses[keyof AdminSuppliersControllerUnarchiveResponses];
+
+export type AdminReferentsControllerListData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/referents';
+};
+
+export type AdminReferentsControllerListResponses = {
+    /**
+     * All referents
+     */
+    200: CatalogReferentsList;
+};
+
+export type AdminReferentsControllerListResponse = AdminReferentsControllerListResponses[keyof AdminReferentsControllerListResponses];
+
+export type AdminReferentsControllerCreateData = {
+    /**
+     * CreateReferent
+     *
+     * Create a referent
+     */
+    body: {
+        firstName?: string | null;
+        lastName: string;
+        contactEmail?: string | null;
+        contactPhone?: string | null;
+        userId?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/referents';
+};
+
+export type AdminReferentsControllerCreateResponses = {
+    /**
+     * The co-op member who follows a supplier
+     */
+    200: CatalogReferent;
+};
+
+export type AdminReferentsControllerCreateResponse = AdminReferentsControllerCreateResponses[keyof AdminReferentsControllerCreateResponses];
+
+export type AdminReferentsControllerDeleteData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/referents/{id}';
+};
+
+export type AdminReferentsControllerDeleteResponses = {
+    204: void;
+};
+
+export type AdminReferentsControllerDeleteResponse = AdminReferentsControllerDeleteResponses[keyof AdminReferentsControllerDeleteResponses];
+
+export type AdminReferentsControllerGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/referents/{id}';
+};
+
+export type AdminReferentsControllerGetResponses = {
+    /**
+     * The co-op member who follows a supplier
+     */
+    200: CatalogReferent;
+};
+
+export type AdminReferentsControllerGetResponse = AdminReferentsControllerGetResponses[keyof AdminReferentsControllerGetResponses];
+
+export type AdminReferentsControllerUpdateData = {
+    /**
+     * UpdateReferent
+     *
+     * Update a referent (send the loaded version)
+     */
+    body: {
+        firstName?: string | null;
+        lastName?: string;
+        contactEmail?: string | null;
+        contactPhone?: string | null;
+        userId?: string | null;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/referents/{id}';
+};
+
+export type AdminReferentsControllerUpdateResponses = {
+    /**
+     * The co-op member who follows a supplier
+     */
+    200: CatalogReferent;
+};
+
+export type AdminReferentsControllerUpdateResponse = AdminReferentsControllerUpdateResponses[keyof AdminReferentsControllerUpdateResponses];
 
 export type AdminCategoriesControllerListData = {
     body?: never;
@@ -1651,6 +1939,109 @@ export type AdminCategoriesControllerUnarchiveResponses = {
 };
 
 export type AdminCategoriesControllerUnarchiveResponse = AdminCategoriesControllerUnarchiveResponses[keyof AdminCategoriesControllerUnarchiveResponses];
+
+export type AdminProducerCategoriesControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        includeArchived: string;
+    };
+    url: '/api/admin/producer-categories';
+};
+
+export type AdminProducerCategoriesControllerListResponses = {
+    /**
+     * All producer categories
+     */
+    200: CatalogProducerCategoriesList;
+};
+
+export type AdminProducerCategoriesControllerListResponse = AdminProducerCategoriesControllerListResponses[keyof AdminProducerCategoriesControllerListResponses];
+
+export type AdminProducerCategoriesControllerCreateData = {
+    /**
+     * CreateProducerCategory
+     *
+     * Create a producer category
+     */
+    body: {
+        name: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/producer-categories';
+};
+
+export type AdminProducerCategoriesControllerCreateResponses = {
+    /**
+     * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+     */
+    200: CatalogProducerCategory;
+};
+
+export type AdminProducerCategoriesControllerCreateResponse = AdminProducerCategoriesControllerCreateResponses[keyof AdminProducerCategoriesControllerCreateResponses];
+
+export type AdminProducerCategoriesControllerUpdateData = {
+    /**
+     * UpdateProducerCategory
+     *
+     * Rename a producer category
+     */
+    body: {
+        name?: string;
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/producer-categories/{id}';
+};
+
+export type AdminProducerCategoriesControllerUpdateResponses = {
+    /**
+     * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+     */
+    200: CatalogProducerCategory;
+};
+
+export type AdminProducerCategoriesControllerUpdateResponse = AdminProducerCategoriesControllerUpdateResponses[keyof AdminProducerCategoriesControllerUpdateResponses];
+
+export type AdminProducerCategoriesControllerArchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/producer-categories/{id}/archive';
+};
+
+export type AdminProducerCategoriesControllerArchiveResponses = {
+    /**
+     * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+     */
+    200: CatalogProducerCategory;
+};
+
+export type AdminProducerCategoriesControllerArchiveResponse = AdminProducerCategoriesControllerArchiveResponses[keyof AdminProducerCategoriesControllerArchiveResponses];
+
+export type AdminProducerCategoriesControllerUnarchiveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/producer-categories/{id}/unarchive';
+};
+
+export type AdminProducerCategoriesControllerUnarchiveResponses = {
+    /**
+     * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+     */
+    200: CatalogProducerCategory;
+};
+
+export type AdminProducerCategoriesControllerUnarchiveResponse = AdminProducerCategoriesControllerUnarchiveResponses[keyof AdminProducerCategoriesControllerUnarchiveResponses];
 
 export type AdminProductsControllerListData = {
     body?: never;
@@ -2015,3 +2406,19 @@ export type CartControllerUpdateLineResponses = {
 };
 
 export type CartControllerUpdateLineResponse = CartControllerUpdateLineResponses[keyof CartControllerUpdateLineResponses];
+
+export type CartControllerCheckoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/cart/checkout';
+};
+
+export type CartControllerCheckoutResponses = {
+    /**
+     * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
+     */
+    200: CheckoutResult;
+};
+
+export type CartControllerCheckoutResponse = CartControllerCheckoutResponses[keyof CartControllerCheckoutResponses];
