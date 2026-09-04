@@ -26,7 +26,7 @@ import {
 } from '@grocery/ui/components/primitives/table'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { handleMutationError } from '@/features/common/lib/api-error'
@@ -45,16 +45,24 @@ function CartLineRow({ line }: { line: CartLine }) {
   const [quantity, setQuantity] = useState(String(line.quantity))
   const step = line.product.saleMode === 'weight' ? 0.001 : 1
 
+  // Re-sync from the server value once a mutation resolves (success or failure) and the cart
+  // refetches — without this, a rejected update left the optimistic value on screen forever.
+  useEffect(() => {
+    setQuantity(String(line.quantity))
+  }, [line.quantity])
+
   const invalidate = () => void queryClient.invalidateQueries({ queryKey: ['cart'] })
 
   const updateMutation = useMutation({
     mutationFn: (nextQuantity: number) => updateCartLine(line.id, { quantity: nextQuantity }),
     onSuccess: invalidate,
-    onError: (error) =>
+    onError: (error) => {
+      invalidate()
       handleMutationError(error, toast.error, {
         conflict: t('common.conflict'),
         fallback: t('cart.toasts.error'),
-      }),
+      })
+    },
   })
 
   const removeMutation = useMutation({
@@ -68,8 +76,11 @@ function CartLineRow({ line }: { line: CartLine }) {
 
   const applyQuantity = (next: number) => {
     if (!(next > 0)) return
+    // Captured up front and restored on failure: invalidating alone won't fix a rejected update
+    // where the refetched value is unchanged (same string), so the effect above wouldn't re-run.
+    const previousQuantity = quantity
     setQuantity(String(next))
-    updateMutation.mutate(next)
+    updateMutation.mutate(next, { onError: () => setQuantity(previousQuantity) })
   }
 
   return (
@@ -119,7 +130,9 @@ function CartLineRow({ line }: { line: CartLine }) {
       <TableCell>
         <AlertDialog>
           <AlertDialogTrigger
-            render={<Button variant="ghost" size="icon" data-testid={`cart-line-remove-${line.id}`} />}
+            render={
+              <Button variant="ghost" size="icon" data-testid={`cart-line-remove-${line.id}`} />
+            }
           >
             <Trash2 className="size-4" />
           </AlertDialogTrigger>
@@ -168,7 +181,11 @@ export default function CartPage() {
       <div className="space-y-6" data-testid="page-cart">
         <h1 className="text-2xl font-black tracking-tight">{t('cart.checkout.title')}</h1>
         <CheckoutConfirmation result={confirmation} />
-        <Link to="/shop" className="text-sm font-medium underline" data-testid="checkout-back-to-shop">
+        <Link
+          to="/shop"
+          className="text-sm font-medium underline"
+          data-testid="checkout-back-to-shop"
+        >
           {t('cart.browseShop')}
         </Link>
       </div>
@@ -183,9 +200,16 @@ export default function CartPage() {
 
       {cart.lines.length === 0 ? (
         <div data-testid="cart-empty">
-          <EmptyState icon={<ShoppingCart className="size-6 text-muted-foreground" />} title={t('cart.empty')} />
+          <EmptyState
+            icon={<ShoppingCart className="size-6 text-muted-foreground" />}
+            title={t('cart.empty')}
+          />
           <div className="text-center">
-            <Link to="/shop" className="text-sm font-medium underline" data-testid="cart-browse-shop">
+            <Link
+              to="/shop"
+              className="text-sm font-medium underline"
+              data-testid="cart-browse-shop"
+            >
               {t('cart.browseShop')}
             </Link>
           </div>

@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, PackageSearch } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
 import { CategoryFilter } from '@/features/shop/components/category-filter'
 import { ProductCard } from '@/features/shop/components/product-card'
 import {
@@ -14,6 +13,7 @@ import {
   shopCategoriesQueryOptions,
   shopProductsQueryOptions,
 } from '@/features/shop/utils/shop-queries'
+import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 const SORT_OPTIONS = [
   { value: 'name:asc', property: 'name' as const, direction: 'asc' as const },
@@ -22,9 +22,7 @@ const SORT_OPTIONS = [
 
 export default function ShopPage() {
   const { t } = useTranslation()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const pageParam = Number(searchParams.get('page'))
-  const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1
+  const { searchParams, page, updateParams } = useListSearchParams()
   const categoryId = searchParams.get('categoryId') ?? undefined
   const sortValue = searchParams.get('sort') ?? 'name:asc'
   const sortOption = SORT_OPTIONS.find((option) => option.value === sortValue) ?? SORT_OPTIONS[0]!
@@ -40,20 +38,6 @@ export default function ShopPage() {
       direction: sortOption.direction,
     }),
   )
-
-  const setParam = (key: string, value?: string) => {
-    const params = new URLSearchParams(searchParams)
-    if (value) params.set(key, value)
-    else params.delete(key)
-    params.delete('page')
-    setSearchParams(params)
-  }
-
-  const setPage = (nextPage: number) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('page', String(nextPage))
-    setSearchParams(params)
-  }
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / SHOP_PAGE_SIZE))
@@ -73,14 +57,14 @@ export default function ShopPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') setParam('q', search || undefined)
+            if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
           }}
         />
         <select
           className="h-9 rounded-md border border-input bg-background px-3 text-sm"
           data-testid="shop-sort"
           value={sortValue}
-          onChange={(event) => setParam('sort', event.target.value)}
+          onChange={(event) => updateParams({ sort: event.target.value, page: undefined })}
         >
           <option value="name:asc">{t('shop.sort.nameAsc')}</option>
           <option value="createdAt:desc">{t('shop.sort.newest')}</option>
@@ -91,7 +75,7 @@ export default function ShopPage() {
         <CategoryFilter
           categories={categories}
           selectedCategoryId={categoryId}
-          onSelect={(value) => setParam('categoryId', value)}
+          onSelect={(value) => updateParams({ categoryId: value, page: undefined })}
         />
       )}
 
@@ -113,7 +97,10 @@ export default function ShopPage() {
       )}
 
       {!isLoading && data && data.data.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4" data-testid="shop-product-grid">
+        <div
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4"
+          data-testid="shop-product-grid"
+        >
           {data.data.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -128,7 +115,7 @@ export default function ShopPage() {
             size="icon"
             data-testid="shop-page-prev"
             disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
+            onClick={() => updateParams({ page: String(page - 1) })}
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -140,7 +127,7 @@ export default function ShopPage() {
             size="icon"
             data-testid="shop-page-next"
             disabled={page >= pageCount}
-            onClick={() => setPage(page + 1)}
+            onClick={() => updateParams({ page: String(page + 1) })}
           >
             <ChevronRight className="size-4" />
           </Button>

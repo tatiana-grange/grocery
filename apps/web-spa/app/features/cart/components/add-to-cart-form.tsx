@@ -1,4 +1,7 @@
-import type { ShopProductDetail } from '@grocery/openapi-generator/client/types.gen'
+import {
+  OrderingModeChoice,
+  type ShopProductDetail,
+} from '@grocery/openapi-generator/client/types.gen'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { toast } from '@grocery/ui/components/primitives/sonner'
@@ -10,8 +13,9 @@ import { handleMutationError } from '@/features/common/lib/api-error'
 import { addCartLine } from '@/features/cart/utils/cart-queries'
 import { authClient } from '@/lib/auth-client'
 
-const ORDERING_MODE_CHOICES = ['pre_order', 'in_store'] as const
-type OrderingModeChoice = (typeof ORDERING_MODE_CHOICES)[number]
+// Derived from the generated client's enum instead of a hand-copied literal tuple, so a new
+// ordering mode added server-side shows up here without a forgotten manual update.
+const ORDERING_MODE_CHOICES = Object.values(OrderingModeChoice)
 
 /**
  * Quantity input plus (when the product supports `both`) an ordering-mode picker, matching

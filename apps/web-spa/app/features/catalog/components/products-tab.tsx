@@ -14,29 +14,18 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router'
-import {
-  CATALOG_PAGE_SIZE,
-  productsQueryOptions,
-} from '@/features/catalog/utils/catalog-queries'
+import { Link } from 'react-router'
+import { CATALOG_PAGE_SIZE, productsQueryOptions } from '@/features/catalog/utils/catalog-queries'
+import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export function ProductsTab() {
   const { t } = useTranslation()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const pageParam = Number(searchParams.get('page'))
-  const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1
+  const { searchParams, page, updateParams } = useListSearchParams()
   const [search, setSearch] = useState(searchParams.get('q') ?? '')
 
   const { data, isLoading } = useQuery(
     productsQueryOptions({ page, search: searchParams.get('q') ?? undefined }),
   )
-
-  const setParam = (key: string, value?: string) => {
-    const params = new URLSearchParams(searchParams)
-    if (value) params.set(key, value)
-    else params.delete(key)
-    setSearchParams(params)
-  }
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / CATALOG_PAGE_SIZE))
@@ -51,7 +40,7 @@ export function ProductsTab() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') setParam('q', search || undefined)
+            if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
           }}
         />
         <Button data-testid="products-new" render={<Link to="/admin/catalog/products/new" />}>
@@ -133,7 +122,7 @@ export function ProductsTab() {
             size="icon"
             data-testid="products-page-prev"
             disabled={page <= 1}
-            onClick={() => setParam('page', String(page - 1))}
+            onClick={() => updateParams({ page: String(page - 1) })}
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -145,7 +134,7 @@ export function ProductsTab() {
             size="icon"
             data-testid="products-page-next"
             disabled={page >= pageCount}
-            onClick={() => setParam('page', String(page + 1))}
+            onClick={() => updateParams({ page: String(page + 1) })}
           >
             <ChevronRight className="size-4" />
           </Button>

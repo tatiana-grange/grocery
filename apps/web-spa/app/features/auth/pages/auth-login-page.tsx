@@ -8,11 +8,17 @@ import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
 import { AuthLoginForm, type AuthLoginFormData } from '../forms/auth-login-form'
 
+/** Only a same-page relative path — rejects `//evil.example` and absolute URLs in `?redirect=`. */
+function isSafeRedirectPath(path: string | null): path is string {
+  return !!path && path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\')
+}
+
 export default function Login() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const redirectTo = searchParams.get('redirect')
+  const redirectParam = searchParams.get('redirect')
+  const redirectTo = isSafeRedirectPath(redirectParam) ? redirectParam : null
   const [mode, setMode] = useState<IdentifierMode>('email')
 
   const {

@@ -18,6 +18,7 @@ import {
   adminMembersControllerUpdateProfile,
 } from '@grocery/openapi-generator/client/sdk.gen'
 import { FilterRule } from '@lonestone/nzoth/client'
+import { unwrap } from '@/lib/api-client'
 
 type MemberFilter = NonNullable<AdminMembersControllerListData['query']['filter']>[number]
 
@@ -74,20 +75,13 @@ export async function decideMember(
   return response.data
 }
 
-function unwrap<T>(response: { data?: T; error?: unknown }): T {
-  if (response.error) throw response.error
-  return response.data as T
-}
-
 export const updateMemberProfile = async (
   id: string,
   body: AdminMembersControllerUpdateProfileData['body'],
 ) => unwrap(await adminMembersControllerUpdateProfile({ path: { id }, body }))
 
-export const setMemberFee = async (
-  id: string,
-  body: AdminMembersControllerSetFeeData['body'],
-) => unwrap(await adminMembersControllerSetFee({ path: { id }, body }))
+export const setMemberFee = async (id: string, body: AdminMembersControllerSetFeeData['body']) =>
+  unwrap(await adminMembersControllerSetFee({ path: { id }, body }))
 
 export const recordFeePayment = async (
   id: string,
@@ -101,11 +95,7 @@ export function feePaymentsQueryOptions(id: string) {
   }
 }
 
-export const createMember = async (input: {
-  name: string
-  email?: string
-  phoneNumber?: string
-}) =>
+export const createMember = async (input: { name: string; email?: string; phoneNumber?: string }) =>
   unwrap(
     await adminMembersControllerCreate({
       body: { ...input, roles: ['member'], status: 'active' },
@@ -117,10 +107,8 @@ export const setMemberRoles = async (
   body: { roles: ('member' | 'admin')[]; version: number },
 ) => unwrap(await adminMembersControllerSetRoles({ path: { id }, body }))
 
-export const terminateMember = async (
-  id: string,
-  body: { reason: string; version: number },
-) => unwrap(await adminMembersControllerTerminate({ path: { id }, body }))
+export const terminateMember = async (id: string, body: { reason: string; version: number }) =>
+  unwrap(await adminMembersControllerTerminate({ path: { id }, body }))
 
 export const reactivateMember = async (id: string, body: { version: number }) =>
   unwrap(await adminMembersControllerReactivate({ path: { id }, body }))

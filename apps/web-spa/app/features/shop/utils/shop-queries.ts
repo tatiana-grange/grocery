@@ -8,15 +8,13 @@ import type {
   ShopCatalogControllerListProductsSortItem,
 } from '@grocery/openapi-generator/client/types.gen'
 import { FilterRule } from '@lonestone/nzoth/client'
+import { unwrap } from '@/lib/api-client'
 
 export const SHOP_PAGE_SIZE = 20
 
-function unwrap<T>(response: { data?: T; error?: unknown }): T {
-  if (response.error) throw response.error
-  return response.data as T
-}
-
-type ShopProductFilter = NonNullable<ShopCatalogControllerListProductsData['query']['filter']>[number]
+type ShopProductFilter = NonNullable<
+  ShopCatalogControllerListProductsData['query']['filter']
+>[number]
 
 export function shopCategoriesQueryOptions() {
   return {

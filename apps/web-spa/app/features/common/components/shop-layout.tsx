@@ -23,7 +23,15 @@ export default function ShopLayout() {
           {t('members.title')}
         </Link>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" data-testid="shop-nav-cart" render={<Link to="/cart" />}>
+          <Button
+            variant="ghost"
+            size="sm"
+            data-testid="shop-nav-cart"
+            // Signed-out visitors hit MemberAreaLayout's own redirect-to-login guard for `/cart`,
+            // which carries no return path — send them through the login page's `redirect` param
+            // instead, matching AddToCartForm's sign-in prompt.
+            render={<Link to={sessionData ? '/cart' : '/login?redirect=%2Fcart'} />}
+          >
             <ShoppingCart className="mr-2 size-4" />
             {t('shop.nav.cart')}
             {cartCount > 0 && (
@@ -43,7 +51,12 @@ export default function ShopLayout() {
               {t('shop.nav.myAccount')}
             </Button>
           ) : (
-            <Button variant="ghost" size="sm" data-testid="shop-nav-signin" render={<Link to="/login" />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              data-testid="shop-nav-signin"
+              render={<Link to="/login" />}
+            >
               {t('shop.nav.signIn')}
             </Button>
           )}

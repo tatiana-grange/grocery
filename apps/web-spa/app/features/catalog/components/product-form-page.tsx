@@ -1,3 +1,4 @@
+import { ProductOrderingMode } from '@grocery/openapi-generator/client/types.gen'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -20,8 +21,9 @@ import {
 const LABELS = ['organic', 'local', 'vegetarian', 'vegan'] as const
 type Label = (typeof LABELS)[number]
 
-const ORDERING_MODES = ['pre_order', 'in_store', 'both'] as const
-type OrderingMode = (typeof ORDERING_MODES)[number]
+// Derived from the generated client's enum instead of a hand-copied literal tuple, so a new
+// ordering mode added server-side shows up here without a forgotten manual update.
+const ORDERING_MODES = Object.values(ProductOrderingMode)
 
 export default function ProductFormPage() {
   const { t } = useTranslation()
@@ -42,7 +44,7 @@ export default function ProductFormPage() {
   const [supplierId, setSupplierId] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [saleMode, setSaleMode] = useState<'unit' | 'weight'>('unit')
-  const [orderingMode, setOrderingMode] = useState<OrderingMode>('in_store')
+  const [orderingMode, setOrderingMode] = useState<ProductOrderingMode>('in_store')
   const [labels, setLabels] = useState<Label[]>([])
   const [priceEur, setPriceEur] = useState('')
 
@@ -95,8 +97,7 @@ export default function ProductFormPage() {
       }),
   })
 
-  const canSubmit =
-    name.trim() && supplierId && categoryId && (isEdit || Number(priceEur) > 0)
+  const canSubmit = name.trim() && supplierId && categoryId && (isEdit || Number(priceEur) > 0)
 
   if (isEdit && isLoading) return <Skeleton className="h-96 w-full" />
 
@@ -162,10 +163,7 @@ export default function ProductFormPage() {
         </Field>
         <Field label={t('catalog.products.saleMode')}>
           {isEdit ? (
-            <p
-              className="text-sm text-muted-foreground"
-              data-testid="product-form-salemode-locked"
-            >
+            <p className="text-sm text-muted-foreground" data-testid="product-form-salemode-locked">
               {t(`catalog.saleMode.${saleMode}`)} · {t('catalog.products.saleModeLocked')}
             </p>
           ) : (
