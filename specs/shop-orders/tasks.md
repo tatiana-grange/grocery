@@ -230,14 +230,14 @@ that the cart is now empty.
 
 ### Tests for User Story 3
 
-- [ ] T039 [P] [US3] Extend `orders.controller.e2e-spec.ts` with checkout scenarios:
+- [X] T039 [P] [US3] Extend `orders.controller.e2e-spec.ts` with checkout scenarios:
       mixed cart → two orders, each with its own lines and total; empty cart → `409`;
       a price change between add-to-cart and checkout → the order charges the current
       price; an archived product in the cart → its line is dropped and reported in
       `droppedLines`, the rest of checkout still succeeds; a member whose membership goes
       inactive while items sit in the cart → checkout `403` and the cart's lines are left
       intact (spec edge case)
-- [ ] T040 [US3] E2E test for checking out a mixed cart into two order confirmations, and
+- [X] T040 [US3] E2E test for checking out a mixed cart into two order confirmations, and
       for the empty-cart block, in `apps/web-spa-e2e/tests/checkout.spec.ts`, written to
       fail before checkout exists; assert each confirmation renders the ordering-type
       specific "what happens next" copy via its stable `cart` i18n key (pre-order vs
@@ -245,23 +245,28 @@ that the cart is now empty.
 
 ### Implementation for User Story 3
 
-- [ ] T041 [P] [US3] Extend `apps/api/src/modules/orders/contracts/order.contract.ts` with
+- [X] T041 [P] [US3] Extend `apps/api/src/modules/orders/contracts/order.contract.ts` with
       `orderLineSchema`, `orderSchema`, `orderDetailSchema`, `checkoutResultSchema`
-- [ ] T042 [US3] Implement `OrdersService.checkout` in
+- [X] T042 [US3] Implement `OrdersService.checkout` in
       `apps/api/src/modules/orders/orders.service.ts`: read the cart's lines, drop
       unorderable ones, refuse if nothing valid remains, group the rest by `orderingMode`,
       create one `Order` + its `OrderLine`s per group with a price snapshot, clear the
       cart's lines — all in one transaction (depends on T041, T008, T009)
-- [ ] T043 [US3] Add `toOrder` / `toOrderDetail` / `toOrderLine` to
+- [X] T043 [US3] Add `toOrder` / `toOrderDetail` / `toOrderLine` to
       `apps/api/src/modules/orders/orders.mapper.ts` (depends on T041)
-- [ ] T044 [US3] Add `POST /cart/checkout` to `apps/api/src/modules/orders/cart.controller.ts`
+- [X] T044 [US3] Add `POST /cart/checkout` to `apps/api/src/modules/orders/cart.controller.ts`
       (depends on T042, T043)
-- [ ] T045 [US3] Run `pnpm generate` (depends on T044)
-- [ ] T046 [US3] Create
+- [X] T045 [US3] ~~Run `pnpm generate`~~ — skipped: the shared dev API also serves another
+      in-progress session's uncommitted catalog routes, so a regenerate right now would pull
+      ~900 lines of unrelated generated code into the checked-in client. Hand-wrote the
+      `checkout()` call and its response types in `cart-queries.ts` against the same
+      `checkoutResultSchema` shape instead; swap it for the generated `cartControllerCheckout`
+      call next time `pnpm generate` can run clean (depends on T044)
+- [X] T046 [US3] Create
       `apps/web-spa/app/features/cart/components/checkout-confirmation.tsx` (per-order
       summary + next-step copy) and wire the checkout action into `cart-page.tsx` (depends
       on T045, T036)
-- [ ] T047 [US3] Fill the checkout strings in the `cart` i18n namespace (en + fr)
+- [X] T047 [US3] Fill the checkout strings in the `cart` i18n namespace (en + fr)
 
 **Checkpoint**: US1–US3 all work independently — the shop can take a real order.
 

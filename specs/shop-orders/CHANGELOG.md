@@ -149,6 +149,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json,
   apps/web-spa-e2e/tests/cart.spec.ts, packages/openapi-generator/client/*
 
+## [2026-09-04 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 5: User Story 3 (check out and place an order). Extended
+  `order.contract.ts` with `orderLineSchema`/`orderSchema`/`orderDetailSchema`/
+  `checkoutResultSchema`; implemented `OrdersService.checkout` (groups the cart's still-
+  orderable lines by ordering type, creates one `Order` + its `OrderLine`s per group with a
+  price snapshot taken at checkout — not the price the cart showed — drops the rest with a
+  reason, refuses with `409` when nothing valid remains, empties the cart, all in one
+  transaction) and wired `POST /cart/checkout`; 5 new controller e2e cases (mixed-cart
+  split, empty-cart `409`, price-change-at-checkout, archived-product drop, inactive-member
+  `403` leaving the cart untouched) — 17/17 orders tests green. Added the checkout
+  confirmation UI (per-order summary, ordering-type-specific "what happens next" copy) and
+  wired the checkout action into the cart page.
+  Deviation: skipped `pnpm generate` (T045) — the shared dev API used to fetch the OpenAPI
+  spec also serves another in-progress session's uncommitted catalog work, and regenerating
+  now would have pulled ~900 unrelated lines into the checked-in client. Hand-wrote the
+  `checkout()` call and its response types in `cart-queries.ts` against the same
+  `checkoutResultSchema` shape as a stand-in; swap it for the generated
+  `cartControllerCheckout` call next time a clean regenerate is possible.
+  Full existing Playwright suite (23 specs run) plus the full API suite (108 tests) still
+  green — no regressions from either phase's changes.
+- Tasks completed: T039, T040, T041, T042, T043, T044, T045 (partial, see above), T046, T047
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/orders/{orders.service,orders.mapper,cart.controller}.ts,
+  apps/api/src/modules/orders/contracts/order.contract.ts,
+  apps/api/src/modules/orders/tests/orders.controller.e2e-spec.ts,
+  apps/web-spa/app/features/cart/components/{checkout-confirmation,cart-page}.tsx,
+  apps/web-spa/app/features/cart/utils/cart-queries.ts,
+  apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json,
+  apps/web-spa-e2e/tests/checkout.spec.ts
+
 ---
 
 <!--

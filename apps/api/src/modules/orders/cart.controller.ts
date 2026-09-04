@@ -12,7 +12,9 @@ import {
   type UpdateCartLineInput,
   updateCartLineSchema,
 } from './contracts/cart.contract'
+import { checkoutResultSchema } from './contracts/order.contract'
 import { OrdersMapper } from './orders.mapper'
+import { OrdersService } from './orders.service'
 
 @TypedController('cart', undefined, { tags: ['Cart'] })
 @UseGuards(AuthGuard)
@@ -20,6 +22,7 @@ import { OrdersMapper } from './orders.mapper'
 export class CartController {
   constructor(
     private readonly cartService: CartService,
+    private readonly ordersService: OrdersService,
     private readonly mapper: OrdersMapper,
   ) {}
 
@@ -55,5 +58,11 @@ export class CartController {
   ) {
     const cart = await this.cartService.removeLine(session.user.id, lineId)
     return this.mapper.toCart(cart)
+  }
+
+  @TypedRoute.Post('checkout', checkoutResultSchema)
+  async checkout(@Session() session: LoggedInBetterAuthSession) {
+    const result = await this.ordersService.checkout(session.user.id)
+    return this.mapper.toCheckoutResult(result)
   }
 }

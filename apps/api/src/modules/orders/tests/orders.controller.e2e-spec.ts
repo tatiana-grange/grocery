@@ -13,6 +13,7 @@ import {
 import { createProductData } from '../../catalog/catalog.factory'
 import { Product } from '../../catalog/entities/product.entity'
 import { CatalogModule } from '../../catalog/catalog.module'
+import { Member } from '../../members/entities/member.entity'
 import { createMemberData } from '../../members/members.factory'
 import { OrdersModule } from '../orders.module'
 
@@ -178,6 +179,125 @@ describe('ordersController (e2e)', () => {
         .put(`/cart/lines/${lineId}`)
         .send({ quantity: 2 })
       expect(res.status).toBe(404)
+    })
+  })
+
+  describe('POST /cart/checkout', () => {
+    it('splits a mixed cart into two orders, each with its own lines and total', async () => {
+      const inStore = await makeProduct({ name: 'Milk', orderingMode: 'in_store', priceEur: 2 })
+      const preOrder = await makeProduct({ name: 'Basket', orderingMode: 'pre_order', priceEur: 10 })
+      await request
+        .withSession(member)
+        .post('/cart/lines')
+        .send({ productId: inStore.id, orderingMode: 'in_store', quantity: 3 })
+      await request
+        .withSession(member)
+        .post('/cart/lines')
+        .send({ productId: preOrder.id, orderingMode: 'pre_order', quantity: 2 })
+
+      const res = await request.withSession(member).post('/cart/checkout')
+      expect(res.status).toBe(201)
+      expect(res.body.orders).toHaveLength(2)
+
+      const inStoreOrder = res.body.orders.find(
+        (order: { orderingMode: string }) => order.orderingMode === 'in_store',
+      )
+      const preOrderOrder = res.body.orders.find(
+        (order: { orderingMode: string }) => order.orderingMode === 'pre_order',
+      )
+      expect(inStoreOrder.totalEur).toBe(6)
+      expect(inStoreOrder.lines).toHaveLength(1)
+      expect(preOrderOrder.totalEur).toBe(20)
+      expect(preOrderOrder.lines).toHaveLength(1)
+
+      const cart = await request.withSession(member).get('/cart')
+      expect(cart.body.lines).toHaveLength(0)
+    })
+
+    it('409s on an empty cart', async () => {
+      const res = await request.withSession(member).post('/cart/checkout')
+      expect(res.status).toBe(409)
+    })
+
+    it('charges the current price, not the one at add-to-cart time', async () => {
+      const product = await makeProduct({ orderingMode: 'in_store', priceEur: 2 })
+      await request
+        .withSession(member)
+        .post('/cart/lines')
+        .send({ productId: product.id, orderingMode: 'in_store', quantity: 1 })
+
+      const { user: adminUser } = await createMemberData(em, {
+        roles: ['member', 'admin'],
+        status: 'active',
+      })
+      await request
+        .withSession(createSessionFromUser(adminUser))
+        .post(`/admin/products/${product.id}/price`)
+        .send({ amountEur: 5 })
+
+      const res = await request.withSession(member).post('/cart/checkout')
+      expect(res.status).toBe(201)
+      expect(res.body.orders[0].totalEur).toBe(5)
+    })
+
+    it('drops an archived product from checkout and reports it — the rest still succeeds', async () => {
+      const archivable = await makeProduct({ name: 'Doomed', orderingMode: 'in_store' })
+      const keeper = await makeProduct({ name: 'Keeper', orderingMode: 'in_store' })
+      await request
+        .withSession(member)
+        .post('/cart/lines')
+        .send({ productId: archivable.id, orderingMode: 'in_store', quantity: 1 })
+      await request
+        .withSession(member)
+        .post('/cart/lines')
+        .send({ productId: keeper.id, orderingMode: 'in_store', quantity: 1 })
+
+      const { user: adminUser } = await createMemberData(em, {
+        roles: ['member', 'admin'],
+        status: 'active',
+      })
+      await request
+        .withSession(createSessionFromUser(adminUser))
+        .post(`/admin/products/${archivable.id}/archive`)
+
+      const res = await request.withSession(member).post('/cart/checkout')
+      expect(res.status).toBe(201)
+      expect(res.body.droppedLines).toHaveLength(1)
+      expect(res.body.droppedLines[0].productName).toBe('Doomed')
+      expect(res.body.orders).toHaveLength(1)
+      expect(res.body.orders[0].lines).toHaveLength(1)
+      expect(res.body.orders[0].lines[0].productName).toBe('Keeper')
+    })
+
+    it('403s and leaves the cart intact when the member is no longer active', async () => {
+      const { user: activeUser, member: memberEntity } = await createMemberData(em, {
+        roles: ['member'],
+        status: 'active',
+      })
+      const activeSession = createSessionFromUser(activeUser)
+      const product = await makeProduct()
+      await request
+        .withSession(activeSession)
+        .post('/cart/lines')
+        .send({ productId: product.id, orderingMode: 'in_store', quantity: 1 })
+
+      const toTerminate = await em.findOneOrFail(Member, { id: memberEntity.id })
+      toTerminate.status = 'terminated'
+      em.persist(toTerminate)
+      await em.flush()
+      em.clear()
+
+      const checkoutRes = await request.withSession(activeSession).post('/cart/checkout')
+      expect(checkoutRes.status).toBe(403)
+
+      // Reactivate to confirm the 403 didn't touch the cart's lines.
+      const reactivated = await em.findOneOrFail(Member, { id: memberEntity.id })
+      reactivated.status = 'active'
+      em.persist(reactivated)
+      await em.flush()
+
+      const cartRes = await request.withSession(activeSession).get('/cart')
+      expect(cartRes.body.lines).toHaveLength(1)
     })
   })
 

@@ -2,8 +2,17 @@ import { Injectable } from '@nestjs/common'
 import { centsToEur } from '../catalog/catalog.util'
 import type { Product } from '../catalog/entities/product.entity'
 import type { Cart as CartContract, CartLine as CartLineContract } from './contracts/cart.contract'
+import type {
+  CheckoutResult as CheckoutResultContract,
+  OrderDetail as OrderDetailContract,
+  Order as OrderContract,
+  OrderLine as OrderLineContract,
+} from './contracts/order.contract'
 import type { CartLine } from './entities/cart-line.entity'
 import type { Cart } from './entities/cart.entity'
+import type { OrderLine } from './entities/order-line.entity'
+import type { Order } from './entities/order.entity'
+import type { CheckoutResult } from './orders.service'
 
 @Injectable()
 export class OrdersMapper {
@@ -54,6 +63,43 @@ export class OrdersMapper {
       lines: mappedLines,
       totalEur: Math.round(totalEur * 100) / 100,
       version: cart.version,
+    }
+  }
+
+  toOrderLine(line: OrderLine): OrderLineContract {
+    return {
+      id: line.id,
+      productName: line.productNameSnapshot,
+      quantity: Number(line.quantity),
+      unitPriceEur: centsToEur(line.unitPriceAmountCents),
+      lineTotalEur: centsToEur(line.lineTotalAmountCents),
+    }
+  }
+
+  toOrder(order: Order): OrderContract {
+    return {
+      id: order.id,
+      orderingMode: order.orderingMode,
+      status: order.status,
+      totalEur: centsToEur(order.totalAmountCents),
+      placedAt: order.placedAt,
+      cancelledAt: order.cancelledAt ?? null,
+      version: order.version,
+    }
+  }
+
+  toOrderDetail(order: Order): OrderDetailContract {
+    const lines = order.lines.isInitialized() ? [...order.lines.getItems()] : []
+    return {
+      ...this.toOrder(order),
+      lines: lines.map((line) => this.toOrderLine(line)),
+    }
+  }
+
+  toCheckoutResult(result: CheckoutResult): CheckoutResultContract {
+    return {
+      orders: result.orders.map((order) => this.toOrderDetail(order)),
+      droppedLines: result.droppedLines,
     }
   }
 }

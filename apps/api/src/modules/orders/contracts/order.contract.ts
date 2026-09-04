@@ -16,3 +16,50 @@ export const orderStatusSchema = z.enum(ORDER_STATUSES).meta({
     'pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field',
 })
 export type OrderStatus = z.infer<typeof orderStatusSchema>
+
+export const orderLineSchema = z
+  .object({
+    id: z.string().uuid(),
+    productName: z.string(),
+    quantity: z.number().positive(),
+    unitPriceEur: z.number().positive(),
+    lineTotalEur: z.number().positive(),
+  })
+  .meta({ title: 'OrderLine', description: 'An immutable snapshot, taken at checkout' })
+
+export type OrderLine = z.infer<typeof orderLineSchema>
+
+export const orderSchema = z
+  .object({
+    id: z.string().uuid(),
+    orderingMode: orderingModeChoiceSchema,
+    status: orderStatusSchema,
+    totalEur: z.number().nonnegative(),
+    placedAt: z.date(),
+    cancelledAt: z.date().nullish(),
+    version: z.number().int(),
+  })
+  .meta({ title: 'Order' })
+
+export type Order = z.infer<typeof orderSchema>
+
+export const orderDetailSchema = orderSchema
+  .extend({ lines: z.array(orderLineSchema) })
+  .meta({ title: 'OrderDetail' })
+
+export type OrderDetail = z.infer<typeof orderDetailSchema>
+
+export const checkoutResultSchema = z
+  .object({
+    orders: z.array(orderDetailSchema),
+    droppedLines: z.array(z.object({ productName: z.string(), reason: z.string() })),
+  })
+  .meta({
+    title: 'CheckoutResult',
+    description:
+      'One order per ordering type present in the cart. droppedLines lists products removed ' +
+      'from checkout because they became unorderable (archived, or no longer offering the ' +
+      "cart line's ordering mode) since they were added.",
+  })
+
+export type CheckoutResult = z.infer<typeof checkoutResultSchema>

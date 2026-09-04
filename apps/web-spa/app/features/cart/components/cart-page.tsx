@@ -30,7 +30,14 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { handleMutationError } from '@/features/common/lib/api-error'
-import { cartQueryOptions, removeCartLine, updateCartLine } from '@/features/cart/utils/cart-queries'
+import { CheckoutConfirmation } from '@/features/cart/components/checkout-confirmation'
+import {
+  cartQueryOptions,
+  checkout,
+  type CheckoutResult,
+  removeCartLine,
+  updateCartLine,
+} from '@/features/cart/utils/cart-queries'
 
 function CartLineRow({ line }: { line: CartLine }) {
   const { t } = useTranslation()
@@ -139,7 +146,34 @@ function CartLineRow({ line }: { line: CartLine }) {
 
 export default function CartPage() {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const { data: cart, isLoading } = useQuery(cartQueryOptions())
+  const [confirmation, setConfirmation] = useState<CheckoutResult | null>(null)
+
+  const checkoutMutation = useMutation({
+    mutationFn: checkout,
+    onSuccess: (result) => {
+      setConfirmation(result)
+      void queryClient.invalidateQueries({ queryKey: ['cart'] })
+    },
+    onError: (error) =>
+      handleMutationError(error, toast.error, {
+        conflict: t('cart.checkout.emptyError'),
+        fallback: t('cart.toasts.error'),
+      }),
+  })
+
+  if (confirmation) {
+    return (
+      <div className="space-y-6" data-testid="page-cart">
+        <h1 className="text-2xl font-black tracking-tight">{t('cart.checkout.title')}</h1>
+        <CheckoutConfirmation result={confirmation} />
+        <Link to="/shop" className="text-sm font-medium underline" data-testid="checkout-back-to-shop">
+          {t('cart.browseShop')}
+        </Link>
+      </div>
+    )
+  }
 
   if (isLoading || !cart) return <Skeleton className="h-64 w-full" />
 
@@ -181,6 +215,13 @@ export default function CartPage() {
             <span className="text-lg font-bold" data-testid="cart-total">
               {t('cart.total')}: {cart.totalEur.toFixed(2)} €
             </span>
+            <Button
+              data-testid="cart-checkout"
+              disabled={checkoutMutation.isPending}
+              onClick={() => checkoutMutation.mutate()}
+            >
+              {t('cart.checkout.action')}
+            </Button>
           </div>
         </>
       )}

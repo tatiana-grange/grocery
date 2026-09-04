@@ -389,6 +389,16 @@
       "description": "This removes the product from your cart.",
       "confirm": "Remove"
     },
+    "checkout": {
+      "action": "Check out",
+      "title": "Order confirmed",
+      "emptyError": "Your cart has nothing left to check out",
+      "droppedTitle": "Some products could not be ordered",
+      "nextSteps": {
+        "pre_order": "This order is a pre-order from the producer. You'll be told when it's ready for delivery.",
+        "in_store": "This order is for items on the shelf. You can pick it up at the cooperative."
+      }
+    },
     "toasts": {
       "added": "Added to cart",
       "removed": "Removed from cart",

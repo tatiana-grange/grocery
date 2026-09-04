@@ -389,6 +389,16 @@
       "description": "Le produit sera retiré de votre panier.",
       "confirm": "Retirer"
     },
+    "checkout": {
+      "action": "Valider la commande",
+      "title": "Commande confirmée",
+      "emptyError": "Votre panier n'a plus rien à commander",
+      "droppedTitle": "Certains produits n'ont pas pu être commandés",
+      "nextSteps": {
+        "pre_order": "Cette commande est une précommande auprès du producteur. Vous serez prévenu·e quand elle sera prête à être livrée.",
+        "in_store": "Cette commande porte sur des articles en rayon. Vous pouvez la récupérer à la coopérative."
+      }
+    },
     "toasts": {
       "added": "Ajouté au panier",
       "removed": "Retiré du panier",
