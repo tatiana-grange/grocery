@@ -68,7 +68,7 @@ export class CatalogService {
     for (const item of filter ?? []) {
       if (item.property === 'type') Object.assign(where, { type: item.value })
       if (item.property === 'q') {
-        Object.assign(where, { name: { $like: `%${item.value}%` } })
+        Object.assign(where, { name: { $like: `%${this.escapeLike(item.value)}%` } })
       }
     }
 
@@ -197,7 +197,9 @@ export class CatalogService {
 
   async deleteReferent(id: string): Promise<void> {
     const referent = await this.getReferent(id)
-    const linkedSuppliers = await this.em.count(Supplier, { referent: id })
+    // Reuses supplierCountForReferents so this stays in step with its `archivedAt: null`
+    // filter — an archived supplier that once pointed here shouldn't block deletion forever.
+    const linkedSuppliers = (await this.supplierCountForReferents([id])).get(id) ?? 0
     if (linkedSuppliers > 0) {
       throw new ConflictException({
         message: 'Reassign this referent’s suppliers before removing it',
@@ -366,14 +368,15 @@ export class CatalogService {
   async supplierCountForProducerCategories(categoryIds: string[]): Promise<Map<string, number>> {
     const result = new Map<string, number>()
     if (categoryIds.length === 0) return result
+    const idSet = new Set(categoryIds)
     const suppliers = await this.em.find(
       Supplier,
       { producerCategories: { $in: categoryIds }, archivedAt: null } as FilterQuery<Supplier>,
-      { populate: ['producerCategories'] },
+      { populate: ['producerCategories'], fields: ['producerCategories'] },
     )
     for (const supplier of suppliers) {
       for (const category of supplier.producerCategories.getItems()) {
-        if (categoryIds.includes(category.id)) {
+        if (idSet.has(category.id)) {
           result.set(category.id, (result.get(category.id) ?? 0) + 1)
         }
       }
@@ -424,22 +427,16 @@ export class CatalogService {
       if (item.property === 'saleMode') Object.assign(where, { saleMode: item.value })
       if (item.property === 'label') Object.assign(where, { labels: { $contains: [item.value] } })
       if (item.property === 'q') {
+        const pattern = `%${this.escapeLike(item.value)}%`
         Object.assign(where, {
-          $or: [{ name: { $like: `%${item.value}%` } }, { barcode: { $like: `%${item.value}%` } }],
+          $or: [{ name: { $like: pattern } }, { barcode: { $like: pattern } }],
         })
       }
     }
 
-    const sortItem = sort?.[0]
-    const direction =
-      sortItem && String(sortItem.direction).toUpperCase() === 'ASC'
-        ? QueryOrder.ASC
-        : QueryOrder.DESC
-    const orderBy = sortItem?.property === 'name' ? { name: direction } : { createdAt: direction }
-
     const [products, total] = await this.em.findAndCount(Product, where, {
       populate: ['supplier', 'category', 'prices'],
-      orderBy,
+      orderBy: this.resolveProductSort(sort),
       limit: pagination.pageSize,
       offset: pagination.offset,
     })
@@ -589,12 +586,10 @@ export class CatalogService {
 
   /** Categories with at least one non-archived product — an empty category stays hidden. */
   async listShopCategories(): Promise<Category[]> {
-    const activeProducts = await this.em.find(
-      Product,
-      { archivedAt: null },
-      { fields: ['category'] },
-    )
-    const categoryIds = [...new Set(activeProducts.map((product) => product.category.id))]
+    // Grouped SQL count instead of loading every active product row just to dedupe category
+    // ids in JS — this backs a filter shown on every shop homepage visit.
+    const counts = await this.em.countBy(Product, 'category', { where: { archivedAt: null } })
+    const categoryIds = Object.keys(counts)
     if (categoryIds.length === 0) return []
     return this.em.find(
       Category,
@@ -612,22 +607,16 @@ export class CatalogService {
     for (const item of filter ?? []) {
       if (item.property === 'categoryId') Object.assign(where, { category: item.value })
       if (item.property === 'q') {
+        const pattern = `%${this.escapeLike(item.value)}%`
         Object.assign(where, {
-          $or: [{ name: { $like: `%${item.value}%` } }, { barcode: { $like: `%${item.value}%` } }],
+          $or: [{ name: { $like: pattern } }, { barcode: { $like: pattern } }],
         })
       }
     }
 
-    const sortItem = sort?.[0]
-    const direction =
-      sortItem && String(sortItem.direction).toUpperCase() === 'ASC'
-        ? QueryOrder.ASC
-        : QueryOrder.DESC
-    const orderBy = sortItem?.property === 'name' ? { name: direction } : { createdAt: direction }
-
     const [products, total] = await this.em.findAndCount(Product, where, {
       populate: ['category', 'prices'],
-      orderBy,
+      orderBy: this.resolveProductSort(sort),
       limit: pagination.pageSize,
       offset: pagination.offset,
     })
@@ -648,6 +637,23 @@ export class CatalogService {
   // ============================================================================================
   // Helpers
   // ============================================================================================
+
+  /** Shared by the admin and shop product lists — both only ever sort by name or createdAt. */
+  private resolveProductSort(
+    sort?: readonly { property: string; direction: string }[],
+  ): { name: QueryOrder } | { createdAt: QueryOrder } {
+    const sortItem = sort?.[0]
+    const direction =
+      sortItem && String(sortItem.direction).toUpperCase() === 'ASC'
+        ? QueryOrder.ASC
+        : QueryOrder.DESC
+    return sortItem?.property === 'name' ? { name: direction } : { createdAt: direction }
+  }
+
+  /** Escapes `%`, `_` and `\` so a user's search text is matched literally in a `$like` pattern. */
+  private escapeLike(value: string | undefined): string {
+    return (value ?? '').replace(/[\\%_]/g, (char) => `\\${char}`)
+  }
 
   private assertVersion(actual: number, sent: number): void {
     if (actual !== sent) {

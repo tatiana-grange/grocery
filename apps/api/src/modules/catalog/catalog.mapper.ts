@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { centsToEur, pricingUnitFor } from './catalog.util'
+import { centsToEur, currentPrice, pricingUnitFor } from './catalog.util'
 import type { Category as CategoryContract } from './contracts/category.contract'
 import type { PriceWindow } from './contracts/product-price.contract'
 import type {
@@ -129,9 +129,8 @@ export class CatalogMapper {
   }
 
   private currentPriceEur(product: Product): number | null {
-    if (!product.prices.isInitialized()) return null
-    const current = product.prices.getItems().find((price) => !price.validTo)
-    return current ? centsToEur(current.amountCents) : null
+    const price = currentPrice(product)
+    return price ? centsToEur(price.amountCents) : null
   }
 
   toProduct(product: Product): ProductContract {

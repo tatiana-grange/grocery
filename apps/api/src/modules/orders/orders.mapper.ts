@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { centsToEur } from '../catalog/catalog.util'
+import { centsToEur, currentPrice } from '../catalog/catalog.util'
 import type { Product } from '../catalog/entities/product.entity'
+import { checkLineValidity } from './cart-line-validity.util'
 import type { Cart as CartContract, CartLine as CartLineContract } from './contracts/cart.contract'
 import type {
   CheckoutResult as CheckoutResultContract,
@@ -17,18 +18,13 @@ import type { CheckoutResult } from './orders.service'
 @Injectable()
 export class OrdersMapper {
   private currentPriceCents(product: Product): number {
-    if (!product.prices.isInitialized()) return 0
-    const current = product.prices.getItems().find((price) => !price.validTo)
-    return current ? current.amountCents : 0
+    return currentPrice(product)?.amountCents ?? 0
   }
 
   toCartLine(line: CartLine): CartLineContract {
     const unitPriceCents = this.currentPriceCents(line.product)
     const quantity = Number(line.quantity)
-    const isArchived = Boolean(line.product.archivedAt)
-    const offersOrderingMode =
-      line.product.orderingMode === 'both' || line.product.orderingMode === line.orderingMode
-    const isValid = !isArchived && offersOrderingMode
+    const { isValid, reason } = checkLineValidity(line.product, line.orderingMode)
 
     return {
       id: line.id,
@@ -43,11 +39,7 @@ export class OrdersMapper {
       unitPriceEur: centsToEur(unitPriceCents),
       lineTotalEur: centsToEur(Math.round(quantity * unitPriceCents)),
       isValid,
-      invalidReason: isValid
-        ? null
-        : isArchived
-          ? 'This product is no longer available'
-          : 'This product no longer offers this ordering type',
+      invalidReason: reason,
     }
   }
 

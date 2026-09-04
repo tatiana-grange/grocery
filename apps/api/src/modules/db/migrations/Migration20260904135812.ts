@@ -3,15 +3,11 @@ import { Migration } from '@mikro-orm/migrations'
 /**
  * Referents, producer categories, and a delivery mode on suppliers.
  *
- * Trimmed to these catalog additions only. The generator also emitted unrelated DDL for the
+ * Trimmed to these catalog additions only. The generator also emitted DDL for the
  * `orders`/`cart` module (tables `order`, `orderLine`, `cart`, `cartLine`, and
- * `product.orderingMode`) — that's someone else's uncommitted work-in-progress on this branch,
- * not part of this change, and removed by hand.
- *
- * Consequence (same tradeoff as Migration20260902085529): `.snapshot-grocery.json` is now AHEAD
- * of the applied DDL for those `orders`/`cart` tables — whoever finishes that work will need to
- * account for this when they next run `migration:create` (their tables won't show up in the
- * diff since the snapshot already "knows" about them).
+ * `product.orderingMode`) that belongs to this feature but was missed here — it's applied
+ * separately by Migration20260904140000, hand-written since `.snapshot-grocery.json` already
+ * described those tables and wouldn't re-surface the diff via `migration:create`.
  */
 export class Migration20260904135812 extends Migration {
   override up(): void | Promise<void> {

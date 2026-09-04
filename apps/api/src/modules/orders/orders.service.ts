@@ -1,6 +1,8 @@
 import { EntityManager } from '@mikro-orm/core'
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import { currentPrice } from '../catalog/catalog.util'
 import { Member } from '../members/entities/member.entity'
+import { checkLineValidity } from './cart-line-validity.util'
 import type { OrderingModeChoice } from './contracts/order.contract'
 import { CartLine } from './entities/cart-line.entity'
 import { Cart } from './entities/cart.entity'
@@ -39,34 +41,26 @@ export class OrdersService {
       )
       if (!cart) throw new ConflictException('Your cart is empty')
 
-      const lines = cart.lines.getItems()
       const droppedLines: DroppedLine[] = []
-      const groups = new Map<OrderingModeChoice, CartLine[]>()
+      const validLines: CartLine[] = []
 
-      for (const line of lines) {
-        const product = line.product
-        const isArchived = Boolean(product.archivedAt)
-        const offersOrderingMode =
-          product.orderingMode === 'both' || product.orderingMode === line.orderingMode
-
-        if (isArchived || !offersOrderingMode) {
-          droppedLines.push({
-            productName: product.name,
-            reason: isArchived
-              ? 'This product is no longer available'
-              : 'This product no longer offers this ordering type',
-          })
+      for (const line of cart.lines.getItems()) {
+        const { isValid, reason } = checkLineValidity(line.product, line.orderingMode)
+        if (!isValid) {
+          droppedLines.push({ productName: line.product.name, reason: reason! })
           continue
         }
-
-        const group = groups.get(line.orderingMode) ?? []
-        group.push(line)
-        groups.set(line.orderingMode, group)
+        validLines.push(line)
       }
 
-      if (groups.size === 0) {
+      if (validLines.length === 0) {
         throw new ConflictException('Your cart has nothing left to check out')
       }
+
+      const groups: Map<OrderingModeChoice, CartLine[]> = Map.groupBy(
+        validLines,
+        (line) => line.orderingMode,
+      )
 
       const orders: Order[] = []
       for (const [orderingMode, groupLines] of groups) {
@@ -78,8 +72,7 @@ export class OrdersService {
         let totalAmountCents = 0
         for (const line of groupLines) {
           const product = line.product
-          const currentPrice = product.prices.getItems().find((price) => !price.validTo)
-          const unitPriceAmountCents = currentPrice ? currentPrice.amountCents : 0
+          const unitPriceAmountCents = currentPrice(product)?.amountCents ?? 0
           const quantity = Number(line.quantity)
           const lineTotalAmountCents = Math.round(quantity * unitPriceAmountCents)
 

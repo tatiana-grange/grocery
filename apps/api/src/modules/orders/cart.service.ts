@@ -1,5 +1,10 @@
-import { EntityManager } from '@mikro-orm/core'
-import { ConflictException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common'
+import { EntityManager, LockMode } from '@mikro-orm/core'
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { Product } from '../catalog/entities/product.entity'
 import { Member } from '../members/entities/member.entity'
 import type { AddCartLineInput, UpdateCartLineInput } from './contracts/cart.contract'
@@ -32,25 +37,30 @@ export class CartService {
     }
     this.assertQuantity(product, input.quantity)
 
-    const cart = await this.loadCartWithLines(member)
-    const existing = cart.lines
-      .getItems()
-      .find((line) => line.product.id === product.id && line.orderingMode === input.orderingMode)
+    return this.em.transactional(async (em) => {
+      // Lock the cart row so two concurrent adds of the same line serialise: without this both
+      // readers can see no matching line, both insert one, and the second violates the unique
+      // (cart, product, orderingMode) constraint with an unhandled 500 instead of merging.
+      const cart = await this.loadCartWithLines(member, em, LockMode.PESSIMISTIC_WRITE)
+      const existing = cart.lines
+        .getItems()
+        .find((line) => line.product.id === product.id && line.orderingMode === input.orderingMode)
 
-    if (existing) {
-      existing.quantity = this.addQuantity(existing.quantity, input.quantity)
-    } else {
-      const line = new CartLine()
-      line.cart = cart
-      line.product = product
-      line.orderingMode = input.orderingMode
-      line.quantity = input.quantity.toFixed(3)
-      cart.lines.add(line)
-      this.em.persist(line)
-    }
+      if (existing) {
+        existing.quantity = this.addQuantity(existing.quantity, input.quantity)
+      } else {
+        const line = new CartLine()
+        line.cart = cart
+        line.product = product
+        line.orderingMode = input.orderingMode
+        line.quantity = input.quantity.toFixed(3)
+        cart.lines.add(line)
+        em.persist(line)
+      }
 
-    await this.em.flush()
-    return cart
+      await em.flush()
+      return cart
+    })
   }
 
   async updateLine(userId: string, lineId: string, input: UpdateCartLineInput): Promise<Cart> {
@@ -88,23 +98,38 @@ export class CartService {
     return member
   }
 
-  /** Creates the cart on first read (data-model.md: "one active cart per member"). */
-  private async loadCartWithLines(member: Member): Promise<Cart> {
-    let cart: Cart | null = await this.em.findOne(
+  /**
+   * Creates the cart on first read (data-model.md: "one active cart per member"). Pass a
+   * transactional `em` and `lockMode` to serialise concurrent writers against the same cart.
+   */
+  private async loadCartWithLines(
+    member: Member,
+    em: EntityManager = this.em,
+    lockMode?: LockMode,
+  ): Promise<Cart> {
+    let cart: Cart | null = await em.findOne(
       Cart,
       { member: member.id },
-      { populate: ['lines', 'lines.product', 'lines.product.prices'] },
+      lockMode ? { lockMode } : { populate: ['lines', 'lines.product', 'lines.product.prices'] },
     )
     if (!cart) {
       cart = new Cart()
       cart.member = member
-      this.em.persist(cart)
-      await this.em.flush()
+      em.persist(cart)
+      await em.flush()
+    }
+    if (lockMode) {
+      await em.populate(cart, ['lines', 'lines.product', 'lines.product.prices'])
     }
     return cart
   }
 
-  /** `unit` mode requires an integer ≥ 1; `weight` mode requires ≤ 3 decimal places. */
+  /**
+   * `unit` mode requires an integer ≥ 1; `weight` mode requires a positive multiple of 0.001.
+   * Checks via rounding to thousandths rather than `quantity.toString().split('.')` — for
+   * magnitudes below 1e-6, `toString()` switches to exponential notation with no `.`, which
+   * silently reported 0 decimals and let the value round down to a stored quantity of "0.000".
+   */
   private assertQuantity(product: Product, quantity: number): void {
     if (product.saleMode === 'unit') {
       if (!Number.isInteger(quantity) || quantity < 1) {
@@ -114,8 +139,8 @@ export class CartService {
       }
       return
     }
-    const decimals = (quantity.toString().split('.')[1] ?? '').length
-    if (decimals > 3) {
+    const thousandths = Math.round(quantity * 1000)
+    if (thousandths < 1 || Math.abs(quantity * 1000 - thousandths) > 1e-6) {
       throw new UnprocessableEntityException('Quantity supports at most 3 decimal places')
     }
   }
