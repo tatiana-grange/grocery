@@ -70,6 +70,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json,
   packages/openapi-generator/client/*, specs/shop-orders/tasks.md
 
+## [2026-09-04 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 2: Foundational. Added the `orders` module's `Cart`/`CartLine`/
+  `Order`/`OrderLine` entities, the shared `orderingModeChoiceSchema` /
+  `orderStatusSchema` contract enums, `orders.module.ts` (registered on `AppModule`,
+  no controllers yet), `cart.service.ts` / `orders.service.ts` / `orders.mapper.ts`
+  skeletons, and the public `shop-layout.tsx` shell (cart badge wired later in Phase
+  4/T037, once the cart exists). Reseeded the database to create the four new tables.
+- Tasks completed: T006, T007, T008, T009, T010, T011, T012, T013, T014
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/orders/entities/{cart,cart-line,order,order-line}.entity.ts,
+  apps/api/src/modules/orders/contracts/order.contract.ts,
+  apps/api/src/modules/orders/{orders.module,cart.service,orders.service,orders.mapper}.ts,
+  apps/api/src/app.module.ts, apps/web-spa/app/features/common/components/shop-layout.tsx,
+  apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json
+
 ---
 
 <!--

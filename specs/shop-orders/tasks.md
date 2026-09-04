@@ -64,30 +64,30 @@ this is done.
 
 **⚠️ CRITICAL**: Blocks every user story.
 
-- [ ] T006 [P] Create `Cart` entity in `apps/api/src/modules/orders/entities/cart.entity.ts`
+- [X] T006 [P] Create `Cart` entity in `apps/api/src/modules/orders/entities/cart.entity.ts`
       (`member` ManyToOne unique, `version`, audit)
-- [ ] T007 [P] Create `CartLine` entity in
+- [X] T007 [P] Create `CartLine` entity in
       `apps/api/src/modules/orders/entities/cart-line.entity.ts` (`cart`, `product`,
       `orderingMode`, `quantity` decimal(10,3); unique `(cart, product, orderingMode)`)
-- [ ] T008 [P] Create `Order` entity in `apps/api/src/modules/orders/entities/order.entity.ts`
+- [X] T008 [P] Create `Order` entity in `apps/api/src/modules/orders/entities/order.entity.ts`
       (`member`, `orderingMode`, `status`, `totalAmountCents`, `currency`, `placedAt`,
       `cancelledAt` nullable, `version`, audit)
-- [ ] T009 [P] Create `OrderLine` entity in
+- [X] T009 [P] Create `OrderLine` entity in
       `apps/api/src/modules/orders/entities/order-line.entity.ts` (`order`, `product`,
       `productNameSnapshot`, `quantity`, `unitPriceAmountCents`, `lineTotalAmountCents`,
       `createdAt` only — immutable snapshot, no `updatedAt`; this audit-field deviation is
       recorded in plan.md Complexity Tracking)
-- [ ] T010 Create `apps/api/src/modules/orders/contracts/order.contract.ts` with the two
+- [X] T010 Create `apps/api/src/modules/orders/contracts/order.contract.ts` with the two
       shared enums (`orderingModeChoiceSchema` = `pre_order` \| `in_store`, used by cart
       lines and orders; `orderStatusSchema`), each with `.meta()` and an exported inferred
       type (depends on T006–T009)
-- [ ] T011 Create `orders.module.ts` (no controllers yet), `cart.service.ts` and
+- [X] T011 Create `orders.module.ts` (no controllers yet), `cart.service.ts` and
       `orders.service.ts` skeletons (constructor + `EntityManager`), and `orders.mapper.ts`
       skeleton in `apps/api/src/modules/orders/` (depends on T006–T010)
-- [ ] T012 Register `OrdersModule` in `apps/api/src/app.module.ts` (depends on T011)
-- [ ] T013 Run `pnpm --filter=api db:fresh:seed` to create the `cart`, `cartLine`, `order`,
+- [X] T012 Register `OrdersModule` in `apps/api/src/app.module.ts` (depends on T011)
+- [X] T013 Run `pnpm --filter=api db:fresh:seed` to create the `cart`, `cartLine`, `order`,
       `orderLine` tables (depends on T012)
-- [ ] T014 [P] Create `apps/web-spa/app/features/common/components/shop-layout.tsx`: a
+- [X] T014 [P] Create `apps/web-spa/app/features/common/components/shop-layout.tsx`: a
       public shell (no session redirect) with links to the shop and cart, a cart-item-count
       badge and account link when signed in, and a sign-in/register link when signed out
 

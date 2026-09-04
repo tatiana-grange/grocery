@@ -1,0 +1,51 @@
+import { Button } from '@grocery/ui/components/primitives/button'
+import { Toaster } from '@grocery/ui/components/primitives/sonner'
+import { ShoppingCart, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { Link, Outlet } from 'react-router'
+import { authClient } from '@/lib/auth-client'
+
+/**
+ * Public shell for the shop: no session redirect, reachable signed out. Shows a sign-in link
+ * when signed out, and an account link when signed in — the cart link and its item-count
+ * badge are always visible (US2 wires the badge once the cart exists).
+ */
+export default function ShopLayout() {
+  const { t } = useTranslation()
+  const { data: sessionData } = authClient.useSession()
+
+  return (
+    <div className="min-h-svh bg-background">
+      <header className="flex items-center justify-between border-b border-border px-4 py-3">
+        <Link to="/shop" className="text-sm font-black uppercase tracking-tight">
+          {t('members.title')}
+        </Link>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" data-testid="shop-nav-cart" render={<Link to="/cart" />}>
+            <ShoppingCart className="mr-2 size-4" />
+            {t('shop.nav.cart')}
+          </Button>
+          {sessionData ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              data-testid="shop-nav-account"
+              render={<Link to="/account" />}
+            >
+              <User className="mr-2 size-4" />
+              {t('shop.nav.myAccount')}
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" data-testid="shop-nav-signin" render={<Link to="/login" />}>
+              {t('shop.nav.signIn')}
+            </Button>
+          )}
+        </div>
+      </header>
+      <main className="mx-auto max-w-5xl p-6">
+        <Outlet />
+      </main>
+      <Toaster position="bottom-right" richColors />
+    </div>
+  )
+}

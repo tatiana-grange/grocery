@@ -351,7 +351,14 @@
       "priceUpdated": "Prix mis à jour"
     }
   },
-  "shop": {},
+  "shop": {
+    "nav": {
+      "shop": "Boutique",
+      "cart": "Panier",
+      "myAccount": "Mon compte",
+      "signIn": "Se connecter"
+    }
+  },
   "cart": {},
   "orders": {},
   "common": {
