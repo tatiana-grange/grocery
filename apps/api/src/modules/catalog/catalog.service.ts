@@ -22,6 +22,11 @@ import type {
   UpdateProductInput,
 } from './contracts/product.contract'
 import type {
+  ShopProductFiltering,
+  ShopProductPagination,
+  ShopProductSorting,
+} from './contracts/shop-catalog.contract'
+import type {
   CreateSupplierInput,
   SupplierFiltering,
   SupplierPagination,
@@ -418,6 +423,68 @@ export class CatalogService {
     }
     product.archivedAt = undefined
     await this.em.flush()
+    return product
+  }
+
+  // ============================================================================================
+  // Public shop
+  // ============================================================================================
+
+  /** Categories with at least one non-archived product — an empty category stays hidden. */
+  async listShopCategories(): Promise<Category[]> {
+    const activeProducts = await this.em.find(
+      Product,
+      { archivedAt: null },
+      { fields: ['category'] },
+    )
+    const categoryIds = [...new Set(activeProducts.map((product) => product.category.id))]
+    if (categoryIds.length === 0) return []
+    return this.em.find(
+      Category,
+      { id: { $in: categoryIds }, archivedAt: null },
+      { orderBy: { name: QueryOrder.ASC } },
+    )
+  }
+
+  async listShopProducts(
+    pagination: ShopProductPagination,
+    sort?: ShopProductSorting,
+    filter?: ShopProductFiltering,
+  ): Promise<ProductsListResult> {
+    const where: FilterQuery<Product> = { archivedAt: null }
+    for (const item of filter ?? []) {
+      if (item.property === 'categoryId') Object.assign(where, { category: item.value })
+      if (item.property === 'q') {
+        Object.assign(where, {
+          $or: [{ name: { $like: `%${item.value}%` } }, { barcode: { $like: `%${item.value}%` } }],
+        })
+      }
+    }
+
+    const sortItem = sort?.[0]
+    const direction =
+      sortItem && String(sortItem.direction).toUpperCase() === 'ASC'
+        ? QueryOrder.ASC
+        : QueryOrder.DESC
+    const orderBy = sortItem?.property === 'name' ? { name: direction } : { createdAt: direction }
+
+    const [products, total] = await this.em.findAndCount(Product, where, {
+      populate: ['category', 'prices'],
+      orderBy,
+      limit: pagination.pageSize,
+      offset: pagination.offset,
+    })
+    return { products, total, pagination }
+  }
+
+  /** `404`s for an archived or unknown id — no "this exists but you can't see it" leak. */
+  async getShopProductDetail(id: string): Promise<Product> {
+    const product = await this.em.findOne(
+      Product,
+      { id, archivedAt: null },
+      { populate: ['category', 'prices'] },
+    )
+    if (!product) throw new NotFoundException('Product not found')
     return product
   }
 

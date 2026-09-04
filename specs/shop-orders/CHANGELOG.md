@@ -88,6 +88,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   apps/api/src/app.module.ts, apps/web-spa/app/features/common/components/shop-layout.tsx,
   apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json
 
+## [2026-09-04 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 3: User Story 1 (browse the public shop). Added the `/shop/*` public
+  read surface (`ShopCatalogController`, narrower `shop-catalog.contract.ts`, and
+  `CatalogService`/`CatalogMapper` additions) plus its controller e2e spec; the frontend
+  shop browse/search/sort/detail pages, wired under the shop-layout route group; and the
+  Playwright spec covering all of that signed-out. Fixed a pre-existing gap in
+  `AuthGuard`: `@Public()`/`@Optional()` were only read off the route handler, so a
+  class-level `@Public()` (the design this feature and the plan call for) silently had no
+  effect — switched both to `getAllAndOverride` against handler + class, matching how
+  `@AdminOnly()`/`@MemberScoped()` already work. Extended `E2eSeeder`'s catalogue fixtures
+  to cover every ordering mode, a barcode, and a hidden-empty category, mirroring the
+  admin-side `CatalogSeeder` change from Phase 1. Used a plain `<select>` for the shop's
+  sort control instead of the shadcn `Select` primitive, matching the plain-`<select>`
+  pattern the admin product form already uses for supplier/category pickers (no other
+  screen in this codebase uses the shadcn `Select` yet).
+- Tasks completed: T015, T016, T017, T018, T019, T020, T021, T022, T023, T024, T025, T026
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/auth/auth.guard.ts,
+  apps/api/src/modules/catalog/contracts/shop-catalog.contract.ts,
+  apps/api/src/modules/catalog/{catalog.service,catalog.mapper,catalog.module,shop-catalog.controller}.ts,
+  apps/api/src/modules/catalog/tests/shop-catalog.controller.e2e-spec.ts,
+  apps/api/src/seeders/{e2e.seeder,e2e.fixtures}.ts,
+  apps/web-spa/app/features/shop/**, apps/web-spa/app/routes.ts,
+  apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json,
+  apps/web-spa-e2e/{env.ts,tests/shop-catalog.spec.ts}, packages/openapi-generator/client/*
+
 ---
 
 <!--

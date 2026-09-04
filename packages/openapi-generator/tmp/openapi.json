@@ -2243,6 +2243,125 @@
           }
         }
       }
+    },
+    "/api/shop/categories": {
+      "get": {
+        "operationId": "ShopCatalogController_listCategories",
+        "tags": [
+          "Shop"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Categories that currently have at least one orderable product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopCategoriesList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shop/products": {
+      "get": {
+        "operationId": "ShopCatalogController_listProducts",
+        "tags": [
+          "Shop"
+        ],
+        "parameters": [
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ShopCatalogController_listProducts_filterArray"
+            },
+            "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: categoryId, q",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ShopCatalogController_listProducts_sortArray"
+            },
+            "description": "Schema for sorting items",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "description": "Starting position of the query",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "description": "Number of items to return",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of orderable products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopProductsList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shop/products/{id}": {
+      "get": {
+        "operationId": "ShopCatalogController_getProduct",
+        "tags": [
+          "Shop"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A product detail page shown in the public shop — narrower than the admin detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopProductDetail"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3747,6 +3866,263 @@
         "title": "CatalogPriceWindow",
         "description": "One entry in a product’s price history"
       },
+      "ShopCategoriesList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ShopCategory"
+        },
+        "title": "ShopCategoriesList",
+        "description": "Categories that currently have at least one orderable product"
+      },
+      "ShopCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false,
+        "title": "ShopCategory",
+        "description": "A category with at least one orderable product"
+      },
+      "ShopProductsList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopProduct"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "itemCount": {
+                "type": "number"
+              },
+              "hasMore": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "title": "ShopProductsList",
+        "description": "A paginated list of orderable products"
+      },
+      "ShopProduct": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "saleMode": {
+            "type": "string",
+            "enum": [
+              "unit",
+              "weight"
+            ],
+            "title": "ProductSaleMode",
+            "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
+          },
+          "pricingUnit": {
+            "type": "string",
+            "enum": [
+              "piece",
+              "kg"
+            ],
+            "title": "ProductPricingUnit",
+            "description": "Derived from the sale mode: unit → piece, weight → kg"
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "organic",
+                "local",
+                "vegetarian",
+                "vegan"
+              ],
+              "title": "ProductLabel",
+              "description": "Informational badges shown on the product"
+            }
+          },
+          "currentPriceEur": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "orderingMode": {
+            "type": "string",
+            "enum": [
+              "pre_order",
+              "in_store",
+              "both"
+            ],
+            "title": "ProductOrderingMode",
+            "description": "pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "saleMode",
+          "pricingUnit",
+          "photos",
+          "labels",
+          "currentPriceEur",
+          "orderingMode"
+        ],
+        "additionalProperties": false,
+        "title": "ShopProduct",
+        "description": "A product as shown in the public shop list"
+      },
+      "ShopProductDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "saleMode": {
+            "$ref": "#/components/schemas/ProductSaleMode"
+          },
+          "pricingUnit": {
+            "$ref": "#/components/schemas/ProductPricingUnit"
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductLabel"
+            }
+          },
+          "currentPriceEur": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "orderingMode": {
+            "$ref": "#/components/schemas/ProductOrderingMode"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "barcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "saleMode",
+          "pricingUnit",
+          "photos",
+          "labels",
+          "currentPriceEur",
+          "orderingMode"
+        ],
+        "additionalProperties": false,
+        "title": "ShopProductDetail",
+        "description": "A product detail page shown in the public shop — narrower than the admin detail"
+      },
       "MembersList": {
         "type": "object",
         "properties": {
@@ -4712,6 +5088,89 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/AdminProductsController_list_sortItem"
+        }
+      },
+      "ShopCatalogController_listProducts_filterItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "categoryId"
+              },
+              {
+                "type": "string",
+                "const": "q"
+              }
+            ]
+          },
+          "rule": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "like",
+              "nlike",
+              "in",
+              "nin",
+              "isnull",
+              "isnotnull"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "property",
+          "rule"
+        ],
+        "additionalProperties": false
+      },
+      "ShopCatalogController_listProducts_filterArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ShopCatalogController_listProducts_filterItem"
+        }
+      },
+      "ShopCatalogController_listProducts_sortItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "name"
+              },
+              {
+                "type": "string",
+                "const": "createdAt"
+              }
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          }
+        },
+        "required": [
+          "property",
+          "direction"
+        ],
+        "additionalProperties": false
+      },
+      "ShopCatalogController_listProducts_sortArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ShopCatalogController_listProducts_sortItem"
         }
       }
     }

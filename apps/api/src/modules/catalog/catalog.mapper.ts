@@ -3,6 +3,12 @@ import { centsToEur, pricingUnitFor } from './catalog.util'
 import type { Category as CategoryContract } from './contracts/category.contract'
 import type { PriceWindow } from './contracts/product-price.contract'
 import type {
+  ShopCategory,
+  ShopProduct,
+  ShopProductDetail,
+  ShopProductsList,
+} from './contracts/shop-catalog.contract'
+import type {
   Product as ProductContract,
   ProductDetail,
   ProductsList,
@@ -117,6 +123,49 @@ export class CatalogMapper {
   toProductsList({ products, total, pagination }: ProductsListResult): ProductsList {
     return {
       data: products.map((product) => this.toProduct(product)),
+      meta: {
+        itemCount: total,
+        pageSize: pagination.pageSize,
+        offset: pagination.offset,
+        hasMore: pagination.offset + pagination.pageSize < total,
+      },
+    }
+  }
+
+  // ============================================================================================
+  // Public shop
+  // ============================================================================================
+
+  toShopCategory(category: Category): ShopCategory {
+    return { id: category.id, name: category.name }
+  }
+
+  toShopProduct(product: Product): ShopProduct {
+    return {
+      id: product.id,
+      name: product.name,
+      category: { id: product.category.id, name: product.category.name },
+      saleMode: product.saleMode,
+      pricingUnit: pricingUnitFor(product.saleMode),
+      photos: product.photos,
+      labels: product.labels,
+      // Every product carries an open price from creation (see CatalogService.createProduct).
+      currentPriceEur: this.currentPriceEur(product) ?? 0,
+      orderingMode: product.orderingMode,
+    }
+  }
+
+  toShopProductDetail(product: Product): ShopProductDetail {
+    return {
+      ...this.toShopProduct(product),
+      description: product.description ?? null,
+      barcode: product.barcode ?? null,
+    }
+  }
+
+  toShopProductsList({ products, total, pagination }: ProductsListResult): ShopProductsList {
+    return {
+      data: products.map((product) => this.toShopProduct(product)),
       meta: {
         itemCount: total,
         pageSize: pagination.pageSize,

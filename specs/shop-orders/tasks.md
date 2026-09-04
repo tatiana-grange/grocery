@@ -108,46 +108,46 @@ appear.
 
 ### Tests for User Story 1
 
-- [ ] T015 [P] [US1] Create
+- [X] T015 [P] [US1] Create
       `apps/api/src/modules/catalog/tests/shop-catalog.controller.e2e-spec.ts` covering:
       `/shop/categories` excludes the archived-only category; `/shop/products` excludes
       archived products and supports `q` (name and barcode) and sort; `/shop/products/:id`
       returns photos, description, current price, sale unit, labels, `orderingMode`; `404`
       on an archived or unknown id; every route reachable with no `Authorization` header
-- [ ] T016 [US1] E2E test for browsing, searching, sorting, and the hidden-empty-category
+- [X] T016 [US1] E2E test for browsing, searching, sorting, and the hidden-empty-category
       rule in `apps/web-spa-e2e/tests/shop-catalog.spec.ts` (no auth fixture — signed-out
       context), written to fail before the shop page exists
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Create `apps/api/src/modules/catalog/contracts/shop-catalog.contract.ts`
+- [X] T017 [P] [US1] Create `apps/api/src/modules/catalog/contracts/shop-catalog.contract.ts`
       (`shopCategorySchema`, `shopProductSchema`, `shopProductDetailSchema`,
       `enabledShopProductSortingKeys`, `enabledShopProductFilteringKeys`), each schema with
       `.meta()` and an exported inferred type
-- [ ] T018 [US1] Add `listShopCategories`, `listShopProducts`, `getShopProductDetail` to
+- [X] T018 [US1] Add `listShopCategories`, `listShopProducts`, `getShopProductDetail` to
       `apps/api/src/modules/catalog/catalog.service.ts` (non-archived only; a category is
       included only if it has ≥1 non-archived product) (depends on T017)
-- [ ] T019 [US1] Add `toShopProduct` / `toShopProductDetail` / `toShopCategory` to
+- [X] T019 [US1] Add `toShopProduct` / `toShopProductDetail` / `toShopCategory` to
       `apps/api/src/modules/catalog/catalog.mapper.ts` (depends on T017)
-- [ ] T020 [US1] Create `apps/api/src/modules/catalog/shop-catalog.controller.ts`,
+- [X] T020 [US1] Create `apps/api/src/modules/catalog/shop-catalog.controller.ts`,
       class-level `@Public()`, per `contracts/shop-catalog-api.md`: `GET /shop/categories`,
       `GET /shop/products`, `GET /shop/products/:id`; register it on `CatalogModule`
       (depends on T018, T019)
-- [ ] T021 [US1] Run `pnpm generate` (depends on T020)
-- [ ] T022 [P] [US1] Create `apps/web-spa/app/features/shop/utils/shop-queries.ts`
+- [X] T021 [US1] Run `pnpm generate` (depends on T020)
+- [X] T022 [P] [US1] Create `apps/web-spa/app/features/shop/utils/shop-queries.ts`
       (categories, product list with `categoryId`/`q`/sort/page, product detail) (depends
       on T021)
-- [ ] T023 [P] [US1] Create `apps/web-spa/app/features/shop/components/product-card.tsx`
+- [X] T023 [P] [US1] Create `apps/web-spa/app/features/shop/components/product-card.tsx`
       and `apps/web-spa/app/features/shop/components/category-filter.tsx` (shadcn `Card`,
       `Badge` for labels and ordering mode)
-- [ ] T024 [US1] Create `apps/web-spa/app/features/shop/components/shop-page.tsx`: search
+- [X] T024 [US1] Create `apps/web-spa/app/features/shop/components/shop-page.tsx`: search
       input, sort select, category filter, product grid, empty-state for no results
       (shadcn `Input`, `Select`, `EmptyState` from `@grocery/ui/components/app`) (depends
       on T022, T023)
-- [ ] T025 [US1] Create
+- [X] T025 [US1] Create
       `apps/web-spa/app/features/shop/components/shop-product-detail-page.tsx` (photos,
       description, price, sale unit, labels, ordering-mode badge) (depends on T022)
-- [ ] T026 [US1] Add `/shop` and `/shop/products/:productId` routes under a new
+- [X] T026 [US1] Add `/shop` and `/shop/products/:productId` routes under a new
       `shop-layout` layout group in `apps/web-spa/app/routes.ts`; fill the `shop` i18n
       namespace (en + fr) (depends on T024, T025, T014)
 

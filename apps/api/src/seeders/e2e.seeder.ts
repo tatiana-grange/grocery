@@ -9,11 +9,22 @@ import {
 } from '../modules/catalog/catalog.factory'
 import { MembershipPayment } from '../modules/members/entities/membership-payment.entity'
 import { createMemberData } from '../modules/members/members.factory'
-import { E2E_PASSWORD, E2E_SEARCH_MEMBER_NAME, E2E_USERS, FILLER_FIRST_NAMES } from './e2e.fixtures'
+import {
+  E2E_PASSWORD,
+  E2E_PRODUCT_BARCODE,
+  E2E_SEARCH_MEMBER_NAME,
+  E2E_USERS,
+  FILLER_FIRST_NAMES,
+} from './e2e.fixtures'
 
 // Re-exported so existing importers keep working; the definitions live in `e2e.fixtures.ts`,
 // which the `@grocery/web-spa-e2e` package also imports.
-export { E2E_PASSWORD, E2E_SEARCH_MEMBER_NAME, E2E_USERS } from './e2e.fixtures'
+export {
+  E2E_PASSWORD,
+  E2E_PRODUCT_BARCODE,
+  E2E_SEARCH_MEMBER_NAME,
+  E2E_USERS,
+} from './e2e.fixtures'
 
 /**
  * Deterministic read-only baseline for the web-spa E2E suite. Unlike `DatabaseSeeder` /
@@ -108,10 +119,12 @@ export class E2eSeeder extends Seeder {
     const producer = await createSupplierData(em, { name: 'Ferme des Prés', type: 'producer' })
     await createSupplierData(em, { name: 'Grossiste Bio Sud', type: 'wholesaler' })
     const category = await createCategoryData(em, { name: 'Fruits & légumes' })
+    const emptyCategory = await createCategoryData(em, { name: 'Épicerie (archivée)' })
 
     await createProductData(em, {
       name: 'Pommes Golden',
       saleMode: 'weight',
+      orderingMode: 'in_store',
       priceEur: 2.4,
       supplier: producer,
       category,
@@ -120,6 +133,7 @@ export class E2eSeeder extends Seeder {
     await createProductData(em, {
       name: 'Pain de campagne',
       saleMode: 'unit',
+      orderingMode: 'in_store',
       priceEur: 3.2,
       supplier: producer,
       category,
@@ -128,9 +142,49 @@ export class E2eSeeder extends Seeder {
     await createProductData(em, {
       name: 'Cageots consignés (archivé)',
       saleMode: 'unit',
+      orderingMode: 'in_store',
       priceEur: 1,
       supplier: producer,
       category,
+      setByUser: adminUser,
+      archivedAt: new Date(),
+    })
+    await createProductData(em, {
+      name: 'Panier de légumes du producteur',
+      saleMode: 'unit',
+      orderingMode: 'pre_order',
+      priceEur: 18,
+      supplier: producer,
+      category,
+      setByUser: adminUser,
+    })
+    await createProductData(em, {
+      name: 'Carottes en vrac',
+      saleMode: 'weight',
+      orderingMode: 'both',
+      priceEur: 1.9,
+      supplier: producer,
+      category,
+      setByUser: adminUser,
+    })
+    const { product: barcodeProduct } = await createProductData(em, {
+      name: 'Farine T65',
+      saleMode: 'unit',
+      orderingMode: 'in_store',
+      priceEur: 1.5,
+      supplier: producer,
+      category,
+      setByUser: adminUser,
+    })
+    barcodeProduct.barcode = E2E_PRODUCT_BARCODE
+    em.persist(barcodeProduct)
+    await createProductData(em, {
+      name: 'Article de catégorie archivée',
+      saleMode: 'unit',
+      orderingMode: 'in_store',
+      priceEur: 1,
+      supplier: producer,
+      category: emptyCategory,
       setByUser: adminUser,
       archivedAt: new Date(),
     })

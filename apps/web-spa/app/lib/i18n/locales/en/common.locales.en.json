@@ -357,7 +357,21 @@
       "cart": "Cart",
       "myAccount": "My account",
       "signIn": "Sign in"
-    }
+    },
+    "title": "Shop",
+    "subtitle": "Browse what the cooperative currently offers.",
+    "searchPlaceholder": "Search name or barcode…",
+    "sort": {
+      "nameAsc": "Name (A–Z)",
+      "newest": "Newest first"
+    },
+    "categories": {
+      "all": "All categories"
+    },
+    "empty": "No products match your search.",
+    "count": "{{count}} product",
+    "count_other": "{{count}} products",
+    "backToShop": "Back to shop"
   },
   "cart": {},
   "orders": {},

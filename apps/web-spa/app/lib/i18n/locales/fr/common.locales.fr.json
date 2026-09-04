@@ -357,7 +357,21 @@
       "cart": "Panier",
       "myAccount": "Mon compte",
       "signIn": "Se connecter"
-    }
+    },
+    "title": "Boutique",
+    "subtitle": "Découvrez ce que la coopérative propose actuellement.",
+    "searchPlaceholder": "Rechercher un nom ou un code-barres…",
+    "sort": {
+      "nameAsc": "Nom (A–Z)",
+      "newest": "Plus récents"
+    },
+    "categories": {
+      "all": "Toutes les catégories"
+    },
+    "empty": "Aucun produit ne correspond à votre recherche.",
+    "count": "{{count}} produit",
+    "count_other": "{{count}} produits",
+    "backToShop": "Retour à la boutique"
   },
   "cart": {},
   "orders": {},

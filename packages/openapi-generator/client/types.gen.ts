@@ -448,6 +448,95 @@ export type CatalogPriceWindow = {
 };
 
 /**
+ * ShopCategoriesList
+ *
+ * Categories that currently have at least one orderable product
+ */
+export type ShopCategoriesList = Array<ShopCategory>;
+
+/**
+ * ShopCategory
+ *
+ * A category with at least one orderable product
+ */
+export type ShopCategory = {
+    id: string;
+    name: string;
+};
+
+/**
+ * ShopProductsList
+ *
+ * A paginated list of orderable products
+ */
+export type ShopProductsList = {
+    data: Array<ShopProduct>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * ShopProduct
+ *
+ * A product as shown in the public shop list
+ */
+export type ShopProduct = {
+    id: string;
+    name: string;
+    category: {
+        id: string;
+        name: string;
+    };
+    /**
+     * ProductSaleMode
+     *
+     * "unit" is sold per piece, "weight" is priced per kilogram
+     */
+    saleMode: 'unit' | 'weight';
+    /**
+     * ProductPricingUnit
+     *
+     * Derived from the sale mode: unit → piece, weight → kg
+     */
+    pricingUnit: 'piece' | 'kg';
+    photos: Array<string>;
+    labels: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
+    currentPriceEur: number;
+    /**
+     * ProductOrderingMode
+     *
+     * pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart
+     */
+    orderingMode: 'pre_order' | 'in_store' | 'both';
+};
+
+/**
+ * ShopProductDetail
+ *
+ * A product detail page shown in the public shop — narrower than the admin detail
+ */
+export type ShopProductDetail = {
+    id: string;
+    name: string;
+    category: {
+        id: string;
+        name: string;
+    };
+    saleMode: ProductSaleMode;
+    pricingUnit: ProductPricingUnit;
+    photos: Array<string>;
+    labels: Array<ProductLabel>;
+    currentPriceEur: number;
+    orderingMode: ProductOrderingMode;
+    description?: string | null;
+    barcode?: string | null;
+};
+
+/**
  * MembersList
  *
  * A paginated list of members
@@ -782,6 +871,21 @@ export type AdminProductsControllerListSortItem = {
 };
 
 export type AdminProductsControllerListSortArray = Array<AdminProductsControllerListSortItem>;
+
+export type ShopCatalogControllerListProductsFilterItem = {
+    property: 'categoryId' | 'q';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type ShopCatalogControllerListProductsFilterArray = Array<ShopCatalogControllerListProductsFilterItem>;
+
+export type ShopCatalogControllerListProductsSortItem = {
+    property: 'name' | 'createdAt';
+    direction: 'asc' | 'desc';
+};
+
+export type ShopCatalogControllerListProductsSortArray = Array<ShopCatalogControllerListProductsSortItem>;
 
 export type AppControllerGetHelloData = {
     body?: never;
@@ -1676,3 +1780,72 @@ export type AdminProductsControllerUnarchiveResponses = {
 };
 
 export type AdminProductsControllerUnarchiveResponse = AdminProductsControllerUnarchiveResponses[keyof AdminProductsControllerUnarchiveResponses];
+
+export type ShopCatalogControllerListCategoriesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/shop/categories';
+};
+
+export type ShopCatalogControllerListCategoriesResponses = {
+    /**
+     * Categories that currently have at least one orderable product
+     */
+    200: ShopCategoriesList;
+};
+
+export type ShopCatalogControllerListCategoriesResponse = ShopCatalogControllerListCategoriesResponses[keyof ShopCatalogControllerListCategoriesResponses];
+
+export type ShopCatalogControllerListProductsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: categoryId, q
+         */
+        filter?: ShopCatalogControllerListProductsFilterArray;
+        /**
+         * Schema for sorting items
+         */
+        sort?: ShopCatalogControllerListProductsSortArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/shop/products';
+};
+
+export type ShopCatalogControllerListProductsResponses = {
+    /**
+     * A paginated list of orderable products
+     */
+    200: ShopProductsList;
+};
+
+export type ShopCatalogControllerListProductsResponse = ShopCatalogControllerListProductsResponses[keyof ShopCatalogControllerListProductsResponses];
+
+export type ShopCatalogControllerGetProductData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/shop/products/{id}';
+};
+
+export type ShopCatalogControllerGetProductResponses = {
+    /**
+     * A product detail page shown in the public shop — narrower than the admin detail
+     */
+    200: ShopProductDetail;
+};
+
+export type ShopCatalogControllerGetProductResponse = ShopCatalogControllerGetProductResponses[keyof ShopCatalogControllerGetProductResponses];
