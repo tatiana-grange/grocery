@@ -65,18 +65,17 @@ jobs:
           path: apps/web-spa-e2e/playwright-report/
 
   # Publishes the HTML report (traces included) to GitHub Pages so it is one click away
-  # from the run. One site: every run — push to `main` or a PR — replaces the previous
-  # report. Skipped for pull requests from a fork (no Pages permissions).
-  # Pages is enabled with Source: "GitHub Actions"; the `playwright-report` artifact
-  # (uploaded above, 7 days) is the offline fallback.
+  # from the run. Only on push to `main`: the `github-pages` environment's deployment
+  # branch policy rejects any other ref (a PR's `refs/pull/N/merge` included), so running
+  # this on a PR could only ever fail. On a PR the `playwright-report` artifact (uploaded
+  # above, 7 days) is the way to read the report. Pages source: "GitHub Actions".
   publish-report:
     name: 📊 publish report
     needs: web-spa-e2e
     if: >-
       ${{ !cancelled()
-      && needs.web-spa-e2e.outputs.report_ready == 'true'
-      && (github.event_name == 'push'
-      || github.event.pull_request.head.repo.full_name == github.repository) }}
+      && github.event_name == 'push'
+      && needs.web-spa-e2e.outputs.report_ready == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
