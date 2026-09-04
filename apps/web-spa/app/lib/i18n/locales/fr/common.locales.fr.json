@@ -373,7 +373,31 @@
     "count_other": "{{count}} produits",
     "backToShop": "Retour à la boutique"
   },
-  "cart": {},
+  "cart": {
+    "title": "Panier",
+    "empty": "Votre panier est vide.",
+    "browseShop": "Parcourir la boutique",
+    "product": "Produit",
+    "quantity": "Quantité",
+    "unitPrice": "Prix unitaire",
+    "lineTotal": "Total de la ligne",
+    "total": "Total",
+    "signInToAdd": "Se connecter pour ajouter au panier",
+    "addToCart": "Ajouter au panier",
+    "removeConfirm": {
+      "title": "Retirer cette ligne ?",
+      "description": "Le produit sera retiré de votre panier.",
+      "confirm": "Retirer"
+    },
+    "toasts": {
+      "added": "Ajouté au panier",
+      "removed": "Retiré du panier",
+      "error": "Une erreur est survenue"
+    },
+    "errors": {
+      "orderingModeUnavailable": "Ce produit ne propose plus ce mode de commande"
+    }
+  },
   "orders": {},
   "common": {
     "user": "Utilisateur",

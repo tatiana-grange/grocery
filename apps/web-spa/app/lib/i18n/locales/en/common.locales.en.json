@@ -373,7 +373,31 @@
     "count_other": "{{count}} products",
     "backToShop": "Back to shop"
   },
-  "cart": {},
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "browseShop": "Browse the shop",
+    "product": "Product",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "lineTotal": "Line total",
+    "total": "Total",
+    "signInToAdd": "Sign in to add to cart",
+    "addToCart": "Add to cart",
+    "removeConfirm": {
+      "title": "Remove this line?",
+      "description": "This removes the product from your cart.",
+      "confirm": "Remove"
+    },
+    "toasts": {
+      "added": "Added to cart",
+      "removed": "Removed from cart",
+      "error": "Something went wrong"
+    },
+    "errors": {
+      "orderingModeUnavailable": "This product no longer offers that ordering type"
+    }
+  },
   "orders": {},
   "common": {
     "user": "User",

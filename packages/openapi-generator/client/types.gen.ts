@@ -224,6 +224,26 @@ export type MembershipIntake = {
 };
 
 /**
+ * AddCartLine
+ *
+ * quantity is a piece count (integer) for a unit-sale product, or kilograms (up to 3 decimals) for a by-weight product
+ */
+export type AddCartLine = {
+    productId: string;
+    orderingMode: OrderingModeChoice;
+    quantity: number;
+};
+
+/**
+ * UpdateCartLine
+ *
+ * Change a line's quantity
+ */
+export type UpdateCartLine = {
+    quantity: number;
+};
+
+/**
  * CatalogSuppliersList
  *
  * A paginated list of suppliers
@@ -790,6 +810,63 @@ export type MemberSelf = {
     joinedAt?: string | null;
     version: number;
 };
+
+/**
+ * Cart
+ *
+ * The sum of its valid lines
+ */
+export type Cart = {
+    id: string;
+    lines: Array<CartLine>;
+    totalEur: number;
+    version: number;
+};
+
+/**
+ * CartLine
+ *
+ * A line in the caller's cart. isValid is false once the product is archived or no longer offers this ordering mode — the line is still returned, not dropped, until checkout.
+ */
+export type CartLine = {
+    id: string;
+    product: {
+        id: string;
+        name: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+        photos: Array<string>;
+    };
+    /**
+     * OrderingModeChoice
+     *
+     * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+     */
+    orderingMode: 'pre_order' | 'in_store';
+    quantity: number;
+    unitPriceEur: number;
+    lineTotalEur: number;
+    isValid: boolean;
+    invalidReason?: string | null;
+};
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export const OrderingModeChoice = { PRE_ORDER: 'pre_order', IN_STORE: 'in_store' } as const;
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export type OrderingModeChoice = typeof OrderingModeChoice[keyof typeof OrderingModeChoice];
 
 /**
  * TestSeedResetResponse
@@ -1849,3 +1926,92 @@ export type ShopCatalogControllerGetProductResponses = {
 };
 
 export type ShopCatalogControllerGetProductResponse = ShopCatalogControllerGetProductResponses[keyof ShopCatalogControllerGetProductResponses];
+
+export type CartControllerGetCartData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/cart';
+};
+
+export type CartControllerGetCartResponses = {
+    /**
+     * The sum of its valid lines
+     */
+    200: Cart;
+};
+
+export type CartControllerGetCartResponse = CartControllerGetCartResponses[keyof CartControllerGetCartResponses];
+
+export type CartControllerAddLineData = {
+    /**
+     * AddCartLine
+     *
+     * quantity is a piece count (integer) for a unit-sale product, or kilograms (up to 3 decimals) for a by-weight product
+     */
+    body: {
+        productId: string;
+        /**
+         * OrderingModeChoice
+         *
+         * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+         */
+        orderingMode: 'pre_order' | 'in_store';
+        quantity: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/cart/lines';
+};
+
+export type CartControllerAddLineResponses = {
+    /**
+     * The sum of its valid lines
+     */
+    200: Cart;
+};
+
+export type CartControllerAddLineResponse = CartControllerAddLineResponses[keyof CartControllerAddLineResponses];
+
+export type CartControllerRemoveLineData = {
+    body?: never;
+    path: {
+        lineId: string;
+    };
+    query?: never;
+    url: '/api/cart/lines/{lineId}';
+};
+
+export type CartControllerRemoveLineResponses = {
+    /**
+     * The sum of its valid lines
+     */
+    200: Cart;
+};
+
+export type CartControllerRemoveLineResponse = CartControllerRemoveLineResponses[keyof CartControllerRemoveLineResponses];
+
+export type CartControllerUpdateLineData = {
+    /**
+     * UpdateCartLine
+     *
+     * Change a line's quantity
+     */
+    body: {
+        quantity: number;
+    };
+    path: {
+        lineId: string;
+    };
+    query?: never;
+    url: '/api/cart/lines/{lineId}';
+};
+
+export type CartControllerUpdateLineResponses = {
+    /**
+     * The sum of its valid lines
+     */
+    200: Cart;
+};
+
+export type CartControllerUpdateLineResponse = CartControllerUpdateLineResponses[keyof CartControllerUpdateLineResponses];

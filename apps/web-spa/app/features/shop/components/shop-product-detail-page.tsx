@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
+import { AddToCartForm } from '@/features/cart/components/add-to-cart-form'
 import { shopProductDetailQueryOptions } from '@/features/shop/utils/shop-queries'
 
 export default function ShopProductDetailPage() {
@@ -64,6 +65,8 @@ export default function ShopProductDetailPage() {
               {product.description}
             </p>
           )}
+
+          <AddToCartForm product={product} />
         </div>
       </div>
     </div>

@@ -168,7 +168,7 @@ checking out.
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Create `apps/api/src/modules/orders/tests/orders.controller.e2e-spec.ts`
+- [X] T027 [P] [US2] Create `apps/api/src/modules/orders/tests/orders.controller.e2e-spec.ts`
       covering: `GET /cart` creates an empty cart on first read; `POST /cart/lines` adds a
       line and merges quantity on a repeat add of the same product + ordering mode; `409`
       when the requested `orderingMode` isn't offered by the product; `422` on a
@@ -177,40 +177,40 @@ checking out.
       `orderingMode` an admin narrowed after it was added comes back from `GET /cart` with
       `isValid: false` and a reason (not dropped); every route `401` unauthenticated and
       `403` for a pending/rejected/terminated member
-- [ ] T028 [US2] E2E test for adding, updating, removing cart lines (including a `both`
+- [X] T028 [US2] E2E test for adding, updating, removing cart lines (including a `both`
       product where the member picks the ordering type) and the signed-out redirect-to-login
       prompt in `apps/web-spa-e2e/tests/cart.spec.ts`, written to fail before the cart page
       exists
 
 ### Implementation for User Story 2
 
-- [ ] T029 [P] [US2] Create `apps/api/src/modules/orders/contracts/cart.contract.ts`
+- [X] T029 [P] [US2] Create `apps/api/src/modules/orders/contracts/cart.contract.ts`
       (`cartLineSchema`, `cartSchema`, `addCartLineSchema`, `updateCartLineSchema`), each
       with `.meta()` and an exported inferred type
-- [ ] T030 [US2] Implement `CartService` in `apps/api/src/modules/orders/cart.service.ts`:
+- [X] T030 [US2] Implement `CartService` in `apps/api/src/modules/orders/cart.service.ts`:
       `getOrCreateCart`, `addLine` (merge on `(cart, product, orderingMode)`, validate
       `orderingMode` against the product, validate quantity against `saleMode`),
       `updateLine`, `removeLine` (depends on T029)
-- [ ] T031 [US2] Add `toCartLine` / `toCart` to `apps/api/src/modules/orders/orders.mapper.ts`
+- [X] T031 [US2] Add `toCartLine` / `toCart` to `apps/api/src/modules/orders/orders.mapper.ts`
       — computes `unitPriceEur`/`lineTotalEur` from the product's current price and
       `isValid`/`invalidReason` from archived/ordering-mode state (depends on T029)
-- [ ] T032 [US2] Create `apps/api/src/modules/orders/cart.controller.ts`, class-level
+- [X] T032 [US2] Create `apps/api/src/modules/orders/cart.controller.ts`, class-level
       `@MemberScoped()`: `GET /cart`, `POST /cart/lines`, `PUT /cart/lines/:lineId`,
       `DELETE /cart/lines/:lineId`; register it on `OrdersModule` (depends on T030, T031)
-- [ ] T033 [US2] Run `pnpm generate` (depends on T032)
-- [ ] T034 [P] [US2] Create `apps/web-spa/app/features/cart/utils/cart-queries.ts` (get
+- [X] T033 [US2] Run `pnpm generate` (depends on T032)
+- [X] T034 [P] [US2] Create `apps/web-spa/app/features/cart/utils/cart-queries.ts` (get
       cart, add/update/remove line mutations) (depends on T033)
-- [ ] T035 [US2] Create `apps/web-spa/app/features/cart/components/add-to-cart-form.tsx`
+- [X] T035 [US2] Create `apps/web-spa/app/features/cart/components/add-to-cart-form.tsx`
       (quantity input, ordering-mode `RadioGroup` shown only when the product supports
       `both`) and wire it into `shop-product-detail-page.tsx`, redirecting a signed-out
       visitor to `/login` with a return path back to the product (depends on T034, T025)
-- [ ] T036 [US2] Create `apps/web-spa/app/features/cart/components/cart-page.tsx`: line
+- [X] T036 [US2] Create `apps/web-spa/app/features/cart/components/cart-page.tsx`: line
       list (shadcn `Table`), quantity stepper, remove with `AlertDialog` confirmation,
       running total, invalid-line messaging (depends on T034)
-- [ ] T037 [P] [US2] Create `apps/web-spa/app/features/cart/hooks/use-cart-count.ts` and
+- [X] T037 [P] [US2] Create `apps/web-spa/app/features/cart/hooks/use-cart-count.ts` and
       wire a cart badge into `shop-layout.tsx` and `member-area-layout.tsx` (depends on
       T034)
-- [ ] T038 [US2] Add the `/cart` route under the existing `member-area-layout` group in
+- [X] T038 [US2] Add the `/cart` route under the existing `member-area-layout` group in
       `apps/web-spa/app/routes.ts`; fill the `cart` i18n namespace (en + fr) (depends on
       T036, T037)
 

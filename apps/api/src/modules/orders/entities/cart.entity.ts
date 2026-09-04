@@ -26,7 +26,7 @@ export class Cart {
   @Index()
   member!: Rel<Member>
 
-  @OneToMany(() => CartLine, (line) => line.cart)
+  @OneToMany(() => CartLine, (line) => line.cart, { orphanRemoval: true })
   lines = new Collection<CartLine>(this)
 
   @Property({ version: true })

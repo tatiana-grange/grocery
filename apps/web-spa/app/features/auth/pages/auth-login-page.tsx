@@ -2,7 +2,7 @@ import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { normalizePhone, type IdentifierMode } from '@/features/auth/lib/identifier'
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
@@ -11,6 +11,8 @@ import { AuthLoginForm, type AuthLoginFormData } from '../forms/auth-login-form'
 export default function Login() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectTo = searchParams.get('redirect')
   const [mode, setMode] = useState<IdentifierMode>('email')
 
   const {
@@ -38,7 +40,7 @@ export default function Login() {
       return response.data
     },
     onSuccess: (data) => {
-      navigate(('url' in (data ?? {}) && (data as { url?: string }).url) || '/')
+      navigate(('url' in (data ?? {}) && (data as { url?: string }).url) || redirectTo || '/')
     },
   })
 

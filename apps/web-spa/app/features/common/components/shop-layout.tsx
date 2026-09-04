@@ -1,18 +1,20 @@
+import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import { ShoppingCart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet } from 'react-router'
+import { useCartCount } from '@/features/cart/hooks/use-cart-count'
 import { authClient } from '@/lib/auth-client'
 
 /**
  * Public shell for the shop: no session redirect, reachable signed out. Shows a sign-in link
- * when signed out, and an account link when signed in — the cart link and its item-count
- * badge are always visible (US2 wires the badge once the cart exists).
+ * when signed out, and an account link plus a cart-item-count badge when signed in.
  */
 export default function ShopLayout() {
   const { t } = useTranslation()
   const { data: sessionData } = authClient.useSession()
+  const cartCount = useCartCount()
 
   return (
     <div className="min-h-svh bg-background">
@@ -24,6 +26,11 @@ export default function ShopLayout() {
           <Button variant="ghost" size="sm" data-testid="shop-nav-cart" render={<Link to="/cart" />}>
             <ShoppingCart className="mr-2 size-4" />
             {t('shop.nav.cart')}
+            {cartCount > 0 && (
+              <Badge variant="secondary" className="ml-2" data-testid="shop-nav-cart-count">
+                {cartCount}
+              </Badge>
+            )}
           </Button>
           {sessionData ? (
             <Button

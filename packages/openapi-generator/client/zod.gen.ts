@@ -134,6 +134,15 @@ export const zMembershipIntake = z.object({
 });
 
 /**
+ * UpdateCartLine
+ *
+ * Change a line's quantity
+ */
+export const zUpdateCartLine = z.object({
+    quantity: z.number().gt(0)
+});
+
+/**
  * SupplierType
  *
  * Whether the supplier is a producer or a wholesaler
@@ -912,6 +921,60 @@ export const zMemberSelf = z.object({
         z.null()
     ])),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * CartLine
+ *
+ * A line in the caller's cart. isValid is false once the product is archived or no longer offers this ordering mode — the line is still returned, not dropped, until checkout.
+ */
+export const zCartLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    product: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string(),
+        saleMode: z.enum(['unit', 'weight']),
+        photos: z.array(z.string())
+    }),
+    orderingMode: z.enum(['pre_order', 'in_store']),
+    quantity: z.number().gt(0),
+    unitPriceEur: z.number().gt(0),
+    lineTotalEur: z.number().gt(0),
+    isValid: z.boolean(),
+    invalidReason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * Cart
+ *
+ * The sum of its valid lines
+ */
+export const zCart = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    lines: z.array(zCartLine),
+    totalEur: z.number().gte(0),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export const zOrderingModeChoice = z.enum(['pre_order', 'in_store']);
+
+/**
+ * AddCartLine
+ *
+ * quantity is a piece count (integer) for a unit-sale product, or kilograms (up to 3 decimals) for a by-weight product
+ */
+export const zAddCartLine = z.object({
+    productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderingMode: zOrderingModeChoice,
+    quantity: z.number().gt(0)
 });
 
 /**
@@ -1804,3 +1867,57 @@ export const zShopCatalogControllerGetProductData = z.object({
  * A product detail page shown in the public shop — narrower than the admin detail
  */
 export const zShopCatalogControllerGetProductResponse = zShopProductDetail;
+
+export const zCartControllerGetCartData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The sum of its valid lines
+ */
+export const zCartControllerGetCartResponse = zCart;
+
+export const zCartControllerAddLineData = z.object({
+    body: z.object({
+        productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        orderingMode: z.enum(['pre_order', 'in_store']),
+        quantity: z.number().gt(0)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The sum of its valid lines
+ */
+export const zCartControllerAddLineResponse = zCart;
+
+export const zCartControllerRemoveLineData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        lineId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The sum of its valid lines
+ */
+export const zCartControllerRemoveLineResponse = zCart;
+
+export const zCartControllerUpdateLineData = z.object({
+    body: z.object({
+        quantity: z.number().gt(0)
+    }),
+    path: z.object({
+        lineId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The sum of its valid lines
+ */
+export const zCartControllerUpdateLineResponse = zCart;

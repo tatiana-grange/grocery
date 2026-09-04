@@ -1,9 +1,11 @@
 import { AppLoader } from '@grocery/ui/components/app'
+import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
-import { LogOut, ShieldCheck } from 'lucide-react'
+import { LogOut, ShieldCheck, ShoppingCart } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useNavigate } from 'react-router'
+import { useCartCount } from '@/features/cart/hooks/use-cart-count'
 import { useRoles } from '@/features/common/hooks/use-session'
 import { authClient } from '@/lib/auth-client'
 
@@ -16,6 +18,7 @@ export default function MemberAreaLayout() {
   const navigate = useNavigate()
   const { data: sessionData, isPending } = authClient.useSession()
   const { isAdmin } = useRoles()
+  const cartCount = useCartCount()
 
   if (isPending) return <AppLoader />
   if (!sessionData) return <Navigate to="/login" replace />
@@ -32,6 +35,15 @@ export default function MemberAreaLayout() {
           {t('members.title')}
         </Link>
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" data-testid="member-area-cart" render={<Link to="/cart" />}>
+            <ShoppingCart className="mr-2 size-4" />
+            {t('shop.nav.cart')}
+            {cartCount > 0 && (
+              <Badge variant="secondary" className="ml-2" data-testid="member-area-cart-count">
+                {cartCount}
+              </Badge>
+            )}
+          </Button>
           {isAdmin && (
             <Button
               variant="ghost"

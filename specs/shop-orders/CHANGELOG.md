@@ -117,6 +117,38 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json,
   apps/web-spa-e2e/{env.ts,tests/shop-catalog.spec.ts}, packages/openapi-generator/client/*
 
+## [2026-09-04 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 4: User Story 2 (build a cart). Added the `/cart/*` API (contract,
+  `CartService`, `CartController`, mapper additions) with 12 controller e2e tests covering
+  merge-on-repeat-add, the `409`/`422` validation rules, ownership 404s, and a line whose
+  product's ordering mode was narrowed after it was added coming back `isValid: false`
+  instead of being dropped. Fixed a MikroORM gap surfaced by the "remove a line" test:
+  `Cart.lines` needed `orphanRemoval: true`, since `CartLine.cart` is required — without it,
+  removing a line from the collection violated the FK instead of deleting the row. Added the
+  frontend cart: the add-to-cart form (redirects a signed-out visitor to `/login?redirect=`,
+  which the login page now honors after sign-in), the cart page (quantity stepper, remove
+  with an `AlertDialog` confirmation, running total, invalid-line badges), a cart-count badge
+  in both the shop and member-area headers, and the `/cart` route. Used the same plain-button
+  toggle pattern as the rest of the app for the ordering-mode picker (shown only when a
+  product supports `both`) instead of the shadcn `RadioGroup`, matching Phase 3's shadcn
+  `Select` deviation for the same reason — no other screen in this codebase uses it yet.
+  Playwright spec covers add/adjust/remove, the `both`-product ordering-type choice, and the
+  signed-out redirect; full existing Playwright suite still green.
+- Tasks completed: T027, T028, T029, T030, T031, T032, T033, T034, T035, T036, T037, T038
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/orders/{cart.controller,cart.service,orders.mapper,orders.module}.ts,
+  apps/api/src/modules/orders/contracts/cart.contract.ts,
+  apps/api/src/modules/orders/entities/cart.entity.ts,
+  apps/api/src/modules/orders/tests/orders.controller.e2e-spec.ts,
+  apps/web-spa/app/features/cart/**, apps/web-spa/app/features/shop/components/shop-product-detail-page.tsx,
+  apps/web-spa/app/features/common/components/{shop-layout,member-area-layout}.tsx,
+  apps/web-spa/app/features/auth/pages/auth-login-page.tsx, apps/web-spa/app/routes.ts,
+  apps/web-spa/app/lib/i18n/locales/{en,fr}/common.locales.*.json,
+  apps/web-spa-e2e/tests/cart.spec.ts, packages/openapi-generator/client/*
+
 ---
 
 <!--
