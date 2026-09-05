@@ -1,6 +1,7 @@
 import type { Rel } from '@mikro-orm/core'
 import { Entity, Index, ManyToOne, PrimaryKey, Property } from '@mikro-orm/decorators/legacy'
 import { Product } from '../../catalog/entities/product.entity'
+import { SupplierOrderLine } from '../../purchasing/entities/supplier-order-line.entity'
 import { Order } from './order.entity'
 
 /**
@@ -36,6 +37,23 @@ export class OrderLine {
 
   @Property()
   lineTotalAmountCents!: number
+
+  /**
+   * Set once, at aggregation time (lot 3, research.md §3). `null` means "still pending, not
+   * yet aggregated for any supplier" — exactly the set aggregation queries against. Not an
+   * edit to the checkout snapshot above; a one-time record of what happened to the line
+   * afterward, so no `updatedAt` bump.
+   */
+  @ManyToOne(() => SupplierOrderLine, { fieldName: 'supplierOrderLineId', nullable: true })
+  @Index()
+  supplierOrderLine?: Rel<SupplierOrderLine>
+
+  /**
+   * Set once, the first time a reception is confirmed for this line's product on its linked
+   * supplier order (lot 3, research.md §6). Never reset.
+   */
+  @Property({ nullable: true })
+  fulfilledAt?: Date
 
   @Property()
   createdAt: Date = new Date()
