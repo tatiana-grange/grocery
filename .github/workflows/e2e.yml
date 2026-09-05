@@ -14,8 +14,6 @@ jobs:
     name: 🎭 web-spa e2e
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    outputs:
-      report_ready: ${{ steps.report.outputs.ready }}
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -50,7 +48,11 @@ jobs:
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: 📤 Upload Playwright report (download)
+      # The report is published to GitHub Pages by `deploy-docs.yml` (its only Pages
+      # deployer), which picks up this artifact on a `workflow_run` after each E2E run on
+      # `main` and serves it at https://tatiana-grange.github.io/grocery/e2e/. On a PR the
+      # artifact is the only way to read it.
+      - name: 📤 Upload Playwright report
         if: ${{ !cancelled() && steps.report.outputs.ready == 'true' }}
         uses: actions/upload-artifact@v4
         with:
@@ -58,43 +60,15 @@ jobs:
           path: apps/web-spa-e2e/playwright-report/
           retention-days: 7
 
-      - name: 📦 Package Playwright report for Pages
+      - name: 🔗 Report location
         if: ${{ !cancelled() && steps.report.outputs.ready == 'true' }}
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: apps/web-spa-e2e/playwright-report/
-
-  # Publishes the HTML report (traces included) to GitHub Pages so it is one click away
-  # from the run. Only on push to `main`: the `github-pages` environment's deployment
-  # branch policy rejects any other ref (a PR's `refs/pull/N/merge` included), so running
-  # this on a PR could only ever fail. On a PR the `playwright-report` artifact (uploaded
-  # above, 7 days) is the way to read the report. Pages source: "GitHub Actions".
-  publish-report:
-    name: 📊 publish report
-    needs: web-spa-e2e
-    if: >-
-      ${{ !cancelled()
-      && github.event_name == 'push'
-      && needs.web-spa-e2e.outputs.report_ready == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    steps:
-      - name: 🚀 Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
-
-      - name: 🔗 Link the report in the run summary
         run: |
           {
             echo "### 🎭 Playwright report"
             echo ""
-            echo "[Open the report](${{ steps.deploy.outputs.page_url }})"
+            if [ "${{ github.event_name }}" = "push" ]; then
+              echo "Publishing to <https://tatiana-grange.github.io/grocery/e2e/> via the docs deploy."
+            else
+              echo "Download the \`playwright-report\` artifact from this run and open \`index.html\`."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"

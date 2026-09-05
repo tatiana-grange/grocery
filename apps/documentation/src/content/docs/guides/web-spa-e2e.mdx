@@ -71,14 +71,17 @@ Call `resetDb()` (in a `beforeEach`) only in specs that mutate shared data.
 
 ## CI
 
-`.github/workflows/e2e.yml` runs `pnpm e2e` on pull requests to `main` — a standard
-`ubuntu-latest` runner with Docker, no paid services.
+`.github/workflows/e2e.yml` runs `pnpm e2e` on every push to `main` and every pull request
+to `main` — a standard `ubuntu-latest` runner with Docker, no paid services. It uploads the
+HTML report (traces included) as the `playwright-report` artefact on every run (kept 7
+days); open it locally with `npx playwright show-report <extracted-dir>`.
 
-On a **push to `main`** (so, when a PR merges) it publishes the HTML report (traces
-included) to **GitHub Pages** at `https://tatiana-grange.github.io/grocery/` and links it
-from the run summary — a single site, each merge replaces the previous report. It does not
-run on the PR itself: the `github-pages` environment only accepts deployments from `main`.
-Pages is configured with **Settings → Pages → Build and deployment → Source: "GitHub
-Actions"** (needs a public repo, or a plan that allows Pages on a private one). On a PR,
-read the run's `playwright-report` artefact instead (kept 7 days); open it locally with
-`npx playwright show-report <extracted-dir>`.
+The report is **published to GitHub Pages** at
+`https://tatiana-grange.github.io/grocery/e2e/` — a subpath of the documentation site. The
+repo has one Pages site and `deploy-docs.yml` is its only deployer: it builds the Astro
+site, drops the latest `playwright-report` artefact into `dist/e2e/`, and deploys once. It
+re-runs on a `workflow_run` after each E2E run on `main`, so the report tracks the latest
+merge; on a PR nothing is published (the `github-pages` environment only accepts `main`),
+so use the artefact. Pages is configured with **Settings → Pages → Build and deployment →
+Source: "GitHub Actions"** (needs a public repo, or a plan that allows Pages on a private
+one).
