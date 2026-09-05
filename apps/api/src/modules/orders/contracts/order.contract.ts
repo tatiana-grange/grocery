@@ -9,6 +9,17 @@ export const orderingModeChoiceSchema = z.enum(ORDERING_MODE_CHOICES).meta({
 })
 export type OrderingModeChoice = z.infer<typeof orderingModeChoiceSchema>
 
+export const CART_LINE_INVALID_REASON_CODES = [
+  'product_archived',
+  'ordering_mode_unavailable',
+] as const
+export const cartLineInvalidReasonCodeSchema = z.enum(CART_LINE_INVALID_REASON_CODES).meta({
+  title: 'CartLineInvalidReasonCode',
+  description:
+    'Why a cart line is no longer orderable — the frontend maps this to a translated message.',
+})
+export type CartLineInvalidReasonCode = z.infer<typeof cartLineInvalidReasonCodeSchema>
+
 export const ORDER_STATUSES = ['pending', 'cancelled'] as const
 export const orderStatusSchema = z.enum(ORDER_STATUSES).meta({
   title: 'OrderStatus',
@@ -22,8 +33,8 @@ export const orderLineSchema = z
     id: z.string().uuid(),
     productName: z.string(),
     quantity: z.number().positive(),
-    unitPriceEur: z.number().positive(),
-    lineTotalEur: z.number().positive(),
+    unitPriceEur: z.number().nonnegative(),
+    lineTotalEur: z.number().nonnegative(),
   })
   .meta({ title: 'OrderLine', description: 'An immutable snapshot, taken at checkout' })
 
@@ -52,7 +63,9 @@ export type OrderDetail = z.infer<typeof orderDetailSchema>
 export const checkoutResultSchema = z
   .object({
     orders: z.array(orderDetailSchema),
-    droppedLines: z.array(z.object({ productName: z.string(), reason: z.string() })),
+    droppedLines: z.array(
+      z.object({ productName: z.string(), reasonCode: cartLineInvalidReasonCodeSchema }),
+    ),
   })
   .meta({
     title: 'CheckoutResult',

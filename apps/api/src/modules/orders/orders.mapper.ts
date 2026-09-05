@@ -24,7 +24,7 @@ export class OrdersMapper {
   toCartLine(line: CartLine): CartLineContract {
     const unitPriceCents = this.currentPriceCents(line.product)
     const quantity = Number(line.quantity)
-    const { isValid, reason } = checkLineValidity(line.product, line.orderingMode)
+    const { isValid, reasonCode } = checkLineValidity(line.product, line.orderingMode)
 
     return {
       id: line.id,
@@ -39,7 +39,7 @@ export class OrdersMapper {
       unitPriceEur: centsToEur(unitPriceCents),
       lineTotalEur: centsToEur(Math.round(quantity * unitPriceCents)),
       isValid,
-      invalidReason: reason,
+      invalidReasonCode: reasonCode,
     }
   }
 

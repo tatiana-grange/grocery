@@ -171,7 +171,7 @@ describe('ordersController (e2e)', () => {
       expect(res.body.lines).toHaveLength(0)
     })
 
-    it('404s for a line that is not the caller\'s', async () => {
+    it("404s for a line that is not the caller's", async () => {
       const { lineId } = await addLine(1)
       const { user: other } = await createMemberData(em, { roles: ['member'], status: 'active' })
       const res = await request
@@ -185,7 +185,11 @@ describe('ordersController (e2e)', () => {
   describe('POST /cart/checkout', () => {
     it('splits a mixed cart into two orders, each with its own lines and total', async () => {
       const inStore = await makeProduct({ name: 'Milk', orderingMode: 'in_store', priceEur: 2 })
-      const preOrder = await makeProduct({ name: 'Basket', orderingMode: 'pre_order', priceEur: 10 })
+      const preOrder = await makeProduct({
+        name: 'Basket',
+        orderingMode: 'pre_order',
+        priceEur: 10,
+      })
       await request
         .withSession(member)
         .post('/cart/lines')
@@ -319,7 +323,7 @@ describe('ordersController (e2e)', () => {
       expect(res.status).toBe(200)
       expect(res.body.lines).toHaveLength(1)
       expect(res.body.lines[0].isValid).toBe(false)
-      expect(res.body.lines[0].invalidReason).toBeTruthy()
+      expect(res.body.lines[0].invalidReasonCode).toBe('ordering_mode_unavailable')
     })
   })
 })

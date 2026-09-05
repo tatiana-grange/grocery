@@ -12,11 +12,11 @@ export const supplierTypeSchema = z.enum(SUPPLIER_TYPES).meta({
 })
 export type SupplierType = z.infer<typeof supplierTypeSchema>
 
-export const SUPPLIER_DELIVERY_MODES = ['livraison', 'collecte'] as const
+export const SUPPLIER_DELIVERY_MODES = ['delivery', 'pickup'] as const
 export const supplierDeliveryModeSchema = z.enum(SUPPLIER_DELIVERY_MODES).meta({
   title: 'SupplierDeliveryMode',
   description:
-    'Whether the supplier delivers to the épicerie ("livraison") or a member picks the order up ("collecte")',
+    'Whether the supplier delivers to the épicerie ("delivery") or someone picks the order up from them ("pickup")',
 })
 export type SupplierDeliveryMode = z.infer<typeof supplierDeliveryModeSchema>
 

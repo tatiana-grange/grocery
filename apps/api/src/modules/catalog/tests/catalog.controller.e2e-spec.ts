@@ -212,13 +212,13 @@ describe('catalogController (e2e)', () => {
       .send({
         name: 'Ferme test',
         type: 'producer',
-        deliveryMode: 'collecte',
+        deliveryMode: 'pickup',
         referentId: referent.id,
         producerCategoryIds: [drinks.id, cheese.id],
       })
 
     expect(res.status).toBe(201)
-    expect(res.body.deliveryMode).toBe('collecte')
+    expect(res.body.deliveryMode).toBe('pickup')
     expect(res.body.referent).toMatchObject({ id: referent.id, lastName: 'Grolleau' })
     expect(res.body.producerCategories.map((c: { id: string }) => c.id).sort()).toEqual(
       [drinks.id, cheese.id].sort(),

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { productSaleModeSchema } from '../../catalog/contracts/product.contract'
-import { orderingModeChoiceSchema } from './order.contract'
+import { cartLineInvalidReasonCodeSchema, orderingModeChoiceSchema } from './order.contract'
 
 export const cartLineSchema = z
   .object({
@@ -13,15 +13,15 @@ export const cartLineSchema = z
     }),
     orderingMode: orderingModeChoiceSchema,
     quantity: z.number().positive(),
-    unitPriceEur: z.number().positive(),
-    lineTotalEur: z.number().positive(),
+    unitPriceEur: z.number().nonnegative(),
+    lineTotalEur: z.number().nonnegative(),
     isValid: z.boolean(),
-    invalidReason: z.string().nullish(),
+    invalidReasonCode: cartLineInvalidReasonCodeSchema.nullish(),
   })
   .meta({
     title: 'CartLine',
     description:
-      'A line in the caller\'s cart. isValid is false once the product is archived or no ' +
+      "A line in the caller's cart. isValid is false once the product is archived or no " +
       'longer offers this ordering mode — the line is still returned, not dropped, until checkout.',
   })
 
@@ -55,6 +55,6 @@ export type AddCartLineInput = z.infer<typeof addCartLineSchema>
 
 export const updateCartLineSchema = z
   .object({ quantity: z.number().positive() })
-  .meta({ title: 'UpdateCartLine', description: 'Change a line\'s quantity' })
+  .meta({ title: 'UpdateCartLine', description: "Change a line's quantity" })
 
 export type UpdateCartLineInput = z.infer<typeof updateCartLineSchema>

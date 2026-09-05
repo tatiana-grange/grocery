@@ -20,7 +20,7 @@ export class CatalogSeeder extends Seeder {
     const producer = await createSupplierData(em, {
       name: 'Ferme des Prés',
       type: 'producer',
-      deliveryMode: 'livraison',
+      deliveryMode: 'delivery',
       referent,
       producerCategories: [producerCategory],
     })

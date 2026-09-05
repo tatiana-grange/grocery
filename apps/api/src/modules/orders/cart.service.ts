@@ -1,4 +1,4 @@
-import { EntityManager, LockMode } from '@mikro-orm/core'
+import { EntityManager, LockMode, UniqueConstraintViolationException } from '@mikro-orm/core'
 import {
   ConflictException,
   Injectable,
@@ -37,6 +37,22 @@ export class CartService {
     }
     this.assertQuantity(product, input.quantity)
 
+    try {
+      return await this.addLineToCart(member, product, input)
+    } catch (error) {
+      if (!(error instanceof UniqueConstraintViolationException)) throw error
+      // The member had no cart yet and two adds raced to create it — the loser's insert hits
+      // the cart's unique (member) constraint with an unhandled 500. Retry once: the cart now
+      // exists, so the lock inside addLineToCart serialises us against it like any other add.
+      return this.addLineToCart(member, product, input)
+    }
+  }
+
+  private async addLineToCart(
+    member: Member,
+    product: Product,
+    input: AddCartLineInput,
+  ): Promise<Cart> {
     return this.em.transactional(async (em) => {
       // Lock the cart row so two concurrent adds of the same line serialise: without this both
       // readers can see no matching line, both insert one, and the second violates the unique

@@ -2,6 +2,7 @@ import { EntityManager } from '@mikro-orm/core'
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { currentPrice } from '../catalog/catalog.util'
 import { Member } from '../members/entities/member.entity'
+import type { CartLineInvalidReasonCode } from './cart-line-validity.util'
 import { checkLineValidity } from './cart-line-validity.util'
 import type { OrderingModeChoice } from './contracts/order.contract'
 import { CartLine } from './entities/cart-line.entity'
@@ -11,7 +12,7 @@ import { Order } from './entities/order.entity'
 
 export interface DroppedLine {
   productName: string
-  reason: string
+  reasonCode: CartLineInvalidReasonCode
 }
 
 export interface CheckoutResult {
@@ -45,9 +46,9 @@ export class OrdersService {
       const validLines: CartLine[] = []
 
       for (const line of cart.lines.getItems()) {
-        const { isValid, reason } = checkLineValidity(line.product, line.orderingMode)
+        const { isValid, reasonCode } = checkLineValidity(line.product, line.orderingMode)
         if (!isValid) {
-          droppedLines.push({ productName: line.product.name, reason: reason! })
+          droppedLines.push({ productName: line.product.name, reasonCode: reasonCode! })
           continue
         }
         validLines.push(line)
