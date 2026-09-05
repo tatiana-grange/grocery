@@ -1,11 +1,6 @@
 import type { CheckoutResult } from '@/features/cart/utils/cart-queries'
 import { Badge } from '@grocery/ui/components/primitives/badge'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@grocery/ui/components/primitives/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@grocery/ui/components/primitives/card'
 import { useTranslation } from 'react-i18next'
 
 /** Per-order summary shown after checkout: its lines, total, and what happens next. */
@@ -23,7 +18,7 @@ export function CheckoutConfirmation({ result }: { result: CheckoutResult }) {
           <ul className="mt-1 list-disc pl-5">
             {result.droppedLines.map((line) => (
               <li key={line.productName}>
-                {line.productName} — {line.reason}
+                {line.productName} — {t(`cart.invalidReason.${line.reasonCode}`)}
               </li>
             ))}
           </ul>

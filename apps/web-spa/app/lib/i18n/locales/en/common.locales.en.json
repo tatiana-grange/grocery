@@ -371,10 +371,13 @@
     "empty": "No products match your search.",
     "count": "{{count}} product",
     "count_other": "{{count}} products",
-    "backToShop": "Back to shop"
+    "backToShop": "Back to shop",
+    "productNotFound": "This product doesn't exist or is no longer available.",
+    "loadError": "We couldn't load this product right now."
   },
   "cart": {
     "title": "Cart",
+    "loadError": "We couldn't load your cart right now.",
     "empty": "Your cart is empty.",
     "browseShop": "Browse the shop",
     "product": "Product",
@@ -406,6 +409,10 @@
     },
     "errors": {
       "orderingModeUnavailable": "This product no longer offers that ordering type"
+    },
+    "invalidReason": {
+      "product_archived": "This product is no longer available",
+      "ordering_mode_unavailable": "This product no longer offers this ordering type"
     }
   },
   "orders": {},

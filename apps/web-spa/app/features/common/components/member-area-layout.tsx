@@ -4,7 +4,7 @@ import { Button } from '@grocery/ui/components/primitives/button'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import { LogOut, ShieldCheck, ShoppingCart } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, Outlet, useNavigate } from 'react-router'
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router'
 import { useCartCount } from '@/features/cart/hooks/use-cart-count'
 import { useRoles } from '@/features/common/hooks/use-session'
 import { authClient } from '@/lib/auth-client'
@@ -16,12 +16,15 @@ import { authClient } from '@/lib/auth-client'
 export default function MemberAreaLayout() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const { data: sessionData, isPending } = authClient.useSession()
   const { isAdmin } = useRoles()
   const cartCount = useCartCount()
 
   if (isPending) return <AppLoader />
-  if (!sessionData) return <Navigate to="/login" replace />
+  if (!sessionData) {
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />
+  }
 
   const handleLogout = async () => {
     await authClient.signOut()
@@ -35,7 +38,12 @@ export default function MemberAreaLayout() {
           {t('members.title')}
         </Link>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" data-testid="member-area-cart" render={<Link to="/cart" />}>
+          <Button
+            variant="ghost"
+            size="sm"
+            data-testid="member-area-cart"
+            render={<Link to="/cart" />}
+          >
             <ShoppingCart className="mr-2 size-4" />
             {t('shop.nav.cart')}
             {cartCount > 0 && (
@@ -55,12 +63,7 @@ export default function MemberAreaLayout() {
               {t('adminMembers.backOffice')}
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            data-testid="nav-logout"
-            onClick={handleLogout}
-          >
+          <Button variant="ghost" size="sm" data-testid="nav-logout" onClick={handleLogout}>
             <LogOut className="mr-2 size-4" />
             {t('members.nav.logOut')}
           </Button>

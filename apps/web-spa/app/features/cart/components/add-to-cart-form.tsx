@@ -30,7 +30,7 @@ export function AddToCartForm({ product }: { product: ShopProductDetail }) {
   const queryClient = useQueryClient()
   const { data: sessionData } = authClient.useSession()
 
-  const [quantity, setQuantity] = useState(product.saleMode === 'unit' ? '1' : '1')
+  const [quantity, setQuantity] = useState('1')
   const [orderingMode, setOrderingMode] = useState<OrderingModeChoice>(
     product.orderingMode === 'pre_order' ? 'pre_order' : 'in_store',
   )

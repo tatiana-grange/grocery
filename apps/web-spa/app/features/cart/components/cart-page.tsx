@@ -89,9 +89,9 @@ function CartLineRow({ line }: { line: CartLine }) {
         {line.product.name}
         <div className="mt-1 flex flex-wrap gap-1">
           <Badge variant="outline">{t(`catalog.orderingMode.${line.orderingMode}`)}</Badge>
-          {!line.isValid && (
+          {!line.isValid && line.invalidReasonCode && (
             <Badge variant="destructive" data-testid={`cart-line-invalid-${line.id}`}>
-              {line.invalidReason}
+              {t(`cart.invalidReason.${line.invalidReasonCode}`)}
             </Badge>
           )}
         </div>
@@ -160,7 +160,7 @@ function CartLineRow({ line }: { line: CartLine }) {
 export default function CartPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { data: cart, isLoading } = useQuery(cartQueryOptions())
+  const { data: cart, isLoading, isFetching, error, refetch } = useQuery(cartQueryOptions())
   const [confirmation, setConfirmation] = useState<CheckoutResult | null>(null)
 
   const checkoutMutation = useMutation({
@@ -192,7 +192,19 @@ export default function CartPage() {
     )
   }
 
-  if (isLoading || !cart) return <Skeleton className="h-64 w-full" />
+  if (isLoading) return <Skeleton className="h-64 w-full" />
+
+  if (error || !cart) {
+    return (
+      <div className="space-y-4 text-center" data-testid="cart-load-error">
+        <h1 className="text-2xl font-black tracking-tight">{t('cart.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('cart.loadError')}</p>
+        <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+          {t('common.retry')}
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6" data-testid="page-cart">

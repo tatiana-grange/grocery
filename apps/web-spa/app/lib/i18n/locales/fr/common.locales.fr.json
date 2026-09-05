@@ -371,10 +371,13 @@
     "empty": "Aucun produit ne correspond à votre recherche.",
     "count": "{{count}} produit",
     "count_other": "{{count}} produits",
-    "backToShop": "Retour à la boutique"
+    "backToShop": "Retour à la boutique",
+    "productNotFound": "Ce produit n'existe pas ou n'est plus disponible.",
+    "loadError": "Impossible de charger ce produit pour le moment."
   },
   "cart": {
     "title": "Panier",
+    "loadError": "Impossible de charger votre panier pour le moment.",
     "empty": "Votre panier est vide.",
     "browseShop": "Parcourir la boutique",
     "product": "Produit",
@@ -406,6 +409,10 @@
     },
     "errors": {
       "orderingModeUnavailable": "Ce produit ne propose plus ce mode de commande"
+    },
+    "invalidReason": {
+      "product_archived": "Ce produit n'est plus disponible",
+      "ordering_mode_unavailable": "Ce produit ne propose plus ce mode de commande"
     }
   },
   "orders": {},

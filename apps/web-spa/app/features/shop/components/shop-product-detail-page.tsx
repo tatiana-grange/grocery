@@ -1,3 +1,4 @@
+import { EmptyState } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -6,15 +7,52 @@ import { ArrowLeft, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { AddToCartForm } from '@/features/cart/components/add-to-cart-form'
+import { isNotFound } from '@/features/common/lib/api-error'
 import { shopProductDetailQueryOptions } from '@/features/shop/utils/shop-queries'
 
 export default function ShopProductDetailPage() {
   const { t } = useTranslation()
   const { productId = '' } = useParams()
 
-  const { data: product, isLoading } = useQuery(shopProductDetailQueryOptions(productId))
+  const {
+    data: product,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery({
+    ...shopProductDetailQueryOptions(productId),
+    retry: (failureCount, err) => !isNotFound(err) && failureCount < 2,
+  })
 
-  if (isLoading || !product) return <Skeleton className="h-96 w-full" />
+  if (isLoading) return <Skeleton className="h-96 w-full" />
+
+  if (error && isNotFound(error)) {
+    return (
+      <div data-testid="shop-product-not-found">
+        <EmptyState
+          icon={<Package className="size-6 text-muted-foreground" />}
+          title={t('shop.productNotFound')}
+        />
+        <div className="text-center">
+          <Link to="/shop" className="text-sm font-medium underline">
+            {t('shop.backToShop')}
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !product) {
+    return (
+      <div className="space-y-4 text-center" data-testid="shop-product-load-error">
+        <p className="text-sm text-muted-foreground">{t('shop.loadError')}</p>
+        <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+          {t('common.retry')}
+        </Button>
+      </div>
+    )
+  }
 
   const unit = t(`catalog.pricingUnit.${product.pricingUnit}`)
 
