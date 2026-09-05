@@ -1254,11 +1254,11 @@
                       {
                         "type": "string",
                         "enum": [
-                          "livraison",
-                          "collecte"
+                          "delivery",
+                          "pickup"
                         ],
                         "title": "SupplierDeliveryMode",
-                        "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+                        "description": "Whether the supplier delivers to the épicerie (\"delivery\") or someone picks the order up from them (\"pickup\")"
                       },
                       {
                         "type": "null"
@@ -1436,11 +1436,11 @@
                       {
                         "type": "string",
                         "enum": [
-                          "livraison",
-                          "collecte"
+                          "delivery",
+                          "pickup"
                         ],
                         "title": "SupplierDeliveryMode",
-                        "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+                        "description": "Whether the supplier delivers to the épicerie (\"delivery\") or someone picks the order up from them (\"pickup\")"
                       },
                       {
                         "type": "null"
@@ -3150,11 +3150,11 @@
               {
                 "type": "string",
                 "enum": [
-                  "livraison",
-                  "collecte"
+                  "delivery",
+                  "pickup"
                 ],
                 "title": "SupplierDeliveryMode",
-                "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+                "description": "Whether the supplier delivers to the épicerie (\"delivery\") or someone picks the order up from them (\"pickup\")"
               },
               {
                 "type": "null"
@@ -3260,11 +3260,11 @@
               {
                 "type": "string",
                 "enum": [
-                  "livraison",
-                  "collecte"
+                  "delivery",
+                  "pickup"
                 ],
                 "title": "SupplierDeliveryMode",
-                "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+                "description": "Whether the supplier delivers to the épicerie (\"delivery\") or someone picks the order up from them (\"pickup\")"
               },
               {
                 "type": "null"
@@ -4354,11 +4354,11 @@
               {
                 "type": "string",
                 "enum": [
-                  "livraison",
-                  "collecte"
+                  "delivery",
+                  "pickup"
                 ],
                 "title": "SupplierDeliveryMode",
-                "description": "Whether the supplier delivers to the épicerie (\"livraison\") or a member picks the order up (\"collecte\")"
+                "description": "Whether the supplier delivers to the épicerie (\"delivery\") or someone picks the order up from them (\"pickup\")"
               },
               {
                 "type": "null"
@@ -6032,19 +6032,25 @@
           },
           "unitPriceEur": {
             "type": "number",
-            "exclusiveMinimum": 0
+            "minimum": 0
           },
           "lineTotalEur": {
             "type": "number",
-            "exclusiveMinimum": 0
+            "minimum": 0
           },
           "isValid": {
             "type": "boolean"
           },
-          "invalidReason": {
+          "invalidReasonCode": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "product_archived",
+                  "ordering_mode_unavailable"
+                ],
+                "title": "CartLineInvalidReasonCode",
+                "description": "Why a cart line is no longer orderable — the frontend maps this to a translated message."
               },
               {
                 "type": "null"
@@ -6091,13 +6097,13 @@
                 "productName": {
                   "type": "string"
                 },
-                "reason": {
-                  "type": "string"
+                "reasonCode": {
+                  "$ref": "#/components/schemas/CartLineInvalidReasonCode"
                 }
               },
               "required": [
                 "productName",
-                "reason"
+                "reasonCode"
               ],
               "additionalProperties": false
             }
@@ -6178,11 +6184,11 @@
                 },
                 "unitPriceEur": {
                   "type": "number",
-                  "exclusiveMinimum": 0
+                  "minimum": 0
                 },
                 "lineTotalEur": {
                   "type": "number",
-                  "exclusiveMinimum": 0
+                  "minimum": 0
                 }
               },
               "required": [
@@ -6236,11 +6242,11 @@
           },
           "unitPriceEur": {
             "type": "number",
-            "exclusiveMinimum": 0
+            "minimum": 0
           },
           "lineTotalEur": {
             "type": "number",
-            "exclusiveMinimum": 0
+            "minimum": 0
           }
         },
         "required": [
@@ -6253,6 +6259,15 @@
         "additionalProperties": false,
         "title": "OrderLine",
         "description": "An immutable snapshot, taken at checkout"
+      },
+      "CartLineInvalidReasonCode": {
+        "type": "string",
+        "enum": [
+          "product_archived",
+          "ordering_mode_unavailable"
+        ],
+        "title": "CartLineInvalidReasonCode",
+        "description": "Why a cart line is no longer orderable — the frontend maps this to a translated message."
       },
       "TestSeedResetResponse": {
         "type": "object",

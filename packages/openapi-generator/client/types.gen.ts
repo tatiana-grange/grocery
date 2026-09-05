@@ -16,7 +16,7 @@ export type CreateSupplier = {
     contactEmail?: string | null;
     contactPhone?: string | null;
     notes?: string | null;
-    deliveryMode?: 'livraison' | 'collecte' | null;
+    deliveryMode?: 'delivery' | 'pickup' | null;
     referentId?: string | null;
     producerCategoryIds?: Array<string> | null;
 };
@@ -33,7 +33,7 @@ export type UpdateSupplier = {
     contactEmail?: string | null;
     contactPhone?: string | null;
     notes?: string | null;
-    deliveryMode?: 'livraison' | 'collecte' | null;
+    deliveryMode?: 'delivery' | 'pickup' | null;
     referentId?: string | null;
     producerCategoryIds?: Array<string> | null;
     version: number;
@@ -323,7 +323,7 @@ export type CatalogSupplier = {
     contactEmail?: string | null;
     contactPhone?: string | null;
     notes?: string | null;
-    deliveryMode?: 'livraison' | 'collecte' | null;
+    deliveryMode?: 'delivery' | 'pickup' | null;
     referent?: {
         id: string;
         firstName?: string | null;
@@ -957,7 +957,7 @@ export type CartLine = {
     unitPriceEur: number;
     lineTotalEur: number;
     isValid: boolean;
-    invalidReason?: string | null;
+    invalidReasonCode?: 'product_archived' | 'ordering_mode_unavailable' | null;
 };
 
 /**
@@ -983,7 +983,7 @@ export type CheckoutResult = {
     orders: Array<OrderDetail>;
     droppedLines: Array<{
         productName: string;
-        reason: string;
+        reasonCode: CartLineInvalidReasonCode;
     }>;
 };
 
@@ -1043,6 +1043,20 @@ export type OrderLine = {
     unitPriceEur: number;
     lineTotalEur: number;
 };
+
+/**
+ * CartLineInvalidReasonCode
+ *
+ * Why a cart line is no longer orderable — the frontend maps this to a translated message.
+ */
+export const CartLineInvalidReasonCode = { PRODUCT_ARCHIVED: 'product_archived', ORDERING_MODE_UNAVAILABLE: 'ordering_mode_unavailable' } as const;
+
+/**
+ * CartLineInvalidReasonCode
+ *
+ * Why a cart line is no longer orderable — the frontend maps this to a translated message.
+ */
+export type CartLineInvalidReasonCode = typeof CartLineInvalidReasonCode[keyof typeof CartLineInvalidReasonCode];
 
 /**
  * TestSeedResetResponse
@@ -1616,7 +1630,7 @@ export type AdminSuppliersControllerCreateData = {
         contactEmail?: string | null;
         contactPhone?: string | null;
         notes?: string | null;
-        deliveryMode?: 'livraison' | 'collecte' | null;
+        deliveryMode?: 'delivery' | 'pickup' | null;
         referentId?: string | null;
         producerCategoryIds?: Array<string> | null;
     };
@@ -1670,7 +1684,7 @@ export type AdminSuppliersControllerUpdateData = {
         contactEmail?: string | null;
         contactPhone?: string | null;
         notes?: string | null;
-        deliveryMode?: 'livraison' | 'collecte' | null;
+        deliveryMode?: 'delivery' | 'pickup' | null;
         referentId?: string | null;
         producerCategoryIds?: Array<string> | null;
         version: number;

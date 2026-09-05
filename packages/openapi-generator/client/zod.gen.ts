@@ -244,7 +244,7 @@ export const zCreateSupplier = z.object({
         z.null()
     ])),
     deliveryMode: z.optional(z.union([
-        z.enum(['livraison', 'collecte']),
+        z.enum(['delivery', 'pickup']),
         z.null()
     ])),
     referentId: z.optional(z.union([
@@ -282,7 +282,7 @@ export const zUpdateSupplier = z.object({
         z.null()
     ])),
     deliveryMode: z.optional(z.union([
-        z.enum(['livraison', 'collecte']),
+        z.enum(['delivery', 'pickup']),
         z.null()
     ])),
     referentId: z.optional(z.union([
@@ -322,7 +322,7 @@ export const zCatalogSupplier = z.object({
         z.null()
     ])),
     deliveryMode: z.optional(z.union([
-        z.enum(['livraison', 'collecte']),
+        z.enum(['delivery', 'pickup']),
         z.null()
     ])),
     referent: z.optional(z.union([
@@ -1110,11 +1110,11 @@ export const zCartLine = z.object({
     }),
     orderingMode: z.enum(['pre_order', 'in_store']),
     quantity: z.number().gt(0),
-    unitPriceEur: z.number().gt(0),
-    lineTotalEur: z.number().gt(0),
+    unitPriceEur: z.number().gte(0),
+    lineTotalEur: z.number().gte(0),
     isValid: z.boolean(),
-    invalidReason: z.optional(z.union([
-        z.string(),
+    invalidReasonCode: z.optional(z.union([
+        z.enum(['product_archived', 'ordering_mode_unavailable']),
         z.null()
     ]))
 });
@@ -1167,21 +1167,8 @@ export const zOrderDetail = z.object({
         id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         productName: z.string(),
         quantity: z.number().gt(0),
-        unitPriceEur: z.number().gt(0),
-        lineTotalEur: z.number().gt(0)
-    }))
-});
-
-/**
- * CheckoutResult
- *
- * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
- */
-export const zCheckoutResult = z.object({
-    orders: z.array(zOrderDetail),
-    droppedLines: z.array(z.object({
-        productName: z.string(),
-        reason: z.string()
+        unitPriceEur: z.number().gte(0),
+        lineTotalEur: z.number().gte(0)
     }))
 });
 
@@ -1201,8 +1188,28 @@ export const zOrderLine = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     productName: z.string(),
     quantity: z.number().gt(0),
-    unitPriceEur: z.number().gt(0),
-    lineTotalEur: z.number().gt(0)
+    unitPriceEur: z.number().gte(0),
+    lineTotalEur: z.number().gte(0)
+});
+
+/**
+ * CartLineInvalidReasonCode
+ *
+ * Why a cart line is no longer orderable — the frontend maps this to a translated message.
+ */
+export const zCartLineInvalidReasonCode = z.enum(['product_archived', 'ordering_mode_unavailable']);
+
+/**
+ * CheckoutResult
+ *
+ * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
+ */
+export const zCheckoutResult = z.object({
+    orders: z.array(zOrderDetail),
+    droppedLines: z.array(z.object({
+        productName: z.string(),
+        reasonCode: zCartLineInvalidReasonCode
+    }))
 });
 
 /**
@@ -1733,7 +1740,7 @@ export const zAdminSuppliersControllerCreateData = z.object({
             z.null()
         ])),
         deliveryMode: z.optional(z.union([
-            z.enum(['livraison', 'collecte']),
+            z.enum(['delivery', 'pickup']),
             z.null()
         ])),
         referentId: z.optional(z.union([
@@ -1788,7 +1795,7 @@ export const zAdminSuppliersControllerUpdateData = z.object({
             z.null()
         ])),
         deliveryMode: z.optional(z.union([
-            z.enum(['livraison', 'collecte']),
+            z.enum(['delivery', 'pickup']),
             z.null()
         ])),
         referentId: z.optional(z.union([
