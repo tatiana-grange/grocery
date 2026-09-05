@@ -1,4 +1,8 @@
-import type { ProductLabel, ProductSaleMode } from '../contracts/product.contract'
+import type {
+  ProductLabel,
+  ProductOrderingMode,
+  ProductSaleMode,
+} from '../contracts/product.contract'
 import type { Rel } from '@mikro-orm/core'
 import { Collection } from '@mikro-orm/core'
 import {
@@ -37,6 +41,13 @@ export class Product {
   /** `unit` = sold per piece, `weight` = priced per kilogram. */
   @Property()
   saleMode: ProductSaleMode = 'unit'
+
+  /**
+   * How the product can be ordered from the public shop. Lot 1 products backfill to
+   * `in_store` — the safer default, since it promises no producer delivery.
+   */
+  @Property()
+  orderingMode: ProductOrderingMode = 'in_store'
 
   @Property({ type: 'array' })
   photos: string[] = []

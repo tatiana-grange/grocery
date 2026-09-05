@@ -38,10 +38,18 @@ export class AuthGuard implements CanActivate {
       request.session = session
       request.user = session?.user ?? null // useful for observability tools like Sentry
 
-      const isPublic = this.reflector.get('PUBLIC', context.getHandler())
+      // getAllAndOverride so a class-level @Public()/@Optional() (the shop catalogue's whole
+      // controller, for instance) applies to every route in it, same as @AdminOnly() below.
+      const isPublic = this.reflector.getAllAndOverride<boolean | undefined>('PUBLIC', [
+        context.getHandler(),
+        context.getClass(),
+      ])
       if (isPublic) return true
 
-      const isOptional = this.reflector.get('OPTIONAL', context.getHandler())
+      const isOptional = this.reflector.getAllAndOverride<boolean | undefined>('OPTIONAL', [
+        context.getHandler(),
+        context.getClass(),
+      ])
       if (isOptional && !session) return true
 
       if (!session) throw new UnauthorizedException()

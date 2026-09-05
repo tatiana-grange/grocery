@@ -9,10 +9,11 @@ import {
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { User } from '../auth/auth.entity'
 import { eurToCents } from './catalog.util'
+import type { CreateCategoryInput, UpdateCategoryInput } from './contracts/category.contract'
 import type {
-  CreateCategoryInput,
-  UpdateCategoryInput,
-} from './contracts/category.contract'
+  CreateProducerCategoryInput,
+  UpdateProducerCategoryInput,
+} from './contracts/producer-category.contract'
 import type { SetProductPriceInput } from './contracts/product-price.contract'
 import type {
   CreateProductInput,
@@ -21,6 +22,12 @@ import type {
   ProductSorting,
   UpdateProductInput,
 } from './contracts/product.contract'
+import type { CreateReferentInput, UpdateReferentInput } from './contracts/referent.contract'
+import type {
+  ShopProductFiltering,
+  ShopProductPagination,
+  ShopProductSorting,
+} from './contracts/shop-catalog.contract'
 import type {
   CreateSupplierInput,
   SupplierFiltering,
@@ -28,8 +35,10 @@ import type {
   UpdateSupplierInput,
 } from './contracts/supplier.contract'
 import { Category } from './entities/category.entity'
+import { ProducerCategory } from './entities/producer-category.entity'
 import { ProductPrice } from './entities/product-price.entity'
 import { Product } from './entities/product.entity'
+import { Referent } from './entities/referent.entity'
 import { Supplier } from './entities/supplier.entity'
 
 interface ListOptions {
@@ -59,7 +68,7 @@ export class CatalogService {
     for (const item of filter ?? []) {
       if (item.property === 'type') Object.assign(where, { type: item.value })
       if (item.property === 'q') {
-        Object.assign(where, { name: { $like: `%${item.value}%` } })
+        Object.assign(where, { name: { $like: `%${this.escapeLike(item.value)}%` } })
       }
     }
 
@@ -67,36 +76,64 @@ export class CatalogService {
       orderBy: { name: QueryOrder.ASC },
       limit: pagination.pageSize,
       offset: pagination.offset,
+      populate: ['referent', 'producerCategories'],
     })
     return { suppliers, total, pagination }
   }
 
   async getSupplier(id: string): Promise<Supplier> {
-    const supplier = await this.em.findOne(Supplier, { id })
+    const supplier = await this.em.findOne(
+      Supplier,
+      { id },
+      { populate: ['referent', 'producerCategories'] },
+    )
     if (!supplier) throw new NotFoundException('Supplier not found')
     return supplier
   }
 
   async createSupplier(input: CreateSupplierInput): Promise<Supplier> {
+    const { referentId, producerCategoryIds, ...rest } = this.stripNullish(input)
     const supplier = new Supplier()
-    wrap(supplier).assign(this.stripNullish(input))
+    wrap(supplier).assign(rest)
+    if (referentId) supplier.referent = this.em.getReference(Referent, referentId)
+    if (producerCategoryIds && producerCategoryIds.length > 0) {
+      supplier.producerCategories.set(
+        producerCategoryIds.map((catId) => this.em.getReference(ProducerCategory, catId)),
+      )
+    }
     this.em.persist(supplier)
     await this.em.flush()
-    return supplier
+    // Reload so `referent` and `producerCategories` come back fully populated instead of the
+    // bare references assigned above (same reason Product's create re-fetches before mapping).
+    return this.getSupplier(supplier.id)
   }
 
   async updateSupplier(id: string, input: UpdateSupplierInput): Promise<Supplier> {
     const supplier = await this.getSupplier(id)
     this.assertVersion(supplier.version, input.version)
-    const { version: _version, ...rest } = input
+    const { version: _version, referentId, producerCategoryIds, ...rest } = input
     wrap(supplier).assign(this.stripNullish(rest))
+    if (referentId !== undefined) {
+      supplier.referent = referentId ? this.em.getReference(Referent, referentId) : undefined
+    }
+    if (producerCategoryIds !== undefined) {
+      supplier.producerCategories.set(
+        (producerCategoryIds ?? []).map((catId) => this.em.getReference(ProducerCategory, catId)),
+      )
+    }
     await this.em.flush()
-    return supplier
+    return referentId !== undefined || producerCategoryIds !== undefined
+      ? this.getSupplier(supplier.id)
+      : supplier
   }
 
   async archiveSupplier(id: string, cascade: boolean): Promise<Supplier> {
     return this.em.transactional(async (em) => {
-      const supplier = await em.findOne(Supplier, { id }, { populate: ['products'] })
+      const supplier = await em.findOne(
+        Supplier,
+        { id },
+        { populate: ['products', 'referent', 'producerCategories'] },
+      )
       if (!supplier) throw new NotFoundException('Supplier not found')
 
       const activeProducts = supplier.products.getItems().filter((p) => !p.archivedAt)
@@ -120,6 +157,71 @@ export class CatalogService {
     supplier.archivedAt = undefined
     await this.em.flush()
     return supplier
+  }
+
+  // ============================================================================================
+  // Referents
+  // ============================================================================================
+
+  async listReferents(): Promise<Referent[]> {
+    return this.em.find(Referent, {}, { orderBy: { lastName: QueryOrder.ASC } })
+  }
+
+  async getReferent(id: string): Promise<Referent> {
+    const referent = await this.em.findOne(Referent, { id })
+    if (!referent) throw new NotFoundException('Referent not found')
+    return referent
+  }
+
+  async createReferent(input: CreateReferentInput): Promise<Referent> {
+    const { userId, ...rest } = this.stripNullish(input)
+    const referent = new Referent()
+    wrap(referent).assign(rest)
+    if (userId) referent.user = this.em.getReference(User, userId)
+    this.em.persist(referent)
+    await this.em.flush()
+    return referent
+  }
+
+  async updateReferent(id: string, input: UpdateReferentInput): Promise<Referent> {
+    const referent = await this.getReferent(id)
+    this.assertVersion(referent.version, input.version)
+    const { version: _version, userId, ...rest } = input
+    wrap(referent).assign(this.stripNullish(rest))
+    if (userId !== undefined) {
+      referent.user = userId ? this.em.getReference(User, userId) : undefined
+    }
+    await this.em.flush()
+    return referent
+  }
+
+  async deleteReferent(id: string): Promise<void> {
+    const referent = await this.getReferent(id)
+    // Reuses supplierCountForReferents so this stays in step with its `archivedAt: null`
+    // filter — an archived supplier that once pointed here shouldn't block deletion forever.
+    const linkedSuppliers = (await this.supplierCountForReferents([id])).get(id) ?? 0
+    if (linkedSuppliers > 0) {
+      throw new ConflictException({
+        message: 'Reassign this referent’s suppliers before removing it',
+        supplierCount: linkedSuppliers,
+      })
+    }
+    await this.em.remove(referent).flush()
+  }
+
+  async supplierCountForReferents(referentIds: string[]): Promise<Map<string, number>> {
+    const result = new Map<string, number>()
+    if (referentIds.length === 0) return result
+    const rows = await this.em.find(
+      Supplier,
+      { referent: { $in: referentIds }, archivedAt: null } as FilterQuery<Supplier>,
+      { fields: ['referent'] },
+    )
+    for (const row of rows) {
+      const key = (row.referent as unknown as { id: string }).id
+      result.set(key, (result.get(key) ?? 0) + 1)
+    }
+    return result
   }
 
   // ============================================================================================
@@ -153,9 +255,7 @@ export class CatalogService {
     this.assertVersion(category.version, input.version)
     if (input.name !== undefined) category.name = input.name
     if (input.parentId !== undefined) {
-      category.parent = input.parentId
-        ? await this.resolveParent(id, input.parentId)
-        : undefined
+      category.parent = input.parentId ? await this.resolveParent(id, input.parentId) : undefined
     }
     await this.em.flush()
     return category
@@ -207,6 +307,83 @@ export class CatalogService {
     return category
   }
 
+  // ============================================================================================
+  // Producer categories
+  // ============================================================================================
+
+  async listProducerCategories(options: ListOptions = {}): Promise<ProducerCategory[]> {
+    const where: FilterQuery<ProducerCategory> = options.includeArchived ? {} : { archivedAt: null }
+    return this.em.find(ProducerCategory, where, { orderBy: { name: QueryOrder.ASC } })
+  }
+
+  async getProducerCategory(id: string): Promise<ProducerCategory> {
+    const category = await this.em.findOne(ProducerCategory, { id })
+    if (!category) throw new NotFoundException('Producer category not found')
+    return category
+  }
+
+  async createProducerCategory(input: CreateProducerCategoryInput): Promise<ProducerCategory> {
+    const category = new ProducerCategory()
+    category.name = input.name
+    this.em.persist(category)
+    await this.em.flush()
+    return category
+  }
+
+  async updateProducerCategory(
+    id: string,
+    input: UpdateProducerCategoryInput,
+  ): Promise<ProducerCategory> {
+    const category = await this.getProducerCategory(id)
+    this.assertVersion(category.version, input.version)
+    if (input.name !== undefined) category.name = input.name
+    await this.em.flush()
+    return category
+  }
+
+  async archiveProducerCategory(id: string): Promise<ProducerCategory> {
+    const category = await this.getProducerCategory(id)
+    const activeSuppliers = await this.em.count(Supplier, {
+      producerCategories: id,
+      archivedAt: null,
+    } as FilterQuery<Supplier>)
+    if (activeSuppliers > 0) {
+      throw new ConflictException({
+        message: 'Reassign this category’s active suppliers before removing it',
+        supplierCount: activeSuppliers,
+      })
+    }
+    category.archivedAt = new Date()
+    await this.em.flush()
+    return category
+  }
+
+  async unarchiveProducerCategory(id: string): Promise<ProducerCategory> {
+    const category = await this.getProducerCategory(id)
+    category.archivedAt = undefined
+    await this.em.flush()
+    return category
+  }
+
+  async supplierCountForProducerCategories(categoryIds: string[]): Promise<Map<string, number>> {
+    const result = new Map<string, number>()
+    if (categoryIds.length === 0) return result
+    const idSet = new Set(categoryIds)
+    const suppliers = await this.em.find(
+      Supplier,
+      { producerCategories: { $in: categoryIds }, archivedAt: null } as FilterQuery<Supplier>,
+      { populate: ['producerCategories'], fields: ['producerCategories'] },
+    )
+    for (const supplier of suppliers) {
+      for (const category of supplier.producerCategories.getItems()) {
+        if (idSet.has(category.id)) {
+          result.set(category.id, (result.get(category.id) ?? 0) + 1)
+        }
+      }
+    }
+    return result
+  }
+
   async productCountFor(categoryIds: string[]): Promise<Map<string, number>> {
     return this.countActiveProductsBy('category', categoryIds)
   }
@@ -250,22 +427,16 @@ export class CatalogService {
       if (item.property === 'saleMode') Object.assign(where, { saleMode: item.value })
       if (item.property === 'label') Object.assign(where, { labels: { $contains: [item.value] } })
       if (item.property === 'q') {
+        const pattern = `%${this.escapeLike(item.value)}%`
         Object.assign(where, {
-          $or: [{ name: { $like: `%${item.value}%` } }, { barcode: { $like: `%${item.value}%` } }],
+          $or: [{ name: { $like: pattern } }, { barcode: { $like: pattern } }],
         })
       }
     }
 
-    const sortItem = sort?.[0]
-    const direction =
-      sortItem && String(sortItem.direction).toUpperCase() === 'ASC'
-        ? QueryOrder.ASC
-        : QueryOrder.DESC
-    const orderBy = sortItem?.property === 'name' ? { name: direction } : { createdAt: direction }
-
     const [products, total] = await this.em.findAndCount(Product, where, {
       populate: ['supplier', 'category', 'prices'],
-      orderBy,
+      orderBy: this.resolveProductSort(sort),
       limit: pagination.pageSize,
       offset: pagination.offset,
     })
@@ -290,6 +461,7 @@ export class CatalogService {
       product.supplier = em.getReference(Supplier, input.supplierId)
       product.category = em.getReference(Category, input.categoryId)
       product.saleMode = input.saleMode
+      product.orderingMode = input.orderingMode
       product.photos = input.photos ?? []
       product.labels = input.labels ?? []
       product.barcode = input.barcode ?? undefined
@@ -323,6 +495,7 @@ export class CatalogService {
       }
       product.saleMode = input.saleMode
     }
+    if (input.orderingMode !== undefined) product.orderingMode = input.orderingMode
     if (input.photos !== undefined) product.photos = input.photos
     if (input.labels !== undefined) product.labels = input.labels
     if (input.barcode !== undefined) product.barcode = input.barcode ?? undefined
@@ -343,11 +516,7 @@ export class CatalogService {
     return product
   }
 
-  async setProductPrice(
-    id: string,
-    input: SetProductPriceInput,
-    userId: string,
-  ): Promise<Product> {
+  async setProductPrice(id: string, input: SetProductPriceInput, userId: string): Promise<Product> {
     return this.em.transactional(async (em) => {
       // Lock the product row so two concurrent price changes serialise: without this both
       // readers see the same open row, both close it, and both insert a new open row —
@@ -360,9 +529,7 @@ export class CatalogService {
       const current = product.prices.getItems().find((price) => !price.validTo)
       if (current) {
         if (effectiveFrom < current.validFrom) {
-          throw new ConflictException(
-            'The new price cannot start before the current price began',
-          )
+          throw new ConflictException('The new price cannot start before the current price began')
         }
         current.validTo = effectiveFrom
         // Close the open row before inserting its replacement: the partial unique index
@@ -382,9 +549,7 @@ export class CatalogService {
         await em.flush()
       } catch (error) {
         if (error instanceof UniqueConstraintViolationException) {
-          throw new ConflictException(
-            'This product’s price just changed — reload and try again',
-          )
+          throw new ConflictException('This product’s price just changed — reload and try again')
         }
         throw error
       }
@@ -401,11 +566,7 @@ export class CatalogService {
   }
 
   async unarchiveProduct(id: string): Promise<Product> {
-    const product = await this.em.findOne(
-      Product,
-      { id },
-      { populate: ['supplier', 'category'] },
-    )
+    const product = await this.em.findOne(Product, { id }, { populate: ['supplier', 'category'] })
     if (!product) throw new NotFoundException('Product not found')
 
     if (product.supplier.archivedAt) {
@@ -420,8 +581,79 @@ export class CatalogService {
   }
 
   // ============================================================================================
+  // Public shop
+  // ============================================================================================
+
+  /** Categories with at least one non-archived product — an empty category stays hidden. */
+  async listShopCategories(): Promise<Category[]> {
+    // Grouped SQL count instead of loading every active product row just to dedupe category
+    // ids in JS — this backs a filter shown on every shop homepage visit.
+    const counts = await this.em.countBy(Product, 'category', { where: { archivedAt: null } })
+    const categoryIds = Object.keys(counts)
+    if (categoryIds.length === 0) return []
+    return this.em.find(
+      Category,
+      { id: { $in: categoryIds }, archivedAt: null },
+      { orderBy: { name: QueryOrder.ASC } },
+    )
+  }
+
+  async listShopProducts(
+    pagination: ShopProductPagination,
+    sort?: ShopProductSorting,
+    filter?: ShopProductFiltering,
+  ): Promise<ProductsListResult> {
+    const where: FilterQuery<Product> = { archivedAt: null }
+    for (const item of filter ?? []) {
+      if (item.property === 'categoryId') Object.assign(where, { category: item.value })
+      if (item.property === 'q') {
+        const pattern = `%${this.escapeLike(item.value)}%`
+        Object.assign(where, {
+          $or: [{ name: { $like: pattern } }, { barcode: { $like: pattern } }],
+        })
+      }
+    }
+
+    const [products, total] = await this.em.findAndCount(Product, where, {
+      populate: ['category', 'prices'],
+      orderBy: this.resolveProductSort(sort),
+      limit: pagination.pageSize,
+      offset: pagination.offset,
+    })
+    return { products, total, pagination }
+  }
+
+  /** `404`s for an archived or unknown id — no "this exists but you can't see it" leak. */
+  async getShopProductDetail(id: string): Promise<Product> {
+    const product = await this.em.findOne(
+      Product,
+      { id, archivedAt: null },
+      { populate: ['category', 'prices'] },
+    )
+    if (!product) throw new NotFoundException('Product not found')
+    return product
+  }
+
+  // ============================================================================================
   // Helpers
   // ============================================================================================
+
+  /** Shared by the admin and shop product lists — both only ever sort by name or createdAt. */
+  private resolveProductSort(
+    sort?: readonly { property: string; direction: string }[],
+  ): { name: QueryOrder } | { createdAt: QueryOrder } {
+    const sortItem = sort?.[0]
+    const direction =
+      sortItem && String(sortItem.direction).toUpperCase() === 'ASC'
+        ? QueryOrder.ASC
+        : QueryOrder.DESC
+    return sortItem?.property === 'name' ? { name: direction } : { createdAt: direction }
+  }
+
+  /** Escapes `%`, `_` and `\` so a user's search text is matched literally in a `$like` pattern. */
+  private escapeLike(value: string | undefined): string {
+    return (value ?? '').replace(/[\\%_]/g, (char) => `\\${char}`)
+  }
 
   private assertVersion(actual: number, sent: number): void {
     if (actual !== sent) {

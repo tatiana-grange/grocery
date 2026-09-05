@@ -28,6 +28,16 @@ export const productLabelSchema = z.enum(PRODUCT_LABELS).meta({
 })
 export type ProductLabel = z.infer<typeof productLabelSchema>
 
+export const PRODUCT_ORDERING_MODES = ['pre_order', 'in_store', 'both'] as const
+export const productOrderingModeSchema = z.enum(PRODUCT_ORDERING_MODES).meta({
+  title: 'ProductOrderingMode',
+  description:
+    'pre_order = ordered ahead from the producer for a future delivery; ' +
+    'in_store = bought from what the cooperative currently has on the shelf; ' +
+    'both = the member picks one when adding it to their cart',
+})
+export type ProductOrderingMode = z.infer<typeof productOrderingModeSchema>
+
 const productRefSchema = z.object({ id: z.string().uuid(), name: z.string() })
 
 export const productSchema = z
@@ -39,6 +49,7 @@ export const productSchema = z
     category: productRefSchema,
     saleMode: productSaleModeSchema,
     pricingUnit: productPricingUnitSchema,
+    orderingMode: productOrderingModeSchema,
     photos: z.array(z.string()),
     labels: z.array(productLabelSchema),
     barcode: z.string().nullish(),
@@ -74,6 +85,7 @@ export const createProductSchema = z
     supplierId: z.string().uuid(),
     categoryId: z.string().uuid(),
     saleMode: productSaleModeSchema,
+    orderingMode: productOrderingModeSchema,
     photos: z.array(z.string()).default([]),
     labels: z.array(productLabelSchema).default([]),
     barcode: z.string().nullish(),

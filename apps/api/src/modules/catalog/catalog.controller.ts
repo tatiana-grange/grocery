@@ -23,6 +23,14 @@ import {
   updateCategorySchema,
 } from './contracts/category.contract'
 import {
+  type CreateProducerCategoryInput,
+  createProducerCategorySchema,
+  producerCategoriesListSchema,
+  producerCategorySchema,
+  type UpdateProducerCategoryInput,
+  updateProducerCategorySchema,
+} from './contracts/producer-category.contract'
+import {
   type SetProductPriceInput,
   setProductPriceSchema,
 } from './contracts/product-price.contract'
@@ -41,6 +49,14 @@ import {
   type UpdateProductInput,
   updateProductSchema,
 } from './contracts/product.contract'
+import {
+  type CreateReferentInput,
+  createReferentSchema,
+  referentSchema,
+  referentsListSchema,
+  type UpdateReferentInput,
+  updateReferentSchema,
+} from './contracts/referent.contract'
 import {
   type CreateSupplierInput,
   createSupplierSchema,
@@ -103,10 +119,7 @@ export class AdminSuppliersController {
 
   @TypedRoute.Post(':id/archive', supplierSchema)
   @HttpCode(200)
-  async archive(
-    @TypedParam('id', z.string()) id: string,
-    @Query('cascade') cascade?: string,
-  ) {
+  async archive(@TypedParam('id', z.string()) id: string, @Query('cascade') cascade?: string) {
     const supplier = await this.catalog.archiveSupplier(id, isTrue(cascade))
     const counts = await this.catalog.productCountForSuppliers([supplier.id])
     return this.mapper.toSupplier(supplier, counts.get(supplier.id) ?? 0)
@@ -118,6 +131,52 @@ export class AdminSuppliersController {
     const supplier = await this.catalog.unarchiveSupplier(id)
     const counts = await this.catalog.productCountForSuppliers([supplier.id])
     return this.mapper.toSupplier(supplier, counts.get(supplier.id) ?? 0)
+  }
+}
+
+@TypedController('admin/referents', undefined, { tags: ['Admin Catalog'] })
+@UseGuards(AuthGuard)
+@AdminOnly()
+export class AdminReferentsController {
+  constructor(
+    private readonly catalog: CatalogService,
+    private readonly mapper: CatalogMapper,
+  ) {}
+
+  @TypedRoute.Get('', referentsListSchema)
+  async list() {
+    const referents = await this.catalog.listReferents()
+    const counts = await this.catalog.supplierCountForReferents(referents.map((r) => r.id))
+    return this.mapper.toReferentsList(referents, counts)
+  }
+
+  @TypedRoute.Get(':id', referentSchema)
+  async get(@TypedParam('id', z.string()) id: string) {
+    const referent = await this.catalog.getReferent(id)
+    const counts = await this.catalog.supplierCountForReferents([referent.id])
+    return this.mapper.toReferent(referent, counts.get(referent.id) ?? 0)
+  }
+
+  @TypedRoute.Post('', referentSchema)
+  async create(@TypedBody(createReferentSchema) body: CreateReferentInput) {
+    const referent = await this.catalog.createReferent(body)
+    return this.mapper.toReferent(referent, 0)
+  }
+
+  @TypedRoute.Put(':id', referentSchema)
+  async update(
+    @TypedParam('id', z.string()) id: string,
+    @TypedBody(updateReferentSchema) body: UpdateReferentInput,
+  ) {
+    const referent = await this.catalog.updateReferent(id, body)
+    const counts = await this.catalog.supplierCountForReferents([referent.id])
+    return this.mapper.toReferent(referent, counts.get(referent.id) ?? 0)
+  }
+
+  @TypedRoute.Delete(':id')
+  @HttpCode(204)
+  async delete(@TypedParam('id', z.string()) id: string) {
+    await this.catalog.deleteReferent(id)
   }
 }
 
@@ -170,6 +229,58 @@ export class AdminCategoriesController {
     const category = await this.catalog.unarchiveCategory(id)
     const counts = await this.catalog.productCountFor([category.id])
     return this.mapper.toCategory(category, counts.get(category.id) ?? 0)
+  }
+}
+
+@TypedController('admin/producer-categories', undefined, { tags: ['Admin Catalog'] })
+@UseGuards(AuthGuard)
+@AdminOnly()
+export class AdminProducerCategoriesController {
+  constructor(
+    private readonly catalog: CatalogService,
+    private readonly mapper: CatalogMapper,
+  ) {}
+
+  @TypedRoute.Get('', producerCategoriesListSchema)
+  async list(@Query('includeArchived') includeArchived?: string) {
+    const categories = await this.catalog.listProducerCategories({
+      includeArchived: isTrue(includeArchived),
+    })
+    const counts = await this.catalog.supplierCountForProducerCategories(
+      categories.map((category) => category.id),
+    )
+    return this.mapper.toProducerCategoriesList(categories, counts)
+  }
+
+  @TypedRoute.Post('', producerCategorySchema)
+  async create(@TypedBody(createProducerCategorySchema) body: CreateProducerCategoryInput) {
+    const category = await this.catalog.createProducerCategory(body)
+    return this.mapper.toProducerCategory(category, 0)
+  }
+
+  @TypedRoute.Put(':id', producerCategorySchema)
+  async update(
+    @TypedParam('id', z.string()) id: string,
+    @TypedBody(updateProducerCategorySchema) body: UpdateProducerCategoryInput,
+  ) {
+    const category = await this.catalog.updateProducerCategory(id, body)
+    const counts = await this.catalog.supplierCountForProducerCategories([category.id])
+    return this.mapper.toProducerCategory(category, counts.get(category.id) ?? 0)
+  }
+
+  @TypedRoute.Post(':id/archive', producerCategorySchema)
+  @HttpCode(200)
+  async archive(@TypedParam('id', z.string()) id: string) {
+    const category = await this.catalog.archiveProducerCategory(id)
+    return this.mapper.toProducerCategory(category, 0)
+  }
+
+  @TypedRoute.Post(':id/unarchive', producerCategorySchema)
+  @HttpCode(200)
+  async unarchive(@TypedParam('id', z.string()) id: string) {
+    const category = await this.catalog.unarchiveProducerCategory(id)
+    const counts = await this.catalog.supplierCountForProducerCategories([category.id])
+    return this.mapper.toProducerCategory(category, counts.get(category.id) ?? 0)
   }
 }
 

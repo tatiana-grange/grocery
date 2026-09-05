@@ -15,8 +15,13 @@ export default [
     route('forgot-password', 'features/auth/pages/auth-forgot-password-page.tsx'),
     route('reset-password', 'features/auth/pages/auth-reset-password-page.tsx'),
   ]),
+  layout('features/common/components/shop-layout.tsx', [
+    route('shop', 'features/shop/components/shop-page.tsx'),
+    route('shop/products/:productId', 'features/shop/components/shop-product-detail-page.tsx'),
+  ]),
   layout('features/common/components/member-area-layout.tsx', [
     route('account', 'features/account/components/account-page.tsx'),
+    route('cart', 'features/cart/components/cart-page.tsx'),
   ]),
   layout('features/common/components/back-office-layout.tsx', [
     route('admin/members', 'features/admin-members/components/members-list-page.tsx'),

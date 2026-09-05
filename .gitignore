@@ -8,6 +8,7 @@ dist
 .next
 out
 build
+test-results
 
 # Expo / React Native
 /android
@@ -69,6 +70,9 @@ ios/
 
 # Local experiments / scratch notes
 .lab/
+
+# Personal local seed data (real contact info, machine-specific — never shared)
+apps/api/src/seeders/*.local.seeder.ts
 
 # Claude Code personal settings (the skills/ folder is shared and committed)
 .claude/settings.local.json

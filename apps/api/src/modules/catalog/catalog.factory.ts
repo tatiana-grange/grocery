@@ -1,22 +1,53 @@
 import type { EntityManager } from '@mikro-orm/core'
-import type { ProductSaleMode } from './contracts/product.contract'
-import type { SupplierType } from './contracts/supplier.contract'
+import type { ProductOrderingMode, ProductSaleMode } from './contracts/product.contract'
+import type { SupplierDeliveryMode, SupplierType } from './contracts/supplier.contract'
 import { User } from '../auth/auth.entity'
 import { createUserData } from '../auth/auth.factory'
 import { eurToCents } from './catalog.util'
 import { Category } from './entities/category.entity'
+import { ProducerCategory } from './entities/producer-category.entity'
 import { ProductPrice } from './entities/product-price.entity'
 import { Product } from './entities/product.entity'
+import { Referent } from './entities/referent.entity'
 import { Supplier } from './entities/supplier.entity'
+
+export async function createReferentData(
+  em: EntityManager,
+  overrides: Partial<Pick<Referent, 'firstName' | 'lastName'>> = {},
+): Promise<Referent> {
+  const referent = new Referent()
+  referent.lastName = overrides.lastName ?? `Referent ${Math.random().toString(36).slice(2, 7)}`
+  if (overrides.firstName) referent.firstName = overrides.firstName
+  await em.persist(referent).flush()
+  return referent
+}
+
+export async function createProducerCategoryData(
+  em: EntityManager,
+  overrides: Partial<Pick<ProducerCategory, 'name' | 'archivedAt'>> = {},
+): Promise<ProducerCategory> {
+  const category = new ProducerCategory()
+  category.name = overrides.name ?? `Producer category ${Math.random().toString(36).slice(2, 7)}`
+  if (overrides.archivedAt) category.archivedAt = overrides.archivedAt
+  await em.persist(category).flush()
+  return category
+}
 
 export async function createSupplierData(
   em: EntityManager,
-  overrides: Partial<Pick<Supplier, 'name' | 'type' | 'archivedAt'>> = {},
+  overrides: Partial<
+    Pick<Supplier, 'name' | 'type' | 'archivedAt' | 'deliveryMode' | 'referent'>
+  > & { producerCategories?: ProducerCategory[] } = {},
 ): Promise<Supplier> {
   const supplier = new Supplier()
   supplier.name = overrides.name ?? `Supplier ${Math.random().toString(36).slice(2, 7)}`
   supplier.type = (overrides.type ?? 'producer') as SupplierType
   if (overrides.archivedAt) supplier.archivedAt = overrides.archivedAt
+  if (overrides.deliveryMode) {
+    supplier.deliveryMode = overrides.deliveryMode as SupplierDeliveryMode
+  }
+  if (overrides.referent) supplier.referent = overrides.referent
+  if (overrides.producerCategories) supplier.producerCategories.set(overrides.producerCategories)
   await em.persist(supplier).flush()
   return supplier
 }
@@ -35,6 +66,7 @@ export async function createCategoryData(
 export interface CreateProductOptions {
   name?: string
   saleMode?: ProductSaleMode
+  orderingMode?: ProductOrderingMode
   priceEur?: number
   supplier?: Supplier
   category?: Category
@@ -49,15 +81,14 @@ export async function createProductData(
   const supplier = options.supplier ?? (await createSupplierData(em))
   const category = options.category ?? (await createCategoryData(em))
   const setByUser =
-    options.setByUser ??
-    (await em.find(User, {}, { limit: 1 }))[0] ??
-    (await createUserData(em))
+    options.setByUser ?? (await em.find(User, {}, { limit: 1 }))[0] ?? (await createUserData(em))
 
   const product = new Product()
   product.name = options.name ?? `Product ${Math.random().toString(36).slice(2, 7)}`
   product.supplier = supplier
   product.category = category
   product.saleMode = options.saleMode ?? 'unit'
+  product.orderingMode = options.orderingMode ?? 'in_store'
 
   const price = new ProductPrice()
   price.product = product

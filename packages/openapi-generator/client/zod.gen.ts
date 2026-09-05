@@ -3,6 +3,57 @@
 import { z } from 'zod';
 
 /**
+ * CreateReferent
+ *
+ * Create a referent
+ */
+export const zCreateReferent = z.object({
+    firstName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.string().min(1),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    userId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ]))
+});
+
+/**
+ * UpdateReferent
+ *
+ * Update a referent (send the loaded version)
+ */
+export const zUpdateReferent = z.object({
+    firstName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.optional(z.string().min(1)),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    userId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
  * CreateCategory
  *
  * Create a category
@@ -26,6 +77,25 @@ export const zUpdateCategory = z.object({
         z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         z.null()
     ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * CreateProducerCategory
+ *
+ * Create a producer category
+ */
+export const zCreateProducerCategory = z.object({
+    name: z.string().min(1)
+});
+
+/**
+ * UpdateProducerCategory
+ *
+ * Rename a producer category
+ */
+export const zUpdateProducerCategory = z.object({
+    name: z.optional(z.string().min(1)),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
@@ -134,6 +204,15 @@ export const zMembershipIntake = z.object({
 });
 
 /**
+ * UpdateCartLine
+ *
+ * Change a line's quantity
+ */
+export const zUpdateCartLine = z.object({
+    quantity: z.number().gt(0)
+});
+
+/**
  * SupplierType
  *
  * Whether the supplier is a producer or a wholesaler
@@ -163,6 +242,18 @@ export const zCreateSupplier = z.object({
     notes: z.optional(z.union([
         z.string(),
         z.null()
+    ])),
+    deliveryMode: z.optional(z.union([
+        z.enum(['delivery', 'pickup']),
+        z.null()
+    ])),
+    referentId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    producerCategoryIds: z.optional(z.union([
+        z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+        z.null()
     ]))
 });
 
@@ -188,6 +279,18 @@ export const zUpdateSupplier = z.object({
     ])),
     notes: z.optional(z.union([
         z.string(),
+        z.null()
+    ])),
+    deliveryMode: z.optional(z.union([
+        z.enum(['delivery', 'pickup']),
+        z.null()
+    ])),
+    referentId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    producerCategoryIds: z.optional(z.union([
+        z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         z.null()
     ])),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
@@ -218,6 +321,25 @@ export const zCatalogSupplier = z.object({
         z.string(),
         z.null()
     ])),
+    deliveryMode: z.optional(z.union([
+        z.enum(['delivery', 'pickup']),
+        z.null()
+    ])),
+    referent: z.optional(z.union([
+        z.object({
+            id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            firstName: z.optional(z.union([
+                z.string(),
+                z.null()
+            ])),
+            lastName: z.string()
+        }),
+        z.null()
+    ])),
+    producerCategories: z.array(z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    })),
     archivedAt: z.optional(z.union([
         z.string(),
         z.null()
@@ -241,6 +363,42 @@ export const zCatalogSuppliersList = z.object({
         hasMore: z.boolean()
     })
 });
+
+/**
+ * CatalogReferent
+ *
+ * The co-op member who follows a supplier
+ */
+export const zCatalogReferent = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    firstName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.string(),
+    contactEmail: z.optional(z.union([
+        z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+        z.null()
+    ])),
+    contactPhone: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    userId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    supplierCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    createdAt: z.string()
+});
+
+/**
+ * CatalogReferentsList
+ *
+ * All referents
+ */
+export const zCatalogReferentsList = z.array(zCatalogReferent);
 
 /**
  * CatalogCategory
@@ -270,6 +428,29 @@ export const zCatalogCategory = z.object({
 export const zCatalogCategoriesList = z.array(zCatalogCategory);
 
 /**
+ * CatalogProducerCategory
+ *
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zCatalogProducerCategory = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    name: z.string(),
+    archivedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    supplierCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * CatalogProducerCategoriesList
+ *
+ * All producer categories
+ */
+export const zCatalogProducerCategoriesList = z.array(zCatalogProducerCategory);
+
+/**
  * ProductSaleMode
  *
  * "unit" is sold per piece, "weight" is priced per kilogram
@@ -282,6 +463,17 @@ export const zProductSaleMode = z.enum(['unit', 'weight']);
  * Derived from the sale mode: unit → piece, weight → kg
  */
 export const zProductPricingUnit = z.enum(['piece', 'kg']);
+
+/**
+ * ProductOrderingMode
+ *
+ * pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart
+ */
+export const zProductOrderingMode = z.enum([
+    'pre_order',
+    'in_store',
+    'both'
+]);
 
 /**
  * ProductLabel
@@ -309,6 +501,7 @@ export const zCreateProduct = z.object({
     supplierId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     categoryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     saleMode: zProductSaleMode,
+    orderingMode: zProductOrderingMode,
     photos: z.array(z.string()).default([]),
     labels: z.array(zProductLabel).default([]),
     barcode: z.optional(z.union([
@@ -340,6 +533,7 @@ export const zUpdateProduct = z.object({
     supplierId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
     categoryId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
     saleMode: z.optional(zProductSaleMode),
+    orderingMode: z.optional(zProductOrderingMode),
     photos: z.optional(z.array(z.string())).default([]),
     labels: z.optional(z.array(zProductLabel)).default([]),
     barcode: z.optional(z.union([
@@ -379,6 +573,7 @@ export const zCatalogProduct = z.object({
     }),
     saleMode: zProductSaleMode,
     pricingUnit: zProductPricingUnit,
+    orderingMode: zProductOrderingMode,
     photos: z.array(z.string()),
     labels: z.array(zProductLabel),
     barcode: z.optional(z.union([
@@ -454,6 +649,7 @@ export const zCatalogProductDetail = z.object({
     }),
     saleMode: zProductSaleMode,
     pricingUnit: zProductPricingUnit,
+    orderingMode: zProductOrderingMode,
     photos: z.array(z.string()),
     labels: z.array(zProductLabel),
     barcode: z.optional(z.union([
@@ -477,6 +673,95 @@ export const zCatalogProductDetail = z.object({
     ])),
     weightTolerancePercent: z.optional(z.union([
         z.int().gte(-9007199254740991).lte(9007199254740991),
+        z.null()
+    ]))
+});
+
+/**
+ * ShopCategory
+ *
+ * A category with at least one orderable product
+ */
+export const zShopCategory = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    name: z.string()
+});
+
+/**
+ * ShopCategoriesList
+ *
+ * Categories that currently have at least one orderable product
+ */
+export const zShopCategoriesList = z.array(zShopCategory);
+
+/**
+ * ShopProduct
+ *
+ * A product as shown in the public shop list
+ */
+export const zShopProduct = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    name: z.string(),
+    category: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    }),
+    saleMode: z.enum(['unit', 'weight']),
+    pricingUnit: z.enum(['piece', 'kg']),
+    photos: z.array(z.string()),
+    labels: z.array(z.enum([
+        'organic',
+        'local',
+        'vegetarian',
+        'vegan'
+    ])),
+    currentPriceEur: z.number().gt(0),
+    orderingMode: z.enum([
+        'pre_order',
+        'in_store',
+        'both'
+    ])
+});
+
+/**
+ * ShopProductsList
+ *
+ * A paginated list of orderable products
+ */
+export const zShopProductsList = z.object({
+    data: z.array(zShopProduct),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * ShopProductDetail
+ *
+ * A product detail page shown in the public shop — narrower than the admin detail
+ */
+export const zShopProductDetail = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    name: z.string(),
+    category: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    }),
+    saleMode: zProductSaleMode,
+    pricingUnit: zProductPricingUnit,
+    photos: z.array(z.string()),
+    labels: z.array(zProductLabel),
+    currentPriceEur: z.number().gt(0),
+    orderingMode: zProductOrderingMode,
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    barcode: z.optional(z.union([
+        z.string(),
         z.null()
     ]))
 });
@@ -811,6 +1096,134 @@ export const zMemberSelf = z.object({
 });
 
 /**
+ * CartLine
+ *
+ * A line in the caller's cart. isValid is false once the product is archived or no longer offers this ordering mode — the line is still returned, not dropped, until checkout.
+ */
+export const zCartLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    product: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string(),
+        saleMode: z.enum(['unit', 'weight']),
+        photos: z.array(z.string())
+    }),
+    orderingMode: z.enum(['pre_order', 'in_store']),
+    quantity: z.number().gt(0),
+    unitPriceEur: z.number().gte(0),
+    lineTotalEur: z.number().gte(0),
+    isValid: z.boolean(),
+    invalidReasonCode: z.optional(z.union([
+        z.enum(['product_archived', 'ordering_mode_unavailable']),
+        z.null()
+    ]))
+});
+
+/**
+ * Cart
+ *
+ * The sum of its valid lines
+ */
+export const zCart = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    lines: z.array(zCartLine),
+    totalEur: z.number().gte(0),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export const zOrderingModeChoice = z.enum(['pre_order', 'in_store']);
+
+/**
+ * AddCartLine
+ *
+ * quantity is a piece count (integer) for a unit-sale product, or kilograms (up to 3 decimals) for a by-weight product
+ */
+export const zAddCartLine = z.object({
+    productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderingMode: zOrderingModeChoice,
+    quantity: z.number().gt(0)
+});
+
+/**
+ * OrderDetail
+ */
+export const zOrderDetail = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderingMode: z.enum(['pre_order', 'in_store']),
+    status: z.enum(['pending', 'cancelled']),
+    totalEur: z.number().gte(0),
+    placedAt: z.string(),
+    cancelledAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    lines: z.array(z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        productName: z.string(),
+        quantity: z.number().gt(0),
+        unitPriceEur: z.number().gte(0),
+        lineTotalEur: z.number().gte(0)
+    }))
+});
+
+/**
+ * OrderStatus
+ *
+ * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ */
+export const zOrderStatus = z.enum(['pending', 'cancelled']);
+
+/**
+ * OrderLine
+ *
+ * An immutable snapshot, taken at checkout
+ */
+export const zOrderLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productName: z.string(),
+    quantity: z.number().gt(0),
+    unitPriceEur: z.number().gte(0),
+    lineTotalEur: z.number().gte(0)
+});
+
+/**
+ * CartLineInvalidReasonCode
+ *
+ * Why a cart line is no longer orderable — the frontend maps this to a translated message.
+ */
+export const zCartLineInvalidReasonCode = z.enum(['product_archived', 'ordering_mode_unavailable']);
+
+/**
+ * CheckoutResult
+ *
+ * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
+ */
+export const zCheckoutResult = z.object({
+    orders: z.array(zOrderDetail),
+    droppedLines: z.array(z.object({
+        productName: z.string(),
+        reasonCode: zCartLineInvalidReasonCode
+    }))
+});
+
+/**
+ * TestSeedResetResponse
+ *
+ * Result of truncating the E2E database and re-running the E2E seeder
+ */
+export const zTestSeedResetResponse = z.object({
+    ok: z.literal(true),
+    reseeded: z.boolean(),
+    truncatedTables: z.int().gte(0).lte(9007199254740991)
+});
+
+/**
  * PaginationQuerySchema
  *
  * Schema for pagination query
@@ -932,6 +1345,40 @@ export const zAdminProductsControllerListSortItem = z.object({
 });
 
 export const zAdminProductsControllerListSortArray = z.array(zAdminProductsControllerListSortItem);
+
+export const zShopCatalogControllerListProductsFilterItem = z.object({
+    property: z.union([
+        z.literal('categoryId'),
+        z.literal('q')
+    ]),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zShopCatalogControllerListProductsFilterArray = z.array(zShopCatalogControllerListProductsFilterItem);
+
+export const zShopCatalogControllerListProductsSortItem = z.object({
+    property: z.union([
+        z.literal('name'),
+        z.literal('createdAt')
+    ]),
+    direction: z.enum(['asc', 'desc'])
+});
+
+export const zShopCatalogControllerListProductsSortArray = z.array(zShopCatalogControllerListProductsSortItem);
 
 export const zAppControllerGetHelloData = z.object({
     body: z.optional(z.never()),
@@ -1291,6 +1738,18 @@ export const zAdminSuppliersControllerCreateData = z.object({
         notes: z.optional(z.union([
             z.string(),
             z.null()
+        ])),
+        deliveryMode: z.optional(z.union([
+            z.enum(['delivery', 'pickup']),
+            z.null()
+        ])),
+        referentId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        producerCategoryIds: z.optional(z.union([
+            z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+            z.null()
         ]))
     }),
     path: z.optional(z.never()),
@@ -1335,6 +1794,18 @@ export const zAdminSuppliersControllerUpdateData = z.object({
             z.string(),
             z.null()
         ])),
+        deliveryMode: z.optional(z.union([
+            z.enum(['delivery', 'pickup']),
+            z.null()
+        ])),
+        referentId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        producerCategoryIds: z.optional(z.union([
+            z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+            z.null()
+        ])),
         version: z.int().gte(-9007199254740991).lte(9007199254740991)
     }),
     path: z.object({
@@ -1375,6 +1846,101 @@ export const zAdminSuppliersControllerUnarchiveData = z.object({
  * A source of products
  */
 export const zAdminSuppliersControllerUnarchiveResponse = zCatalogSupplier;
+
+export const zAdminReferentsControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * All referents
+ */
+export const zAdminReferentsControllerListResponse = zCatalogReferentsList;
+
+export const zAdminReferentsControllerCreateData = z.object({
+    body: z.object({
+        firstName: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        lastName: z.string().min(1),
+        contactEmail: z.optional(z.union([
+            z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+            z.null()
+        ])),
+        contactPhone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        userId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ]))
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The co-op member who follows a supplier
+ */
+export const zAdminReferentsControllerCreateResponse = zCatalogReferent;
+
+export const zAdminReferentsControllerDeleteData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAdminReferentsControllerDeleteResponse = z.void();
+
+export const zAdminReferentsControllerGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The co-op member who follows a supplier
+ */
+export const zAdminReferentsControllerGetResponse = zCatalogReferent;
+
+export const zAdminReferentsControllerUpdateData = z.object({
+    body: z.object({
+        firstName: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        lastName: z.optional(z.string().min(1)),
+        contactEmail: z.optional(z.union([
+            z.email().regex(/^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/),
+            z.null()
+        ])),
+        contactPhone: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        userId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The co-op member who follows a supplier
+ */
+export const zAdminReferentsControllerUpdateResponse = zCatalogReferent;
 
 export const zAdminCategoriesControllerListData = z.object({
     body: z.optional(z.never()),
@@ -1452,6 +2018,74 @@ export const zAdminCategoriesControllerUnarchiveData = z.object({
  */
 export const zAdminCategoriesControllerUnarchiveResponse = zCatalogCategory;
 
+export const zAdminProducerCategoriesControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        includeArchived: z.string()
+    })
+});
+
+/**
+ * All producer categories
+ */
+export const zAdminProducerCategoriesControllerListResponse = zCatalogProducerCategoriesList;
+
+export const zAdminProducerCategoriesControllerCreateData = z.object({
+    body: z.object({
+        name: z.string().min(1)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zAdminProducerCategoriesControllerCreateResponse = zCatalogProducerCategory;
+
+export const zAdminProducerCategoriesControllerUpdateData = z.object({
+    body: z.object({
+        name: z.optional(z.string().min(1)),
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zAdminProducerCategoriesControllerUpdateResponse = zCatalogProducerCategory;
+
+export const zAdminProducerCategoriesControllerArchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zAdminProducerCategoriesControllerArchiveResponse = zCatalogProducerCategory;
+
+export const zAdminProducerCategoriesControllerUnarchiveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A tag for what a supplier produces (e.g. "Boissons", "Fromages")
+ */
+export const zAdminProducerCategoriesControllerUnarchiveResponse = zCatalogProducerCategory;
+
 export const zAdminProductsControllerListData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -1479,6 +2113,11 @@ export const zAdminProductsControllerCreateData = z.object({
         supplierId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         categoryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         saleMode: z.enum(['unit', 'weight']),
+        orderingMode: z.enum([
+            'pre_order',
+            'in_store',
+            'both'
+        ]),
         photos: z.array(z.string()).default([]),
         labels: z.array(z.enum([
             'organic',
@@ -1532,6 +2171,11 @@ export const zAdminProductsControllerUpdateData = z.object({
         supplierId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         categoryId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         saleMode: z.optional(z.enum(['unit', 'weight'])),
+        orderingMode: z.optional(z.enum([
+            'pre_order',
+            'in_store',
+            'both'
+        ])),
         photos: z.optional(z.array(z.string())).default([]),
         labels: z.optional(z.array(z.enum([
             'organic',
@@ -1605,3 +2249,108 @@ export const zAdminProductsControllerUnarchiveData = z.object({
  * An item the cooperative offers
  */
 export const zAdminProductsControllerUnarchiveResponse = zCatalogProduct;
+
+export const zShopCatalogControllerListCategoriesData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Categories that currently have at least one orderable product
+ */
+export const zShopCatalogControllerListCategoriesResponse = zShopCategoriesList;
+
+export const zShopCatalogControllerListProductsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zShopCatalogControllerListProductsFilterArray),
+        sort: z.optional(zShopCatalogControllerListProductsSortArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A paginated list of orderable products
+ */
+export const zShopCatalogControllerListProductsResponse = zShopProductsList;
+
+export const zShopCatalogControllerGetProductData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A product detail page shown in the public shop — narrower than the admin detail
+ */
+export const zShopCatalogControllerGetProductResponse = zShopProductDetail;
+
+export const zCartControllerGetCartData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The sum of its valid lines
+ */
+export const zCartControllerGetCartResponse = zCart;
+
+export const zCartControllerAddLineData = z.object({
+    body: z.object({
+        productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        orderingMode: z.enum(['pre_order', 'in_store']),
+        quantity: z.number().gt(0)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The sum of its valid lines
+ */
+export const zCartControllerAddLineResponse = zCart;
+
+export const zCartControllerRemoveLineData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        lineId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The sum of its valid lines
+ */
+export const zCartControllerRemoveLineResponse = zCart;
+
+export const zCartControllerUpdateLineData = z.object({
+    body: z.object({
+        quantity: z.number().gt(0)
+    }),
+    path: z.object({
+        lineId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The sum of its valid lines
+ */
+export const zCartControllerUpdateLineResponse = zCart;
+
+export const zCartControllerCheckoutData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
+ */
+export const zCartControllerCheckoutResponse = zCheckoutResult;

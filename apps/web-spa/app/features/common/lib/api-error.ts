@@ -20,6 +20,12 @@ export function isForbidden(error: unknown): boolean {
   return candidate?.statusCode === 403 || candidate?.status === 403
 }
 
+/** A 404 means the resource doesn't exist (or, for the shop, is archived) — not a transient failure. */
+export function isNotFound(error: unknown): boolean {
+  const candidate = error as ApiErrorLike | undefined
+  return candidate?.statusCode === 404 || candidate?.status === 404
+}
+
 export function apiErrorMessage(error: unknown, fallback: string): string {
   const candidate = error as ApiErrorLike | undefined
   return candidate?.message ?? fallback

@@ -25,7 +25,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router'
+import { Link } from 'react-router'
 import { handleMutationError } from '@/features/common/lib/api-error'
 import {
   createMember,
@@ -33,26 +33,16 @@ import {
   membersListQueryOptions,
 } from '@/features/admin-members/utils/admin-members-queries'
 import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
+import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 const STATUS_TABS = ['pending', 'active', 'all'] as const
 
 export default function MembersListPage() {
   const { t } = useTranslation()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const { searchParams, page, updateParams } = useListSearchParams()
   const status = (searchParams.get('status') ?? 'pending') as (typeof STATUS_TABS)[number]
   const committedSearch = searchParams.get('q') ?? ''
-  const pageParam = Number(searchParams.get('page'))
-  const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1
   const [search, setSearch] = useState(committedSearch)
-
-  const updateParams = (next: Record<string, string | undefined>) => {
-    const params = new URLSearchParams(searchParams)
-    for (const [key, value] of Object.entries(next)) {
-      if (value) params.set(key, value)
-      else params.delete(key)
-    }
-    setSearchParams(params)
-  }
 
   const { data, isLoading } = useQuery(
     membersListQueryOptions({
