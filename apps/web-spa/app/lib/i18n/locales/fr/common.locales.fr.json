@@ -210,7 +210,7 @@
   "adminMembers": {
     "title": "Adhérents",
     "subtitle": "Traitez les demandes d'adhésion et gérez les adhérents.",
-    "backOffice": "Back-office",
+    "backOffice": "Admin",
     "accessDenied": "Un compte administrateur est nécessaire pour ouvrir le back-office.",
     "comingSoon": "La file d'attente des demandes et la liste des adhérents apparaîtront ici.",
     "searchPlaceholder": "Rechercher nom, email, téléphone, numéro…",
@@ -293,6 +293,11 @@
     "nav": { "catalog": "Catalogue" },
     "tabs": { "products": "Produits", "suppliers": "Fournisseurs", "categories": "Catégories" },
     "saleMode": { "unit": "À l'unité", "weight": "Au poids" },
+    "orderingMode": {
+      "pre_order": "Précommande",
+      "in_store": "Sur stock",
+      "both": "Précommande ou sur stock"
+    },
     "supplierType": { "producer": "Producteur", "wholesaler": "Grossiste" },
     "pricingUnit": { "piece": "pièce", "kg": "kg" },
     "label": {
@@ -323,6 +328,7 @@
       "price": "Prix",
       "saleMode": "Mode de vente",
       "saleModeLocked": "non modifiable une fois un prix défini",
+      "orderingMode": "Mode de commande",
       "pricePerKg": "Prix au kg (€)",
       "pricePerPiece": "Prix à la pièce (€)",
       "labels": "Labels",
@@ -345,6 +351,71 @@
       "priceUpdated": "Prix mis à jour"
     }
   },
+  "shop": {
+    "nav": {
+      "shop": "Boutique",
+      "cart": "Panier",
+      "myAccount": "Mon compte",
+      "signIn": "Se connecter"
+    },
+    "title": "Boutique",
+    "subtitle": "Découvrez ce que la coopérative propose actuellement.",
+    "searchPlaceholder": "Rechercher un nom ou un code-barres…",
+    "sort": {
+      "nameAsc": "Nom (A–Z)",
+      "newest": "Plus récents"
+    },
+    "categories": {
+      "all": "Toutes les catégories"
+    },
+    "empty": "Aucun produit ne correspond à votre recherche.",
+    "count": "{{count}} produit",
+    "count_other": "{{count}} produits",
+    "backToShop": "Retour à la boutique",
+    "productNotFound": "Ce produit n'existe pas ou n'est plus disponible.",
+    "loadError": "Impossible de charger ce produit pour le moment."
+  },
+  "cart": {
+    "title": "Panier",
+    "loadError": "Impossible de charger votre panier pour le moment.",
+    "empty": "Votre panier est vide.",
+    "browseShop": "Parcourir la boutique",
+    "product": "Produit",
+    "quantity": "Quantité",
+    "unitPrice": "Prix unitaire",
+    "lineTotal": "Total de la ligne",
+    "total": "Total",
+    "signInToAdd": "Se connecter pour ajouter au panier",
+    "addToCart": "Ajouter au panier",
+    "removeConfirm": {
+      "title": "Retirer cette ligne ?",
+      "description": "Le produit sera retiré de votre panier.",
+      "confirm": "Retirer"
+    },
+    "checkout": {
+      "action": "Valider la commande",
+      "title": "Commande confirmée",
+      "emptyError": "Votre panier n'a plus rien à commander",
+      "droppedTitle": "Certains produits n'ont pas pu être commandés",
+      "nextSteps": {
+        "pre_order": "Cette commande est une précommande auprès du producteur. Vous serez prévenu·e quand elle sera prête à être livrée.",
+        "in_store": "Cette commande porte sur des articles en rayon. Vous pouvez la récupérer à la coopérative."
+      }
+    },
+    "toasts": {
+      "added": "Ajouté au panier",
+      "removed": "Retiré du panier",
+      "error": "Une erreur est survenue"
+    },
+    "errors": {
+      "orderingModeUnavailable": "Ce produit ne propose plus ce mode de commande"
+    },
+    "invalidReason": {
+      "product_archived": "Ce produit n'est plus disponible",
+      "ordering_mode_unavailable": "Ce produit ne propose plus ce mode de commande"
+    }
+  },
+  "orders": {},
   "common": {
     "user": "Utilisateur",
     "active": "Actif",

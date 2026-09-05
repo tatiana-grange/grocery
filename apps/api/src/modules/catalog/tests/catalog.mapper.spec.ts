@@ -12,6 +12,7 @@ function fakeProduct(overrides: Partial<Product> = {}): Product {
     supplier: { id: 's1', name: 'Ferme' },
     category: { id: 'c1', name: 'Légumes' },
     saleMode: 'weight',
+    orderingMode: 'in_store',
     photos: [],
     labels: [],
     barcode: undefined,

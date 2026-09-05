@@ -17,10 +17,7 @@ describe('catalogController (e2e)', () => {
   let admin: ReturnType<typeof createSessionFromUser>
 
   beforeEach(async (context) => {
-    const { orm, app } = await initializeTestApp(
-      { orm: context.orm },
-      { imports: [CatalogModule] },
-    )
+    const { orm, app } = await initializeTestApp({ orm: context.orm }, { imports: [CatalogModule] })
     context.app = app
     const em: EntityManager = orm.em.fork()
     request = createRequest(app)
@@ -40,11 +37,18 @@ describe('catalogController (e2e)', () => {
     return res.body as { id: string; version: number }
   }
 
+  async function makeReferent(lastName = 'Grolleau') {
+    const res = await request.withSession(admin).post('/admin/referents').send({ lastName })
+    return res.body as { id: string; version: number }
+  }
+
+  async function makeProducerCategory(name = 'Boissons') {
+    const res = await request.withSession(admin).post('/admin/producer-categories').send({ name })
+    return res.body as { id: string; version: number }
+  }
+
   async function makeCategory(name = 'Légumes') {
-    const res = await request
-      .withSession(admin)
-      .post('/admin/categories')
-      .send({ name })
+    const res = await request.withSession(admin).post('/admin/categories').send({ name })
     return res.body as { id: string; version: number }
   }
 
@@ -59,6 +63,7 @@ describe('catalogController (e2e)', () => {
         supplierId: supplier.id,
         categoryId: category.id,
         saleMode: 'unit',
+        orderingMode: 'in_store',
         initialPriceEur: 1.5,
         ...overrides,
       })
@@ -109,9 +114,7 @@ describe('catalogController (e2e)', () => {
   it('blocks archiving a supplier with active products unless cascade', async () => {
     const { product, supplier } = await makeProduct()
 
-    const blocked = await request
-      .withSession(admin)
-      .post(`/admin/suppliers/${supplier.id}/archive`)
+    const blocked = await request.withSession(admin).post(`/admin/suppliers/${supplier.id}/archive`)
     expect(blocked.status).toBe(409)
     expect(blocked.body.activeProductCount).toBe(1)
 
@@ -126,9 +129,7 @@ describe('catalogController (e2e)', () => {
 
   it('blocks archiving a category referenced by an active product', async () => {
     const { category } = await makeProduct()
-    const res = await request
-      .withSession(admin)
-      .post(`/admin/categories/${category.id}/archive`)
+    const res = await request.withSession(admin).post(`/admin/categories/${category.id}/archive`)
     expect(res.status).toBe(409)
     expect(res.body.productCount).toBe(1)
   })
@@ -198,6 +199,63 @@ describe('catalogController (e2e)', () => {
       .put(`/admin/suppliers/${supplier.id}`)
       .send({ name: 'Renamed', version: supplier.version + 5 })
     expect(res.status).toBe(409)
+  })
+
+  it('attaches a referent, a delivery mode, and producer categories to a supplier', async () => {
+    const referent = await makeReferent('Grolleau')
+    const drinks = await makeProducerCategory('Boissons')
+    const cheese = await makeProducerCategory('Fromages')
+
+    const res = await request
+      .withSession(admin)
+      .post('/admin/suppliers')
+      .send({
+        name: 'Ferme test',
+        type: 'producer',
+        deliveryMode: 'pickup',
+        referentId: referent.id,
+        producerCategoryIds: [drinks.id, cheese.id],
+      })
+
+    expect(res.status).toBe(201)
+    expect(res.body.deliveryMode).toBe('pickup')
+    expect(res.body.referent).toMatchObject({ id: referent.id, lastName: 'Grolleau' })
+    expect(res.body.producerCategories.map((c: { id: string }) => c.id).sort()).toEqual(
+      [drinks.id, cheese.id].sort(),
+    )
+
+    const updated = await request
+      .withSession(admin)
+      .put(`/admin/suppliers/${res.body.id}`)
+      .send({ producerCategoryIds: [drinks.id], version: res.body.version })
+    expect(updated.body.producerCategories).toHaveLength(1)
+    expect(updated.body.producerCategories[0].id).toBe(drinks.id)
+  })
+
+  it('blocks deleting a referent still linked to a supplier', async () => {
+    const referent = await makeReferent('Alain')
+    await request
+      .withSession(admin)
+      .post('/admin/suppliers')
+      .send({ name: 'Ferme liée', type: 'producer', referentId: referent.id })
+
+    const res = await request.withSession(admin).del(`/admin/referents/${referent.id}`)
+    expect(res.status).toBe(409)
+    expect(res.body.supplierCount).toBe(1)
+  })
+
+  it('blocks archiving a producer category referenced by an active supplier', async () => {
+    const category = await makeProducerCategory('Miel')
+    await request
+      .withSession(admin)
+      .post('/admin/suppliers')
+      .send({ name: 'Ferme miel', type: 'producer', producerCategoryIds: [category.id] })
+
+    const res = await request
+      .withSession(admin)
+      .post(`/admin/producer-categories/${category.id}/archive`)
+    expect(res.status).toBe(409)
+    expect(res.body.supplierCount).toBe(1)
   })
 
   it('rejects a plain member and unauthenticated callers', async (context) => {

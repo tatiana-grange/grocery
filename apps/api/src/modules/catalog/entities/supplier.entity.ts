@@ -1,7 +1,18 @@
-import type { SupplierType } from '../contracts/supplier.contract'
+import type { SupplierDeliveryMode, SupplierType } from '../contracts/supplier.contract'
+import type { Rel } from '@mikro-orm/core'
 import { Collection } from '@mikro-orm/core'
-import { Entity, Index, OneToMany, PrimaryKey, Property } from '@mikro-orm/decorators/legacy'
+import {
+  Entity,
+  Index,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/decorators/legacy'
+import { ProducerCategory } from './producer-category.entity'
 import { Product } from './product.entity'
+import { Referent } from './referent.entity'
 
 @Entity({ tableName: 'supplier' })
 export class Supplier {
@@ -26,6 +37,20 @@ export class Supplier {
 
   @Property({ nullable: true })
   notes?: string
+
+  /** How goods move from this supplier to the épicerie. Unset until someone picks one. */
+  @Property({ nullable: true })
+  deliveryMode?: SupplierDeliveryMode
+
+  @ManyToOne(() => Referent, { fieldName: 'referentId', nullable: true })
+  @Index()
+  referent?: Rel<Referent>
+
+  @ManyToMany(() => ProducerCategory, (category) => category.suppliers, {
+    owner: true,
+    pivotTable: 'supplierProducerCategory',
+  })
+  producerCategories = new Collection<ProducerCategory>(this)
 
   @Property({ nullable: true })
   @Index()

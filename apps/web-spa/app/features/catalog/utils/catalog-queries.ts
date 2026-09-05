@@ -28,13 +28,9 @@ import type {
   AdminSuppliersControllerUpdateData,
 } from '@grocery/openapi-generator/client/types.gen'
 import { FilterRule } from '@lonestone/nzoth/client'
+import { unwrap } from '@/lib/api-client'
 
 export const CATALOG_PAGE_SIZE = 20
-
-function unwrap<T>(response: { data?: T; error?: unknown }): T {
-  if (response.error) throw response.error
-  return response.data as T
-}
 
 // Suppliers -----------------------------------------------------------------------------------
 
@@ -131,10 +127,8 @@ export function productDetailQueryOptions(id: string) {
 export const createProduct = async (body: AdminProductsControllerCreateData['body']) =>
   unwrap(await adminProductsControllerCreate({ body }))
 
-export const updateProduct = async (
-  id: string,
-  body: AdminProductsControllerUpdateData['body'],
-) => unwrap(await adminProductsControllerUpdate({ path: { id }, body }))
+export const updateProduct = async (id: string, body: AdminProductsControllerUpdateData['body']) =>
+  unwrap(await adminProductsControllerUpdate({ path: { id }, body }))
 
 export const setProductPrice = async (
   id: string,
