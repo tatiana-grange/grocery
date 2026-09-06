@@ -37,5 +37,15 @@ export default [
       'admin/catalog/products/:productId',
       'features/catalog/components/product-detail-page.tsx',
     ),
+    route('admin/purchasing', 'features/admin-purchasing/components/supplier-orders-list-page.tsx'),
+    route(
+      'admin/purchasing/supplier-orders/:id',
+      'features/admin-purchasing/components/supplier-order-detail-page.tsx',
+    ),
+    route('admin/inventory', 'features/admin-inventory/components/stock-list-page.tsx'),
+    route(
+      'admin/inventory/products/:productId',
+      'features/admin-inventory/components/stock-detail-page.tsx',
+    ),
   ]),
 ] satisfies RouteConfig

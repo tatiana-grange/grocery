@@ -271,7 +271,11 @@
       "amount": "Montant (€)",
       "record": "Enregistrer le paiement",
       "adjustment": "Enregistrer un ajustement",
-      "method": { "cash": "Espèces", "transfer": "Virement", "other": "Autre" }
+      "method": {
+        "cash": "Espèces",
+        "transfer": "Virement",
+        "other": "Autre"
+      }
     },
     "nav": {
       "section": "Gestion",
@@ -290,16 +294,31 @@
     "open": "Ouvrir",
     "perKg": "au kg",
     "backToCatalogue": "Retour au catalogue",
-    "nav": { "catalog": "Catalogue" },
-    "tabs": { "products": "Produits", "suppliers": "Fournisseurs", "categories": "Catégories" },
-    "saleMode": { "unit": "À l'unité", "weight": "Au poids" },
+    "nav": {
+      "catalog": "Catalogue"
+    },
+    "tabs": {
+      "products": "Produits",
+      "suppliers": "Fournisseurs",
+      "categories": "Catégories"
+    },
+    "saleMode": {
+      "unit": "À l'unité",
+      "weight": "Au poids"
+    },
     "orderingMode": {
       "pre_order": "Précommande",
       "in_store": "Sur stock",
       "both": "Précommande ou sur stock"
     },
-    "supplierType": { "producer": "Producteur", "wholesaler": "Grossiste" },
-    "pricingUnit": { "piece": "pièce", "kg": "kg" },
+    "supplierType": {
+      "producer": "Producteur",
+      "wholesaler": "Grossiste"
+    },
+    "pricingUnit": {
+      "piece": "pièce",
+      "kg": "kg"
+    },
     "label": {
       "organic": "Bio",
       "local": "Local",
@@ -416,6 +435,113 @@
     }
   },
   "orders": {},
+  "purchasing": {
+    "title": "Commandes fournisseur",
+    "subtitle": "Agréger les précommandes, envoyer les commandes et enregistrer les réceptions.",
+    "empty": "Aucune commande fournisseur pour l'instant.",
+    "open": "Ouvrir",
+    "count": "{{count}} commande fournisseur",
+    "count_other": "{{count}} commandes fournisseur",
+    "backToList": "Retour aux commandes fournisseur",
+    "createdAtLabel": "Créée le {{date}}",
+    "createdAtValue": "{{date}}",
+    "receptionsHeading": "Réceptions",
+    "noReceptions": "Rien de reçu pour l'instant.",
+    "unknownCost": "inconnu",
+    "partialEstimate": "estimation partielle",
+    "estimatedTotalLabel": "Total estimé",
+    "estimatedTotalValue": "{{value}} €",
+    "nav": {
+      "purchasing": "Achats"
+    },
+    "status": {
+      "all": "Toutes",
+      "draft": "Brouillon",
+      "sent": "Envoyée",
+      "received": "Reçue",
+      "closed": "Clôturée"
+    },
+    "columns": {
+      "supplier": "Fournisseur",
+      "status": "Statut",
+      "lines": "Lignes",
+      "estimatedTotal": "Total est.",
+      "createdAt": "Créée",
+      "product": "Produit",
+      "ordered": "Commandé",
+      "received": "Reçu",
+      "discrepancy": "Écart",
+      "members": "Membres",
+      "unitCost": "Coût unit. est."
+    },
+    "discrepancy": {
+      "none": "OK",
+      "short": "Manquant",
+      "over": "Excédent"
+    },
+    "aggregate": {
+      "action": "Agréger les précommandes",
+      "done": "Précommandes agrégées dans une commande fournisseur brouillon.",
+      "nothingPending": "Rien à agréger pour ce fournisseur."
+    },
+    "send": {
+      "action": "Envoyer",
+      "done": "Commande fournisseur marquée comme envoyée.",
+      "alreadySent": "Cette commande a déjà été envoyée.",
+      "export": "Exporter"
+    },
+    "close": {
+      "action": "Clôturer la commande",
+      "done": "Commande fournisseur clôturée.",
+      "confirm": "Clôturer cette commande ? Aucune livraison supplémentaire ne sera attendue.",
+      "invalid": "Seule une commande envoyée peut être clôturée."
+    },
+    "reception": {
+      "heading": "Enregistrer une réception",
+      "receivedQuantity": "Quantité reçue",
+      "unitCost": "Coût unitaire (€)",
+      "submit": "Confirmer la réception",
+      "done": "Réception enregistrée. Stock et prix de revient mis à jour.",
+      "notSent": "Une réception ne peut être enregistrée que sur une commande envoyée.",
+      "invalidValues": "Les quantités et les coûts ne doivent pas être négatifs.",
+      "costRequired": "Saisissez le coût unitaire payé avant de confirmer."
+    },
+    "skipped": {
+      "heading": "Des précommandes ont été ignorées",
+      "reason": {
+        "product_archived": "le produit a été archivé",
+        "supplier_archived": "le fournisseur a été archivé",
+        "no_longer_pre_orderable": "le produit n'est plus disponible en précommande"
+      }
+    }
+  },
+  "inventory": {
+    "title": "Stock et prix de revient",
+    "subtitle": "Niveau de stock actuel et prix de revient moyen pondéré par produit.",
+    "searchPlaceholder": "Rechercher un produit…",
+    "empty": "Aucun produit.",
+    "open": "Ouvrir",
+    "backToList": "Retour au stock",
+    "noCostPrice": "—",
+    "noMovements": "Aucun mouvement de stock pour l'instant.",
+    "movementsHeading": "Historique des mouvements",
+    "costValue": "{{value}} €",
+    "nav": {
+      "inventory": "Inventaire"
+    },
+    "columns": {
+      "product": "Produit",
+      "onHand": "En stock",
+      "costPrice": "Prix de revient",
+      "date": "Date",
+      "reason": "Motif",
+      "quantity": "Quantité",
+      "unitCost": "Coût unitaire"
+    },
+    "reason": {
+      "reception": "Réception"
+    }
+  },
   "common": {
     "user": "Utilisateur",
     "active": "Actif",

@@ -296,6 +296,37 @@ export type UpdateCartLine = {
 };
 
 /**
+ * SendSupplierOrder
+ *
+ * Mark a draft supplier order as sent (send the loaded version)
+ */
+export type SendSupplierOrder = {
+    version: number;
+};
+
+/**
+ * CloseSupplierOrder
+ *
+ * Close a sent supplier order early (send the loaded version)
+ */
+export type CloseSupplierOrder = {
+    version: number;
+};
+
+/**
+ * RecordReception
+ *
+ * One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.
+ */
+export type RecordReception = {
+    lines: Array<{
+        supplierOrderLineId: string;
+        receivedQuantity: number;
+        unitCostEur: number;
+    }>;
+};
+
+/**
  * CatalogSuppliersList
  *
  * A paginated list of suppliers
@@ -661,6 +692,84 @@ export type ShopProductDetail = {
     description?: string | null;
     barcode?: string | null;
 };
+
+/**
+ * StockList
+ *
+ * A paginated list of every product with its current stock level and cost price
+ */
+export type StockList = {
+    data: Array<StockSummary>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * StockSummary
+ */
+export type StockSummary = {
+    product: {
+        id: string;
+        name: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+    };
+    quantityOnHand: number;
+    costPriceEur?: number | null;
+};
+
+/**
+ * StockDetail
+ */
+export type StockDetail = {
+    product: {
+        id: string;
+        name: string;
+        saleMode: ProductSaleMode;
+    };
+    quantityOnHand: number;
+    costPriceEur?: number | null;
+    movements: Array<StockMovement>;
+};
+
+/**
+ * StockMovement
+ */
+export type StockMovement = {
+    id: string;
+    quantity: number;
+    unitCostEur: number;
+    /**
+     * StockMovementReason
+     *
+     * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+     */
+    reason: 'reception';
+    receptionLineId?: string | null;
+    createdAt: string;
+};
+
+/**
+ * StockMovementReason
+ *
+ * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ */
+export const StockMovementReason = { RECEPTION: 'reception' } as const;
+
+/**
+ * StockMovementReason
+ *
+ * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ */
+export type StockMovementReason = typeof StockMovementReason[keyof typeof StockMovementReason];
 
 /**
  * MembersList
@@ -1059,6 +1168,180 @@ export const CartLineInvalidReasonCode = { PRODUCT_ARCHIVED: 'product_archived',
 export type CartLineInvalidReasonCode = typeof CartLineInvalidReasonCode[keyof typeof CartLineInvalidReasonCode];
 
 /**
+ * AggregateResult
+ *
+ * The draft supplier order aggregation just created, plus every pending pre-order line left out because its product can no longer be ordered from this supplier (FR-003).
+ */
+export type AggregateResult = {
+    supplierOrder: SupplierOrderDetail;
+    skippedLines: Array<{
+        productName: string;
+        reason: string;
+    }>;
+};
+
+/**
+ * SupplierOrderDetail
+ */
+export type SupplierOrderDetail = {
+    id: string;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    status: SupplierOrderStatus;
+    sentAt?: string | null;
+    closedAt?: string | null;
+    estimatedTotalEur: number;
+    hasUnknownCostLines: boolean;
+    lineCount: number;
+    version: number;
+    createdAt: string;
+    lines: Array<SupplierOrderLine>;
+    receptions: Array<Reception>;
+};
+
+/**
+ * SupplierOrderStatus
+ *
+ * draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023).
+ */
+export const SupplierOrderStatus = {
+    DRAFT: 'draft',
+    SENT: 'sent',
+    RECEIVED: 'received',
+    CLOSED: 'closed'
+} as const;
+
+/**
+ * SupplierOrderStatus
+ *
+ * draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023).
+ */
+export type SupplierOrderStatus = typeof SupplierOrderStatus[keyof typeof SupplierOrderStatus];
+
+/**
+ * SupplierOrderLine
+ */
+export type SupplierOrderLine = {
+    id: string;
+    product: {
+        id: string;
+        name: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+    };
+    quantity: number;
+    receivedQuantity: number;
+    /**
+     * DiscrepancyKind
+     *
+     * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+     */
+    discrepancy: 'short' | 'over' | 'none';
+    contributingMemberCount: number;
+    estimatedUnitCostEur?: number | null;
+};
+
+/**
+ * DiscrepancyKind
+ *
+ * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+ */
+export const DiscrepancyKind = {
+    SHORT: 'short',
+    OVER: 'over',
+    NONE: 'none'
+} as const;
+
+/**
+ * DiscrepancyKind
+ *
+ * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+ */
+export type DiscrepancyKind = typeof DiscrepancyKind[keyof typeof DiscrepancyKind];
+
+/**
+ * Reception
+ */
+export type Reception = {
+    id: string;
+    receivedAt: string;
+    lines: Array<ReceptionLine>;
+};
+
+/**
+ * ReceptionLine
+ */
+export type ReceptionLine = {
+    id: string;
+    supplierOrderLineId: string;
+    productName: string;
+    orderedQuantity: number;
+    receivedQuantity: number;
+    /**
+     * DiscrepancyKind
+     *
+     * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+     */
+    discrepancy: 'short' | 'over' | 'none';
+    unitCostEur: number;
+};
+
+/**
+ * SupplierOrdersList
+ *
+ * A paginated list of supplier orders
+ */
+export type SupplierOrdersList = {
+    data: Array<SupplierOrder>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * SupplierOrder
+ */
+export type SupplierOrder = {
+    id: string;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    /**
+     * SupplierOrderStatus
+     *
+     * draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023).
+     */
+    status: 'draft' | 'sent' | 'received' | 'closed';
+    sentAt?: string | null;
+    closedAt?: string | null;
+    estimatedTotalEur: number;
+    hasUnknownCostLines: boolean;
+    lineCount: number;
+    version: number;
+    createdAt: string;
+};
+
+/**
+ * SupplierOrderExport
+ *
+ * A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).
+ */
+export type SupplierOrderExport = {
+    filename: string;
+    content: string;
+};
+
+/**
  * TestSeedResetResponse
  *
  * Result of truncating the E2E database and re-running the E2E seeder
@@ -1090,7 +1373,7 @@ export type PaginationQuerySchema = {
  *
  * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
  * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: status, feeState, role, q
+ * <br> Available properties: status, supplierId
  */
 export type FilterQueryStringSchema = string;
 
@@ -1153,6 +1436,22 @@ export type ShopCatalogControllerListProductsSortItem = {
 };
 
 export type ShopCatalogControllerListProductsSortArray = Array<ShopCatalogControllerListProductsSortItem>;
+
+export type InventoryControllerListFilterItem = {
+    property: 'search' | 'categoryId';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type InventoryControllerListFilterArray = Array<InventoryControllerListFilterItem>;
+
+export type AdminPurchasingControllerListFilterItem = {
+    property: 'status' | 'supplierId';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type AdminPurchasingControllerListFilterArray = Array<AdminPurchasingControllerListFilterItem>;
 
 export type AppControllerGetHelloData = {
     body?: never;
@@ -2436,3 +2735,216 @@ export type CartControllerCheckoutResponses = {
 };
 
 export type CartControllerCheckoutResponse = CartControllerCheckoutResponses[keyof CartControllerCheckoutResponses];
+
+export type InventoryControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: search, categoryId
+         */
+        filter?: InventoryControllerListFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/inventory/stock';
+};
+
+export type InventoryControllerListResponses = {
+    /**
+     * A paginated list of every product with its current stock level and cost price
+     */
+    200: StockList;
+};
+
+export type InventoryControllerListResponse = InventoryControllerListResponses[keyof InventoryControllerListResponses];
+
+export type InventoryControllerDetailData = {
+    body?: never;
+    path: {
+        productId: string;
+    };
+    query?: never;
+    url: '/api/admin/inventory/products/{productId}/stock';
+};
+
+export type InventoryControllerDetailResponses = {
+    /**
+     * Successful response
+     */
+    200: StockDetail;
+};
+
+export type InventoryControllerDetailResponse = InventoryControllerDetailResponses[keyof InventoryControllerDetailResponses];
+
+export type AdminSupplierPurchasingControllerAggregateData = {
+    body?: never;
+    path: {
+        supplierId: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{supplierId}/purchasing/aggregate';
+};
+
+export type AdminSupplierPurchasingControllerAggregateResponses = {
+    /**
+     * The draft supplier order aggregation just created, plus every pending pre-order line left out because its product can no longer be ordered from this supplier (FR-003).
+     */
+    200: AggregateResult;
+};
+
+export type AdminSupplierPurchasingControllerAggregateResponse = AdminSupplierPurchasingControllerAggregateResponses[keyof AdminSupplierPurchasingControllerAggregateResponses];
+
+export type AdminPurchasingControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: status, supplierId
+         */
+        filter?: AdminPurchasingControllerListFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/purchasing/supplier-orders';
+};
+
+export type AdminPurchasingControllerListResponses = {
+    /**
+     * A paginated list of supplier orders
+     */
+    200: SupplierOrdersList;
+};
+
+export type AdminPurchasingControllerListResponse = AdminPurchasingControllerListResponses[keyof AdminPurchasingControllerListResponses];
+
+export type AdminPurchasingControllerGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}';
+};
+
+export type AdminPurchasingControllerGetResponses = {
+    /**
+     * Successful response
+     */
+    200: SupplierOrderDetail;
+};
+
+export type AdminPurchasingControllerGetResponse = AdminPurchasingControllerGetResponses[keyof AdminPurchasingControllerGetResponses];
+
+export type AdminPurchasingControllerExportData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}/export';
+};
+
+export type AdminPurchasingControllerExportResponses = {
+    /**
+     * A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).
+     */
+    200: SupplierOrderExport;
+};
+
+export type AdminPurchasingControllerExportResponse = AdminPurchasingControllerExportResponses[keyof AdminPurchasingControllerExportResponses];
+
+export type AdminPurchasingControllerSendData = {
+    /**
+     * SendSupplierOrder
+     *
+     * Mark a draft supplier order as sent (send the loaded version)
+     */
+    body: {
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}/send';
+};
+
+export type AdminPurchasingControllerSendResponses = {
+    /**
+     * Successful response
+     */
+    200: SupplierOrderDetail;
+};
+
+export type AdminPurchasingControllerSendResponse = AdminPurchasingControllerSendResponses[keyof AdminPurchasingControllerSendResponses];
+
+export type AdminPurchasingControllerCloseData = {
+    /**
+     * CloseSupplierOrder
+     *
+     * Close a sent supplier order early (send the loaded version)
+     */
+    body: {
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}/close';
+};
+
+export type AdminPurchasingControllerCloseResponses = {
+    /**
+     * Successful response
+     */
+    200: SupplierOrderDetail;
+};
+
+export type AdminPurchasingControllerCloseResponse = AdminPurchasingControllerCloseResponses[keyof AdminPurchasingControllerCloseResponses];
+
+export type AdminPurchasingControllerRecordReceptionData = {
+    /**
+     * RecordReception
+     *
+     * One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.
+     */
+    body: {
+        lines: Array<{
+            supplierOrderLineId: string;
+            receivedQuantity: number;
+            unitCostEur: number;
+        }>;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}/receptions';
+};
+
+export type AdminPurchasingControllerRecordReceptionResponses = {
+    /**
+     * Successful response
+     */
+    200: Reception;
+};
+
+export type AdminPurchasingControllerRecordReceptionResponse = AdminPurchasingControllerRecordReceptionResponses[keyof AdminPurchasingControllerRecordReceptionResponses];

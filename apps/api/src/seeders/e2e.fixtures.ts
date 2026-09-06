@@ -31,6 +31,21 @@ export const E2E_SEARCH_MEMBER_NAME = 'Zelda Searchable'
 /** Barcode on the seeded "Farine T65" product, so the shop's search-by-barcode spec has one. */
 export const E2E_PRODUCT_BARCODE = '3760123456789'
 
+/**
+ * Lot 3 purchasing fixtures: a dedicated supplier with pending pre-orders, isolated from
+ * "Ferme des Prés" so the aggregation / reception / stock specs never collide with the
+ * cart / checkout / catalog specs.
+ */
+export const E2E_PURCHASING = {
+  supplierName: 'Fournisseur Achats E2E',
+  /** unit-sold, pre-order. Two members pre-order it → aggregation sums to 5. */
+  unitProductName: 'Légumes précommande E2E',
+  /** by-weight, pre-order, 10% tolerance — the discrepancy spec leans on this band. */
+  weightProductName: 'Fromage précommande E2E',
+  /** archived before aggregation runs — exercises the "skipped, and why" path (FR-003). */
+  archivedProductName: 'Conserves précommande E2E (archivé)',
+} as const
+
 /** First names for the extra members that fill the paginated list (page size is 20). */
 export const FILLER_FIRST_NAMES = [
   'Alice',

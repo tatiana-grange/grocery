@@ -271,7 +271,11 @@
       "amount": "Amount (€)",
       "record": "Record payment",
       "adjustment": "Record adjustment",
-      "method": { "cash": "Cash", "transfer": "Transfer", "other": "Other" }
+      "method": {
+        "cash": "Cash",
+        "transfer": "Transfer",
+        "other": "Other"
+      }
     },
     "nav": {
       "section": "Management",
@@ -290,16 +294,31 @@
     "open": "Open",
     "perKg": "per kg",
     "backToCatalogue": "Back to catalogue",
-    "nav": { "catalog": "Catalogue" },
-    "tabs": { "products": "Products", "suppliers": "Suppliers", "categories": "Categories" },
-    "saleMode": { "unit": "Per unit", "weight": "By weight" },
+    "nav": {
+      "catalog": "Catalogue"
+    },
+    "tabs": {
+      "products": "Products",
+      "suppliers": "Suppliers",
+      "categories": "Categories"
+    },
+    "saleMode": {
+      "unit": "Per unit",
+      "weight": "By weight"
+    },
     "orderingMode": {
       "pre_order": "Pre-order",
       "in_store": "In-store",
       "both": "Pre-order or in-store"
     },
-    "supplierType": { "producer": "Producer", "wholesaler": "Wholesaler" },
-    "pricingUnit": { "piece": "piece", "kg": "kg" },
+    "supplierType": {
+      "producer": "Producer",
+      "wholesaler": "Wholesaler"
+    },
+    "pricingUnit": {
+      "piece": "piece",
+      "kg": "kg"
+    },
     "label": {
       "organic": "Organic",
       "local": "Local",
@@ -416,6 +435,113 @@
     }
   },
   "orders": {},
+  "purchasing": {
+    "title": "Supplier orders",
+    "subtitle": "Aggregate pre-orders, send orders, and record what arrives.",
+    "empty": "No supplier orders yet.",
+    "open": "Open",
+    "count": "{{count}} supplier order",
+    "count_other": "{{count}} supplier orders",
+    "backToList": "Back to supplier orders",
+    "createdAtLabel": "Created {{date}}",
+    "createdAtValue": "{{date}}",
+    "receptionsHeading": "Receptions",
+    "noReceptions": "Nothing received yet.",
+    "unknownCost": "unknown",
+    "partialEstimate": "partial estimate",
+    "estimatedTotalLabel": "Estimated total",
+    "estimatedTotalValue": "€{{value}}",
+    "nav": {
+      "purchasing": "Purchasing"
+    },
+    "status": {
+      "all": "All",
+      "draft": "Draft",
+      "sent": "Sent",
+      "received": "Received",
+      "closed": "Closed"
+    },
+    "columns": {
+      "supplier": "Supplier",
+      "status": "Status",
+      "lines": "Lines",
+      "estimatedTotal": "Est. total",
+      "createdAt": "Created",
+      "product": "Product",
+      "ordered": "Ordered",
+      "received": "Received",
+      "discrepancy": "Discrepancy",
+      "members": "Members",
+      "unitCost": "Est. unit cost"
+    },
+    "discrepancy": {
+      "none": "OK",
+      "short": "Short",
+      "over": "Over"
+    },
+    "aggregate": {
+      "action": "Aggregate pre-orders",
+      "done": "Pre-orders aggregated into a draft supplier order.",
+      "nothingPending": "Nothing pending to aggregate for this supplier."
+    },
+    "send": {
+      "action": "Send",
+      "done": "Supplier order marked as sent.",
+      "alreadySent": "This order has already been sent.",
+      "export": "Export"
+    },
+    "close": {
+      "action": "Close order",
+      "done": "Supplier order closed.",
+      "confirm": "Close this order? No further delivery will be expected.",
+      "invalid": "Only a sent order can be closed."
+    },
+    "reception": {
+      "heading": "Record a reception",
+      "receivedQuantity": "Received quantity",
+      "unitCost": "Unit cost (€)",
+      "submit": "Confirm reception",
+      "done": "Reception recorded. Stock and cost price updated.",
+      "notSent": "A reception can only be recorded against a sent order.",
+      "invalidValues": "Quantities and costs must not be negative.",
+      "costRequired": "Enter the unit cost paid before confirming."
+    },
+    "skipped": {
+      "heading": "Some pre-orders were skipped",
+      "reason": {
+        "product_archived": "the product has been archived",
+        "supplier_archived": "the supplier has been archived",
+        "no_longer_pre_orderable": "the product is no longer available for pre-order"
+      }
+    }
+  },
+  "inventory": {
+    "title": "Stock & cost price",
+    "subtitle": "Current stock level and weighted average cost price per product.",
+    "searchPlaceholder": "Search a product…",
+    "empty": "No products.",
+    "open": "Open",
+    "backToList": "Back to stock",
+    "noCostPrice": "—",
+    "noMovements": "No stock movements yet.",
+    "movementsHeading": "Movement history",
+    "costValue": "€{{value}}",
+    "nav": {
+      "inventory": "Inventory"
+    },
+    "columns": {
+      "product": "Product",
+      "onHand": "On hand",
+      "costPrice": "Cost price",
+      "date": "Date",
+      "reason": "Reason",
+      "quantity": "Quantity",
+      "unitCost": "Unit cost"
+    },
+    "reason": {
+      "reception": "Reception"
+    }
+  },
   "common": {
     "user": "User",
     "active": "Active",

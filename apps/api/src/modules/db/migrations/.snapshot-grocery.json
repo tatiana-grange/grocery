@@ -1934,6 +1934,23 @@
           "enumItems": [],
           "mappedType": "datetime"
         },
+        "fulfilledAt": {
+          "name": "fulfilledAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
         "id": {
           "name": "id",
           "type": "uuid",
@@ -2036,6 +2053,23 @@
           "enumItems": [],
           "mappedType": "decimal"
         },
+        "supplierOrderLineId": {
+          "name": "supplierOrderLineId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
         "unitPriceAmountCents": {
           "name": "unitPriceAmountCents",
           "type": "int",
@@ -2074,6 +2108,16 @@
           "keyName": "orderLine_pkey",
           "primary": true,
           "unique": true
+        },
+        {
+          "columnNames": [
+            "supplierOrderLineId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "orderLine_supplierOrderLineId_index",
+          "primary": false,
+          "unique": false
         }
       ],
       "checks": [],
@@ -2100,6 +2144,18 @@
             "id"
           ],
           "referencedTableName": "public.product"
+        },
+        "orderLine_supplierOrderLineId_foreign": {
+          "columnNames": [
+            "supplierOrderLineId"
+          ],
+          "constraintName": "orderLine_supplierOrderLineId_foreign",
+          "localTableName": "public.orderLine",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.supplierOrderLine",
+          "deleteRule": "set null"
         }
       },
       "comment": null
@@ -2817,6 +2873,302 @@
       "comment": null
     },
     {
+      "name": "reception",
+      "schema": "public",
+      "columns": {
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "receivedAt": {
+          "name": "receivedAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "supplierOrderId": {
+          "name": "supplierOrderId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "reception_pkey",
+          "primary": true,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "supplierOrderId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "reception_supplierOrderId_index",
+          "primary": false,
+          "unique": false
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "reception_supplierOrderId_foreign": {
+          "columnNames": [
+            "supplierOrderId"
+          ],
+          "constraintName": "reception_supplierOrderId_foreign",
+          "localTableName": "public.reception",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.supplierOrder"
+        }
+      },
+      "comment": null
+    },
+    {
+      "name": "receptionLine",
+      "schema": "public",
+      "columns": {
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "currency": {
+          "name": "currency",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'EUR'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "receivedQuantity": {
+          "name": "receivedQuantity",
+          "type": "numeric(10,3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 10,
+          "scale": 3,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "receptionId": {
+          "name": "receptionId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "supplierOrderLineId": {
+          "name": "supplierOrderLineId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "unitCostAmountCents": {
+          "name": "unitCostAmountCents",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "receptionLine_pkey",
+          "primary": true,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "receptionId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "receptionLine_receptionId_index",
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "supplierOrderLineId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "receptionLine_supplierOrderLineId_index",
+          "primary": false,
+          "unique": false
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "receptionLine_receptionId_foreign": {
+          "columnNames": [
+            "receptionId"
+          ],
+          "constraintName": "receptionLine_receptionId_foreign",
+          "localTableName": "public.receptionLine",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.reception"
+        },
+        "receptionLine_supplierOrderLineId_foreign": {
+          "columnNames": [
+            "supplierOrderLineId"
+          ],
+          "constraintName": "receptionLine_supplierOrderLineId_foreign",
+          "localTableName": "public.receptionLine",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.supplierOrderLine"
+        }
+      },
+      "comment": null
+    },
+    {
       "name": "referent",
       "schema": "public",
       "columns": {
@@ -3212,6 +3564,208 @@
       "comment": null
     },
     {
+      "name": "stockMovement",
+      "schema": "public",
+      "columns": {
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "currency": {
+          "name": "currency",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'EUR'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "productId": {
+          "name": "productId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "numeric(10,3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 10,
+          "scale": 3,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'reception'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "receptionLineId": {
+          "name": "receptionLineId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "unitCostAmountCents": {
+          "name": "unitCostAmountCents",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "stockMovement_pkey",
+          "primary": true,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "productId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "stockMovement_productId_index",
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "receptionLineId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "stockMovement_receptionLineId_index",
+          "primary": false,
+          "unique": false
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "stockMovement_productId_foreign": {
+          "columnNames": [
+            "productId"
+          ],
+          "constraintName": "stockMovement_productId_foreign",
+          "localTableName": "public.stockMovement",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.product"
+        },
+        "stockMovement_receptionLineId_foreign": {
+          "columnNames": [
+            "receptionLineId"
+          ],
+          "constraintName": "stockMovement_receptionLineId_foreign",
+          "localTableName": "public.stockMovement",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.receptionLine",
+          "deleteRule": "set null"
+        }
+      },
+      "comment": null
+    },
+    {
       "name": "supplier",
       "schema": "public",
       "columns": {
@@ -3493,6 +4047,364 @@
           ],
           "referencedTableName": "public.referent",
           "deleteRule": "set null"
+        }
+      },
+      "comment": null
+    },
+    {
+      "name": "supplierOrder",
+      "schema": "public",
+      "columns": {
+        "closedAt": {
+          "name": "closedAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "sentAt": {
+          "name": "sentAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'draft'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "supplierId": {
+          "name": "supplierId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "version": {
+          "name": "version",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "1",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "supplierOrder_pkey",
+          "primary": true,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "supplierId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "supplierOrder_supplierId_index",
+          "primary": false,
+          "unique": false
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "supplierOrder_supplierId_foreign": {
+          "columnNames": [
+            "supplierId"
+          ],
+          "constraintName": "supplierOrder_supplierId_foreign",
+          "localTableName": "public.supplierOrder",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.supplier"
+        }
+      },
+      "comment": null
+    },
+    {
+      "name": "supplierOrderLine",
+      "schema": "public",
+      "columns": {
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "productId": {
+          "name": "productId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "numeric(10,3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 10,
+          "scale": 3,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "supplierOrderId": {
+          "name": "supplierOrderId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": true,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "supplierOrderLine_pkey",
+          "primary": true,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "productId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "supplierOrderLine_productId_index",
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "supplierOrderId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "supplierOrderLine_supplierOrderId_index",
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "supplierOrderId",
+            "productId"
+          ],
+          "composite": true,
+          "constraint": true,
+          "keyName": "supplierOrderLine_supplierOrderId_productId_unique",
+          "primary": false,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "supplierOrderLine_productId_foreign": {
+          "columnNames": [
+            "productId"
+          ],
+          "constraintName": "supplierOrderLine_productId_foreign",
+          "localTableName": "public.supplierOrderLine",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.product"
+        },
+        "supplierOrderLine_supplierOrderId_foreign": {
+          "columnNames": [
+            "supplierOrderId"
+          ],
+          "constraintName": "supplierOrderLine_supplierOrderId_foreign",
+          "localTableName": "public.supplierOrderLine",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.supplierOrder"
         }
       },
       "comment": null

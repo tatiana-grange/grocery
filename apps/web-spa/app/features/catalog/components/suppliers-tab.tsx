@@ -24,6 +24,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
+import { aggregateSupplierPreOrders } from '@/features/admin-purchasing/utils/purchasing-queries'
 import {
   archiveSupplier,
   createSupplier,
@@ -31,6 +33,7 @@ import {
   unarchiveSupplier,
   updateSupplier,
 } from '@/features/catalog/utils/catalog-queries'
+import { isConflict } from '@/features/common/lib/api-error'
 
 export function SuppliersTab() {
   const { t } = useTranslation()
@@ -42,7 +45,8 @@ export function SuppliersTab() {
   }
 
   const archive = useMutation({
-    mutationFn: ({ id, cascade }: { id: string; cascade?: boolean }) => archiveSupplier(id, cascade),
+    mutationFn: ({ id, cascade }: { id: string; cascade?: boolean }) =>
+      archiveSupplier(id, cascade),
     onSuccess: () => {
       toast.success(t('catalog.toasts.archived'))
       invalidate()
@@ -62,6 +66,23 @@ export function SuppliersTab() {
   const unarchive = useMutation({
     mutationFn: (id: string) => unarchiveSupplier(id),
     onSuccess: invalidate,
+  })
+
+  const navigate = useNavigate()
+  const aggregate = useMutation({
+    mutationFn: (supplierId: string) => aggregateSupplierPreOrders(supplierId),
+    onSuccess: (result) => {
+      toast.success(t('purchasing.aggregate.done'))
+      void queryClient.invalidateQueries({ queryKey: ['admin-purchasing'] })
+      navigate(`/admin/purchasing/supplier-orders/${result.supplierOrder.id}`, {
+        state: { skippedLines: result.skippedLines },
+      })
+    },
+    onError: (error: unknown) => {
+      toast.error(
+        isConflict(error) ? t('purchasing.aggregate.nothingPending') : t('catalog.toasts.error'),
+      )
+    },
   })
 
   return (
@@ -103,6 +124,17 @@ export function SuppliersTab() {
                 <TableCell>{supplier.productCount}</TableCell>
                 <TableCell className="flex gap-1">
                   <SupplierDialog supplier={supplier} onSaved={invalidate} />
+                  {!supplier.archivedAt && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      data-testid="supplier-aggregate"
+                      disabled={aggregate.isPending}
+                      onClick={() => aggregate.mutate(supplier.id)}
+                    >
+                      {t('purchasing.aggregate.action')}
+                    </Button>
+                  )}
                   {supplier.archivedAt ? (
                     <Button
                       variant="ghost"

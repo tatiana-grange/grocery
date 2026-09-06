@@ -1,0 +1,78 @@
+---
+title: Lot 3 — Purchasing (aggregate pre-orders, receive, stock, cost price)
+description: What the purchasing and inventory modules deliver, and how they are shaped
+---
+
+Delivery lot 3 from the [architecture plan](/grocery/project/architecture-plan).
+Full spec, plan, and task list live in `specs/purchasing/`.
+
+## What it delivers
+
+- **Aggregate pre-orders** — staff pick a supplier and every member's still-pending,
+  not-yet-aggregated pre-order line for that supplier's products is combined into one draft
+  `SupplierOrder`, quantities summed per product. Products that can no longer be ordered are
+  skipped and reported.
+- **Send** — a draft order is reviewed and marked sent; its lines are then fixed against
+  future aggregation runs. A CSV export summarises it for the supplier.
+- **Receive** — staff record what actually arrived, line by line. Stock and the weighted
+  average cost price update immediately, short / over discrepancies are flagged without
+  blocking, each covered pre-order line is marked fulfilled, and the order flips to
+  `received` once every line is fully delivered.
+- **Stock & cost price reads** — any product's current stock level, weighted average cost
+  price, and full movement history, each movement traceable to its reception.
+- **Close** — a sent order that will not be fully honored is closed early, without disturbing
+  stock or cost already recorded.
+
+## Backend modules
+
+### `apps/api/src/modules/purchasing`
+
+`SupplierOrder` + `SupplierOrderLine` (aggregated demand), `Reception` + `ReceptionLine`
+(what arrived). The status machine is `draft → sent → received | closed`; `received` is
+automatic, `closed` is staff-triggered, both terminal. `send` and `close` are guarded by a
+pure `checkTransition` (current status + optimistic-lock version). Recording a reception runs
+in one transaction (`em.transactional`, same pattern as lot 2's checkout): create the
+reception rows, append one `StockMovement` per line, mark contributing `OrderLine`s
+`fulfilledAt` (first reception of the product wins, never re-touched), then recheck whether
+every line is covered. `Reception` / `ReceptionLine` carry `createdAt` only — written once,
+never edited; a mistake is corrected with a new reception.
+
+Enums (`supplierOrderStatus`, `discrepancyKind`, `stockMovementReason`) live in the contract
+files, never on the entities. Discrepancy is computed at read time: a `unit` line flags on
+any non-zero difference, a `weight` line only outside `product.weightTolerancePercent`.
+
+Endpoints: `POST /admin/suppliers/:supplierId/purchasing/aggregate`,
+`GET /admin/purchasing/supplier-orders*`, `.../send`, `.../close`, `.../export`,
+`.../receptions`.
+
+### `apps/api/src/modules/inventory`
+
+`StockMovement` — the append-only ledger a product's stock level and cost price are derived
+from (constitution principle II). Both values funnel through one helper, `deriveStockLevel`
+(`SUM(quantity)` and `SUM(quantity * unitCostAmountCents) / SUM(quantity)`), and are never
+cached on `Product`. `InventoryService.recordReceipt` takes the caller's `EntityManager` so
+its insert joins the reception transaction. A never-received product is a normal state:
+`0` / `null` / no movements, not a `404`.
+
+Endpoints: `GET /admin/inventory/stock`, `GET /admin/inventory/products/:productId/stock`.
+
+### `apps/api/src/modules/orders` (extended)
+
+`OrderLine` gains two nullable columns — `supplierOrderLine` (set once, at aggregation time)
+and `fulfilledAt` (set once, on the first reception of its product). Both record a one-time
+fact about what happened to the line afterward, not an edit to its checkout snapshot, so
+neither bumps `updatedAt`. Aggregation's "not yet aggregated" query is a plain
+`WHERE supplierOrderLine IS NULL`.
+
+## Frontend
+
+`apps/web-spa/app/features/` — `admin-purchasing` (supplier-orders list, order detail with
+Send / Close / Export actions, the line-by-line reception form, and reception history) and
+`admin-inventory` (stock list with search, product stock detail with movement history). A
+"Aggregate pre-orders" action sits on each supplier row in the catalog. Routes are under
+`/admin/purchasing` and `/admin/inventory`.
+
+## Not in lot 3
+
+Inventory counts and adjustments (a later inventory increment), the `grocer` role (lot 4),
+and any wallet debit — this lot only ever writes positive `StockMovement` rows.

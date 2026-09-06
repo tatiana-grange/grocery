@@ -3089,6 +3089,425 @@
           }
         }
       }
+    },
+    "/api/admin/inventory/stock": {
+      "get": {
+        "operationId": "InventoryController_list",
+        "tags": [
+          "Admin Inventory"
+        ],
+        "parameters": [
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InventoryController_list_filterArray"
+            },
+            "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: search, categoryId",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "description": "Starting position of the query",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "description": "Number of items to return",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of every product with its current stock level and cost price",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/inventory/products/{productId}/stock": {
+      "get": {
+        "operationId": "InventoryController_detail",
+        "tags": [
+          "Admin Inventory"
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/suppliers/{supplierId}/purchasing/aggregate": {
+      "post": {
+        "operationId": "AdminSupplierPurchasingController_aggregate",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "supplierId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The draft supplier order aggregation just created, plus every pending pre-order line left out because its product can no longer be ordered from this supplier (FR-003).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AggregateResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/purchasing/supplier-orders": {
+      "get": {
+        "operationId": "AdminPurchasingController_list",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AdminPurchasingController_list_filterArray"
+            },
+            "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: status, supplierId",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "description": "Starting position of the query",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "description": "Number of items to return",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of supplier orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierOrdersList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/purchasing/supplier-orders/{id}": {
+      "get": {
+        "operationId": "AdminPurchasingController_get",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/purchasing/supplier-orders/{id}/export": {
+      "get": {
+        "operationId": "AdminPurchasingController_export",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierOrderExport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/purchasing/supplier-orders/{id}/send": {
+      "post": {
+        "operationId": "AdminPurchasingController_send",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Mark a draft supplier order as sent (send the loaded version)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "SendSupplierOrder",
+                "description": "Mark a draft supplier order as sent (send the loaded version)"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/purchasing/supplier-orders/{id}/close": {
+      "post": {
+        "operationId": "AdminPurchasingController_close",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Close a sent supplier order early (send the loaded version)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "CloseSupplierOrder",
+                "description": "Close a sent supplier order early (send the loaded version)"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/purchasing/supplier-orders/{id}/receptions": {
+      "post": {
+        "operationId": "AdminPurchasingController_recordReception",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "lines": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "supplierOrderLineId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "receivedQuantity": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "unitCostEur": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "supplierOrderLineId",
+                        "receivedQuantity",
+                        "unitCostEur"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "lines"
+                ],
+                "additionalProperties": false,
+                "title": "RecordReception",
+                "description": "One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reception"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4251,6 +4670,77 @@
         "title": "UpdateCartLine",
         "description": "Change a line's quantity"
       },
+      "SendSupplierOrder": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "SendSupplierOrder",
+        "description": "Mark a draft supplier order as sent (send the loaded version)"
+      },
+      "CloseSupplierOrder": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "CloseSupplierOrder",
+        "description": "Close a sent supplier order early (send the loaded version)"
+      },
+      "RecordReception": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "supplierOrderLineId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "receivedQuantity": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "unitCostEur": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "supplierOrderLineId",
+                "receivedQuantity",
+                "unitCostEur"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "lines"
+        ],
+        "additionalProperties": false,
+        "title": "RecordReception",
+        "description": "One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short."
+      },
       "CatalogSuppliersList": {
         "type": "object",
         "properties": {
@@ -5355,6 +5845,214 @@
         "title": "ShopProductDetail",
         "description": "A product detail page shown in the public shop — narrower than the admin detail"
       },
+      "StockList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockSummary"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "itemCount": {
+                "type": "number"
+              },
+              "hasMore": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "title": "StockList",
+        "description": "A paginated list of every product with its current stock level and cost price"
+      },
+      "StockSummary": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "saleMode": {
+                "type": "string",
+                "enum": [
+                  "unit",
+                  "weight"
+                ],
+                "title": "ProductSaleMode",
+                "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "saleMode"
+            ],
+            "additionalProperties": false
+          },
+          "quantityOnHand": {
+            "type": "number",
+            "minimum": 0
+          },
+          "costPriceEur": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "product",
+          "quantityOnHand"
+        ],
+        "additionalProperties": false,
+        "title": "StockSummary"
+      },
+      "StockDetail": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "saleMode": {
+                "$ref": "#/components/schemas/ProductSaleMode"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "saleMode"
+            ],
+            "additionalProperties": false
+          },
+          "quantityOnHand": {
+            "type": "number",
+            "minimum": 0
+          },
+          "costPriceEur": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "movements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockMovement"
+            }
+          }
+        },
+        "required": [
+          "product",
+          "quantityOnHand",
+          "movements"
+        ],
+        "additionalProperties": false,
+        "title": "StockDetail"
+      },
+      "StockMovement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unitCostEur": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "reception"
+            ],
+            "title": "StockMovementReason",
+            "description": "reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field."
+          },
+          "receptionLineId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "quantity",
+          "unitCostEur",
+          "reason",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "StockMovement"
+      },
+      "StockMovementReason": {
+        "type": "string",
+        "enum": [
+          "reception"
+        ],
+        "title": "StockMovementReason",
+        "description": "reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field."
+      },
       "MembersList": {
         "type": "object",
         "properties": {
@@ -6269,6 +6967,468 @@
         "title": "CartLineInvalidReasonCode",
         "description": "Why a cart line is no longer orderable — the frontend maps this to a translated message."
       },
+      "AggregateResult": {
+        "type": "object",
+        "properties": {
+          "supplierOrder": {
+            "$ref": "#/components/schemas/SupplierOrderDetail"
+          },
+          "skippedLines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "productName": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "productName",
+                "reason"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "supplierOrder",
+          "skippedLines"
+        ],
+        "additionalProperties": false,
+        "title": "AggregateResult",
+        "description": "The draft supplier order aggregation just created, plus every pending pre-order line left out because its product can no longer be ordered from this supplier (FR-003)."
+      },
+      "SupplierOrderDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "supplier": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "status": {
+            "$ref": "#/components/schemas/SupplierOrderStatus"
+          },
+          "sentAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estimatedTotalEur": {
+            "type": "number",
+            "minimum": 0
+          },
+          "hasUnknownCostLines": {
+            "type": "boolean"
+          },
+          "lineCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplierOrderLine"
+            }
+          },
+          "receptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reception"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "supplier",
+          "status",
+          "estimatedTotalEur",
+          "hasUnknownCostLines",
+          "lineCount",
+          "version",
+          "createdAt",
+          "lines",
+          "receptions"
+        ],
+        "additionalProperties": false,
+        "title": "SupplierOrderDetail"
+      },
+      "SupplierOrderStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "sent",
+          "received",
+          "closed"
+        ],
+        "title": "SupplierOrderStatus",
+        "description": "draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023)."
+      },
+      "SupplierOrderLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "product": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "saleMode": {
+                "type": "string",
+                "enum": [
+                  "unit",
+                  "weight"
+                ],
+                "title": "ProductSaleMode",
+                "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "saleMode"
+            ],
+            "additionalProperties": false
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "receivedQuantity": {
+            "type": "number",
+            "minimum": 0
+          },
+          "discrepancy": {
+            "type": "string",
+            "enum": [
+              "short",
+              "over",
+              "none"
+            ],
+            "title": "DiscrepancyKind",
+            "description": "Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5)."
+          },
+          "contributingMemberCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "estimatedUnitCostEur": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "product",
+          "quantity",
+          "receivedQuantity",
+          "discrepancy",
+          "contributingMemberCount"
+        ],
+        "additionalProperties": false,
+        "title": "SupplierOrderLine"
+      },
+      "DiscrepancyKind": {
+        "type": "string",
+        "enum": [
+          "short",
+          "over",
+          "none"
+        ],
+        "title": "DiscrepancyKind",
+        "description": "Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5)."
+      },
+      "Reception": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "receivedAt": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceptionLine"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "receivedAt",
+          "lines"
+        ],
+        "additionalProperties": false,
+        "title": "Reception"
+      },
+      "ReceptionLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "supplierOrderLineId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "orderedQuantity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "receivedQuantity": {
+            "type": "number",
+            "minimum": 0
+          },
+          "discrepancy": {
+            "type": "string",
+            "enum": [
+              "short",
+              "over",
+              "none"
+            ],
+            "title": "DiscrepancyKind",
+            "description": "Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5)."
+          },
+          "unitCostEur": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "supplierOrderLineId",
+          "productName",
+          "orderedQuantity",
+          "receivedQuantity",
+          "discrepancy",
+          "unitCostEur"
+        ],
+        "additionalProperties": false,
+        "title": "ReceptionLine"
+      },
+      "SupplierOrdersList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplierOrder"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "itemCount": {
+                "type": "number"
+              },
+              "hasMore": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "title": "SupplierOrdersList",
+        "description": "A paginated list of supplier orders"
+      },
+      "SupplierOrder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "supplier": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "sent",
+              "received",
+              "closed"
+            ],
+            "title": "SupplierOrderStatus",
+            "description": "draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023)."
+          },
+          "sentAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estimatedTotalEur": {
+            "type": "number",
+            "minimum": 0
+          },
+          "hasUnknownCostLines": {
+            "type": "boolean"
+          },
+          "lineCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "supplier",
+          "status",
+          "estimatedTotalEur",
+          "hasUnknownCostLines",
+          "lineCount",
+          "version",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "SupplierOrder"
+      },
+      "SupplierOrderExport": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "content"
+        ],
+        "additionalProperties": false,
+        "title": "SupplierOrderExport",
+        "description": "A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009)."
+      },
       "TestSeedResetResponse": {
         "type": "object",
         "properties": {
@@ -6322,7 +7482,7 @@
       },
       "FilterQueryStringSchema": {
         "title": "FilterQueryStringSchema",
-        "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: status, feeState, role, q",
+        "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: status, supplierId",
         "example": "name:eq:John;age:gt:30",
         "type": "string",
         "items": {
@@ -6336,15 +7496,7 @@
                 },
                 {
                   "type": "string",
-                  "const": "feeState"
-                },
-                {
-                  "type": "string",
-                  "const": "role"
-                },
-                {
-                  "type": "string",
-                  "const": "q"
+                  "const": "supplierId"
                 }
               ]
             },
@@ -6732,6 +7884,102 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/ShopCatalogController_listProducts_sortItem"
+        }
+      },
+      "InventoryController_list_filterItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "search"
+              },
+              {
+                "type": "string",
+                "const": "categoryId"
+              }
+            ]
+          },
+          "rule": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "like",
+              "nlike",
+              "in",
+              "nin",
+              "isnull",
+              "isnotnull"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "property",
+          "rule"
+        ],
+        "additionalProperties": false
+      },
+      "InventoryController_list_filterArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/InventoryController_list_filterItem"
+        }
+      },
+      "AdminPurchasingController_list_filterItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "status"
+              },
+              {
+                "type": "string",
+                "const": "supplierId"
+              }
+            ]
+          },
+          "rule": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "like",
+              "nlike",
+              "in",
+              "nin",
+              "isnull",
+              "isnotnull"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "property",
+          "rule"
+        ],
+        "additionalProperties": false
+      },
+      "AdminPurchasingController_list_filterArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AdminPurchasingController_list_filterItem"
         }
       }
     }
