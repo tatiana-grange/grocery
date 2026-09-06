@@ -216,6 +216,85 @@ describe('purchasingController (e2e)', () => {
     })
   })
 
+  async function aggregateDraft() {
+    const { supplier, carrots, apples } = await makeSupplierWithProducts()
+    await preOrder(await makeMember(), carrots, 2)
+    await preOrder(await makeMember(), apples, 4)
+    const res = await request
+      .withSession(admin)
+      .post(`/admin/suppliers/${supplier.id}/purchasing/aggregate`)
+    return {
+      supplier,
+      carrots,
+      apples,
+      order: res.body.supplierOrder as { id: string; version: number },
+    }
+  }
+
+  describe('POST /admin/purchasing/supplier-orders/:id/send', () => {
+    it('moves a draft to sent, and refuses a repeat (FR-008)', async () => {
+      const { order } = await aggregateDraft()
+
+      const sent = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${order.id}/send`)
+        .send({ version: order.version })
+      expect(sent.status).toBe(200)
+      expect(sent.body.status).toBe('sent')
+      expect(sent.body.sentAt).toBeTruthy()
+
+      const repeat = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${order.id}/send`)
+        .send({ version: order.version })
+      expect(repeat.status).toBe(409)
+    })
+
+    it('409s a stale version (FR-007)', async () => {
+      const { order } = await aggregateDraft()
+      const res = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${order.id}/send`)
+        .send({ version: order.version + 99 })
+      expect(res.status).toBe(409)
+    })
+
+    it('leaves a sent order untouched by a later aggregation run for the same supplier (FR-007)', async () => {
+      const { supplier, carrots, order } = await aggregateDraft()
+      await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${order.id}/send`)
+        .send({ version: order.version })
+
+      await preOrder(await makeMember(), carrots, 7)
+      const second = await request
+        .withSession(admin)
+        .post(`/admin/suppliers/${supplier.id}/purchasing/aggregate`)
+      expect(second.status).toBe(201)
+      // A brand-new draft — the sent order's single line is unchanged.
+      expect(second.body.supplierOrder.id).not.toBe(order.id)
+
+      const original = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${order.id}`)
+      expect(original.body.status).toBe('sent')
+      expect(original.body.lines).toHaveLength(2)
+    })
+  })
+
+  describe('GET /admin/purchasing/supplier-orders/:id/export', () => {
+    it('returns a readable CSV summary of the order lines', async () => {
+      const { order } = await aggregateDraft()
+      const res = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${order.id}/export`)
+      expect(res.status).toBe(200)
+      expect(res.body.filename).toMatch(/\.csv$/)
+      expect(res.body.content).toContain('Carrots')
+      expect(res.body.content.split('\n')).toHaveLength(3) // header + 2 lines
+    })
+  })
+
   describe('authorization', () => {
     it('401s anonymous and 403s a non-admin member', async () => {
       const supplier = await createSupplierData(em)

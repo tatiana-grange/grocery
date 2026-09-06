@@ -3206,6 +3206,90 @@
           }
         }
       }
+    },
+    "/api/admin/purchasing/supplier-orders/{id}/export": {
+      "get": {
+        "operationId": "AdminPurchasingController_export",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierOrderExport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/purchasing/supplier-orders/{id}/send": {
+      "post": {
+        "operationId": "AdminPurchasingController_send",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Mark a draft supplier order as sent (send the loaded version)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "SendSupplierOrder",
+                "description": "Mark a draft supplier order as sent (send the loaded version)"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4367,6 +4451,22 @@
         "additionalProperties": false,
         "title": "UpdateCartLine",
         "description": "Change a line's quantity"
+      },
+      "SendSupplierOrder": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "SendSupplierOrder",
+        "description": "Mark a draft supplier order as sent (send the loaded version)"
       },
       "CatalogSuppliersList": {
         "type": "object",
@@ -6870,6 +6970,24 @@
         ],
         "additionalProperties": false,
         "title": "SupplierOrder"
+      },
+      "SupplierOrderExport": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "content"
+        ],
+        "additionalProperties": false,
+        "title": "SupplierOrderExport",
+        "description": "A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009)."
       },
       "TestSeedResetResponse": {
         "type": "object",

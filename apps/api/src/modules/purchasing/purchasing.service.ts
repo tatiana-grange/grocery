@@ -9,7 +9,7 @@ import type {
 } from './contracts/supplier-order.contract'
 import { SupplierOrder } from './entities/supplier-order.entity'
 import { SupplierOrderLine } from './entities/supplier-order-line.entity'
-import { sumQuantities } from './purchasing.util'
+import { checkTransition, sumQuantities } from './purchasing.util'
 
 export interface SkippedLine {
   productName: string
@@ -111,6 +111,40 @@ export class PurchasingService {
       populate: ['supplier', 'lines', 'lines.product', 'lines.receptionLines'],
     })
     return { orders, total }
+  }
+
+  /**
+   * `draft → sent`. Optimistic-locked on `version`; `409` if the order is no longer `draft`
+   * (FR-008 refuses a repeat) or the caller's `version` is stale (FR-007). Once sent, the
+   * order's lines are fixed against future aggregation runs — aggregation only ever looks at
+   * `OrderLine`s with no `supplierOrderLine` link, and those were set when this order was
+   * created.
+   */
+  async send(id: string, version: number): Promise<SupplierOrder> {
+    const order = await this.loadForTransition(id, version, 'draft')
+    order.status = 'sent'
+    order.sentAt = new Date()
+    await this.em.flush()
+    return order
+  }
+
+  private async loadForTransition(
+    id: string,
+    version: number,
+    from: 'draft' | 'sent',
+  ): Promise<SupplierOrder> {
+    const order = await this.em.findOne(SupplierOrder, { id })
+    if (!order) throw new NotFoundException('Supplier order not found')
+    const refusal = checkTransition(order, from, version)
+    if (refusal === 'wrong_status') {
+      throw new ConflictException(`This supplier order is ${order.status}, not ${from}`)
+    }
+    if (refusal === 'stale_version') {
+      throw new ConflictException(
+        'This supplier order changed since you opened it — reload and try again',
+      )
+    }
+    return order
   }
 
   /** Loads a supplier order with everything the detail view and mapper need. */

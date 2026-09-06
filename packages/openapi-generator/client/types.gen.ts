@@ -296,6 +296,15 @@ export type UpdateCartLine = {
 };
 
 /**
+ * SendSupplierOrder
+ *
+ * Mark a draft supplier order as sent (send the loaded version)
+ */
+export type SendSupplierOrder = {
+    version: number;
+};
+
+/**
  * CatalogSuppliersList
  *
  * A paginated list of suppliers
@@ -1228,6 +1237,16 @@ export type SupplierOrder = {
     lineCount: number;
     version: number;
     createdAt: string;
+};
+
+/**
+ * SupplierOrderExport
+ *
+ * A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).
+ */
+export type SupplierOrderExport = {
+    filename: string;
+    content: string;
 };
 
 /**
@@ -2683,3 +2702,46 @@ export type AdminPurchasingControllerGetResponses = {
 };
 
 export type AdminPurchasingControllerGetResponse = AdminPurchasingControllerGetResponses[keyof AdminPurchasingControllerGetResponses];
+
+export type AdminPurchasingControllerExportData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}/export';
+};
+
+export type AdminPurchasingControllerExportResponses = {
+    /**
+     * A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).
+     */
+    200: SupplierOrderExport;
+};
+
+export type AdminPurchasingControllerExportResponse = AdminPurchasingControllerExportResponses[keyof AdminPurchasingControllerExportResponses];
+
+export type AdminPurchasingControllerSendData = {
+    /**
+     * SendSupplierOrder
+     *
+     * Mark a draft supplier order as sent (send the loaded version)
+     */
+    body: {
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}/send';
+};
+
+export type AdminPurchasingControllerSendResponses = {
+    /**
+     * Successful response
+     */
+    200: SupplierOrderDetail;
+};
+
+export type AdminPurchasingControllerSendResponse = AdminPurchasingControllerSendResponses[keyof AdminPurchasingControllerSendResponses];

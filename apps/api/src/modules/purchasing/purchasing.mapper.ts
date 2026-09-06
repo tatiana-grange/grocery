@@ -9,6 +9,7 @@ import type {
   AggregateResult as AggregateResultContract,
   SupplierOrder as SupplierOrderContract,
   SupplierOrderDetail as SupplierOrderDetailContract,
+  SupplierOrderExport as SupplierOrderExportContract,
   SupplierOrderLine as SupplierOrderLineContract,
   SupplierOrdersList as SupplierOrdersListContract,
 } from './contracts/supplier-order.contract'
@@ -113,6 +114,27 @@ export class PurchasingMapper {
         .slice()
         .sort((a, b) => a.receivedAt.getTime() - b.receivedAt.getTime())
         .map((reception) => this.toReception(reception)),
+    }
+  }
+
+  /** A CSV summary a staffer can send to the supplier (FR-009). */
+  toExport(order: SupplierOrder): SupplierOrderExportContract {
+    const lines = order.lines.isInitialized() ? order.lines.getItems() : []
+    const rows = [
+      ['product', 'quantity', 'unit'],
+      ...lines.map((line) => [
+        line.product.name,
+        String(Number(line.quantity)),
+        line.product.saleMode === 'weight' ? 'kg' : 'piece',
+      ]),
+    ]
+    const content = rows
+      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const stamp = order.createdAt.toISOString().slice(0, 10)
+    return {
+      filename: `supplier-order-${order.supplier.name.replace(/[^\w-]+/g, '-')}-${stamp}.csv`,
+      content,
     }
   }
 

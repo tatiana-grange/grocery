@@ -1,6 +1,8 @@
 import {
+  adminPurchasingControllerExport,
   adminPurchasingControllerGet,
   adminPurchasingControllerList,
+  adminPurchasingControllerSend,
   adminSupplierPurchasingControllerAggregate,
 } from '@grocery/openapi-generator/client/sdk.gen'
 import type { AdminPurchasingControllerListData } from '@grocery/openapi-generator/client/types.gen'
@@ -55,3 +57,17 @@ export function supplierOrderDetailQueryOptions(id: string) {
 
 export const aggregateSupplierPreOrders = async (supplierId: string) =>
   unwrap(await adminSupplierPurchasingControllerAggregate({ path: { supplierId } }))
+
+export const sendSupplierOrder = async (id: string, version: number) =>
+  unwrap(await adminPurchasingControllerSend({ path: { id }, body: { version } }))
+
+/** Fetches the CSV summary and hands it to the browser as a download. */
+export async function downloadSupplierOrderExport(id: string) {
+  const { filename, content } = unwrap(await adminPurchasingControllerExport({ path: { id } }))
+  const url = URL.createObjectURL(new Blob([content], { type: 'text/csv' }))
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  URL.revokeObjectURL(url)
+}

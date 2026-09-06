@@ -1,5 +1,6 @@
 import type { ProductSaleMode } from '../catalog/contracts/product.contract'
 import type { DiscrepancyKind } from './contracts/reception.contract'
+import type { SupplierOrderStatus } from './contracts/supplier-order.contract'
 
 /** Sums decimal-string quantities and returns a string with at most 3 decimals (no drift). */
 export function sumQuantities(quantities: ReadonlyArray<number | string>): string {
@@ -27,4 +28,21 @@ export function discrepancyFor(
     if (Math.abs(difference) <= band + epsilon) return 'none'
   }
   return difference < 0 ? 'short' : 'over'
+}
+
+export type TransitionRefusal = 'wrong_status' | 'stale_version' | null
+
+/**
+ * Guards a supplier-order status transition (`send`, `close`). Returns why it is refused, or
+ * `null` when it may proceed: the order must currently be in `from`, and the caller's
+ * `sentVersion` must match the loaded row (optimistic lock). FR-007 / FR-008 / FR-021.
+ */
+export function checkTransition(
+  current: { status: SupplierOrderStatus; version: number },
+  from: SupplierOrderStatus,
+  sentVersion: number,
+): TransitionRefusal {
+  if (current.status !== from) return 'wrong_status'
+  if (current.version !== sentVersion) return 'stale_version'
+  return null
 }

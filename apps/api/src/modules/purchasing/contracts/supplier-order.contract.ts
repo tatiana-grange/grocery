@@ -112,6 +112,18 @@ export const closeSupplierOrderSchema = z.object({ version: z.number().int() }).
 })
 export type CloseSupplierOrderInput = z.infer<typeof closeSupplierOrderSchema>
 
+export const supplierOrderExportSchema = z
+  .object({
+    filename: z.string(),
+    content: z.string(),
+  })
+  .meta({
+    title: 'SupplierOrderExport',
+    description:
+      'A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).',
+  })
+export type SupplierOrderExport = z.infer<typeof supplierOrderExportSchema>
+
 // ============================================================================================
 // List query params
 // ============================================================================================

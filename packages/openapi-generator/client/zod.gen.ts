@@ -213,6 +213,15 @@ export const zUpdateCartLine = z.object({
 });
 
 /**
+ * SendSupplierOrder
+ *
+ * Mark a draft supplier order as sent (send the loaded version)
+ */
+export const zSendSupplierOrder = z.object({
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
  * SupplierType
  *
  * Whether the supplier is a producer or a wholesaler
@@ -1376,6 +1385,16 @@ export const zSupplierOrdersList = z.object({
         itemCount: z.number(),
         hasMore: z.boolean()
     })
+});
+
+/**
+ * SupplierOrderExport
+ *
+ * A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).
+ */
+export const zSupplierOrderExport = z.object({
+    filename: z.string(),
+    content: z.string()
 });
 
 /**
@@ -2585,3 +2604,31 @@ export const zAdminPurchasingControllerGetData = z.object({
  * Successful response
  */
 export const zAdminPurchasingControllerGetResponse = zSupplierOrderDetail;
+
+export const zAdminPurchasingControllerExportData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A plain-text / CSV summary of a supplier order for communicating it to the supplier (FR-009).
+ */
+export const zAdminPurchasingControllerExportResponse = zSupplierOrderExport;
+
+export const zAdminPurchasingControllerSendData = z.object({
+    body: z.object({
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful response
+ */
+export const zAdminPurchasingControllerSendResponse = zSupplierOrderDetail;

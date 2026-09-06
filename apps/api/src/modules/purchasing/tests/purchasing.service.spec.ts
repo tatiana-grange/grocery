@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { discrepancyFor, sumQuantities } from '../purchasing.util'
+import { checkTransition, discrepancyFor, sumQuantities } from '../purchasing.util'
 
 /**
  * The DB-backed behaviour of `PurchasingService` (the aggregation query, already-linked
@@ -46,5 +46,21 @@ describe('discrepancyFor', () => {
 
   it('treats a by-weight line with no tolerance set like a unit line', () => {
     expect(discrepancyFor('weight', 10, 9.9, null)).toBe('short')
+  })
+})
+
+describe('checkTransition (send / close guards)', () => {
+  it('allows a matching status and version', () => {
+    expect(checkTransition({ status: 'draft', version: 1 }, 'draft', 1)).toBeNull()
+    expect(checkTransition({ status: 'sent', version: 4 }, 'sent', 4)).toBeNull()
+  })
+
+  it('refuses a repeat (wrong status) — draft→sent cannot run twice (FR-008)', () => {
+    expect(checkTransition({ status: 'sent', version: 2 }, 'draft', 2)).toBe('wrong_status')
+    expect(checkTransition({ status: 'closed', version: 2 }, 'sent', 2)).toBe('wrong_status')
+  })
+
+  it('refuses a stale version even when the status is right (FR-007)', () => {
+    expect(checkTransition({ status: 'draft', version: 3 }, 'draft', 1)).toBe('stale_version')
   })
 })

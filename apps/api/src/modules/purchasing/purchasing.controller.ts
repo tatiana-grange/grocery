@@ -1,11 +1,12 @@
 import {
   FilteringParams,
   PaginationParams,
+  TypedBody,
   TypedController,
   TypedParam,
   TypedRoute,
 } from '@lonestone/nzoth/server'
-import { UseGuards } from '@nestjs/common'
+import { HttpCode, UseGuards } from '@nestjs/common'
 import { z } from 'zod'
 import { AdminOnly } from '../auth/auth.decorator'
 import { AuthGuard } from '../auth/auth.guard'
@@ -15,11 +16,14 @@ import { PurchasingMapper } from './purchasing.mapper'
 import { PurchasingService } from './purchasing.service'
 import {
   aggregateResultSchema,
+  type SendSupplierOrderInput,
+  sendSupplierOrderSchema,
   type SupplierOrderFiltering,
   supplierOrderFilteringSchema,
   type SupplierOrderPagination,
   supplierOrderPaginationSchema,
   supplierOrderDetailSchema,
+  supplierOrderExportSchema,
   supplierOrdersListSchema,
 } from './contracts/supplier-order.contract'
 import type { SupplierOrder } from './entities/supplier-order.entity'
@@ -81,6 +85,24 @@ export class AdminPurchasingController {
 
   @TypedRoute.Get('supplier-orders/:id', supplierOrderDetailSchema)
   async get(@TypedParam('id', z.string()) id: string) {
+    const order = await this.purchasing.getSupplierOrderDetail(id)
+    const costs = await costLevelsFor(this.inventory, [order])
+    return this.mapper.toSupplierOrderDetail(order, costs)
+  }
+
+  @TypedRoute.Get('supplier-orders/:id/export', supplierOrderExportSchema)
+  async export(@TypedParam('id', z.string()) id: string) {
+    const order = await this.purchasing.getSupplierOrderDetail(id)
+    return this.mapper.toExport(order)
+  }
+
+  @TypedRoute.Post('supplier-orders/:id/send', supplierOrderDetailSchema)
+  @HttpCode(200)
+  async send(
+    @TypedParam('id', z.string()) id: string,
+    @TypedBody(sendSupplierOrderSchema) body: SendSupplierOrderInput,
+  ) {
+    await this.purchasing.send(id, body.version)
     const order = await this.purchasing.getSupplierOrderDetail(id)
     const costs = await costLevelsFor(this.inventory, [order])
     return this.mapper.toSupplierOrderDetail(order, costs)

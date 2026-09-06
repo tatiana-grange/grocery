@@ -9,11 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from '@grocery/ui/components/primitives/table'
-import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, TriangleAlert } from 'lucide-react'
+import { toast } from '@grocery/ui/components/primitives/sonner'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ArrowLeft, Download, Send, TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'react-router'
-import { supplierOrderDetailQueryOptions } from '@/features/admin-purchasing/utils/purchasing-queries'
+import { handleMutationError } from '@/features/common/lib/api-error'
+import {
+  downloadSupplierOrderExport,
+  sendSupplierOrder,
+  supplierOrderDetailQueryOptions,
+} from '@/features/admin-purchasing/utils/purchasing-queries'
 
 interface SkippedLine {
   productName: string
@@ -30,9 +36,23 @@ export default function SupplierOrderDetailPage() {
   const { t } = useTranslation()
   const { id = '' } = useParams()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const skippedLines =
     (location.state as { skippedLines?: SkippedLine[] } | null)?.skippedLines ?? []
   const { data: order, isLoading } = useQuery(supplierOrderDetailQueryOptions(id))
+
+  const send = useMutation({
+    mutationFn: (version: number) => sendSupplierOrder(id, version),
+    onSuccess: () => {
+      toast.success(t('purchasing.send.done'))
+      void queryClient.invalidateQueries({ queryKey: ['admin-purchasing'] })
+    },
+    onError: (error) =>
+      handleMutationError(error, toast.error, {
+        conflict: t('purchasing.send.alreadySent'),
+        fallback: t('purchasing.send.alreadySent'),
+      }),
+  })
 
   if (isLoading || !order) {
     return <Skeleton className="h-64 w-full" data-testid="supplier-order-detail-loading" />
@@ -61,9 +81,31 @@ export default function SupplierOrderDetailPage() {
             })}
           </p>
         </div>
-        <Badge variant="outline" data-testid="supplier-order-status">
-          {t(`purchasing.status.${order.status}`)}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" data-testid="supplier-order-status">
+            {t(`purchasing.status.${order.status}`)}
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="supplier-order-export"
+            onClick={() => void downloadSupplierOrderExport(order.id)}
+          >
+            <Download className="mr-2 size-4" />
+            {t('purchasing.send.export')}
+          </Button>
+          {order.status === 'draft' && (
+            <Button
+              size="sm"
+              data-testid="supplier-order-send"
+              disabled={send.isPending}
+              onClick={() => send.mutate(order.version)}
+            >
+              <Send className="mr-2 size-4" />
+              {t('purchasing.send.action')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {skippedLines.length > 0 && (
