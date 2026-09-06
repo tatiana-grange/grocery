@@ -3090,6 +3090,93 @@
         }
       }
     },
+    "/api/admin/inventory/stock": {
+      "get": {
+        "operationId": "InventoryController_list",
+        "tags": [
+          "Admin Inventory"
+        ],
+        "parameters": [
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InventoryController_list_filterArray"
+            },
+            "description": "Filtering query string, in the format of \"property:rule[:value];property:rule[:value];...\"\n    <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull \n    <br> Available properties: search, categoryId",
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "description": "Starting position of the query",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "description": "Number of items to return",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of every product with its current stock level and cost price",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/inventory/products/{productId}/stock": {
+      "get": {
+        "operationId": "InventoryController_detail",
+        "tags": [
+          "Admin Inventory"
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/suppliers/{supplierId}/purchasing/aggregate": {
       "post": {
         "operationId": "AdminSupplierPurchasingController_aggregate",
@@ -5688,6 +5775,214 @@
         "title": "ShopProductDetail",
         "description": "A product detail page shown in the public shop — narrower than the admin detail"
       },
+      "StockList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockSummary"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "itemCount": {
+                "type": "number"
+              },
+              "hasMore": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "offset",
+              "pageSize",
+              "itemCount",
+              "hasMore"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "title": "StockList",
+        "description": "A paginated list of every product with its current stock level and cost price"
+      },
+      "StockSummary": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "saleMode": {
+                "type": "string",
+                "enum": [
+                  "unit",
+                  "weight"
+                ],
+                "title": "ProductSaleMode",
+                "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "saleMode"
+            ],
+            "additionalProperties": false
+          },
+          "quantityOnHand": {
+            "type": "number",
+            "minimum": 0
+          },
+          "costPriceEur": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "product",
+          "quantityOnHand"
+        ],
+        "additionalProperties": false,
+        "title": "StockSummary"
+      },
+      "StockDetail": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "saleMode": {
+                "$ref": "#/components/schemas/ProductSaleMode"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "saleMode"
+            ],
+            "additionalProperties": false
+          },
+          "quantityOnHand": {
+            "type": "number",
+            "minimum": 0
+          },
+          "costPriceEur": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "movements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockMovement"
+            }
+          }
+        },
+        "required": [
+          "product",
+          "quantityOnHand",
+          "movements"
+        ],
+        "additionalProperties": false,
+        "title": "StockDetail"
+      },
+      "StockMovement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unitCostEur": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "reception"
+            ],
+            "title": "StockMovementReason",
+            "description": "reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field."
+          },
+          "receptionLineId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "quantity",
+          "unitCostEur",
+          "reason",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "title": "StockMovement"
+      },
+      "StockMovementReason": {
+        "type": "string",
+        "enum": [
+          "reception"
+        ],
+        "title": "StockMovementReason",
+        "description": "reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field."
+      },
       "MembersList": {
         "type": "object",
         "properties": {
@@ -7519,6 +7814,54 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/ShopCatalogController_listProducts_sortItem"
+        }
+      },
+      "InventoryController_list_filterItem": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "search"
+              },
+              {
+                "type": "string",
+                "const": "categoryId"
+              }
+            ]
+          },
+          "rule": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "like",
+              "nlike",
+              "in",
+              "nin",
+              "isnull",
+              "isnotnull"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "property",
+          "rule"
+        ],
+        "additionalProperties": false
+      },
+      "InventoryController_list_filterArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/InventoryController_list_filterItem"
         }
       },
       "AdminPurchasingController_list_filterItem": {

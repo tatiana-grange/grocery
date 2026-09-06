@@ -514,6 +514,33 @@
       }
     }
   },
+  "inventory": {
+    "title": "Stock et prix de revient",
+    "subtitle": "Niveau de stock actuel et prix de revient moyen pondéré par produit.",
+    "searchPlaceholder": "Rechercher un produit…",
+    "empty": "Aucun produit.",
+    "open": "Ouvrir",
+    "backToList": "Retour au stock",
+    "noCostPrice": "—",
+    "noMovements": "Aucun mouvement de stock pour l'instant.",
+    "movementsHeading": "Historique des mouvements",
+    "costValue": "{{value}} €",
+    "nav": {
+      "inventory": "Inventaire"
+    },
+    "columns": {
+      "product": "Produit",
+      "onHand": "En stock",
+      "costPrice": "Prix de revient",
+      "date": "Date",
+      "reason": "Motif",
+      "quantity": "Quantité",
+      "unitCost": "Coût unitaire"
+    },
+    "reason": {
+      "reception": "Réception"
+    }
+  },
   "common": {
     "user": "Utilisateur",
     "active": "Actif",

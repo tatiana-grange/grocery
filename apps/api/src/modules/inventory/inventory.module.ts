@@ -1,6 +1,7 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
 import { StockMovement } from './entities/stock-movement.entity'
+import { InventoryController } from './inventory.controller'
 import { InventoryMapper } from './inventory.mapper'
 import { InventoryService } from './inventory.service'
 
@@ -12,6 +13,7 @@ import { InventoryService } from './inventory.service'
  */
 @Module({
   imports: [MikroOrmModule.forFeature([StockMovement])],
+  controllers: [InventoryController],
   providers: [InventoryService, InventoryMapper],
   exports: [InventoryService],
 })

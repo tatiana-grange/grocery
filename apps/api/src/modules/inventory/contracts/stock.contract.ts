@@ -1,4 +1,8 @@
-import { paginatedSchema } from '@lonestone/nzoth/server'
+import {
+  createFilterQueryStringSchema,
+  createPaginationQuerySchema,
+  paginatedSchema,
+} from '@lonestone/nzoth/server'
 import { z } from 'zod'
 import { productSaleModeSchema } from '../../catalog/contracts/product.contract'
 
@@ -48,3 +52,10 @@ export const stockDetailSchema = stockSummarySchema
   })
   .meta({ title: 'StockDetail' })
 export type StockDetail = z.infer<typeof stockDetailSchema>
+
+export const enabledStockFilteringKeys = ['search', 'categoryId'] as const
+export const stockFilteringSchema = createFilterQueryStringSchema(enabledStockFilteringKeys)
+export type StockFiltering = z.infer<typeof stockFilteringSchema>
+
+export const stockPaginationSchema = createPaginationQuerySchema()
+export type StockPagination = z.infer<typeof stockPaginationSchema>

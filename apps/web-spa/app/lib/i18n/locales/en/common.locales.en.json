@@ -514,6 +514,33 @@
       }
     }
   },
+  "inventory": {
+    "title": "Stock & cost price",
+    "subtitle": "Current stock level and weighted average cost price per product.",
+    "searchPlaceholder": "Search a product…",
+    "empty": "No products.",
+    "open": "Open",
+    "backToList": "Back to stock",
+    "noCostPrice": "—",
+    "noMovements": "No stock movements yet.",
+    "movementsHeading": "Movement history",
+    "costValue": "€{{value}}",
+    "nav": {
+      "inventory": "Inventory"
+    },
+    "columns": {
+      "product": "Product",
+      "onHand": "On hand",
+      "costPrice": "Cost price",
+      "date": "Date",
+      "reason": "Reason",
+      "quantity": "Quantity",
+      "unitCost": "Unit cost"
+    },
+    "reason": {
+      "reception": "Reception"
+    }
+  },
   "common": {
     "user": "User",
     "active": "Active",
