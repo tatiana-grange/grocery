@@ -1,15 +1,20 @@
 import type { FilterQuery } from '@mikro-orm/core'
 import { EntityManager, QueryOrder } from '@mikro-orm/core'
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import { eurToCents } from '../catalog/catalog.util'
 import { Supplier } from '../catalog/entities/supplier.entity'
+import { InventoryService } from '../inventory/inventory.service'
 import { OrderLine } from '../orders/entities/order-line.entity'
+import type { RecordReceptionInput } from './contracts/reception.contract'
 import type {
   SupplierOrderFiltering,
   SupplierOrderPagination,
 } from './contracts/supplier-order.contract'
+import { Reception } from './entities/reception.entity'
+import { ReceptionLine } from './entities/reception-line.entity'
 import { SupplierOrder } from './entities/supplier-order.entity'
 import { SupplierOrderLine } from './entities/supplier-order-line.entity'
-import { checkTransition, sumQuantities } from './purchasing.util'
+import { checkTransition, coversOrdered, sumQuantities } from './purchasing.util'
 
 export interface SkippedLine {
   productName: string
@@ -23,7 +28,10 @@ export interface AggregateResult {
 
 @Injectable()
 export class PurchasingService {
-  constructor(private readonly em: EntityManager) {}
+  constructor(
+    private readonly em: EntityManager,
+    private readonly inventory: InventoryService,
+  ) {}
 
   /**
    * Combines every still-pending, not-yet-aggregated pre-order line for this supplier's
@@ -145,6 +153,116 @@ export class PurchasingService {
       )
     }
     return order
+  }
+
+  /**
+   * Records what actually arrived against a sent supplier order, in one transaction (matching
+   * `orders.service.ts` `checkout`): create the `Reception` and its `ReceptionLine`s, append
+   * one `StockMovement` per line (stock level and cost price update immediately), mark every
+   * newly-covered pre-order line `fulfilledAt` (first reception of its product wins,
+   * research.md §6 / FR-024), then flip the order to `received` once every line's cumulative
+   * received quantity reaches what was ordered.
+   *
+   * `409` unless `status = 'sent'` (FR-015 / FR-022); `404` for a line id not on this order.
+   * A discrepancy is never a reason to refuse (FR-012) — it is computed at read time.
+   */
+  async recordReception(supplierOrderId: string, input: RecordReceptionInput): Promise<Reception> {
+    return this.em.transactional(async (em) => {
+      const order = await em.findOne(
+        SupplierOrder,
+        { id: supplierOrderId },
+        { populate: ['lines', 'lines.product', 'lines.receptionLines'] },
+      )
+      if (!order) throw new NotFoundException('Supplier order not found')
+      if (order.status !== 'sent') {
+        throw new ConflictException(`This supplier order is ${order.status}, not sent`)
+      }
+
+      const linesById = new Map(order.lines.getItems().map((line) => [line.id, line]))
+      for (const entry of input.lines) {
+        if (!linesById.has(entry.supplierOrderLineId)) {
+          throw new NotFoundException(`Line ${entry.supplierOrderLineId} is not on this order`)
+        }
+      }
+
+      // Snapshot received-so-far per line NOW: persisting this reception's lines below adds
+      // them to each `line.receptionLines` collection via MikroORM's identity map, so reading
+      // that collection afterward would double-count.
+      const priorReceivedByLine = new Map<string, number>()
+      for (const line of order.lines.getItems()) {
+        priorReceivedByLine.set(
+          line.id,
+          line.receptionLines.getItems().reduce((sum, rl) => sum + Number(rl.receivedQuantity), 0),
+        )
+      }
+
+      const reception = new Reception()
+      reception.supplierOrder = order
+      reception.receivedAt = new Date()
+      em.persist(reception)
+
+      const touchedLineIds: string[] = []
+      for (const entry of input.lines) {
+        const soLine = linesById.get(entry.supplierOrderLineId)!
+        const receptionLine = new ReceptionLine()
+        receptionLine.reception = reception
+        receptionLine.supplierOrderLine = soLine
+        receptionLine.receivedQuantity = String(entry.receivedQuantity)
+        receptionLine.unitCostAmountCents = eurToCents(entry.unitCostEur)
+        receptionLine.currency = 'EUR'
+        em.persist(receptionLine)
+
+        this.inventory.recordReceipt(em, {
+          productId: soLine.product.id,
+          quantity: String(entry.receivedQuantity),
+          unitCostAmountCents: receptionLine.unitCostAmountCents,
+          currency: 'EUR',
+          receptionLine,
+        })
+        touchedLineIds.push(soLine.id)
+      }
+
+      // Mark newly-covered pre-order lines fulfilled — first reception of the product wins,
+      // a later reception never re-touches an already-fulfilled line.
+      const orderLines = await em.find(OrderLine, {
+        supplierOrderLine: { $in: touchedLineIds },
+        fulfilledAt: null,
+      })
+      for (const orderLine of orderLines) orderLine.fulfilledAt = reception.receivedAt
+
+      // Flip to `received` once every line's cumulative received quantity covers what was
+      // ordered. `lines.receptionLines` was populated before this reception's rows were added,
+      // so fold this reception's quantities in explicitly.
+      const receivedThisTime = new Map<string, number>()
+      for (const entry of input.lines) {
+        receivedThisTime.set(
+          entry.supplierOrderLineId,
+          (receivedThisTime.get(entry.supplierOrderLineId) ?? 0) + entry.receivedQuantity,
+        )
+      }
+      const everyLineCovered = order.lines.getItems().every((line) => {
+        const total = (priorReceivedByLine.get(line.id) ?? 0) + (receivedThisTime.get(line.id) ?? 0)
+        return coversOrdered(Number(line.quantity), total)
+      })
+      if (everyLineCovered) {
+        order.status = 'received'
+        order.closedAt = reception.receivedAt
+      }
+
+      await em.flush()
+      return reception
+    })
+  }
+
+  /** Loads a reception with the fields the mapper reads. */
+  async getReception(id: string): Promise<Reception> {
+    const reception = await this.em.findOne(
+      Reception,
+      { id },
+      { populate: ['lines', 'lines.supplierOrderLine', 'lines.supplierOrderLine.product'] },
+    )
+    if (!reception) throw new NotFoundException('Reception not found')
+    return reception
   }
 
   /** Loads a supplier order with everything the detail view and mapper need. */

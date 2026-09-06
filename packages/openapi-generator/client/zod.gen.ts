@@ -222,6 +222,19 @@ export const zSendSupplierOrder = z.object({
 });
 
 /**
+ * RecordReception
+ *
+ * One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.
+ */
+export const zRecordReception = z.object({
+    lines: z.array(z.object({
+        supplierOrderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        receivedQuantity: z.number().gte(0),
+        unitCostEur: z.number().gte(0)
+    })).min(1)
+});
+
+/**
  * SupplierType
  *
  * Whether the supplier is a producer or a wholesaler
@@ -1269,24 +1282,29 @@ export const zDiscrepancyKind = z.enum([
 ]);
 
 /**
+ * ReceptionLine
+ */
+export const zReceptionLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    supplierOrderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productName: z.string(),
+    orderedQuantity: z.number().gt(0),
+    receivedQuantity: z.number().gte(0),
+    discrepancy: z.enum([
+        'short',
+        'over',
+        'none'
+    ]),
+    unitCostEur: z.number().gte(0)
+});
+
+/**
  * Reception
  */
 export const zReception = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     receivedAt: z.string(),
-    lines: z.array(z.object({
-        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-        supplierOrderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-        productName: z.string(),
-        orderedQuantity: z.number().gt(0),
-        receivedQuantity: z.number().gte(0),
-        discrepancy: z.enum([
-            'short',
-            'over',
-            'none'
-        ]),
-        unitCostEur: z.number().gte(0)
-    }))
+    lines: z.array(zReceptionLine)
 });
 
 /**
@@ -1327,19 +1345,6 @@ export const zAggregateResult = z.object({
         productName: z.string(),
         reason: z.string()
     }))
-});
-
-/**
- * ReceptionLine
- */
-export const zReceptionLine = z.object({
-    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-    supplierOrderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-    productName: z.string(),
-    orderedQuantity: z.number().gt(0),
-    receivedQuantity: z.number().gte(0),
-    discrepancy: zDiscrepancyKind,
-    unitCostEur: z.number().gte(0)
 });
 
 /**
@@ -2632,3 +2637,22 @@ export const zAdminPurchasingControllerSendData = z.object({
  * Successful response
  */
 export const zAdminPurchasingControllerSendResponse = zSupplierOrderDetail;
+
+export const zAdminPurchasingControllerRecordReceptionData = z.object({
+    body: z.object({
+        lines: z.array(z.object({
+            supplierOrderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            receivedQuantity: z.number().gte(0),
+            unitCostEur: z.number().gte(0)
+        })).min(1)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful response
+ */
+export const zAdminPurchasingControllerRecordReceptionResponse = zReception;

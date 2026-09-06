@@ -305,6 +305,19 @@ export type SendSupplierOrder = {
 };
 
 /**
+ * RecordReception
+ *
+ * One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.
+ */
+export type RecordReception = {
+    lines: Array<{
+        supplierOrderLineId: string;
+        receivedQuantity: number;
+        unitCostEur: number;
+    }>;
+};
+
+/**
  * CatalogSuppliersList
  *
  * A paginated list of suppliers
@@ -1171,20 +1184,7 @@ export type DiscrepancyKind = typeof DiscrepancyKind[keyof typeof DiscrepancyKin
 export type Reception = {
     id: string;
     receivedAt: string;
-    lines: Array<{
-        id: string;
-        supplierOrderLineId: string;
-        productName: string;
-        orderedQuantity: number;
-        receivedQuantity: number;
-        /**
-         * DiscrepancyKind
-         *
-         * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
-         */
-        discrepancy: 'short' | 'over' | 'none';
-        unitCostEur: number;
-    }>;
+    lines: Array<ReceptionLine>;
 };
 
 /**
@@ -1196,7 +1196,12 @@ export type ReceptionLine = {
     productName: string;
     orderedQuantity: number;
     receivedQuantity: number;
-    discrepancy: DiscrepancyKind;
+    /**
+     * DiscrepancyKind
+     *
+     * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+     */
+    discrepancy: 'short' | 'over' | 'none';
     unitCostEur: number;
 };
 
@@ -2745,3 +2750,32 @@ export type AdminPurchasingControllerSendResponses = {
 };
 
 export type AdminPurchasingControllerSendResponse = AdminPurchasingControllerSendResponses[keyof AdminPurchasingControllerSendResponses];
+
+export type AdminPurchasingControllerRecordReceptionData = {
+    /**
+     * RecordReception
+     *
+     * One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.
+     */
+    body: {
+        lines: Array<{
+            supplierOrderLineId: string;
+            receivedQuantity: number;
+            unitCostEur: number;
+        }>;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}/receptions';
+};
+
+export type AdminPurchasingControllerRecordReceptionResponses = {
+    /**
+     * Successful response
+     */
+    200: Reception;
+};
+
+export type AdminPurchasingControllerRecordReceptionResponse = AdminPurchasingControllerRecordReceptionResponses[keyof AdminPurchasingControllerRecordReceptionResponses];

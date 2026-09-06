@@ -295,6 +295,143 @@ describe('purchasingController (e2e)', () => {
     })
   })
 
+  async function aggregateSent() {
+    const { order, carrots, apples } = await aggregateDraft()
+    await request
+      .withSession(admin)
+      .post(`/admin/purchasing/supplier-orders/${order.id}/send`)
+      .send({ version: order.version })
+    const detail = await request
+      .withSession(admin)
+      .get(`/admin/purchasing/supplier-orders/${order.id}`)
+    const lineFor = (name: string) =>
+      detail.body.lines.find((l: { product: { name: string } }) => l.product.name === name)
+    return { orderId: order.id as string, carrots, apples, lineFor, detail }
+  }
+
+  describe('POST /admin/purchasing/supplier-orders/:id/receptions', () => {
+    it('records a reception, flags a short line, updates received-so-far, and can be repeated', async () => {
+      const { orderId, lineFor } = await aggregateSent()
+      const carrotLine = lineFor('Carrots') // ordered 2
+      const appleLine = lineFor('Apples') // ordered 4
+
+      const res = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [
+            { supplierOrderLineId: carrotLine.id, receivedQuantity: 2, unitCostEur: 1.5 },
+            { supplierOrderLineId: appleLine.id, receivedQuantity: 3, unitCostEur: 2 },
+          ],
+        })
+      expect(res.status).toBe(201)
+      expect(res.body.lines).toHaveLength(2)
+
+      const after = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${orderId}`)
+      const carrotsAfter = after.body.lines.find(
+        (l: { product: { name: string } }) => l.product.name === 'Carrots',
+      )
+      const applesAfter = after.body.lines.find(
+        (l: { product: { name: string } }) => l.product.name === 'Apples',
+      )
+      expect(carrotsAfter.receivedQuantity).toBe(2)
+      expect(carrotsAfter.discrepancy).toBe('none')
+      expect(applesAfter.receivedQuantity).toBe(3)
+      expect(applesAfter.discrepancy).toBe('short')
+      // Not every line fully received → still sent.
+      expect(after.body.status).toBe('sent')
+      expect(after.body.receptions).toHaveLength(1)
+
+      // A second reception for the remainder accumulates and flips the order to received.
+      const second = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [{ supplierOrderLineId: appleLine.id, receivedQuantity: 1, unitCostEur: 2 }],
+        })
+      expect(second.status).toBe(201)
+
+      const final = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${orderId}`)
+      expect(final.body.status).toBe('received')
+      expect(final.body.receptions).toHaveLength(2)
+      const applesFinal = final.body.lines.find(
+        (l: { product: { name: string } }) => l.product.name === 'Apples',
+      )
+      expect(applesFinal.receivedQuantity).toBe(4)
+      expect(applesFinal.discrepancy).toBe('none')
+    })
+
+    it('marks the contributing pre-order lines fulfilled on the first reception, and never re-touches them', async () => {
+      const { orderId, lineFor } = await aggregateSent()
+      const carrotLine = lineFor('Carrots')
+
+      await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [{ supplierOrderLineId: carrotLine.id, receivedQuantity: 1, unitCostEur: 1 }],
+        })
+
+      const lines = await em.fork().find(OrderLine, { product: { name: 'Carrots' } })
+      expect(lines.length).toBeGreaterThan(0)
+      expect(lines.every((l) => l.fulfilledAt !== null)).toBe(true)
+      const firstStamps = lines.map((l) => l.fulfilledAt?.getTime())
+
+      // A second reception for the same line does not move the fulfilledAt stamps.
+      await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [{ supplierOrderLineId: carrotLine.id, receivedQuantity: 1, unitCostEur: 1 }],
+        })
+      const again = await em.fork().find(OrderLine, { product: { name: 'Carrots' } })
+      expect(again.map((l) => l.fulfilledAt?.getTime())).toEqual(firstStamps)
+    })
+
+    it('refuses a reception against a draft order (FR-015) and an unknown line id', async () => {
+      const { order } = await aggregateDraft()
+      const draftDetail = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${order.id}`)
+      const anyLine = draftDetail.body.lines[0]
+
+      const onDraft = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${order.id}/receptions`)
+        .send({ lines: [{ supplierOrderLineId: anyLine.id, receivedQuantity: 1, unitCostEur: 1 }] })
+      expect(onDraft.status).toBe(409)
+
+      const { orderId } = await aggregateSent()
+      const unknownLine = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [
+            {
+              supplierOrderLineId: '00000000-0000-0000-0000-000000000000',
+              receivedQuantity: 1,
+              unitCostEur: 1,
+            },
+          ],
+        })
+      expect(unknownLine.status).toBe(404)
+    })
+
+    it('rejects a negative quantity or cost at validation', async () => {
+      const { orderId, lineFor } = await aggregateSent()
+      const line = lineFor('Carrots')
+      const res = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({ lines: [{ supplierOrderLineId: line.id, receivedQuantity: -1, unitCostEur: 1 }] })
+      expect(res.status).toBe(400)
+    })
+  })
+
   describe('authorization', () => {
     it('401s anonymous and 403s a non-admin member', async () => {
       const supplier = await createSupplierData(em)

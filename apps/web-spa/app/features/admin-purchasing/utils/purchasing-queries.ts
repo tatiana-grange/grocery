@@ -2,9 +2,11 @@ import {
   adminPurchasingControllerExport,
   adminPurchasingControllerGet,
   adminPurchasingControllerList,
+  adminPurchasingControllerRecordReception,
   adminPurchasingControllerSend,
   adminSupplierPurchasingControllerAggregate,
 } from '@grocery/openapi-generator/client/sdk.gen'
+import type { AdminPurchasingControllerRecordReceptionData } from '@grocery/openapi-generator/client/types.gen'
 import type { AdminPurchasingControllerListData } from '@grocery/openapi-generator/client/types.gen'
 import { FilterRule } from '@lonestone/nzoth/client'
 import { unwrap } from '@/lib/api-client'
@@ -60,6 +62,11 @@ export const aggregateSupplierPreOrders = async (supplierId: string) =>
 
 export const sendSupplierOrder = async (id: string, version: number) =>
   unwrap(await adminPurchasingControllerSend({ path: { id }, body: { version } }))
+
+type RecordReceptionBody = AdminPurchasingControllerRecordReceptionData['body']
+
+export const recordReception = async (id: string, body: RecordReceptionBody) =>
+  unwrap(await adminPurchasingControllerRecordReception({ path: { id }, body }))
 
 /** Fetches the CSV summary and hands it to the browser as a download. */
 export async function downloadSupplierOrderExport(id: string) {

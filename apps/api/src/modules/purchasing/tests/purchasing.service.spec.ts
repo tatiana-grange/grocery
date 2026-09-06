@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkTransition, discrepancyFor, sumQuantities } from '../purchasing.util'
+import { checkTransition, coversOrdered, discrepancyFor, sumQuantities } from '../purchasing.util'
 
 /**
  * The DB-backed behaviour of `PurchasingService` (the aggregation query, already-linked
@@ -62,5 +62,21 @@ describe('checkTransition (send / close guards)', () => {
 
   it('refuses a stale version even when the status is right (FR-007)', () => {
     expect(checkTransition({ status: 'draft', version: 3 }, 'draft', 1)).toBe('stale_version')
+  })
+})
+
+describe('coversOrdered (auto sent→received)', () => {
+  it('is true once received meets or exceeds ordered', () => {
+    expect(coversOrdered(10, 10)).toBe(true)
+    expect(coversOrdered(10, 12)).toBe(true)
+  })
+
+  it('is false while a line is still short', () => {
+    expect(coversOrdered(10, 9.999)).toBe(false)
+    expect(coversOrdered(5, 0)).toBe(false)
+  })
+
+  it('tolerates float drift from summing 3-decimal quantities', () => {
+    expect(coversOrdered(0.3, 0.1 + 0.2)).toBe(true)
   })
 })

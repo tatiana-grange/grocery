@@ -15,6 +15,11 @@ import type { CostLevels } from './purchasing.mapper'
 import { PurchasingMapper } from './purchasing.mapper'
 import { PurchasingService } from './purchasing.service'
 import {
+  type RecordReceptionInput,
+  recordReceptionSchema,
+  receptionSchema,
+} from './contracts/reception.contract'
+import {
   aggregateResultSchema,
   type SendSupplierOrderInput,
   sendSupplierOrderSchema,
@@ -106,5 +111,15 @@ export class AdminPurchasingController {
     const order = await this.purchasing.getSupplierOrderDetail(id)
     const costs = await costLevelsFor(this.inventory, [order])
     return this.mapper.toSupplierOrderDetail(order, costs)
+  }
+
+  @TypedRoute.Post('supplier-orders/:id/receptions', receptionSchema)
+  async recordReception(
+    @TypedParam('id', z.string()) id: string,
+    @TypedBody(recordReceptionSchema) body: RecordReceptionInput,
+  ) {
+    const reception = await this.purchasing.recordReception(id, body)
+    const full = await this.purchasing.getReception(reception.id)
+    return this.mapper.toReception(full)
   }
 }

@@ -23,6 +23,14 @@ async function markSent(page: import('@playwright/test').Page) {
   await expect(page.getByTestId('supplier-order-status')).toHaveText('Envoyée')
 }
 
+/** The seeded unit product line locator on the detail page. */
+function lineByName(page: import('@playwright/test').Page, name: string) {
+  return page.locator('[data-testid^="supplier-order-line-"]', { hasText: name })
+}
+function formRow(page: import('@playwright/test').Page, name: string) {
+  return page.locator('[data-testid^="reception-line-"]', { hasText: name })
+}
+
 test.describe('send a supplier order (US2)', () => {
   test('review a draft, mark it sent, and see the send action disappear (FR-008)', async ({
     page,
@@ -59,5 +67,55 @@ test.describe('send a supplier order (US2)', () => {
     await page.goto(url)
     await expect(page.getByTestId('supplier-order-status')).toHaveText('Envoyée')
     await expect(page.locator('[data-testid^="supplier-order-line-"]')).toHaveCount(2)
+  })
+})
+
+test.describe('receive a delivery (US3)', () => {
+  test('a short line is flagged, a by-weight line within tolerance is not, stock/cost update, and a second reception accumulates', async ({
+    page,
+  }) => {
+    await openDraftOrder(page)
+    await markSent(page)
+
+    // First reception: unit product short (4 of 5), weight product within its 10% band.
+    const unitRow = formRow(page, E2E_PURCHASING.unitProductName)
+    await unitRow.getByTestId('reception-line-quantity').fill('4')
+    await unitRow.getByTestId('reception-line-cost').fill('4.00')
+    const weightRow = formRow(page, E2E_PURCHASING.weightProductName)
+    await weightRow.getByTestId('reception-line-quantity').fill('1.05')
+    await weightRow.getByTestId('reception-line-cost').fill('12.00')
+    await page.getByTestId('reception-submit').click()
+
+    await expect(
+      lineByName(page, E2E_PURCHASING.unitProductName).getByTestId('line-received'),
+    ).toHaveText('4')
+    await expect(
+      lineByName(page, E2E_PURCHASING.unitProductName).getByTestId('line-discrepancy'),
+    ).toHaveText('Manquant')
+    await expect(
+      lineByName(page, E2E_PURCHASING.weightProductName).getByTestId('line-discrepancy'),
+    ).toHaveText('OK')
+
+    // Still sent (unit line short), one reception in history.
+    await expect(page.getByTestId('supplier-order-status')).toHaveText('Envoyée')
+    await expect(page.locator('[data-testid^="reception-"]').first()).toBeVisible()
+
+    // Second reception for the missing unit → fully received, both receptions kept.
+    await formRow(page, E2E_PURCHASING.unitProductName)
+      .getByTestId('reception-line-quantity')
+      .fill('1')
+    await formRow(page, E2E_PURCHASING.unitProductName)
+      .getByTestId('reception-line-cost')
+      .fill('4.00')
+    await formRow(page, E2E_PURCHASING.weightProductName)
+      .getByTestId('reception-line-include')
+      .uncheck()
+    await page.getByTestId('reception-submit').click()
+
+    await expect(page.getByTestId('supplier-order-status')).toHaveText('Reçue')
+    await expect(
+      lineByName(page, E2E_PURCHASING.unitProductName).getByTestId('line-discrepancy'),
+    ).toHaveText('OK')
+    await expect(page.getByTestId('supplier-order-receptions').locator('> ul > li')).toHaveCount(2)
   })
 })

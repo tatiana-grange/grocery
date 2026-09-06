@@ -20,6 +20,7 @@ import {
   sendSupplierOrder,
   supplierOrderDetailQueryOptions,
 } from '@/features/admin-purchasing/utils/purchasing-queries'
+import { ReceptionForm } from '@/features/admin-purchasing/components/reception-form'
 
 interface SkippedLine {
   productName: string
@@ -182,6 +183,8 @@ export default function SupplierOrderDetailPage() {
           {order.hasUnknownCostLines ? ` — ${t('purchasing.partialEstimate')}` : ''}
         </span>
       </div>
+
+      {order.status === 'sent' && <ReceptionForm order={order} />}
 
       <section className="space-y-3" data-testid="supplier-order-receptions">
         <h2 className="text-lg font-bold">{t('purchasing.receptionsHeading')}</h2>

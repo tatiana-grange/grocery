@@ -3290,6 +3290,83 @@
           }
         }
       }
+    },
+    "/api/admin/purchasing/supplier-orders/{id}/receptions": {
+      "post": {
+        "operationId": "AdminPurchasingController_recordReception",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "lines": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "supplierOrderLineId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "receivedQuantity": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "unitCostEur": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "supplierOrderLineId",
+                        "receivedQuantity",
+                        "unitCostEur"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "lines"
+                ],
+                "additionalProperties": false,
+                "title": "RecordReception",
+                "description": "One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reception"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4467,6 +4544,45 @@
         "additionalProperties": false,
         "title": "SendSupplierOrder",
         "description": "Mark a draft supplier order as sent (send the loaded version)"
+      },
+      "RecordReception": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "supplierOrderLineId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "receivedQuantity": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "unitCostEur": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "supplierOrderLineId",
+                "receivedQuantity",
+                "unitCostEur"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "lines"
+        ],
+        "additionalProperties": false,
+        "title": "RecordReception",
+        "description": "One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short."
       },
       "CatalogSuppliersList": {
         "type": "object",
@@ -6734,55 +6850,7 @@
           "lines": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                },
-                "supplierOrderLineId": {
-                  "type": "string",
-                  "format": "uuid",
-                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                },
-                "productName": {
-                  "type": "string"
-                },
-                "orderedQuantity": {
-                  "type": "number",
-                  "exclusiveMinimum": 0
-                },
-                "receivedQuantity": {
-                  "type": "number",
-                  "minimum": 0
-                },
-                "discrepancy": {
-                  "type": "string",
-                  "enum": [
-                    "short",
-                    "over",
-                    "none"
-                  ],
-                  "title": "DiscrepancyKind",
-                  "description": "Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5)."
-                },
-                "unitCostEur": {
-                  "type": "number",
-                  "minimum": 0
-                }
-              },
-              "required": [
-                "id",
-                "supplierOrderLineId",
-                "productName",
-                "orderedQuantity",
-                "receivedQuantity",
-                "discrepancy",
-                "unitCostEur"
-              ],
-              "additionalProperties": false,
-              "title": "ReceptionLine"
+              "$ref": "#/components/schemas/ReceptionLine"
             }
           }
         },
@@ -6819,7 +6887,14 @@
             "minimum": 0
           },
           "discrepancy": {
-            "$ref": "#/components/schemas/DiscrepancyKind"
+            "type": "string",
+            "enum": [
+              "short",
+              "over",
+              "none"
+            ],
+            "title": "DiscrepancyKind",
+            "description": "Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5)."
           },
           "unitCostEur": {
             "type": "number",

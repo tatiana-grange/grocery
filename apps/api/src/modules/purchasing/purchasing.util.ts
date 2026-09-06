@@ -30,6 +30,15 @@ export function discrepancyFor(
   return difference < 0 ? 'short' : 'over'
 }
 
+/**
+ * Whether a supplier-order line's cumulative received quantity covers what was ordered — the
+ * test that flips a sent order to `received` once it holds for every line. Tolerant of
+ * float drift from summing 3-decimal quantities.
+ */
+export function coversOrdered(orderedQuantity: number, receivedSoFar: number): boolean {
+  return receivedSoFar + 1e-9 >= orderedQuantity
+}
+
 export type TransitionRefusal = 'wrong_status' | 'stale_version' | null
 
 /**
