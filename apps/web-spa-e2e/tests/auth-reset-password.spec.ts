@@ -30,5 +30,5 @@ test('oublié → lien maildev → nouveau mot de passe → reconnexion', async 
   await page.getByTestId('auth-login-identifier').fill(E2E_USERS.pending)
   await page.getByTestId('auth-login-password').fill(NEW_PASSWORD)
   await page.getByTestId('auth-login-submit').click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await expect(page).toHaveURL(/\/shop/)
 })

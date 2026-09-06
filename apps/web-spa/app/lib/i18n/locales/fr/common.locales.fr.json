@@ -91,73 +91,11 @@
       }
     }
   },
-  "dashboard": {
-    "title": "Tableau de bord",
-    "brand": "Grocery",
-    "home": {
-      "eyebrow": "Aperçu",
-      "title": "Bienvenue, {{name}}",
-      "description": "Voici votre tableau de bord. Les fonctionnalités apparaîtront ici."
-    },
-    "userMenu": "Menu utilisateur",
-    "settings": "Paramètres",
+  "settings": {
+    "menu": "Paramètres",
     "lightMode": "Mode clair",
     "darkMode": "Mode sombre",
-    "logOut": "Se déconnecter",
-    "language": "Langue",
-    "navigation": "Navigation",
-    "actions": "Actions rapides",
-    "profile": "Profil",
-    "components": "Composants"
-  },
-  "commandPalette": {
-    "placeholder": "Rechercher des commandes…",
-    "noResults": "Aucun résultat.",
-    "title": "Palette de commandes",
-    "description": "Rechercher une commande à exécuter",
-    "groups": {
-      "navigate": "Naviguer",
-      "preferences": "Préférences"
-    },
-    "items": {
-      "dashboard": "Tableau de bord",
-      "components": "Composants",
-      "profile": "Profil",
-      "toggleTheme": "Changer le thème",
-      "lightMode": "Passer en mode clair",
-      "darkMode": "Passer en mode sombre"
-    }
-  },
-  "breadcrumbs": {
-    "dashboard": "Tableau de bord",
-    "components": "Composants",
-    "profile": "Profil"
-  },
-  "components": {
-    "title": "Composants",
-    "description": "Explorez la bibliothèque de composants @grocery/ui.",
-    "subtitle": "Galerie complète",
-    "sections": {
-      "buttons": "Boutons",
-      "badges": "Badges",
-      "inputs": "Champs",
-      "controls": "Contrôles",
-      "layout": "Mise en page & Affichage",
-      "feedback": "Retour utilisateur",
-      "dataDisplay": "Données & Tableaux",
-      "overlays": "Superpositions"
-    }
-  },
-  "profile": {
-    "eyebrow": "Compte",
-    "title": "Profil",
-    "description": "Les détails de votre compte.",
-    "name": "Nom",
-    "email": "Email",
-    "emailVerified": "Statut de l'email",
-    "verified": "Vérifié",
-    "unverified": "Non vérifié",
-    "userId": "ID utilisateur"
+    "language": "Langue"
   },
   "errorCodes": {
     "PASSWORDS_DO_NOT_MATCH": "Les mots de passe ne correspondent pas"

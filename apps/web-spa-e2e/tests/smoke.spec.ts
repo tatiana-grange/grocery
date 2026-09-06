@@ -3,10 +3,10 @@ import { expect, test } from '../fixtures'
 
 /**
  * Socle : prouve toute la chaîne — infra up, schéma seedé, API + SPA bootés, connexion
- * better-auth email + mot de passe, et une route protégée qui rend. Connexion via la vraie
+ * better-auth email + mot de passe, et l'arrivée sur la boutique. Connexion via la vraie
  * UI (pas de storageState) : rien n'est mocké.
  */
-test('connexion email + mot de passe → dashboard', async ({ page }) => {
+test('connexion email + mot de passe → boutique', async ({ page }) => {
   await page.goto('/login')
   await expect(page.getByTestId('page-login')).toBeVisible()
 
@@ -14,6 +14,6 @@ test('connexion email + mot de passe → dashboard', async ({ page }) => {
   await page.getByTestId('auth-login-password').fill(E2E_PASSWORD)
   await page.getByTestId('auth-login-submit').click()
 
-  await expect(page).toHaveURL(/\/dashboard/)
-  await expect(page.getByTestId('page-dashboard-home')).toBeVisible()
+  await expect(page).toHaveURL(/\/shop/)
+  await expect(page.getByTestId('page-shop')).toBeVisible()
 })

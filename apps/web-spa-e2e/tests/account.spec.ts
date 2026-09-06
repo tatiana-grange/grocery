@@ -34,7 +34,7 @@ test.describe('changement de mot de passe', () => {
     await page.getByTestId('auth-login-identifier').fill(E2E_USERS.pwtest)
     await page.getByTestId('auth-login-password').fill(E2E_PASSWORD)
     await page.getByTestId('auth-login-submit').click()
-    await expect(page).toHaveURL(/\/dashboard/)
+    await expect(page).toHaveURL(/\/shop/)
 
     await page.goto('/account')
     await page.getByTestId('account-password-current').fill(E2E_PASSWORD)
@@ -67,7 +67,7 @@ test.describe('résiliation', () => {
     await page.getByTestId('auth-login-identifier').fill(E2E_USERS.resign)
     await page.getByTestId('auth-login-password').fill(E2E_PASSWORD)
     await page.getByTestId('auth-login-submit').click()
-    await expect(page).toHaveURL(/\/dashboard/)
+    await expect(page).toHaveURL(/\/shop/)
 
     await page.goto('/account')
     await page.getByTestId('account-end-open').click()

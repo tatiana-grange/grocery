@@ -1,4 +1,4 @@
-import { AppLayout, AppLoader } from '@grocery/ui/components/app'
+import { AppLayout, AppLayoutHeader, AppLoader } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Sidebar,
@@ -15,6 +15,7 @@ import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import { Boxes, ClipboardList, LogOut, PackageSearch, ShieldCheck, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router'
+import { AppSettingsMenu } from '@/features/common/components/app-settings-menu'
 import { useRoles } from '@/features/common/hooks/use-session'
 import { authClient } from '@/lib/auth-client'
 
@@ -124,6 +125,11 @@ export default function BackOfficeLayout() {
   return (
     <>
       <AppLayout sidebar={<BackOfficeSidebar />}>
+        <AppLayoutHeader>
+          <div className="ml-auto">
+            <AppSettingsMenu />
+          </div>
+        </AppLayoutHeader>
         <main className="flex-1 overflow-auto p-6">
           <Outlet />
         </main>

@@ -5,6 +5,7 @@ import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import { LogOut, ShieldCheck, ShoppingCart } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router'
+import { AppSettingsMenu } from '@/features/common/components/app-settings-menu'
 import { useCartCount } from '@/features/cart/hooks/use-cart-count'
 import { useRoles } from '@/features/common/hooks/use-session'
 import { authClient } from '@/lib/auth-client'
@@ -38,6 +39,7 @@ export default function MemberAreaLayout() {
           {t('members.title')}
         </Link>
         <div className="flex items-center gap-2">
+          <AppSettingsMenu />
           <Button
             variant="ghost"
             size="sm"
