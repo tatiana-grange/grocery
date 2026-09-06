@@ -29,9 +29,9 @@ test('toutes les routes rendent leur contenu propre', async ({ page }) => {
   const productId = products[0].id
 
   const routes: { path: string; testId: string }[] = [
-    { path: '/dashboard', testId: 'page-dashboard-home' },
-    { path: '/components', testId: 'page-components' },
-    { path: '/dashboard/profile', testId: 'page-profile' },
+    { path: '/shop', testId: 'page-shop' },
+    { path: `/shop/products/${productId}`, testId: 'page-shop-product-detail' },
+    { path: '/cart', testId: 'page-cart' },
     { path: '/account', testId: 'page-account' },
     { path: '/admin/members', testId: 'page-members-list' },
     { path: `/admin/members/${memberId}`, testId: 'page-member-detail' },

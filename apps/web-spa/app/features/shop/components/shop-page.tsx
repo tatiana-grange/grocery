@@ -45,7 +45,9 @@ export default function ShopPage() {
   return (
     <div className="space-y-6" data-testid="page-shop">
       <div>
-        <h1 className="text-2xl font-black tracking-tight">{t('shop.title')}</h1>
+        <h1 className="text-2xl font-black tracking-tight" data-testid="shop-title">
+          {t('shop.title')}
+        </h1>
         <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
       </div>
 

@@ -91,73 +91,11 @@
       }
     }
   },
-  "dashboard": {
-    "title": "Dashboard",
-    "brand": "Grocery",
-    "home": {
-      "eyebrow": "Overview",
-      "title": "Welcome, {{name}}",
-      "description": "This is your dashboard. Features will show up here."
-    },
-    "userMenu": "User menu",
-    "settings": "Settings",
+  "settings": {
+    "menu": "Settings",
     "lightMode": "Light mode",
     "darkMode": "Dark mode",
-    "logOut": "Log out",
-    "language": "Language",
-    "navigation": "Navigation",
-    "actions": "Quick actions",
-    "profile": "Profile",
-    "components": "Components"
-  },
-  "commandPalette": {
-    "placeholder": "Search commands…",
-    "noResults": "No results found.",
-    "title": "Command Palette",
-    "description": "Search for a command to run",
-    "groups": {
-      "navigate": "Navigate",
-      "preferences": "Preferences"
-    },
-    "items": {
-      "dashboard": "Dashboard",
-      "components": "Components",
-      "profile": "Profile",
-      "toggleTheme": "Toggle theme",
-      "lightMode": "Switch to light mode",
-      "darkMode": "Switch to dark mode"
-    }
-  },
-  "breadcrumbs": {
-    "dashboard": "Dashboard",
-    "components": "Components",
-    "profile": "Profile"
-  },
-  "components": {
-    "title": "Components",
-    "description": "Explore the full @grocery/ui component library.",
-    "subtitle": "Kitchen-sink gallery",
-    "sections": {
-      "buttons": "Buttons",
-      "badges": "Badges",
-      "inputs": "Inputs",
-      "controls": "Controls",
-      "layout": "Layout & Display",
-      "feedback": "Feedback",
-      "dataDisplay": "Data & Tables",
-      "overlays": "Overlays"
-    }
-  },
-  "profile": {
-    "eyebrow": "Account",
-    "title": "Profile",
-    "description": "Your account details.",
-    "name": "Name",
-    "email": "Email",
-    "emailVerified": "Email status",
-    "verified": "Verified",
-    "unverified": "Unverified",
-    "userId": "User ID"
+    "language": "Language"
   },
   "errorCodes": {
     "PASSWORDS_DO_NOT_MATCH": "Passwords do not match"
