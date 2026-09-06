@@ -293,6 +293,29 @@ describe('purchasingController (e2e)', () => {
       expect(res.body.content).toContain('Carrots')
       expect(res.body.content.split('\n')).toHaveLength(3) // header + 2 lines
     })
+
+    it('neutralises a formula-triggering product name (CSV injection)', async () => {
+      const supplier = await createSupplierData(em, {
+        name: `S-${Math.random().toString(36).slice(2, 6)}`,
+      })
+      const { product } = await createProductData(em, {
+        name: '=HYPERLINK("http://evil","x")',
+        supplier,
+        orderingMode: 'pre_order',
+      })
+      await preOrder(await makeMember(), product, 1)
+      const agg = await request
+        .withSession(admin)
+        .post(`/admin/suppliers/${supplier.id}/purchasing/aggregate`)
+
+      const res = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${agg.body.supplierOrder.id}/export`)
+      expect(res.status).toBe(200)
+      // The dangerous name is present but defused with a leading single quote.
+      expect(res.body.content).toContain(`"'=HYPERLINK`)
+      expect(res.body.content).not.toContain(`"=HYPERLINK`)
+    })
   })
 
   async function aggregateSent() {
@@ -390,6 +413,41 @@ describe('purchasingController (e2e)', () => {
         })
       const again = await em.fork().find(OrderLine, { product: { name: 'Carrots' } })
       expect(again.map((l) => l.fulfilledAt?.getTime())).toEqual(firstStamps)
+    })
+
+    it('records a did-not-arrive line (receivedQuantity 0) without moving stock or fulfilling its pre-orders', async () => {
+      const { orderId, lineFor, carrots } = await aggregateSent()
+      const carrotLine = lineFor('Carrots') // ordered 2
+
+      const res = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [{ supplierOrderLineId: carrotLine.id, receivedQuantity: 0, unitCostEur: 0 }],
+        })
+      expect(res.status).toBe(201)
+
+      // The line is kept and flagged fully short.
+      const after = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${orderId}`)
+      const carrotsAfter = after.body.lines.find(
+        (l: { product: { name: string } }) => l.product.name === 'Carrots',
+      )
+      expect(carrotsAfter.receivedQuantity).toBe(0)
+      expect(carrotsAfter.discrepancy).toBe('short')
+
+      // No stock movement was recorded for the product.
+      const stock = await request
+        .withSession(admin)
+        .get(`/admin/inventory/products/${carrots.id}/stock`)
+      expect(stock.body.movements).toHaveLength(0)
+      expect(stock.body.costPriceEur).toBeNull()
+
+      // Its contributing pre-order lines are still unfulfilled.
+      const preOrderLines = await em.fork().find(OrderLine, { product: { name: 'Carrots' } })
+      expect(preOrderLines.length).toBeGreaterThan(0)
+      expect(preOrderLines.every((l) => l.fulfilledAt === null)).toBe(true)
     })
 
     it('refuses a reception against a draft order (FR-015) and an unknown line id', async () => {

@@ -26,6 +26,17 @@ import { discrepancyFor } from './purchasing.util'
  */
 export type CostLevels = Map<string, StockLevel>
 
+/**
+ * Renders one CSV cell: defuses spreadsheet formula injection, then quotes. A value starting
+ * with `=`, `+`, `-`, `@`, or a control character is treated as a formula by Excel / Google
+ * Sheets when the file is opened, so such a value is prefixed with a single quote first —
+ * a product or supplier name is attacker-influenced text.
+ */
+function csvCell(value: string): string {
+  const guarded = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
+  return `"${guarded.replace(/"/g, '""')}"`
+}
+
 @Injectable()
 export class PurchasingMapper {
   toSupplierOrderLine(line: SupplierOrderLine, costs: CostLevels): SupplierOrderLineContract {
@@ -128,9 +139,7 @@ export class PurchasingMapper {
         line.product.saleMode === 'weight' ? 'kg' : 'piece',
       ]),
     ]
-    const content = rows
-      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
-      .join('\n')
+    const content = rows.map((row) => row.map(csvCell).join(',')).join('\n')
     const stamp = order.createdAt.toISOString().slice(0, 10)
     return {
       filename: `supplier-order-${order.supplier.name.replace(/[^\w-]+/g, '-')}-${stamp}.csv`,

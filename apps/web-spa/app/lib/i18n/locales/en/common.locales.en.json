@@ -503,7 +503,8 @@
       "submit": "Confirm reception",
       "done": "Reception recorded. Stock and cost price updated.",
       "notSent": "A reception can only be recorded against a sent order.",
-      "invalidValues": "Quantities and costs must not be negative."
+      "invalidValues": "Quantities and costs must not be negative.",
+      "costRequired": "Enter the unit cost paid before confirming."
     },
     "skipped": {
       "heading": "Some pre-orders were skipped",

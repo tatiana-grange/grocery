@@ -503,7 +503,8 @@
       "submit": "Confirmer la réception",
       "done": "Réception enregistrée. Stock et prix de revient mis à jour.",
       "notSent": "Une réception ne peut être enregistrée que sur une commande envoyée.",
-      "invalidValues": "Les quantités et les coûts ne doivent pas être négatifs."
+      "invalidValues": "Les quantités et les coûts ne doivent pas être négatifs.",
+      "costRequired": "Saisissez le coût unitaire payé avant de confirmer."
     },
     "skipped": {
       "heading": "Des précommandes ont été ignorées",

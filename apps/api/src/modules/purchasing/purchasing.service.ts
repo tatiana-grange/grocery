@@ -1,5 +1,5 @@
 import type { FilterQuery } from '@mikro-orm/core'
-import { EntityManager, QueryOrder } from '@mikro-orm/core'
+import { EntityManager, LockMode, QueryOrder } from '@mikro-orm/core'
 import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
 import { eurToCents } from '../catalog/catalog.util'
 import { Supplier } from '../catalog/entities/supplier.entity'
@@ -183,18 +183,26 @@ export class PurchasingService {
    *
    * `409` unless `status = 'sent'` (FR-015 / FR-022); `404` for a line id not on this order.
    * A discrepancy is never a reason to refuse (FR-012) — it is computed at read time.
+   *
+   * The supplier-order row is locked for the length of the transaction so two staffers
+   * recording a reception against the same order at the same time serialise: the second one
+   * waits, then totals received-so-far against the first reception's committed rows before
+   * deciding whether every line is now covered. Without the lock, two partial receptions that
+   * jointly complete the order could each miss the other and leave it stuck in `sent`, and
+   * two completing receptions could collide on the optimistic `version` and roll one back.
    */
   async recordReception(supplierOrderId: string, input: RecordReceptionInput): Promise<Reception> {
     return this.em.transactional(async (em) => {
       const order = await em.findOne(
         SupplierOrder,
         { id: supplierOrderId },
-        { populate: ['lines', 'lines.product', 'lines.receptionLines'] },
+        { lockMode: LockMode.PESSIMISTIC_WRITE },
       )
       if (!order) throw new NotFoundException('Supplier order not found')
       if (order.status !== 'sent') {
         throw new ConflictException(`This supplier order is ${order.status}, not sent`)
       }
+      await em.populate(order, ['lines', 'lines.product', 'lines.receptionLines'])
 
       const linesById = new Map(order.lines.getItems().map((line) => [line.id, line]))
       for (const entry of input.lines) {
@@ -230,23 +238,31 @@ export class PurchasingService {
         receptionLine.currency = 'EUR'
         em.persist(receptionLine)
 
-        this.inventory.recordReceipt(em, {
-          productId: soLine.product.id,
-          quantity: String(entry.receivedQuantity),
-          unitCostAmountCents: receptionLine.unitCostAmountCents,
-          currency: 'EUR',
-          receptionLine,
-        })
-        touchedLineIds.push(soLine.id)
+        // A line recorded with nothing received (the product simply did not arrive) is kept
+        // as a fully-short record, but it moves no stock, touches no cost price, and fulfils
+        // no pre-order — there is nothing on the shelf to hand over (spec "Edge Cases",
+        // FR-016 / FR-024).
+        if (entry.receivedQuantity > 0) {
+          this.inventory.recordReceipt(em, {
+            productId: soLine.product.id,
+            quantity: String(entry.receivedQuantity),
+            unitCostAmountCents: receptionLine.unitCostAmountCents,
+            currency: 'EUR',
+            receptionLine,
+          })
+          touchedLineIds.push(soLine.id)
+        }
       }
 
       // Mark newly-covered pre-order lines fulfilled — first reception of the product wins,
       // a later reception never re-touches an already-fulfilled line.
-      const orderLines = await em.find(OrderLine, {
-        supplierOrderLine: { $in: touchedLineIds },
-        fulfilledAt: null,
-      })
-      for (const orderLine of orderLines) orderLine.fulfilledAt = reception.receivedAt
+      if (touchedLineIds.length > 0) {
+        const orderLines = await em.find(OrderLine, {
+          supplierOrderLine: { $in: touchedLineIds },
+          fulfilledAt: null,
+        })
+        for (const orderLine of orderLines) orderLine.fulfilledAt = reception.receivedAt
+      }
 
       // Flip to `received` once every line's cumulative received quantity covers what was
       // ordered. `lines.receptionLines` was populated before this reception's rows were added,

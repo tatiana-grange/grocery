@@ -42,6 +42,27 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
   const update = (id: string, patch: Partial<LineDraft>) =>
     setDrafts((current) => ({ ...current, [id]: { ...current[id], ...patch } }))
 
+  /**
+   * An included line needs a non-negative received quantity, and — when anything was
+   * received — an explicit non-negative unit cost. A blank cost must never be sent as `0`:
+   * it would silently drag down the product's weighted-average cost price.
+   */
+  const missingCost = (line: SupplierOrderLine) => {
+    const draft = drafts[line.id]
+    if (!draft?.include) return false
+    return Number(draft.receivedQuantity || 0) > 0 && draft.unitCostEur.trim() === ''
+  }
+
+  const canSubmit = order.lines.every((line) => {
+    const draft = drafts[line.id]
+    if (!draft?.include) return true
+    const received = Number(draft.receivedQuantity || 0)
+    if (!Number.isFinite(received) || received < 0) return false
+    if (received === 0) return true
+    const cost = Number(draft.unitCostEur)
+    return draft.unitCostEur.trim() !== '' && Number.isFinite(cost) && cost >= 0
+  })
+
   const mutation = useMutation({
     mutationFn: () =>
       recordReception(order.id, {
@@ -134,7 +155,11 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
                 className="pb-2 text-xs text-muted-foreground"
                 data-testid="reception-line-hint"
               >
-                {draft.include && hint !== 'none' ? t(`purchasing.discrepancy.${hint}`) : ''}
+                {missingCost(line)
+                  ? t('purchasing.reception.costRequired')
+                  : draft.include && hint !== 'none'
+                    ? t(`purchasing.discrepancy.${hint}`)
+                    : ''}
               </span>
             </div>
           )
@@ -144,7 +169,7 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
       <Button
         type="submit"
         data-testid="reception-submit"
-        disabled={!anySelected || mutation.isPending}
+        disabled={!anySelected || !canSubmit || mutation.isPending}
       >
         {t('purchasing.reception.submit')}
       </Button>

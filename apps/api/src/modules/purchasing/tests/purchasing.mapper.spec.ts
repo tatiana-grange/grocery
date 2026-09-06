@@ -16,6 +16,7 @@ const fakeCollection = <T>(items: T[]) => ({
 function makeLine(overrides: {
   id?: string
   quantity: string
+  name?: string
   saleMode?: 'unit' | 'weight'
   weightTolerancePercent?: number | null
   orderIds?: string[]
@@ -26,7 +27,7 @@ function makeLine(overrides: {
     quantity: overrides.quantity,
     product: {
       id: 'product-1',
-      name: 'Carrots',
+      name: overrides.name ?? 'Carrots',
       saleMode: overrides.saleMode ?? 'unit',
       weightTolerancePercent: overrides.weightTolerancePercent ?? null,
     },
@@ -84,6 +85,20 @@ describe('PurchasingMapper', () => {
 
     expect(result.estimatedTotalEur).toBe(0)
     expect(result.hasUnknownCostLines).toBe(true)
+  })
+
+  it('exports a CSV and defuses a formula-triggering product name', () => {
+    const order = makeOrder([
+      makeLine({ id: 'l1', quantity: '3' }),
+      makeLine({ id: 'l2', quantity: '2', saleMode: 'weight', name: '=1+1' }),
+    ])
+
+    const { content, filename } = mapper.toExport(order)
+    const lines = content.split('\n')
+    expect(lines[0]).toBe('"product","quantity","unit"')
+    expect(lines[1]).toBe('"Carrots","3","piece"')
+    expect(lines[2]).toBe(`"'=1+1","2","kg"`)
+    expect(filename).toMatch(/\.csv$/)
   })
 
   it('computes received-so-far by summing the line’s reception lines', () => {
