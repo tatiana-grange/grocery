@@ -1,6 +1,10 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
 import { InventoryModule } from '../inventory/inventory.module'
+import {
+  AdminPurchasingController,
+  AdminSupplierPurchasingController,
+} from './purchasing.controller'
 import { Reception } from './entities/reception.entity'
 import { ReceptionLine } from './entities/reception-line.entity'
 import { SupplierOrder } from './entities/supplier-order.entity'
@@ -19,6 +23,7 @@ import { PurchasingService } from './purchasing.service'
     MikroOrmModule.forFeature([SupplierOrder, SupplierOrderLine, Reception, ReceptionLine]),
     InventoryModule,
   ],
+  controllers: [AdminSupplierPurchasingController, AdminPurchasingController],
   providers: [PurchasingService, PurchasingMapper],
   exports: [PurchasingService],
 })

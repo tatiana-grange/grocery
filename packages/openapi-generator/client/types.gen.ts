@@ -1059,6 +1059,178 @@ export const CartLineInvalidReasonCode = { PRODUCT_ARCHIVED: 'product_archived',
 export type CartLineInvalidReasonCode = typeof CartLineInvalidReasonCode[keyof typeof CartLineInvalidReasonCode];
 
 /**
+ * AggregateResult
+ *
+ * The draft supplier order aggregation just created, plus every pending pre-order line left out because its product can no longer be ordered from this supplier (FR-003).
+ */
+export type AggregateResult = {
+    supplierOrder: SupplierOrderDetail;
+    skippedLines: Array<{
+        productName: string;
+        reason: string;
+    }>;
+};
+
+/**
+ * SupplierOrderDetail
+ */
+export type SupplierOrderDetail = {
+    id: string;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    status: SupplierOrderStatus;
+    sentAt?: string | null;
+    closedAt?: string | null;
+    estimatedTotalEur: number;
+    hasUnknownCostLines: boolean;
+    lineCount: number;
+    version: number;
+    createdAt: string;
+    lines: Array<SupplierOrderLine>;
+    receptions: Array<Reception>;
+};
+
+/**
+ * SupplierOrderStatus
+ *
+ * draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023).
+ */
+export const SupplierOrderStatus = {
+    DRAFT: 'draft',
+    SENT: 'sent',
+    RECEIVED: 'received',
+    CLOSED: 'closed'
+} as const;
+
+/**
+ * SupplierOrderStatus
+ *
+ * draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023).
+ */
+export type SupplierOrderStatus = typeof SupplierOrderStatus[keyof typeof SupplierOrderStatus];
+
+/**
+ * SupplierOrderLine
+ */
+export type SupplierOrderLine = {
+    id: string;
+    product: {
+        id: string;
+        name: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+    };
+    quantity: number;
+    receivedQuantity: number;
+    /**
+     * DiscrepancyKind
+     *
+     * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+     */
+    discrepancy: 'short' | 'over' | 'none';
+    contributingMemberCount: number;
+    estimatedUnitCostEur?: number | null;
+};
+
+/**
+ * DiscrepancyKind
+ *
+ * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+ */
+export const DiscrepancyKind = {
+    SHORT: 'short',
+    OVER: 'over',
+    NONE: 'none'
+} as const;
+
+/**
+ * DiscrepancyKind
+ *
+ * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+ */
+export type DiscrepancyKind = typeof DiscrepancyKind[keyof typeof DiscrepancyKind];
+
+/**
+ * Reception
+ */
+export type Reception = {
+    id: string;
+    receivedAt: string;
+    lines: Array<{
+        id: string;
+        supplierOrderLineId: string;
+        productName: string;
+        orderedQuantity: number;
+        receivedQuantity: number;
+        /**
+         * DiscrepancyKind
+         *
+         * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+         */
+        discrepancy: 'short' | 'over' | 'none';
+        unitCostEur: number;
+    }>;
+};
+
+/**
+ * ReceptionLine
+ */
+export type ReceptionLine = {
+    id: string;
+    supplierOrderLineId: string;
+    productName: string;
+    orderedQuantity: number;
+    receivedQuantity: number;
+    discrepancy: DiscrepancyKind;
+    unitCostEur: number;
+};
+
+/**
+ * SupplierOrdersList
+ *
+ * A paginated list of supplier orders
+ */
+export type SupplierOrdersList = {
+    data: Array<SupplierOrder>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * SupplierOrder
+ */
+export type SupplierOrder = {
+    id: string;
+    supplier: {
+        id: string;
+        name: string;
+    };
+    /**
+     * SupplierOrderStatus
+     *
+     * draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023).
+     */
+    status: 'draft' | 'sent' | 'received' | 'closed';
+    sentAt?: string | null;
+    closedAt?: string | null;
+    estimatedTotalEur: number;
+    hasUnknownCostLines: boolean;
+    lineCount: number;
+    version: number;
+    createdAt: string;
+};
+
+/**
  * TestSeedResetResponse
  *
  * Result of truncating the E2E database and re-running the E2E seeder
@@ -1090,7 +1262,7 @@ export type PaginationQuerySchema = {
  *
  * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
  * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: status, feeState, role, q
+ * <br> Available properties: status, supplierId
  */
 export type FilterQueryStringSchema = string;
 
@@ -1153,6 +1325,14 @@ export type ShopCatalogControllerListProductsSortItem = {
 };
 
 export type ShopCatalogControllerListProductsSortArray = Array<ShopCatalogControllerListProductsSortItem>;
+
+export type AdminPurchasingControllerListFilterItem = {
+    property: 'status' | 'supplierId';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type AdminPurchasingControllerListFilterArray = Array<AdminPurchasingControllerListFilterItem>;
 
 export type AppControllerGetHelloData = {
     body?: never;
@@ -2436,3 +2616,70 @@ export type CartControllerCheckoutResponses = {
 };
 
 export type CartControllerCheckoutResponse = CartControllerCheckoutResponses[keyof CartControllerCheckoutResponses];
+
+export type AdminSupplierPurchasingControllerAggregateData = {
+    body?: never;
+    path: {
+        supplierId: string;
+    };
+    query?: never;
+    url: '/api/admin/suppliers/{supplierId}/purchasing/aggregate';
+};
+
+export type AdminSupplierPurchasingControllerAggregateResponses = {
+    /**
+     * The draft supplier order aggregation just created, plus every pending pre-order line left out because its product can no longer be ordered from this supplier (FR-003).
+     */
+    200: AggregateResult;
+};
+
+export type AdminSupplierPurchasingControllerAggregateResponse = AdminSupplierPurchasingControllerAggregateResponses[keyof AdminSupplierPurchasingControllerAggregateResponses];
+
+export type AdminPurchasingControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: status, supplierId
+         */
+        filter?: AdminPurchasingControllerListFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/purchasing/supplier-orders';
+};
+
+export type AdminPurchasingControllerListResponses = {
+    /**
+     * A paginated list of supplier orders
+     */
+    200: SupplierOrdersList;
+};
+
+export type AdminPurchasingControllerListResponse = AdminPurchasingControllerListResponses[keyof AdminPurchasingControllerListResponses];
+
+export type AdminPurchasingControllerGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}';
+};
+
+export type AdminPurchasingControllerGetResponses = {
+    /**
+     * Successful response
+     */
+    200: SupplierOrderDetail;
+};
+
+export type AdminPurchasingControllerGetResponse = AdminPurchasingControllerGetResponses[keyof AdminPurchasingControllerGetResponses];

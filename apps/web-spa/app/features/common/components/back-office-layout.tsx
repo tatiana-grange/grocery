@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
 } from '@grocery/ui/components/primitives/sidebar'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
-import { Boxes, LogOut, ShieldCheck, Users } from 'lucide-react'
+import { Boxes, ClipboardList, LogOut, ShieldCheck, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router'
 import { useRoles } from '@/features/common/hooks/use-session'
@@ -26,6 +26,7 @@ function BackOfficeSidebar() {
   const navItems = [
     { label: t('adminMembers.nav.members'), to: '/admin/members', icon: Users },
     { label: t('catalog.nav.catalog'), to: '/admin/catalog', icon: Boxes },
+    { label: t('purchasing.nav.purchasing'), to: '/admin/purchasing', icon: ClipboardList },
   ]
 
   const handleLogout = async () => {

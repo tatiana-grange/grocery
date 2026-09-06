@@ -1213,6 +1213,172 @@ export const zCheckoutResult = z.object({
 });
 
 /**
+ * SupplierOrderStatus
+ *
+ * draft: just aggregated, lines can still change on the next aggregation run for other products. sent: fixed, awaiting delivery. received: every line fully delivered (automatic). closed: staff ended it early, some lines may be short (FR-023).
+ */
+export const zSupplierOrderStatus = z.enum([
+    'draft',
+    'sent',
+    'received',
+    'closed'
+]);
+
+/**
+ * SupplierOrderLine
+ */
+export const zSupplierOrderLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    product: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string(),
+        saleMode: z.enum(['unit', 'weight'])
+    }),
+    quantity: z.number().gt(0),
+    receivedQuantity: z.number().gte(0),
+    discrepancy: z.enum([
+        'short',
+        'over',
+        'none'
+    ]),
+    contributingMemberCount: z.int().gte(0).lte(9007199254740991),
+    estimatedUnitCostEur: z.optional(z.union([
+        z.number().gte(0),
+        z.null()
+    ]))
+});
+
+/**
+ * DiscrepancyKind
+ *
+ * Comparison of a supplier-order line's received-so-far total against its ordered quantity, computed at read time — never stored (research.md §5).
+ */
+export const zDiscrepancyKind = z.enum([
+    'short',
+    'over',
+    'none'
+]);
+
+/**
+ * Reception
+ */
+export const zReception = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    receivedAt: z.string(),
+    lines: z.array(z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        supplierOrderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        productName: z.string(),
+        orderedQuantity: z.number().gt(0),
+        receivedQuantity: z.number().gte(0),
+        discrepancy: z.enum([
+            'short',
+            'over',
+            'none'
+        ]),
+        unitCostEur: z.number().gte(0)
+    }))
+});
+
+/**
+ * SupplierOrderDetail
+ */
+export const zSupplierOrderDetail = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    supplier: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    }),
+    status: zSupplierOrderStatus,
+    sentAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    closedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    estimatedTotalEur: z.number().gte(0),
+    hasUnknownCostLines: z.boolean(),
+    lineCount: z.int().gte(0).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    createdAt: z.string(),
+    lines: z.array(zSupplierOrderLine),
+    receptions: z.array(zReception)
+});
+
+/**
+ * AggregateResult
+ *
+ * The draft supplier order aggregation just created, plus every pending pre-order line left out because its product can no longer be ordered from this supplier (FR-003).
+ */
+export const zAggregateResult = z.object({
+    supplierOrder: zSupplierOrderDetail,
+    skippedLines: z.array(z.object({
+        productName: z.string(),
+        reason: z.string()
+    }))
+});
+
+/**
+ * ReceptionLine
+ */
+export const zReceptionLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    supplierOrderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productName: z.string(),
+    orderedQuantity: z.number().gt(0),
+    receivedQuantity: z.number().gte(0),
+    discrepancy: zDiscrepancyKind,
+    unitCostEur: z.number().gte(0)
+});
+
+/**
+ * SupplierOrder
+ */
+export const zSupplierOrder = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    supplier: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        name: z.string()
+    }),
+    status: z.enum([
+        'draft',
+        'sent',
+        'received',
+        'closed'
+    ]),
+    sentAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    closedAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    estimatedTotalEur: z.number().gte(0),
+    hasUnknownCostLines: z.boolean(),
+    lineCount: z.int().gte(0).lte(9007199254740991),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    createdAt: z.string()
+});
+
+/**
+ * SupplierOrdersList
+ *
+ * A paginated list of supplier orders
+ */
+export const zSupplierOrdersList = z.object({
+    data: z.array(zSupplierOrder),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
  * TestSeedResetResponse
  *
  * Result of truncating the E2E database and re-running the E2E seeder
@@ -1238,7 +1404,7 @@ export const zPaginationQuerySchema = z.object({
  *
  * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
  * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
- * <br> Available properties: status, feeState, role, q
+ * <br> Available properties: status, supplierId
  */
 export const zFilterQueryStringSchema = z.string();
 
@@ -1379,6 +1545,30 @@ export const zShopCatalogControllerListProductsSortItem = z.object({
 });
 
 export const zShopCatalogControllerListProductsSortArray = z.array(zShopCatalogControllerListProductsSortItem);
+
+export const zAdminPurchasingControllerListFilterItem = z.object({
+    property: z.union([
+        z.literal('status'),
+        z.literal('supplierId')
+    ]),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zAdminPurchasingControllerListFilterArray = z.array(zAdminPurchasingControllerListFilterItem);
 
 export const zAppControllerGetHelloData = z.object({
     body: z.optional(z.never()),
@@ -2354,3 +2544,44 @@ export const zCartControllerCheckoutData = z.object({
  * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
  */
 export const zCartControllerCheckoutResponse = zCheckoutResult;
+
+export const zAdminSupplierPurchasingControllerAggregateData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        supplierId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The draft supplier order aggregation just created, plus every pending pre-order line left out because its product can no longer be ordered from this supplier (FR-003).
+ */
+export const zAdminSupplierPurchasingControllerAggregateResponse = zAggregateResult;
+
+export const zAdminPurchasingControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zAdminPurchasingControllerListFilterArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A paginated list of supplier orders
+ */
+export const zAdminPurchasingControllerListResponse = zSupplierOrdersList;
+
+export const zAdminPurchasingControllerGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful response
+ */
+export const zAdminPurchasingControllerGetResponse = zSupplierOrderDetail;

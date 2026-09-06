@@ -9,9 +9,14 @@ import {
 } from '../modules/catalog/catalog.factory'
 import { MembershipPayment } from '../modules/members/entities/membership-payment.entity'
 import { createMemberData } from '../modules/members/members.factory'
+import { Member } from '../modules/members/entities/member.entity'
+import { OrderLine } from '../modules/orders/entities/order-line.entity'
+import { Order } from '../modules/orders/entities/order.entity'
+import { Product } from '../modules/catalog/entities/product.entity'
 import {
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
+  E2E_PURCHASING,
   E2E_SEARCH_MEMBER_NAME,
   E2E_USERS,
   FILLER_FIRST_NAMES,
@@ -22,6 +27,7 @@ import {
 export {
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
+  E2E_PURCHASING,
   E2E_SEARCH_MEMBER_NAME,
   E2E_USERS,
 } from './e2e.fixtures'
@@ -188,6 +194,69 @@ export class E2eSeeder extends Seeder {
       setByUser: adminUser,
       archivedAt: new Date(),
     })
+
+    // --- lot 3 purchasing: a dedicated supplier + pending pre-orders ------------------------
+    const purchasingSupplier = await createSupplierData(em, {
+      name: E2E_PURCHASING.supplierName,
+      type: 'producer',
+    })
+    const { product: unitPreOrder } = await createProductData(em, {
+      name: E2E_PURCHASING.unitProductName,
+      saleMode: 'unit',
+      orderingMode: 'pre_order',
+      priceEur: 4,
+      supplier: purchasingSupplier,
+      category,
+      setByUser: adminUser,
+    })
+    const { product: weightPreOrder } = await createProductData(em, {
+      name: E2E_PURCHASING.weightProductName,
+      saleMode: 'weight',
+      orderingMode: 'pre_order',
+      priceEur: 12,
+      supplier: purchasingSupplier,
+      category,
+      setByUser: adminUser,
+    })
+    weightPreOrder.averageWeightGrams = 500
+    weightPreOrder.weightTolerancePercent = 10
+    em.persist(weightPreOrder)
+    const { product: archivedPreOrder } = await createProductData(em, {
+      name: E2E_PURCHASING.archivedProductName,
+      saleMode: 'unit',
+      orderingMode: 'pre_order',
+      priceEur: 3,
+      supplier: purchasingSupplier,
+      category,
+      setByUser: adminUser,
+      archivedAt: new Date(),
+    })
+
+    const zelda = await em.findOneOrFail(Member, { user: { email: 'zelda.searchable@e2e.local' } })
+    const milo = await em.findOneOrFail(Member, { user: { email: E2E_USERS.member.email } })
+
+    const seedPreOrder = (member: Member, product: Product, quantity: number): void => {
+      const order = new Order()
+      order.member = member
+      order.orderingMode = 'pre_order'
+      order.status = 'pending'
+      order.totalAmountCents = 0
+      order.placedAt = new Date()
+      const line = new OrderLine()
+      line.order = order
+      line.product = product
+      line.productNameSnapshot = product.name
+      line.quantity = String(quantity)
+      line.unitPriceAmountCents = 0
+      line.lineTotalAmountCents = 0
+      order.lines.add(line)
+      em.persist([order, line])
+    }
+
+    seedPreOrder(milo, unitPreOrder, 2)
+    seedPreOrder(zelda, unitPreOrder, 3)
+    seedPreOrder(zelda, weightPreOrder, 1)
+    seedPreOrder(milo, archivedPreOrder, 1)
 
     // --- restore the canonical password ---------------------------------------------------
     // `POST /api/test/seed/reset` keeps the Better Auth tables, and `createUserData` leaves an

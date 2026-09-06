@@ -1,4 +1,8 @@
-import { paginatedSchema } from '@lonestone/nzoth/server'
+import {
+  createFilterQueryStringSchema,
+  createPaginationQuerySchema,
+  paginatedSchema,
+} from '@lonestone/nzoth/server'
 import { z } from 'zod'
 import { productSaleModeSchema } from '../../catalog/contracts/product.contract'
 import { discrepancyKindSchema, receptionSchema } from './reception.contract'
@@ -96,12 +100,10 @@ export type AggregateResult = z.infer<typeof aggregateResultSchema>
 // Writes
 // ============================================================================================
 
-export const sendSupplierOrderSchema = z
-  .object({ version: z.number().int() })
-  .meta({
-    title: 'SendSupplierOrder',
-    description: 'Mark a draft supplier order as sent (send the loaded version)',
-  })
+export const sendSupplierOrderSchema = z.object({ version: z.number().int() }).meta({
+  title: 'SendSupplierOrder',
+  description: 'Mark a draft supplier order as sent (send the loaded version)',
+})
 export type SendSupplierOrderInput = z.infer<typeof sendSupplierOrderSchema>
 
 export const closeSupplierOrderSchema = z.object({ version: z.number().int() }).meta({
@@ -109,3 +111,16 @@ export const closeSupplierOrderSchema = z.object({ version: z.number().int() }).
   description: 'Close a sent supplier order early (send the loaded version)',
 })
 export type CloseSupplierOrderInput = z.infer<typeof closeSupplierOrderSchema>
+
+// ============================================================================================
+// List query params
+// ============================================================================================
+
+export const enabledSupplierOrderFilteringKeys = ['status', 'supplierId'] as const
+export const supplierOrderFilteringSchema = createFilterQueryStringSchema(
+  enabledSupplierOrderFilteringKeys,
+)
+export type SupplierOrderFiltering = z.infer<typeof supplierOrderFilteringSchema>
+
+export const supplierOrderPaginationSchema = createPaginationQuerySchema()
+export type SupplierOrderPagination = z.infer<typeof supplierOrderPaginationSchema>
