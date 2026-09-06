@@ -222,6 +222,15 @@ export const zSendSupplierOrder = z.object({
 });
 
 /**
+ * CloseSupplierOrder
+ *
+ * Close a sent supplier order early (send the loaded version)
+ */
+export const zCloseSupplierOrder = z.object({
+    version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
  * RecordReception
  *
  * One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.
@@ -2759,6 +2768,21 @@ export const zAdminPurchasingControllerSendData = z.object({
  * Successful response
  */
 export const zAdminPurchasingControllerSendResponse = zSupplierOrderDetail;
+
+export const zAdminPurchasingControllerCloseData = z.object({
+    body: z.object({
+        version: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful response
+ */
+export const zAdminPurchasingControllerCloseResponse = zSupplierOrderDetail;
 
 export const zAdminPurchasingControllerRecordReceptionData = z.object({
     body: z.object({

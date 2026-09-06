@@ -119,3 +119,66 @@ test.describe('receive a delivery (US3)', () => {
     await expect(page.getByTestId('supplier-order-receptions').locator('> ul > li')).toHaveCount(2)
   })
 })
+
+test.describe('close a supplier order early (US5)', () => {
+  test('closing a partially-received order stops further receptions but keeps recorded stock (FR-021/FR-022)', async ({
+    page,
+  }) => {
+    await openDraftOrder(page)
+    await markSent(page)
+
+    // Receive only part of the unit line, then close.
+    await formRow(page, E2E_PURCHASING.unitProductName)
+      .getByTestId('reception-line-quantity')
+      .fill('2')
+    await formRow(page, E2E_PURCHASING.unitProductName)
+      .getByTestId('reception-line-cost')
+      .fill('4.00')
+    await formRow(page, E2E_PURCHASING.weightProductName)
+      .getByTestId('reception-line-include')
+      .uncheck()
+    await page.getByTestId('reception-submit').click()
+    await expect(
+      lineByName(page, E2E_PURCHASING.unitProductName).getByTestId('line-received'),
+    ).toHaveText('2')
+
+    page.on('dialog', (dialog) => dialog.accept())
+    await page.getByTestId('supplier-order-close').click()
+    await expect(page.getByTestId('supplier-order-status')).toHaveText('Clôturée')
+
+    // No further reception is possible, and the recorded stock is untouched.
+    await expect(page.getByTestId('reception-form')).toHaveCount(0)
+    await expect(page.getByTestId('supplier-order-receptions').locator('> ul > li')).toHaveCount(1)
+
+    await page.goto('/admin/inventory')
+    await page.getByTestId('stock-search').fill(E2E_PURCHASING.unitProductName)
+    await page.getByTestId('stock-search').press('Enter')
+    await expect(
+      page
+        .getByTestId(`stock-row-${E2E_PURCHASING.unitProductName}`)
+        .getByTestId('stock-row-on-hand'),
+    ).toHaveText('2')
+  })
+
+  test('a fully-received order shows “Reçue”, not “Clôturée” (FR-023)', async ({ page }) => {
+    await openDraftOrder(page)
+    await markSent(page)
+
+    await formRow(page, E2E_PURCHASING.unitProductName)
+      .getByTestId('reception-line-quantity')
+      .fill('5')
+    await formRow(page, E2E_PURCHASING.unitProductName)
+      .getByTestId('reception-line-cost')
+      .fill('4.00')
+    await formRow(page, E2E_PURCHASING.weightProductName)
+      .getByTestId('reception-line-quantity')
+      .fill('1')
+    await formRow(page, E2E_PURCHASING.weightProductName)
+      .getByTestId('reception-line-cost')
+      .fill('12.00')
+    await page.getByTestId('reception-submit').click()
+
+    await expect(page.getByTestId('supplier-order-status')).toHaveText('Reçue')
+    await expect(page.getByTestId('supplier-order-close')).toHaveCount(0)
+  })
+})

@@ -60,6 +60,12 @@ describe('checkTransition (send / close guards)', () => {
     expect(checkTransition({ status: 'closed', version: 2 }, 'sent', 2)).toBe('wrong_status')
   })
 
+  it('only closes a sent order — never a draft, received, or already-closed one (FR-021)', () => {
+    expect(checkTransition({ status: 'sent', version: 1 }, 'sent', 1)).toBeNull()
+    expect(checkTransition({ status: 'draft', version: 1 }, 'sent', 1)).toBe('wrong_status')
+    expect(checkTransition({ status: 'received', version: 1 }, 'sent', 1)).toBe('wrong_status')
+  })
+
   it('refuses a stale version even when the status is right (FR-007)', () => {
     expect(checkTransition({ status: 'draft', version: 3 }, 'draft', 1)).toBe('stale_version')
   })

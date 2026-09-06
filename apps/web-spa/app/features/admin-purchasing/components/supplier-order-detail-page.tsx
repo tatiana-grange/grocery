@@ -11,11 +11,12 @@ import {
 } from '@grocery/ui/components/primitives/table'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Download, Send, TriangleAlert } from 'lucide-react'
+import { ArrowLeft, Download, Send, TriangleAlert, XCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'react-router'
 import { handleMutationError } from '@/features/common/lib/api-error'
 import {
+  closeSupplierOrder,
   downloadSupplierOrderExport,
   sendSupplierOrder,
   supplierOrderDetailQueryOptions,
@@ -52,6 +53,19 @@ export default function SupplierOrderDetailPage() {
       handleMutationError(error, toast.error, {
         conflict: t('purchasing.send.alreadySent'),
         fallback: t('purchasing.send.alreadySent'),
+      }),
+  })
+
+  const close = useMutation({
+    mutationFn: (version: number) => closeSupplierOrder(id, version),
+    onSuccess: () => {
+      toast.success(t('purchasing.close.done'))
+      void queryClient.invalidateQueries({ queryKey: ['admin-purchasing'] })
+    },
+    onError: (error) =>
+      handleMutationError(error, toast.error, {
+        conflict: t('purchasing.close.invalid'),
+        fallback: t('purchasing.close.invalid'),
       }),
   })
 
@@ -104,6 +118,20 @@ export default function SupplierOrderDetailPage() {
             >
               <Send className="mr-2 size-4" />
               {t('purchasing.send.action')}
+            </Button>
+          )}
+          {order.status === 'sent' && (
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="supplier-order-close"
+              disabled={close.isPending}
+              onClick={() => {
+                if (window.confirm(t('purchasing.close.confirm'))) close.mutate(order.version)
+              }}
+            >
+              <XCircle className="mr-2 size-4" />
+              {t('purchasing.close.action')}
             </Button>
           )}
         </div>

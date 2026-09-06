@@ -1,4 +1,5 @@
 import {
+  adminPurchasingControllerClose,
   adminPurchasingControllerExport,
   adminPurchasingControllerGet,
   adminPurchasingControllerList,
@@ -62,6 +63,9 @@ export const aggregateSupplierPreOrders = async (supplierId: string) =>
 
 export const sendSupplierOrder = async (id: string, version: number) =>
   unwrap(await adminPurchasingControllerSend({ path: { id }, body: { version } }))
+
+export const closeSupplierOrder = async (id: string, version: number) =>
+  unwrap(await adminPurchasingControllerClose({ path: { id }, body: { version } }))
 
 type RecordReceptionBody = AdminPurchasingControllerRecordReceptionData['body']
 

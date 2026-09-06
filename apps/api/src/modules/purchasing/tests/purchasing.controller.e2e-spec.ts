@@ -432,6 +432,70 @@ describe('purchasingController (e2e)', () => {
     })
   })
 
+  describe('POST /admin/purchasing/supplier-orders/:id/close', () => {
+    it('closes a sent order, keeps its receptions, and refuses a further reception (FR-021/FR-022)', async () => {
+      const { orderId, lineFor } = await aggregateSent()
+      const carrotLine = lineFor('Carrots')
+      await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [{ supplierOrderLineId: carrotLine.id, receivedQuantity: 1, unitCostEur: 1 }],
+        })
+
+      const beforeClose = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${orderId}`)
+      const closed = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/close`)
+        .send({ version: beforeClose.body.version })
+      expect(closed.status).toBe(200)
+      expect(closed.body.status).toBe('closed')
+      expect(closed.body.receptions).toHaveLength(1)
+
+      const furtherReception = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [{ supplierOrderLineId: carrotLine.id, receivedQuantity: 1, unitCostEur: 1 }],
+        })
+      expect(furtherReception.status).toBe(409)
+    })
+
+    it('refuses to close a draft order (FR-021)', async () => {
+      const { order } = await aggregateDraft()
+      const res = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${order.id}/close`)
+        .send({ version: order.version })
+      expect(res.status).toBe(409)
+    })
+
+    it('distinguishes a fully-received order (received) from a closed one (FR-023)', async () => {
+      const { orderId, lineFor } = await aggregateSent()
+      await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/receptions`)
+        .send({
+          lines: [
+            { supplierOrderLineId: lineFor('Carrots').id, receivedQuantity: 2, unitCostEur: 1 },
+            { supplierOrderLineId: lineFor('Apples').id, receivedQuantity: 4, unitCostEur: 1 },
+          ],
+        })
+      const detail = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${orderId}`)
+      expect(detail.body.status).toBe('received')
+
+      const cannotClose = await request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${orderId}/close`)
+        .send({ version: detail.body.version })
+      expect(cannotClose.status).toBe(409)
+    })
+  })
+
   describe('authorization', () => {
     it('401s anonymous and 403s a non-admin member', async () => {
       const supplier = await createSupplierData(em)

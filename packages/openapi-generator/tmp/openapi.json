@@ -3378,6 +3378,60 @@
         }
       }
     },
+    "/api/admin/purchasing/supplier-orders/{id}/close": {
+      "post": {
+        "operationId": "AdminPurchasingController_close",
+        "tags": [
+          "Admin Purchasing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Close a sent supplier order early (send the loaded version)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false,
+                "title": "CloseSupplierOrder",
+                "description": "Close a sent supplier order early (send the loaded version)"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/purchasing/supplier-orders/{id}/receptions": {
       "post": {
         "operationId": "AdminPurchasingController_recordReception",
@@ -4631,6 +4685,22 @@
         "additionalProperties": false,
         "title": "SendSupplierOrder",
         "description": "Mark a draft supplier order as sent (send the loaded version)"
+      },
+      "CloseSupplierOrder": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "title": "CloseSupplierOrder",
+        "description": "Close a sent supplier order early (send the loaded version)"
       },
       "RecordReception": {
         "type": "object",

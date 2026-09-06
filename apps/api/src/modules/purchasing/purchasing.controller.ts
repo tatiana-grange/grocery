@@ -21,6 +21,8 @@ import {
 } from './contracts/reception.contract'
 import {
   aggregateResultSchema,
+  type CloseSupplierOrderInput,
+  closeSupplierOrderSchema,
   type SendSupplierOrderInput,
   sendSupplierOrderSchema,
   type SupplierOrderFiltering,
@@ -108,6 +110,18 @@ export class AdminPurchasingController {
     @TypedBody(sendSupplierOrderSchema) body: SendSupplierOrderInput,
   ) {
     await this.purchasing.send(id, body.version)
+    const order = await this.purchasing.getSupplierOrderDetail(id)
+    const costs = await costLevelsFor(this.inventory, [order])
+    return this.mapper.toSupplierOrderDetail(order, costs)
+  }
+
+  @TypedRoute.Post('supplier-orders/:id/close', supplierOrderDetailSchema)
+  @HttpCode(200)
+  async close(
+    @TypedParam('id', z.string()) id: string,
+    @TypedBody(closeSupplierOrderSchema) body: CloseSupplierOrderInput,
+  ) {
+    await this.purchasing.close(id, body.version)
     const order = await this.purchasing.getSupplierOrderDetail(id)
     const costs = await costLevelsFor(this.inventory, [order])
     return this.mapper.toSupplierOrderDetail(order, costs)

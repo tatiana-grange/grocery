@@ -305,6 +305,15 @@ export type SendSupplierOrder = {
 };
 
 /**
+ * CloseSupplierOrder
+ *
+ * Close a sent supplier order early (send the loaded version)
+ */
+export type CloseSupplierOrder = {
+    version: number;
+};
+
+/**
  * RecordReception
  *
  * One entry per supplier-order line being received in this shipment. A line not included here is simply not part of this reception — it can be received later. Record it explicitly with receivedQuantity: 0 to flag it fully short.
@@ -2885,6 +2894,31 @@ export type AdminPurchasingControllerSendResponses = {
 };
 
 export type AdminPurchasingControllerSendResponse = AdminPurchasingControllerSendResponses[keyof AdminPurchasingControllerSendResponses];
+
+export type AdminPurchasingControllerCloseData = {
+    /**
+     * CloseSupplierOrder
+     *
+     * Close a sent supplier order early (send the loaded version)
+     */
+    body: {
+        version: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/purchasing/supplier-orders/{id}/close';
+};
+
+export type AdminPurchasingControllerCloseResponses = {
+    /**
+     * Successful response
+     */
+    200: SupplierOrderDetail;
+};
+
+export type AdminPurchasingControllerCloseResponse = AdminPurchasingControllerCloseResponses[keyof AdminPurchasingControllerCloseResponses];
 
 export type AdminPurchasingControllerRecordReceptionData = {
     /**

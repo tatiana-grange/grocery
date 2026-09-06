@@ -136,6 +136,20 @@ export class PurchasingService {
     return order
   }
 
+  /**
+   * `sent → closed`. Optimistic-locked; `409` if the order is not currently `sent` (FR-021)
+   * or the caller's `version` is stale. A closed order keeps every reception and every stock
+   * movement it already had — closing only stops further deliveries being expected (FR-022);
+   * `recordReception` already refuses anything but a `sent` order.
+   */
+  async close(id: string, version: number): Promise<SupplierOrder> {
+    const order = await this.loadForTransition(id, version, 'sent')
+    order.status = 'closed'
+    order.closedAt = new Date()
+    await this.em.flush()
+    return order
+  }
+
   private async loadForTransition(
     id: string,
     version: number,
