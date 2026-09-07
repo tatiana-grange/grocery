@@ -15,6 +15,9 @@ export default defineConfig({
     port: 5174,
   },
   optimizeDeps: {
-    include: ['@tanstack/react-query', 'zod'],
+    // Pre-bundle these so a lazy route that is the first to use one (the shop uses the
+    // accordion and the dialog-backed sheet) does not trigger an on-the-fly re-optimize
+    // and the "outdated optimize dep" full reload that comes with it.
+    include: ['@tanstack/react-query', 'zod', '@base-ui/react/accordion', '@base-ui/react/dialog'],
   },
 })

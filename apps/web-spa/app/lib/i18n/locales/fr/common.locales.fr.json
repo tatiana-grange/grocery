@@ -316,21 +316,27 @@
       "signIn": "Se connecter"
     },
     "title": "Boutique",
-    "subtitle": "Découvrez ce que la coopérative propose actuellement.",
+    "subtitle": "Découvrez les produits proposés par nos fournisseurs.",
     "searchPlaceholder": "Rechercher un nom ou un code-barres…",
     "sort": {
       "nameAsc": "Nom (A–Z)",
       "newest": "Plus récents"
     },
     "categories": {
-      "all": "Toutes les catégories"
+      "all": "Toutes les catégories",
+      "heading": "Catégories",
+      "everythingIn": "Tout {{name}}"
     },
     "empty": "Aucun produit ne correspond à votre recherche.",
     "count": "{{count}} produit",
     "count_other": "{{count}} produits",
     "backToShop": "Retour à la boutique",
     "productNotFound": "Ce produit n'existe pas ou n'est plus disponible.",
-    "loadError": "Impossible de charger ce produit pour le moment."
+    "loadError": "Impossible de charger ce produit pour le moment.",
+    "pagination": {
+      "loadMore": "Afficher plus",
+      "showing": "{{shown}} sur {{total}}"
+    }
   },
   "cart": {
     "title": "Panier",

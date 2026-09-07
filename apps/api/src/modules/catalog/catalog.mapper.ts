@@ -25,7 +25,7 @@ import { ProductPrice } from './entities/product-price.entity'
 import { Product } from './entities/product.entity'
 import { Referent } from './entities/referent.entity'
 import { Supplier } from './entities/supplier.entity'
-import type { ProductsListResult } from './catalog.service'
+import type { ProductsListResult, ShopCategoryEntry } from './catalog.service'
 
 @Injectable()
 export class CatalogMapper {
@@ -193,8 +193,13 @@ export class CatalogMapper {
   // Public shop
   // ============================================================================================
 
-  toShopCategory(category: Category): ShopCategory {
-    return { id: category.id, name: category.name }
+  toShopCategory({ category, productCount }: ShopCategoryEntry): ShopCategory {
+    return {
+      id: category.id,
+      name: category.name,
+      parentId: category.parent?.id ?? null,
+      productCount,
+    }
   }
 
   toShopProduct(product: Product): ShopProduct {

@@ -41,8 +41,8 @@ export class ShopCatalogController {
 
   @TypedRoute.Get('categories', shopCategoriesListSchema)
   async listCategories() {
-    const categories = await this.catalog.listShopCategories()
-    return categories.map((category) => this.mapper.toShopCategory(category))
+    const entries = await this.catalog.listShopCategories()
+    return entries.map((entry) => this.mapper.toShopCategory(entry))
   }
 
   @TypedRoute.Get('products', shopProductsListSchema)

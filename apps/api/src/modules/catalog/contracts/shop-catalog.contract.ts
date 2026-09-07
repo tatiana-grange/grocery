@@ -16,8 +16,17 @@ export const shopCategorySchema = z
   .object({
     id: z.string().uuid(),
     name: z.string(),
+    /** `null` for a top-level category. The tree is one level deep (see the Category entity). */
+    parentId: z.string().uuid().nullable(),
+    /** Orderable products filed directly under this category — not counting its children. */
+    productCount: z.number().int().nonnegative(),
   })
-  .meta({ title: 'ShopCategory', description: 'A category with at least one orderable product' })
+  .meta({
+    title: 'ShopCategory',
+    description:
+      'A category that has orderable products in it or under one of its children. Selecting a ' +
+      'top-level category filters to its products and every child category’s products.',
+  })
 
 export type ShopCategory = z.infer<typeof shopCategorySchema>
 

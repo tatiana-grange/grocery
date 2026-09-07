@@ -51,6 +51,12 @@ export interface ProductsListResult {
   pagination: ProductPagination
 }
 
+export interface ShopCategoryEntry {
+  category: Category
+  /** Non-archived products filed directly under `category`, excluding its children. */
+  productCount: number
+}
+
 @Injectable()
 export class CatalogService {
   constructor(private readonly em: EntityManager) {}
@@ -584,17 +590,35 @@ export class CatalogService {
   // Public shop
   // ============================================================================================
 
-  /** Categories with at least one non-archived product — an empty category stays hidden. */
-  async listShopCategories(): Promise<Category[]> {
+  /**
+   * Categories the shop filter shows: every category with at least one non-archived product
+   * filed directly under it, plus the (non-archived) parent of any such category — so a
+   * top-level category whose products all sit in its children still appears. Each entry
+   * carries its direct product count; the frontend sums a parent with its children.
+   */
+  async listShopCategories(): Promise<ShopCategoryEntry[]> {
     // Grouped SQL count instead of loading every active product row just to dedupe category
     // ids in JS — this backs a filter shown on every shop homepage visit.
     const counts = await this.em.countBy(Product, 'category', { where: { archivedAt: null } })
-    const categoryIds = Object.keys(counts)
-    if (categoryIds.length === 0) return []
-    return this.em.find(
+    const directIds = Object.keys(counts)
+    if (directIds.length === 0) return []
+
+    const withProducts = await this.em.find(
       Category,
-      { id: { $in: categoryIds }, archivedAt: null },
-      { orderBy: { name: QueryOrder.ASC } },
+      { id: { $in: directIds }, archivedAt: null },
+      { populate: ['parent'], orderBy: { name: QueryOrder.ASC } },
+    )
+
+    const entries = new Map<string, ShopCategoryEntry>()
+    for (const category of withProducts) {
+      entries.set(category.id, { category, productCount: counts[category.id] ?? 0 })
+      const parent = category.parent
+      if (parent && !parent.archivedAt && !entries.has(parent.id)) {
+        entries.set(parent.id, { category: parent, productCount: counts[parent.id] ?? 0 })
+      }
+    }
+    return [...entries.values()].sort((a, b) =>
+      a.category.name.localeCompare(b.category.name, 'fr'),
     )
   }
 
@@ -603,16 +627,23 @@ export class CatalogService {
     sort?: ShopProductSorting,
     filter?: ShopProductFiltering,
   ): Promise<ProductsListResult> {
-    const where: FilterQuery<Product> = { archivedAt: null }
+    // Collect each clause separately and AND them: `categoryId` and `q` both need an `$or`,
+    // so merging them onto one object would drop the first.
+    const clauses: FilterQuery<Product>[] = []
     for (const item of filter ?? []) {
-      if (item.property === 'categoryId') Object.assign(where, { category: item.value })
-      if (item.property === 'q') {
-        const pattern = `%${this.escapeLike(item.value)}%`
-        Object.assign(where, {
-          $or: [{ name: { $like: pattern } }, { barcode: { $like: pattern } }],
+      if (item.property === 'categoryId') {
+        // A top-level category also matches its children's products (one level deep).
+        clauses.push({
+          $or: [{ category: item.value }, { category: { parent: item.value } }],
         })
       }
+      if (item.property === 'q') {
+        const pattern = `%${this.escapeLike(item.value)}%`
+        clauses.push({ $or: [{ name: { $like: pattern } }, { barcode: { $like: pattern } }] })
+      }
     }
+    const where: FilterQuery<Product> =
+      clauses.length > 0 ? { archivedAt: null, $and: clauses } : { archivedAt: null }
 
     const [products, total] = await this.em.findAndCount(Product, where, {
       populate: ['category', 'prices'],

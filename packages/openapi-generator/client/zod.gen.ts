@@ -711,11 +711,16 @@ export const zCatalogProductDetail = z.object({
 /**
  * ShopCategory
  *
- * A category with at least one orderable product
+ * A category that has orderable products in it or under one of its children. Selecting a top-level category filters to its products and every child category’s products.
  */
 export const zShopCategory = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-    name: z.string()
+    name: z.string(),
+    parentId: z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ]),
+    productCount: z.int().gte(0).lte(9007199254740991)
 });
 
 /**

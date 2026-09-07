@@ -5606,15 +5606,34 @@
           },
           "name": {
             "type": "string"
+          },
+          "parentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "productCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
           }
         },
         "required": [
           "id",
-          "name"
+          "name",
+          "parentId",
+          "productCount"
         ],
         "additionalProperties": false,
         "title": "ShopCategory",
-        "description": "A category with at least one orderable product"
+        "description": "A category that has orderable products in it or under one of its children. Selecting a top-level category filters to its products and every child category’s products."
       },
       "ShopProductsList": {
         "type": "object",

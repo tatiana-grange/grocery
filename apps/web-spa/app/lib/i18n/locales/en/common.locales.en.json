@@ -323,14 +323,20 @@
       "newest": "Newest first"
     },
     "categories": {
-      "all": "All categories"
+      "all": "All categories",
+      "heading": "Categories",
+      "everythingIn": "All {{name}}"
     },
     "empty": "No products match your search.",
     "count": "{{count}} product",
     "count_other": "{{count}} products",
     "backToShop": "Back to shop",
     "productNotFound": "This product doesn't exist or is no longer available.",
-    "loadError": "We couldn't load this product right now."
+    "loadError": "We couldn't load this product right now.",
+    "pagination": {
+      "loadMore": "Show more",
+      "showing": "{{shown}} of {{total}}"
+    }
   },
   "cart": {
     "title": "Cart",

@@ -18,10 +18,7 @@ describe('shopCatalogController (e2e)', () => {
   let admin: ReturnType<typeof createSessionFromUser>
 
   beforeEach(async (context) => {
-    const { orm, app } = await initializeTestApp(
-      { orm: context.orm },
-      { imports: [CatalogModule] },
-    )
+    const { orm, app } = await initializeTestApp({ orm: context.orm }, { imports: [CatalogModule] })
     context.app = app
     const em: EntityManager = orm.em.fork()
     request = createRequest(app)
@@ -41,8 +38,21 @@ describe('shopCatalogController (e2e)', () => {
     return res.body as { id: string }
   }
 
-  async function makeCategory(name = 'Légumes') {
-    const res = await request.withSession(admin).post('/admin/categories').send({ name })
+  async function makeCategory(name = 'Légumes', parentId?: string) {
+    const res = await request.withSession(admin).post('/admin/categories').send({ name, parentId })
+    return res.body as { id: string }
+  }
+
+  async function makeProductIn(categoryId: string, name: string) {
+    const supplier = await makeSupplier(`S-${Math.random().toString(36).slice(2, 6)}`)
+    const res = await request.withSession(admin).post('/admin/products').send({
+      name,
+      supplierId: supplier.id,
+      categoryId,
+      saleMode: 'unit',
+      orderingMode: 'in_store',
+      initialPriceEur: 1,
+    })
     return res.body as { id: string }
   }
 
@@ -74,6 +84,65 @@ describe('shopCatalogController (e2e)', () => {
     const after = await request.get('/shop/categories')
     expect(after.status).toBe(200)
     expect(after.body.some((c: { id: string }) => c.id === category.id)).toBe(false)
+  })
+
+  it('surfaces a parent category via its children and carries parentId + productCount', async () => {
+    const parent = await makeCategory(`Crèmerie-${Math.random().toString(36).slice(2, 6)}`)
+    const child = await makeCategory(
+      `Fromages-${Math.random().toString(36).slice(2, 6)}`,
+      parent.id,
+    )
+    await makeProductIn(parent.id, 'Lait entier')
+    await makeProductIn(child.id, 'Comté')
+    await makeProductIn(child.id, 'Brie')
+
+    const res = await request.get('/shop/categories')
+    expect(res.status).toBe(200)
+    const byId = new Map<string, { parentId: string | null; productCount: number }>(
+      res.body.map((c: { id: string; parentId: string | null; productCount: number }) => [c.id, c]),
+    )
+    // The parent shows even though most of its products sit under the child.
+    expect(byId.get(parent.id)).toEqual({
+      id: parent.id,
+      name: expect.any(String),
+      parentId: null,
+      productCount: 1,
+    })
+    expect(byId.get(child.id)).toMatchObject({ parentId: parent.id, productCount: 2 })
+  })
+
+  it('filtering by a parent category returns its own products and its children’s', async () => {
+    const parent = await makeCategory(`Boucherie-${Math.random().toString(36).slice(2, 6)}`)
+    const child = await makeCategory(
+      `Volaille-${Math.random().toString(36).slice(2, 6)}`,
+      parent.id,
+    )
+    const own = await makeProductIn(parent.id, 'Steak haché')
+    const nested = await makeProductIn(child.id, 'Cuisse de poulet')
+    const elsewhere = await makeProductIn((await makeCategory('Ailleurs')).id, 'Savon')
+
+    const res = await request.get(`/shop/products?filter=categoryId:eq:${parent.id}`)
+    expect(res.status).toBe(200)
+    const ids = res.body.data.map((p: { id: string }) => p.id)
+    expect(ids).toEqual(expect.arrayContaining([own.id, nested.id]))
+    expect(ids).not.toContain(elsewhere.id)
+
+    // A leaf category still filters to exactly itself.
+    const leaf = await request.get(`/shop/products?filter=categoryId:eq:${child.id}`)
+    expect(leaf.body.data.map((p: { id: string }) => p.id)).toEqual([nested.id])
+  })
+
+  it('combines a category filter with a search query', async () => {
+    const parent = await makeCategory(`Épicerie-${Math.random().toString(36).slice(2, 6)}`)
+    const child = await makeCategory(`Pâtes-${Math.random().toString(36).slice(2, 6)}`, parent.id)
+    const match = await makeProductIn(child.id, 'Tagliatelles fraîches')
+    await makeProductIn(child.id, 'Penne')
+
+    const res = await request.get(
+      `/shop/products?filter=categoryId:eq:${parent.id};q:like:Tagliatelles`,
+    )
+    expect(res.status).toBe(200)
+    expect(res.body.data.map((p: { id: string }) => p.id)).toEqual([match.id])
   })
 
   it('lists only non-archived products and supports search by name and barcode', async () => {

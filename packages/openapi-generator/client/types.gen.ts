@@ -614,11 +614,13 @@ export type ShopCategoriesList = Array<ShopCategory>;
 /**
  * ShopCategory
  *
- * A category with at least one orderable product
+ * A category that has orderable products in it or under one of its children. Selecting a top-level category filters to its products and every child category’s products.
  */
 export type ShopCategory = {
     id: string;
     name: string;
+    parentId: string | null;
+    productCount: number;
 };
 
 /**
