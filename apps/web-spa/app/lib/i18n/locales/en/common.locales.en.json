@@ -255,7 +255,8 @@
     },
     "pricingUnit": {
       "piece": "piece",
-      "kg": "kg"
+      "kg": "kg",
+      "g": "g"
     },
     "label": {
       "organic": "Organic",
@@ -285,6 +286,8 @@
       "price": "Price",
       "saleMode": "Sale mode",
       "saleModeLocked": "cannot change once a price is set",
+      "selectionUnit": "Selection unit",
+      "quantityStep": "Selection step (g)",
       "orderingMode": "Ordering mode",
       "pricePerKg": "Price per kg (€)",
       "pricePerPiece": "Price per piece (€)",
@@ -336,6 +339,13 @@
     "count": "{{count}} product",
     "count_other": "{{count}} products",
     "backToShop": "Back to shop",
+    "quickAdd": {
+      "add": "Add",
+      "chooseOptions": "Choose options",
+      "increase": "Increase quantity",
+      "decrease": "Decrease quantity",
+      "amount": "Amount"
+    },
     "productNotFound": "This product doesn't exist or is no longer available.",
     "loadError": "We couldn't load this product right now.",
     "pagination": {

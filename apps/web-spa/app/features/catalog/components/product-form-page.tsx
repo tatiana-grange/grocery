@@ -44,6 +44,8 @@ export default function ProductFormPage() {
   const [supplierId, setSupplierId] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [saleMode, setSaleMode] = useState<'unit' | 'weight'>('unit')
+  const [selectionUnit, setSelectionUnit] = useState<'g' | 'kg'>('kg')
+  const [stepGrams, setStepGrams] = useState('100')
   const [orderingMode, setOrderingMode] = useState<ProductOrderingMode>('in_store')
   const [labels, setLabels] = useState<Label[]>([])
   const [priceEur, setPriceEur] = useState('')
@@ -55,10 +57,19 @@ export default function ProductFormPage() {
       setSupplierId(existing.supplier.id)
       setCategoryId(existing.category.id)
       setSaleMode(existing.saleMode)
+      setSelectionUnit(existing.selectionUnit ?? 'kg')
+      setStepGrams(String(existing.quantityStepGrams ?? 100))
       setOrderingMode(existing.orderingMode)
       setLabels(existing.labels)
     }
   }, [existing])
+
+  // The by-weight picker settings only travel to the API for a by-weight product; `null` clears
+  // them otherwise so a product switched away from weight doesn't keep a stale step.
+  const weightPicker =
+    saleMode === 'weight'
+      ? { selectionUnit, quantityStepGrams: Number(stepGrams) }
+      : { selectionUnit: null, quantityStepGrams: null }
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -72,6 +83,7 @@ export default function ProductFormPage() {
             categoryId,
             orderingMode,
             labels,
+            ...weightPicker,
             version: existing!.version,
           })
         : createProduct({
@@ -83,6 +95,7 @@ export default function ProductFormPage() {
             orderingMode,
             labels,
             photos: [],
+            ...weightPicker,
             initialPriceEur: Number(priceEur),
           }),
     onSuccess: (product) => {
@@ -97,7 +110,10 @@ export default function ProductFormPage() {
       }),
   })
 
-  const canSubmit = name.trim() && supplierId && categoryId && (isEdit || Number(priceEur) > 0)
+  const stepValid =
+    saleMode !== 'weight' || (Number.isInteger(Number(stepGrams)) && Number(stepGrams) > 0)
+  const canSubmit =
+    name.trim() && supplierId && categoryId && stepValid && (isEdit || Number(priceEur) > 0)
 
   if (isEdit && isLoading) return <Skeleton className="h-96 w-full" />
 
@@ -183,6 +199,36 @@ export default function ProductFormPage() {
             </div>
           )}
         </Field>
+        {saleMode === 'weight' && (
+          <>
+            <Field label={t('catalog.products.selectionUnit')}>
+              <div className="flex gap-2">
+                {(['g', 'kg'] as const).map((unit) => (
+                  <Button
+                    key={unit}
+                    type="button"
+                    data-testid={`product-form-selectionunit-${unit}`}
+                    variant={selectionUnit === unit ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectionUnit(unit)}
+                  >
+                    {unit}
+                  </Button>
+                ))}
+              </div>
+            </Field>
+            <Field label={t('catalog.products.quantityStep')}>
+              <Input
+                type="number"
+                step="1"
+                min="1"
+                data-testid="product-form-step-grams"
+                value={stepGrams}
+                onChange={(event) => setStepGrams(event.target.value)}
+              />
+            </Field>
+          </>
+        )}
         <Field label={t('catalog.products.orderingMode')}>
           <div className="flex flex-wrap gap-2">
             {ORDERING_MODES.map((mode) => (

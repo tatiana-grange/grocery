@@ -255,7 +255,8 @@
     },
     "pricingUnit": {
       "piece": "pièce",
-      "kg": "kg"
+      "kg": "kg",
+      "g": "g"
     },
     "label": {
       "organic": "Bio",
@@ -285,6 +286,8 @@
       "price": "Prix",
       "saleMode": "Mode de vente",
       "saleModeLocked": "non modifiable une fois un prix défini",
+      "selectionUnit": "Unité de sélection",
+      "quantityStep": "Pas de sélection (g)",
       "orderingMode": "Mode de commande",
       "pricePerKg": "Prix au kg (€)",
       "pricePerPiece": "Prix à la pièce (€)",
@@ -336,6 +339,13 @@
     "count": "{{count}} produit",
     "count_other": "{{count}} produits",
     "backToShop": "Retour à la boutique",
+    "quickAdd": {
+      "add": "Ajouter",
+      "chooseOptions": "Choisir les options",
+      "increase": "Augmenter la quantité",
+      "decrease": "Diminuer la quantité",
+      "amount": "Quantité"
+    },
     "productNotFound": "Ce produit n'existe pas ou n'est plus disponible.",
     "loadError": "Impossible de charger ce produit pour le moment.",
     "pagination": {

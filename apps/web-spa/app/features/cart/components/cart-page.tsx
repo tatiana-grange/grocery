@@ -13,7 +13,6 @@ import {
 import { EmptyState } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
-import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import {
@@ -25,63 +24,25 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ShoppingCart, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { handleMutationError } from '@/features/common/lib/api-error'
+import { AddToCartControl } from '@/features/cart/components/add-to-cart-control'
 import { CheckoutConfirmation } from '@/features/cart/components/checkout-confirmation'
-import {
-  cartQueryOptions,
-  checkout,
-  type CheckoutResult,
-  removeCartLine,
-  updateCartLine,
-} from '@/features/cart/utils/cart-queries'
+import { useCartLineActions } from '@/features/cart/hooks/use-cart-line-actions'
+import { cartQueryOptions, checkout, type CheckoutResult } from '@/features/cart/utils/cart-queries'
 
 function CartLineRow({ line }: { line: CartLine }) {
   const { t } = useTranslation()
-  const queryClient = useQueryClient()
-  const [quantity, setQuantity] = useState(String(line.quantity))
-  const step = line.product.saleMode === 'weight' ? 0.001 : 1
+  const { product } = line
 
-  // Re-sync from the server value once a mutation resolves (success or failure) and the cart
-  // refetches — without this, a rejected update left the optimistic value on screen forever.
-  useEffect(() => {
-    setQuantity(String(line.quantity))
-  }, [line.quantity])
-
-  const invalidate = () => void queryClient.invalidateQueries({ queryKey: ['cart'] })
-
-  const updateMutation = useMutation({
-    mutationFn: (nextQuantity: number) => updateCartLine(line.id, { quantity: nextQuantity }),
-    onSuccess: invalidate,
-    onError: (error) => {
-      invalidate()
-      handleMutationError(error, toast.error, {
-        conflict: t('common.conflict'),
-        fallback: t('cart.toasts.error'),
-      })
-    },
+  const actions = useCartLineActions({
+    productId: product.id,
+    orderingMode: line.orderingMode,
+    lineId: line.id,
   })
-
-  const removeMutation = useMutation({
-    mutationFn: () => removeCartLine(line.id),
-    onSuccess: () => {
-      toast.success(t('cart.toasts.removed'))
-      invalidate()
-    },
-    onError: () => toast.error(t('cart.toasts.error')),
-  })
-
-  const applyQuantity = (next: number) => {
-    if (!(next > 0)) return
-    // Captured up front and restored on failure: invalidating alone won't fix a rejected update
-    // where the refetched value is unchanged (same string), so the effect above wouldn't re-run.
-    const previousQuantity = quantity
-    setQuantity(String(next))
-    updateMutation.mutate(next, { onError: () => setQuantity(previousQuantity) })
-  }
 
   return (
     <TableRow data-testid={`cart-line-${line.id}`}>
@@ -97,33 +58,21 @@ function CartLineRow({ line }: { line: CartLine }) {
         </div>
       </TableCell>
       <TableCell>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid={`cart-line-decrease-${line.id}`}
-            onClick={() => applyQuantity(Number((Number(quantity) - step).toFixed(3)))}
-          >
-            <Minus className="size-3" />
-          </Button>
-          <Input
-            type="number"
-            step={step}
-            className="w-20 text-center"
-            data-testid={`cart-line-quantity-${line.id}`}
-            value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
-            onBlur={() => applyQuantity(Number(quantity))}
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid={`cart-line-increase-${line.id}`}
-            onClick={() => applyQuantity(Number((Number(quantity) + step).toFixed(3)))}
-          >
-            <Plus className="size-3" />
-          </Button>
-        </div>
+        {/* The line is there by definition, so this only ever renders as the stepper. Taking
+            the amount down to nothing drops the line, exactly as it does in the shop. */}
+        <AddToCartControl
+          product={product}
+          line={line}
+          actions={actions}
+          className="w-auto"
+          testIds={{
+            signIn: `cart-line-signin-${line.id}`,
+            add: `cart-line-add-${line.id}`,
+            decrease: `cart-line-decrease-${line.id}`,
+            increase: `cart-line-increase-${line.id}`,
+            amount: `cart-line-quantity-${line.id}`,
+          }}
+        />
       </TableCell>
       <TableCell>{line.unitPriceEur.toFixed(2)} €</TableCell>
       <TableCell className="font-semibold">{line.lineTotalEur.toFixed(2)} €</TableCell>
@@ -145,7 +94,7 @@ function CartLineRow({ line }: { line: CartLine }) {
               <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 data-testid={`cart-line-remove-confirm-${line.id}`}
-                onClick={() => removeMutation.mutate()}
+                onClick={() => actions.remove()}
               >
                 {t('cart.removeConfirm.confirm')}
               </AlertDialogAction>

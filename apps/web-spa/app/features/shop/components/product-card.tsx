@@ -11,6 +11,7 @@ import { cn } from '@grocery/ui/lib/utils'
 import { Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { QuickAddToCart } from '@/features/cart/components/quick-add-to-cart'
 import type { ShopView } from '@/features/shop/hooks/use-shop-view'
 
 export function ProductCard({
@@ -50,6 +51,9 @@ export function ProductCard({
             <p className="text-sm text-muted-foreground">{price}</p>
           </div>
         </Link>
+        <div className="w-40 shrink-0">
+          <QuickAddToCart product={product} />
+        </div>
       </div>
     )
   }
@@ -65,7 +69,7 @@ export function ProductCard({
       <Link
         to={`/shop/products/${product.id}`}
         data-testid="shop-product-card-link"
-        className="flex h-full flex-col gap-(--card-spacing)"
+        className="flex flex-1 flex-col gap-(--card-spacing)"
       >
         <div className="flex aspect-square shrink-0 items-center justify-center bg-muted">
           {image}
@@ -87,10 +91,11 @@ export function ProductCard({
             ))}
           </CardContent>
         )}
-        <CardFooter className={cn('mt-auto font-semibold', compact ? 'text-xs' : 'text-sm')}>
-          {price}
-        </CardFooter>
       </Link>
+      <CardFooter className="mt-auto flex-col items-stretch gap-2">
+        <span className={cn('font-semibold', compact ? 'text-xs' : 'text-sm')}>{price}</span>
+        <QuickAddToCart product={product} />
+      </CardFooter>
     </Card>
   )
 }
