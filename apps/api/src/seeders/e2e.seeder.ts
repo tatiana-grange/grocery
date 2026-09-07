@@ -137,6 +137,17 @@ export class E2eSeeder extends Seeder {
       setByUser: adminUser,
     })
     await createProductData(em, {
+      name: 'Comté à la coupe',
+      saleMode: 'weight',
+      selectionUnit: 'g',
+      quantityStepGrams: 200,
+      orderingMode: 'in_store',
+      priceEur: 25,
+      supplier: producer,
+      category,
+      setByUser: adminUser,
+    })
+    await createProductData(em, {
       name: 'Pain de campagne',
       saleMode: 'unit',
       orderingMode: 'in_store',

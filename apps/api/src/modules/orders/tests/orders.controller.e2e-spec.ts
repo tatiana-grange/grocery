@@ -59,6 +59,26 @@ describe('ordersController (e2e)', () => {
       const res = await request.withSession(createSessionFromUser(pending)).get('/cart')
       expect(res.status).toBe(403)
     })
+
+    it('carries the product pricing unit and by-weight picker settings on each line', async () => {
+      const product = await makeProduct({
+        saleMode: 'weight',
+        selectionUnit: 'g',
+        quantityStepGrams: 250,
+      })
+      await request
+        .withSession(member)
+        .post('/cart/lines')
+        .send({ productId: product.id, orderingMode: 'in_store', quantity: 0.5 })
+
+      const res = await request.withSession(member).get('/cart')
+      expect(res.body.lines[0].product).toMatchObject({
+        saleMode: 'weight',
+        pricingUnit: 'kg',
+        selectionUnit: 'g',
+        quantityStepGrams: 250,
+      })
+    })
   })
 
   describe('POST /cart/lines', () => {

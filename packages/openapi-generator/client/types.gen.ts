@@ -117,6 +117,8 @@ export type CreateProduct = {
     supplierId: string;
     categoryId: string;
     saleMode: ProductSaleMode;
+    selectionUnit?: 'g' | 'kg' | null;
+    quantityStepGrams?: number | null;
     orderingMode: ProductOrderingMode;
     photos: Array<string>;
     labels: Array<ProductLabel>;
@@ -137,6 +139,8 @@ export type UpdateProduct = {
     supplierId?: string;
     categoryId?: string;
     saleMode?: ProductSaleMode;
+    selectionUnit?: 'g' | 'kg' | null;
+    quantityStepGrams?: number | null;
     orderingMode?: ProductOrderingMode;
     photos?: Array<string>;
     labels?: Array<ProductLabel>;
@@ -483,6 +487,8 @@ export type CatalogProduct = {
     };
     saleMode: ProductSaleMode;
     pricingUnit: ProductPricingUnit;
+    selectionUnit?: 'g' | 'kg' | null;
+    quantityStepGrams?: number | null;
     orderingMode: ProductOrderingMode;
     photos: Array<string>;
     labels: Array<ProductLabel>;
@@ -577,6 +583,8 @@ export type CatalogProductDetail = {
     };
     saleMode: ProductSaleMode;
     pricingUnit: ProductPricingUnit;
+    selectionUnit?: 'g' | 'kg' | null;
+    quantityStepGrams?: number | null;
     orderingMode: ProductOrderingMode;
     photos: Array<string>;
     labels: Array<ProductLabel>;
@@ -662,6 +670,13 @@ export type ShopProduct = {
      * Derived from the sale mode: unit → piece, weight → kg
      */
     pricingUnit: 'piece' | 'kg';
+    /**
+     * ProductSelectionUnit
+     *
+     * Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. "300 g" vs "0.3 kg"). Ignored for unit-sale products.
+     */
+    selectionUnit: 'g' | 'kg';
+    quantityStepGrams: number;
     photos: Array<string>;
     labels: Array<'organic' | 'local' | 'vegetarian' | 'vegan'>;
     currentPriceEur: number;
@@ -672,6 +687,20 @@ export type ShopProduct = {
      */
     orderingMode: 'pre_order' | 'in_store' | 'both';
 };
+
+/**
+ * ProductSelectionUnit
+ *
+ * Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. "300 g" vs "0.3 kg"). Ignored for unit-sale products.
+ */
+export const ProductSelectionUnit = { G: 'g', KG: 'kg' } as const;
+
+/**
+ * ProductSelectionUnit
+ *
+ * Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. "300 g" vs "0.3 kg"). Ignored for unit-sale products.
+ */
+export type ProductSelectionUnit = typeof ProductSelectionUnit[keyof typeof ProductSelectionUnit];
 
 /**
  * ShopProductDetail
@@ -687,6 +716,8 @@ export type ShopProductDetail = {
     };
     saleMode: ProductSaleMode;
     pricingUnit: ProductPricingUnit;
+    selectionUnit: ProductSelectionUnit;
+    quantityStepGrams: number;
     photos: Array<string>;
     labels: Array<ProductLabel>;
     currentPriceEur: number;
@@ -1056,6 +1087,19 @@ export type CartLine = {
          * "unit" is sold per piece, "weight" is priced per kilogram
          */
         saleMode: 'unit' | 'weight';
+        /**
+         * ProductPricingUnit
+         *
+         * Derived from the sale mode: unit → piece, weight → kg
+         */
+        pricingUnit: 'piece' | 'kg';
+        /**
+         * ProductSelectionUnit
+         *
+         * Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. "300 g" vs "0.3 kg"). Ignored for unit-sale products.
+         */
+        selectionUnit: 'g' | 'kg';
+        quantityStepGrams: number;
         photos: Array<string>;
     };
     /**
@@ -2411,6 +2455,8 @@ export type AdminProductsControllerCreateData = {
          * "unit" is sold per piece, "weight" is priced per kilogram
          */
         saleMode: 'unit' | 'weight';
+        selectionUnit?: 'g' | 'kg' | null;
+        quantityStepGrams?: number | null;
         /**
          * ProductOrderingMode
          *
@@ -2473,6 +2519,8 @@ export type AdminProductsControllerUpdateData = {
          * "unit" is sold per piece, "weight" is priced per kilogram
          */
         saleMode?: 'unit' | 'weight';
+        selectionUnit?: 'g' | 'kg' | null;
+        quantityStepGrams?: number | null;
         /**
          * ProductOrderingMode
          *

@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { centsToEur, currentPrice } from '../catalog/catalog.util'
+import {
+  centsToEur,
+  currentPrice,
+  pricingUnitFor,
+  quantityStepGramsFor,
+  selectionUnitFor,
+} from '../catalog/catalog.util'
 import type { Product } from '../catalog/entities/product.entity'
 import { checkLineValidity } from './cart-line-validity.util'
 import type { Cart as CartContract, CartLine as CartLineContract } from './contracts/cart.contract'
@@ -32,6 +38,9 @@ export class OrdersMapper {
         id: line.product.id,
         name: line.product.name,
         saleMode: line.product.saleMode,
+        pricingUnit: pricingUnitFor(line.product.saleMode),
+        selectionUnit: selectionUnitFor(line.product),
+        quantityStepGrams: quantityStepGramsFor(line.product),
         photos: line.product.photos,
       },
       orderingMode: line.orderingMode,

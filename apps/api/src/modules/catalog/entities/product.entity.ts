@@ -2,6 +2,7 @@ import type {
   ProductLabel,
   ProductOrderingMode,
   ProductSaleMode,
+  ProductSelectionUnit,
 } from '../contracts/product.contract'
 import type { Rel } from '@mikro-orm/core'
 import { Collection } from '@mikro-orm/core'
@@ -41,6 +42,18 @@ export class Product {
   /** `unit` = sold per piece, `weight` = priced per kilogram. */
   @Property()
   saleMode: ProductSaleMode = 'unit'
+
+  /**
+   * How a shopper picks the amount of a by-weight product. `selectionUnit` is only the display
+   * unit ('g' or 'kg') — the price stays per kilogram either way. `quantityStepGrams` is the
+   * +/- increment. Both are null for `unit` products (always a whole piece) and fall back to
+   * 'kg' / 100 g when unset.
+   */
+  @Property({ nullable: true })
+  selectionUnit?: ProductSelectionUnit
+
+  @Property({ nullable: true })
+  quantityStepGrams?: number
 
   /**
    * How the product can be ordered from the public shop. Lot 1 products backfill to

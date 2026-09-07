@@ -2371,6 +2371,34 @@
                     "title": "ProductSaleMode",
                     "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
                   },
+                  "selectionUnit": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "g",
+                          "kg"
+                        ],
+                        "title": "ProductSelectionUnit",
+                        "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "quantityStepGrams": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 100000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "orderingMode": {
                     "type": "string",
                     "enum": [
@@ -2570,6 +2598,34 @@
                     ],
                     "title": "ProductSaleMode",
                     "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
+                  },
+                  "selectionUnit": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "g",
+                          "kg"
+                        ],
+                        "title": "ProductSelectionUnit",
+                        "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "quantityStepGrams": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 100000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "orderingMode": {
                     "type": "string",
@@ -3992,6 +4048,34 @@
           "saleMode": {
             "$ref": "#/components/schemas/ProductSaleMode"
           },
+          "selectionUnit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "g",
+                  "kg"
+                ],
+                "title": "ProductSelectionUnit",
+                "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quantityStepGrams": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 100000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "orderingMode": {
             "$ref": "#/components/schemas/ProductOrderingMode"
           },
@@ -4104,6 +4188,34 @@
           },
           "saleMode": {
             "$ref": "#/components/schemas/ProductSaleMode"
+          },
+          "selectionUnit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "g",
+                  "kg"
+                ],
+                "title": "ProductSelectionUnit",
+                "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quantityStepGrams": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 100000
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "orderingMode": {
             "$ref": "#/components/schemas/ProductOrderingMode"
@@ -5262,6 +5374,34 @@
           "pricingUnit": {
             "$ref": "#/components/schemas/ProductPricingUnit"
           },
+          "selectionUnit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "g",
+                  "kg"
+                ],
+                "title": "ProductSelectionUnit",
+                "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quantityStepGrams": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "orderingMode": {
             "$ref": "#/components/schemas/ProductOrderingMode"
           },
@@ -5435,6 +5575,34 @@
           },
           "pricingUnit": {
             "$ref": "#/components/schemas/ProductPricingUnit"
+          },
+          "selectionUnit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "g",
+                  "kg"
+                ],
+                "title": "ProductSelectionUnit",
+                "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quantityStepGrams": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "orderingMode": {
             "$ref": "#/components/schemas/ProductOrderingMode"
@@ -5724,6 +5892,20 @@
             "title": "ProductPricingUnit",
             "description": "Derived from the sale mode: unit → piece, weight → kg"
           },
+          "selectionUnit": {
+            "type": "string",
+            "enum": [
+              "g",
+              "kg"
+            ],
+            "title": "ProductSelectionUnit",
+            "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
+          },
+          "quantityStepGrams": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
           "photos": {
             "type": "array",
             "items": {
@@ -5765,6 +5947,8 @@
           "category",
           "saleMode",
           "pricingUnit",
+          "selectionUnit",
+          "quantityStepGrams",
           "photos",
           "labels",
           "currentPriceEur",
@@ -5773,6 +5957,15 @@
         "additionalProperties": false,
         "title": "ShopProduct",
         "description": "A product as shown in the public shop list"
+      },
+      "ProductSelectionUnit": {
+        "type": "string",
+        "enum": [
+          "g",
+          "kg"
+        ],
+        "title": "ProductSelectionUnit",
+        "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
       },
       "ShopProductDetail": {
         "type": "object",
@@ -5808,6 +6001,14 @@
           },
           "pricingUnit": {
             "$ref": "#/components/schemas/ProductPricingUnit"
+          },
+          "selectionUnit": {
+            "$ref": "#/components/schemas/ProductSelectionUnit"
+          },
+          "quantityStepGrams": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
           },
           "photos": {
             "type": "array",
@@ -5855,6 +6056,8 @@
           "category",
           "saleMode",
           "pricingUnit",
+          "selectionUnit",
+          "quantityStepGrams",
           "photos",
           "labels",
           "currentPriceEur",
@@ -6719,6 +6922,29 @@
                 "title": "ProductSaleMode",
                 "description": "\"unit\" is sold per piece, \"weight\" is priced per kilogram"
               },
+              "pricingUnit": {
+                "type": "string",
+                "enum": [
+                  "piece",
+                  "kg"
+                ],
+                "title": "ProductPricingUnit",
+                "description": "Derived from the sale mode: unit → piece, weight → kg"
+              },
+              "selectionUnit": {
+                "type": "string",
+                "enum": [
+                  "g",
+                  "kg"
+                ],
+                "title": "ProductSelectionUnit",
+                "description": "Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. \"300 g\" vs \"0.3 kg\"). Ignored for unit-sale products."
+              },
+              "quantityStepGrams": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
               "photos": {
                 "type": "array",
                 "items": {
@@ -6730,6 +6956,9 @@
               "id",
               "name",
               "saleMode",
+              "pricingUnit",
+              "selectionUnit",
+              "quantityStepGrams",
               "photos"
             ],
             "additionalProperties": false

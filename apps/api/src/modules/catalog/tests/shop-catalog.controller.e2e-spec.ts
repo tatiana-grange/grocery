@@ -199,6 +199,25 @@ describe('shopCatalogController (e2e)', () => {
     expect(res.body.priceHistory).toBeUndefined()
   })
 
+  it('defaults the by-weight quantity picker to 100 g steps shown in kilograms', async () => {
+    const { product } = await makeProduct({ name: 'Farine T65', saleMode: 'weight' })
+
+    const res = await request.get(`/shop/products/${product.id}`)
+    expect(res.body).toMatchObject({ selectionUnit: 'kg', quantityStepGrams: 100 })
+  })
+
+  it('carries a product-specific selection unit and step to the shop', async () => {
+    const { product } = await makeProduct({
+      name: 'Comté à la coupe',
+      saleMode: 'weight',
+      selectionUnit: 'g',
+      quantityStepGrams: 250,
+    })
+
+    const res = await request.get(`/shop/products/${product.id}`)
+    expect(res.body).toMatchObject({ selectionUnit: 'g', quantityStepGrams: 250 })
+  })
+
   it('404s on an archived or unknown product id', async () => {
     const { product } = await makeProduct()
     await request.withSession(admin).post(`/admin/products/${product.id}/archive`)

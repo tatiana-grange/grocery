@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { centsToEur, eurToCents, pricingUnitFor } from '../catalog.util'
+import {
+  centsToEur,
+  eurToCents,
+  pricingUnitFor,
+  quantityStepGramsFor,
+  selectionUnitFor,
+} from '../catalog.util'
+import type { Product } from '../entities/product.entity'
 
 describe('catalog money and pricing helpers', () => {
   describe('eurToCents / centsToEur', () => {
@@ -17,6 +24,20 @@ describe('catalog money and pricing helpers', () => {
     it('derives the pricing unit from the sale mode', () => {
       expect(pricingUnitFor('unit')).toBe('piece')
       expect(pricingUnitFor('weight')).toBe('kg')
+    })
+  })
+
+  describe('by-weight quantity picker', () => {
+    it('falls back to kilograms in 100 g steps when the product sets nothing', () => {
+      const product = {} as Product
+      expect(selectionUnitFor(product)).toBe('kg')
+      expect(quantityStepGramsFor(product)).toBe(100)
+    })
+
+    it('uses the product overrides when present', () => {
+      const product = { selectionUnit: 'g', quantityStepGrams: 250 } as Product
+      expect(selectionUnitFor(product)).toBe('g')
+      expect(quantityStepGramsFor(product)).toBe(250)
     })
   })
 })

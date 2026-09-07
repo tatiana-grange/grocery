@@ -1,5 +1,9 @@
 import { z } from 'zod'
-import { productSaleModeSchema } from '../../catalog/contracts/product.contract'
+import {
+  productPricingUnitSchema,
+  productSaleModeSchema,
+  productSelectionUnitSchema,
+} from '../../catalog/contracts/product.contract'
 import { cartLineInvalidReasonCodeSchema, orderingModeChoiceSchema } from './order.contract'
 
 export const cartLineSchema = z
@@ -9,6 +13,12 @@ export const cartLineSchema = z
       id: z.string().uuid(),
       name: z.string(),
       saleMode: productSaleModeSchema,
+      /** Price basis: 'piece' or 'kg'. */
+      pricingUnit: productPricingUnitSchema,
+      /** How the quantity is picked for a by-weight product: 'g' or 'kg'. */
+      selectionUnit: productSelectionUnitSchema,
+      /** +/- step of the quantity picker for a by-weight product, in grams. */
+      quantityStepGrams: z.number().int().positive(),
       photos: z.array(z.string()),
     }),
     orderingMode: orderingModeChoiceSchema,

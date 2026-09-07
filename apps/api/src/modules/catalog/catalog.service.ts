@@ -467,6 +467,8 @@ export class CatalogService {
       product.supplier = em.getReference(Supplier, input.supplierId)
       product.category = em.getReference(Category, input.categoryId)
       product.saleMode = input.saleMode
+      product.selectionUnit = input.selectionUnit ?? undefined
+      product.quantityStepGrams = input.quantityStepGrams ?? undefined
       product.orderingMode = input.orderingMode
       product.photos = input.photos ?? []
       product.labels = input.labels ?? []
@@ -500,6 +502,10 @@ export class CatalogService {
         )
       }
       product.saleMode = input.saleMode
+    }
+    if (input.selectionUnit !== undefined) product.selectionUnit = input.selectionUnit ?? undefined
+    if (input.quantityStepGrams !== undefined) {
+      product.quantityStepGrams = input.quantityStepGrams ?? undefined
     }
     if (input.orderingMode !== undefined) product.orderingMode = input.orderingMode
     if (input.photos !== undefined) product.photos = input.photos

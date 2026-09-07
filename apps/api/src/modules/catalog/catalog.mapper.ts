@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { centsToEur, currentPrice, pricingUnitFor } from './catalog.util'
+import {
+  centsToEur,
+  currentPrice,
+  pricingUnitFor,
+  quantityStepGramsFor,
+  selectionUnitFor,
+} from './catalog.util'
 import type { Category as CategoryContract } from './contracts/category.contract'
 import type { PriceWindow } from './contracts/product-price.contract'
 import type {
@@ -142,6 +148,8 @@ export class CatalogMapper {
       category: { id: product.category.id, name: product.category.name },
       saleMode: product.saleMode,
       pricingUnit: pricingUnitFor(product.saleMode),
+      selectionUnit: product.selectionUnit ?? null,
+      quantityStepGrams: product.quantityStepGrams ?? null,
       orderingMode: product.orderingMode,
       photos: product.photos,
       labels: product.labels,
@@ -209,6 +217,8 @@ export class CatalogMapper {
       category: { id: product.category.id, name: product.category.name },
       saleMode: product.saleMode,
       pricingUnit: pricingUnitFor(product.saleMode),
+      selectionUnit: selectionUnitFor(product),
+      quantityStepGrams: quantityStepGramsFor(product),
       photos: product.photos,
       labels: product.labels,
       // Every product carries an open price from creation (see CatalogService.createProduct).

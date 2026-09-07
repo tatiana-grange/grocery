@@ -10,6 +10,7 @@ import {
   productOrderingModeSchema,
   productPricingUnitSchema,
   productSaleModeSchema,
+  productSelectionUnitSchema,
 } from './product.contract'
 
 export const shopCategorySchema = z
@@ -43,6 +44,10 @@ export const shopProductSchema = z
     category: z.object({ id: z.string().uuid(), name: z.string() }),
     saleMode: productSaleModeSchema,
     pricingUnit: productPricingUnitSchema,
+    /** Display unit for the quantity picker on a by-weight product ('g' or 'kg'). */
+    selectionUnit: productSelectionUnitSchema,
+    /** The +/- step of the quantity picker for a by-weight product, in grams. */
+    quantityStepGrams: z.number().int().positive(),
     photos: z.array(z.string()),
     labels: z.array(productLabelSchema),
     currentPriceEur: z.number().positive(),

@@ -532,6 +532,14 @@ export const zCreateProduct = z.object({
     supplierId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     categoryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     saleMode: zProductSaleMode,
+    selectionUnit: z.optional(z.union([
+        z.enum(['g', 'kg']),
+        z.null()
+    ])),
+    quantityStepGrams: z.optional(z.union([
+        z.int().gt(0).lte(100000),
+        z.null()
+    ])),
     orderingMode: zProductOrderingMode,
     photos: z.array(z.string()).default([]),
     labels: z.array(zProductLabel).default([]),
@@ -564,6 +572,14 @@ export const zUpdateProduct = z.object({
     supplierId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
     categoryId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
     saleMode: z.optional(zProductSaleMode),
+    selectionUnit: z.optional(z.union([
+        z.enum(['g', 'kg']),
+        z.null()
+    ])),
+    quantityStepGrams: z.optional(z.union([
+        z.int().gt(0).lte(100000),
+        z.null()
+    ])),
     orderingMode: z.optional(zProductOrderingMode),
     photos: z.optional(z.array(z.string())).default([]),
     labels: z.optional(z.array(zProductLabel)).default([]),
@@ -604,6 +620,14 @@ export const zCatalogProduct = z.object({
     }),
     saleMode: zProductSaleMode,
     pricingUnit: zProductPricingUnit,
+    selectionUnit: z.optional(z.union([
+        z.enum(['g', 'kg']),
+        z.null()
+    ])),
+    quantityStepGrams: z.optional(z.union([
+        z.int().gt(0).lte(9007199254740991),
+        z.null()
+    ])),
     orderingMode: zProductOrderingMode,
     photos: z.array(z.string()),
     labels: z.array(zProductLabel),
@@ -680,6 +704,14 @@ export const zCatalogProductDetail = z.object({
     }),
     saleMode: zProductSaleMode,
     pricingUnit: zProductPricingUnit,
+    selectionUnit: z.optional(z.union([
+        z.enum(['g', 'kg']),
+        z.null()
+    ])),
+    quantityStepGrams: z.optional(z.union([
+        z.int().gt(0).lte(9007199254740991),
+        z.null()
+    ])),
     orderingMode: zProductOrderingMode,
     photos: z.array(z.string()),
     labels: z.array(zProductLabel),
@@ -744,6 +776,8 @@ export const zShopProduct = z.object({
     }),
     saleMode: z.enum(['unit', 'weight']),
     pricingUnit: z.enum(['piece', 'kg']),
+    selectionUnit: z.enum(['g', 'kg']),
+    quantityStepGrams: z.int().gt(0).lte(9007199254740991),
     photos: z.array(z.string()),
     labels: z.array(z.enum([
         'organic',
@@ -775,6 +809,13 @@ export const zShopProductsList = z.object({
 });
 
 /**
+ * ProductSelectionUnit
+ *
+ * Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; this only changes how the chosen amount is shown (e.g. "300 g" vs "0.3 kg"). Ignored for unit-sale products.
+ */
+export const zProductSelectionUnit = z.enum(['g', 'kg']);
+
+/**
  * ShopProductDetail
  *
  * A product detail page shown in the public shop — narrower than the admin detail
@@ -788,6 +829,8 @@ export const zShopProductDetail = z.object({
     }),
     saleMode: zProductSaleMode,
     pricingUnit: zProductPricingUnit,
+    selectionUnit: zProductSelectionUnit,
+    quantityStepGrams: z.int().gt(0).lte(9007199254740991),
     photos: z.array(z.string()),
     labels: z.array(zProductLabel),
     currentPriceEur: z.number().gt(0),
@@ -1212,6 +1255,9 @@ export const zCartLine = z.object({
         id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         name: z.string(),
         saleMode: z.enum(['unit', 'weight']),
+        pricingUnit: z.enum(['piece', 'kg']),
+        selectionUnit: z.enum(['g', 'kg']),
+        quantityStepGrams: z.int().gt(0).lte(9007199254740991),
         photos: z.array(z.string())
     }),
     orderingMode: z.enum(['pre_order', 'in_store']),
@@ -2435,6 +2481,14 @@ export const zAdminProductsControllerCreateData = z.object({
         supplierId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         categoryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         saleMode: z.enum(['unit', 'weight']),
+        selectionUnit: z.optional(z.union([
+            z.enum(['g', 'kg']),
+            z.null()
+        ])),
+        quantityStepGrams: z.optional(z.union([
+            z.int().gt(0).lte(100000),
+            z.null()
+        ])),
         orderingMode: z.enum([
             'pre_order',
             'in_store',
@@ -2493,6 +2547,14 @@ export const zAdminProductsControllerUpdateData = z.object({
         supplierId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         categoryId: z.optional(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         saleMode: z.optional(z.enum(['unit', 'weight'])),
+        selectionUnit: z.optional(z.union([
+            z.enum(['g', 'kg']),
+            z.null()
+        ])),
+        quantityStepGrams: z.optional(z.union([
+            z.int().gt(0).lte(100000),
+            z.null()
+        ])),
         orderingMode: z.optional(z.enum([
             'pre_order',
             'in_store',
