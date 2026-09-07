@@ -54,8 +54,7 @@ defaults that are easy to miss.
 
 - **Never run `pnpm fmt` repo-wide.** It rewrites dozens of unrelated files. Format only
   the files you touched.
-- Never commit the `specs/` directory (speckit working files stay local), `.env` files,
-  or secrets.
+- Never commit `.env` files or secrets.
 - Heavy CI only runs on PRs targeting `main`. PRs to `staging` run the lighter checks.
 - Pre-merge gates from the constitution: `pnpm lint`, `pnpm typecheck`, `pnpm test` pass;
   the feature's task list is complete; affected documentation is updated.
