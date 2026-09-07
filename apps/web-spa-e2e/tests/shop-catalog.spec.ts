@@ -36,6 +36,17 @@ test('rechercher un produit par code-barres', async ({ page }) => {
   await expect(page.getByText('Farine T65')).toBeVisible()
 })
 
+test('changer de mode d’affichage et le retrouver au rechargement', async ({ page }) => {
+  const grid = page.getByTestId('shop-product-grid')
+  await expect(grid).toHaveAttribute('data-view', 'large')
+
+  await page.getByTestId('shop-view-list').click()
+  await expect(grid).toHaveAttribute('data-view', 'list')
+
+  await page.reload()
+  await expect(page.getByTestId('shop-product-grid')).toHaveAttribute('data-view', 'list')
+})
+
 test('trier la liste', async ({ page }) => {
   await page.getByTestId('shop-sort').selectOption('name:asc')
   const firstCardAsc = page.getByTestId('shop-product-card-name').first()

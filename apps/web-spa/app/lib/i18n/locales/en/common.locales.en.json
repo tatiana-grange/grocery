@@ -101,7 +101,7 @@
     "PASSWORDS_DO_NOT_MATCH": "Passwords do not match"
   },
   "members": {
-    "title": "MonÉpi",
+    "title": "Grocery",
     "nav": {
       "myAccount": "My account",
       "logOut": "Log out"
@@ -321,6 +321,11 @@
     "sort": {
       "nameAsc": "Name (A–Z)",
       "newest": "Newest first"
+    },
+    "view": {
+      "large": "Large images",
+      "compact": "Compact images",
+      "list": "List"
     },
     "categories": {
       "all": "All categories",

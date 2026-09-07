@@ -8,6 +8,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CategoryRail, CategoryRailSheet } from '@/features/shop/components/category-rail'
 import { ProductCard } from '@/features/shop/components/product-card'
+import { ShopViewToggle } from '@/features/shop/components/shop-view-toggle'
+import { useShopView } from '@/features/shop/hooks/use-shop-view'
 import {
   shopCategoriesQueryOptions,
   shopProductsInfiniteQueryOptions,
@@ -19,6 +21,12 @@ const SORT_OPTIONS = [
   { value: 'createdAt:desc', property: 'createdAt' as const, direction: 'desc' as const },
 ]
 
+const LAYOUT_BY_VIEW = {
+  large: 'grid grid-cols-2 gap-4 sm:grid-cols-3',
+  compact: 'grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5',
+  list: 'flex flex-col gap-2',
+} as const
+
 export default function ShopPage() {
   const { t } = useTranslation()
   const { searchParams, updateParams } = useListSearchParams()
@@ -26,6 +34,8 @@ export default function ShopPage() {
   const sortValue = searchParams.get('sort') ?? 'name:asc'
   const sortOption = SORT_OPTIONS.find((option) => option.value === sortValue) ?? SORT_OPTIONS[0]!
   const [search, setSearch] = useState(searchParams.get('q') ?? '')
+  const [view, setView] = useShopView()
+  const layoutClass = LAYOUT_BY_VIEW[view]
 
   const { data: categories } = useQuery(shopCategoriesQueryOptions())
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(
@@ -102,15 +112,18 @@ export default function ShopPage() {
                 if (event.key === 'Enter') updateParams({ q: search || undefined })
               }}
             />
-            <select
-              className="ml-auto h-9 rounded-md border border-input bg-background px-3 text-sm"
-              data-testid="shop-sort"
-              value={sortValue}
-              onChange={(event) => updateParams({ sort: event.target.value })}
-            >
-              <option value="name:asc">{t('shop.sort.nameAsc')}</option>
-              <option value="createdAt:desc">{t('shop.sort.newest')}</option>
-            </select>
+            <div className="ml-auto flex items-center gap-2">
+              <ShopViewToggle view={view} onChange={setView} />
+              <select
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                data-testid="shop-sort"
+                value={sortValue}
+                onChange={(event) => updateParams({ sort: event.target.value })}
+              >
+                <option value="name:asc">{t('shop.sort.nameAsc')}</option>
+                <option value="createdAt:desc">{t('shop.sort.newest')}</option>
+              </select>
+            </div>
           </div>
 
           {!isLoading && products.length > 0 && (
@@ -122,9 +135,12 @@ export default function ShopPage() {
           )}
 
           {isLoading && (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className={layoutClass}>
               {Array.from({ length: 9 }, (_, index) => (
-                <Skeleton key={`shop-skeleton-${index}`} className="aspect-square w-full" />
+                <Skeleton
+                  key={`shop-skeleton-${index}`}
+                  className={view === 'list' ? 'h-20 w-full' : 'aspect-square w-full'}
+                />
               ))}
             </div>
           )}
@@ -139,9 +155,9 @@ export default function ShopPage() {
           )}
 
           {!isLoading && products.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3" data-testid="shop-product-grid">
+            <div className={layoutClass} data-testid="shop-product-grid" data-view={view}>
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} view={view} />
               ))}
             </div>
           )}
