@@ -3,6 +3,7 @@ import type {
   SupplierOrderLine,
 } from '@grocery/openapi-generator/client/types.gen'
 import { Button } from '@grocery/ui/components/primitives/button'
+import { Checkbox } from '@grocery/ui/components/primitives/checkbox'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { Label } from '@grocery/ui/components/primitives/label'
 import { toast } from '@grocery/ui/components/primitives/sonner'
@@ -110,11 +111,10 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
               data-testid={`reception-line-${line.product.id}`}
             >
               <label className="flex items-center gap-2 pb-2 text-sm">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={draft.include}
                   data-testid="reception-line-include"
-                  onChange={(event) => update(line.id, { include: event.target.checked })}
+                  onCheckedChange={(checked) => update(line.id, { include: checked === true })}
                 />
                 <span className="font-medium">{line.product.name}</span>
               </label>

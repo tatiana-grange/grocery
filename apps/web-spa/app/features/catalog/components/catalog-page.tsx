@@ -1,3 +1,4 @@
+import { PageTitle } from '@grocery/ui/components/app'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@grocery/ui/components/primitives/tabs'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
@@ -15,7 +16,7 @@ export default function CatalogPage() {
   return (
     <div className="space-y-6" data-testid="page-catalog">
       <div>
-        <h1 className="text-2xl font-black tracking-tight">{t('catalog.title')}</h1>
+        <PageTitle>{t('catalog.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('catalog.subtitle')}</p>
       </div>
 

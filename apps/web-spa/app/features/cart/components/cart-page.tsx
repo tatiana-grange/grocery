@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@grocery/ui/components/primitives/alert-dialog'
-import { EmptyState } from '@grocery/ui/components/app'
+import { EmptyState, PageTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -128,7 +128,7 @@ export default function CartPage() {
   if (confirmation) {
     return (
       <div className="space-y-6" data-testid="page-cart">
-        <h1 className="text-2xl font-black tracking-tight">{t('cart.checkout.title')}</h1>
+        <PageTitle>{t('cart.checkout.title')}</PageTitle>
         <CheckoutConfirmation result={confirmation} />
         <Link
           to="/shop"
@@ -146,7 +146,7 @@ export default function CartPage() {
   if (error || !cart) {
     return (
       <div className="space-y-4 text-center" data-testid="cart-load-error">
-        <h1 className="text-2xl font-black tracking-tight">{t('cart.title')}</h1>
+        <PageTitle>{t('cart.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('cart.loadError')}</p>
         <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
           {t('common.retry')}
@@ -157,7 +157,7 @@ export default function CartPage() {
 
   return (
     <div className="space-y-6" data-testid="page-cart">
-      <h1 className="text-2xl font-black tracking-tight">{t('cart.title')}</h1>
+      <PageTitle>{t('cart.title')}</PageTitle>
 
       {cart.lines.length === 0 ? (
         <div data-testid="cart-empty">

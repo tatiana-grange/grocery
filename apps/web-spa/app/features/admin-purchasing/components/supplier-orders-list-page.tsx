@@ -1,3 +1,4 @@
+import { ListPagination, PageTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -11,7 +12,6 @@ import {
 } from '@grocery/ui/components/primitives/table'
 import { Tabs, TabsList, TabsTrigger } from '@grocery/ui/components/primitives/tabs'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import {
@@ -37,7 +37,7 @@ export default function SupplierOrdersListPage() {
   return (
     <div className="space-y-6" data-testid="page-supplier-orders-list">
       <div>
-        <h1 className="text-2xl font-black tracking-tight">{t('purchasing.title')}</h1>
+        <PageTitle>{t('purchasing.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('purchasing.subtitle')}</p>
       </div>
 
@@ -122,30 +122,13 @@ export default function SupplierOrdersListPage() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span data-testid="supplier-orders-count">{t('purchasing.count', { count: total })}</span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={page <= 1}
-            onClick={() => updateParams({ page: String(page - 1) })}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span data-testid="supplier-orders-page-indicator">
-            {page} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={page >= pageCount}
-            onClick={() => updateParams({ page: String(page + 1) })}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+      <ListPagination
+        page={page}
+        pageCount={pageCount}
+        onPageChange={(next) => updateParams({ page: String(next) })}
+        testIdPrefix="supplier-orders"
+        count={t('purchasing.count', { count: total })}
+      />
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { toast } from '@grocery/ui/components/primitives/sonner'
@@ -31,9 +32,7 @@ export function PasswordChangeForm() {
 
   return (
     <section className="max-w-sm space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-        {t('members.account.changePassword')}
-      </h2>
+      <SectionTitle>{t('members.account.changePassword')}</SectionTitle>
       <Input
         type="password"
         autoComplete="current-password"

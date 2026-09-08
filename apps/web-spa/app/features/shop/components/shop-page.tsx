@@ -1,6 +1,7 @@
-import { EmptyState } from '@grocery/ui/components/app'
+import { EmptyState, PageTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
+import { NativeSelect } from '@grocery/ui/components/primitives/native-select'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { PackageSearch } from 'lucide-react'
@@ -71,9 +72,7 @@ export default function ShopPage() {
   return (
     <div className="space-y-6" data-testid="page-shop">
       <div>
-        <h1 className="text-2xl font-black tracking-tight" data-testid="shop-title">
-          {t('shop.title')}
-        </h1>
+        <PageTitle data-testid="shop-title">{t('shop.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
       </div>
 
@@ -114,15 +113,14 @@ export default function ShopPage() {
             />
             <div className="ml-auto flex items-center gap-2">
               <ShopViewToggle view={view} onChange={setView} />
-              <select
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              <NativeSelect
                 data-testid="shop-sort"
                 value={sortValue}
                 onChange={(event) => updateParams({ sort: event.target.value })}
               >
                 <option value="name:asc">{t('shop.sort.nameAsc')}</option>
                 <option value="createdAt:desc">{t('shop.sort.newest')}</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
 

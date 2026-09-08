@@ -1,3 +1,4 @@
+import { ListPagination } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
@@ -11,7 +12,7 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react'
+import { PlusCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -114,32 +115,13 @@ export function ProductsTab() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span data-testid="products-count">{t('catalog.products.count', { count: total })}</span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid="products-page-prev"
-            disabled={page <= 1}
-            onClick={() => updateParams({ page: String(page - 1) })}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span data-testid="products-page-indicator">
-            {page} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid="products-page-next"
-            disabled={page >= pageCount}
-            onClick={() => updateParams({ page: String(page + 1) })}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+      <ListPagination
+        page={page}
+        pageCount={pageCount}
+        onPageChange={(next) => updateParams({ page: String(next) })}
+        testIdPrefix="products"
+        count={t('catalog.products.count', { count: total })}
+      />
     </div>
   )
 }

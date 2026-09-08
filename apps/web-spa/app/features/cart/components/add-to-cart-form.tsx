@@ -2,7 +2,7 @@ import {
   OrderingModeChoice,
   type ShopProductDetail,
 } from '@grocery/openapi-generator/client/types.gen'
-import { Button } from '@grocery/ui/components/primitives/button'
+import { SegmentedControl } from '@grocery/ui/components/primitives/segmented-control'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AddToCartControl } from '@/features/cart/components/add-to-cart-control'
@@ -38,20 +38,15 @@ export function AddToCartForm({ product }: { product: ShopProductDetail }) {
   return (
     <div className="space-y-3" data-testid="add-to-cart-form">
       {product.orderingMode === 'both' && (
-        <div className="flex gap-2">
-          {ORDERING_MODE_CHOICES.map((mode) => (
-            <Button
-              key={mode}
-              type="button"
-              size="sm"
-              data-testid={`add-to-cart-orderingmode-${mode}`}
-              variant={orderingMode === mode ? 'default' : 'outline'}
-              onClick={() => setOrderingMode(mode)}
-            >
-              {t(`catalog.orderingMode.${mode}`)}
-            </Button>
-          ))}
-        </div>
+        <SegmentedControl
+          value={orderingMode}
+          onChange={setOrderingMode}
+          options={ORDERING_MODE_CHOICES.map((mode) => ({
+            value: mode,
+            label: t(`catalog.orderingMode.${mode}`),
+            testId: `add-to-cart-orderingmode-${mode}`,
+          }))}
+        />
       )}
       <AddToCartControl
         product={product}

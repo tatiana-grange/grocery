@@ -1,6 +1,9 @@
 import { ProductOrderingMode } from '@grocery/openapi-generator/client/types.gen'
+import { PageTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
+import { NativeSelect } from '@grocery/ui/components/primitives/native-select'
+import { SegmentedControl } from '@grocery/ui/components/primitives/segmented-control'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { Textarea } from '@grocery/ui/components/primitives/textarea'
 import { toast } from '@grocery/ui/components/primitives/sonner'
@@ -128,9 +131,7 @@ export default function ProductFormPage() {
         <ArrowLeft className="mr-2 size-4" />
         {t('catalog.backToCatalogue')}
       </Button>
-      <h1 className="text-2xl font-black tracking-tight">
-        {isEdit ? t('catalog.products.edit') : t('catalog.products.new')}
-      </h1>
+      <PageTitle>{isEdit ? t('catalog.products.edit') : t('catalog.products.new')}</PageTitle>
 
       <div className="max-w-lg space-y-4">
         <Field label={t('catalog.products.name')}>
@@ -148,8 +149,8 @@ export default function ProductFormPage() {
           />
         </Field>
         <Field label={t('catalog.products.supplier')}>
-          <select
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          <NativeSelect
+            className="w-full"
             data-testid="product-form-supplier"
             value={supplierId}
             onChange={(event) => setSupplierId(event.target.value)}
@@ -160,11 +161,11 @@ export default function ProductFormPage() {
                 {supplier.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </Field>
         <Field label={t('catalog.products.category')}>
-          <select
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          <NativeSelect
+            className="w-full"
             data-testid="product-form-category"
             value={categoryId}
             onChange={(event) => setCategoryId(event.target.value)}
@@ -175,7 +176,7 @@ export default function ProductFormPage() {
                 {category.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </Field>
         <Field label={t('catalog.products.saleMode')}>
           {isEdit ? (
@@ -183,39 +184,29 @@ export default function ProductFormPage() {
               {t(`catalog.saleMode.${saleMode}`)} · {t('catalog.products.saleModeLocked')}
             </p>
           ) : (
-            <div className="flex gap-2">
-              {(['unit', 'weight'] as const).map((mode) => (
-                <Button
-                  key={mode}
-                  type="button"
-                  data-testid={`product-form-salemode-${mode}`}
-                  variant={saleMode === mode ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSaleMode(mode)}
-                >
-                  {t(`catalog.saleMode.${mode}`)}
-                </Button>
-              ))}
-            </div>
+            <SegmentedControl
+              value={saleMode}
+              onChange={setSaleMode}
+              options={(['unit', 'weight'] as const).map((mode) => ({
+                value: mode,
+                label: t(`catalog.saleMode.${mode}`),
+                testId: `product-form-salemode-${mode}`,
+              }))}
+            />
           )}
         </Field>
         {saleMode === 'weight' && (
           <>
             <Field label={t('catalog.products.selectionUnit')}>
-              <div className="flex gap-2">
-                {(['g', 'kg'] as const).map((unit) => (
-                  <Button
-                    key={unit}
-                    type="button"
-                    data-testid={`product-form-selectionunit-${unit}`}
-                    variant={selectionUnit === unit ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectionUnit(unit)}
-                  >
-                    {unit}
-                  </Button>
-                ))}
-              </div>
+              <SegmentedControl
+                value={selectionUnit}
+                onChange={setSelectionUnit}
+                options={(['g', 'kg'] as const).map((unit) => ({
+                  value: unit,
+                  label: unit,
+                  testId: `product-form-selectionunit-${unit}`,
+                }))}
+              />
             </Field>
             <Field label={t('catalog.products.quantityStep')}>
               <Input
@@ -230,20 +221,16 @@ export default function ProductFormPage() {
           </>
         )}
         <Field label={t('catalog.products.orderingMode')}>
-          <div className="flex flex-wrap gap-2">
-            {ORDERING_MODES.map((mode) => (
-              <Button
-                key={mode}
-                type="button"
-                data-testid={`product-form-orderingmode-${mode}`}
-                variant={orderingMode === mode ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setOrderingMode(mode)}
-              >
-                {t(`catalog.orderingMode.${mode}`)}
-              </Button>
-            ))}
-          </div>
+          <SegmentedControl
+            wrap
+            value={orderingMode}
+            onChange={setOrderingMode}
+            options={ORDERING_MODES.map((mode) => ({
+              value: mode,
+              label: t(`catalog.orderingMode.${mode}`),
+              testId: `product-form-orderingmode-${mode}`,
+            }))}
+          />
         </Field>
         {!isEdit && (
           <Field
@@ -263,25 +250,21 @@ export default function ProductFormPage() {
           </Field>
         )}
         <Field label={t('catalog.products.labels')}>
-          <div className="flex flex-wrap gap-2">
-            {LABELS.map((label) => (
-              <Button
-                key={label}
-                type="button"
-                variant={labels.includes(label) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() =>
-                  setLabels((current) =>
-                    current.includes(label)
-                      ? current.filter((item) => item !== label)
-                      : [...current, label],
-                  )
-                }
-              >
-                {t(`catalog.label.${label}`)}
-              </Button>
-            ))}
-          </div>
+          <SegmentedControl
+            wrap
+            value={labels}
+            onChange={(label) =>
+              setLabels((current) =>
+                current.includes(label)
+                  ? current.filter((item) => item !== label)
+                  : [...current, label],
+              )
+            }
+            options={LABELS.map((label) => ({
+              value: label,
+              label: t(`catalog.label.${label}`),
+            }))}
+          />
         </Field>
 
         <Button

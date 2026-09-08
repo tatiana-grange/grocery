@@ -1,4 +1,4 @@
-import { EmptyState } from '@grocery/ui/components/app'
+import { EmptyState, PageTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -78,9 +78,7 @@ export default function ShopProductDetailPage() {
 
         <div className="space-y-4">
           <div>
-            <h1 className="text-2xl font-black tracking-tight" data-testid="shop-product-name">
-              {product.name}
-            </h1>
+            <PageTitle data-testid="shop-product-name">{product.name}</PageTitle>
             <p className="text-sm text-muted-foreground">{product.category.name}</p>
             <div className="mt-2 flex flex-wrap gap-1">
               <Badge variant="outline" data-testid="shop-product-ordering-mode">

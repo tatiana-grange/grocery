@@ -1,4 +1,5 @@
 import type { MemberDetail } from '@grocery/openapi-generator/client/types.gen'
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
@@ -11,6 +12,7 @@ import {
   DialogTrigger,
 } from '@grocery/ui/components/primitives/dialog'
 import { Input } from '@grocery/ui/components/primitives/input'
+import { SegmentedControl } from '@grocery/ui/components/primitives/segmented-control'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -68,9 +70,7 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
   return (
     <section className="space-y-3 rounded-lg border border-border p-4" data-testid="member-fee-panel">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          {t('adminMembers.fee.title')}
-        </h2>
+        <SectionTitle>{t('adminMembers.fee.title')}</SectionTitle>
         <Badge variant="outline" data-testid="member-fee-state">
           {t(`members.feeState.${member.fee.state}`)}
         </Badge>
@@ -124,19 +124,14 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
             value={amountEur}
             onChange={(event) => setAmountEur(event.target.value)}
           />
-          <div className="flex gap-2">
-            {(['cash', 'transfer', 'other'] as const).map((option) => (
-              <Button
-                key={option}
-                type="button"
-                size="sm"
-                variant={method === option ? 'default' : 'outline'}
-                onClick={() => setMethod(option)}
-              >
-                {t(`adminMembers.fee.method.${option}`)}
-              </Button>
-            ))}
-          </div>
+          <SegmentedControl
+            value={method}
+            onChange={setMethod}
+            options={(['cash', 'transfer', 'other'] as const).map((option) => ({
+              value: option,
+              label: t(`adminMembers.fee.method.${option}`),
+            }))}
+          />
           <DialogFooter>
             <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
             <DialogClose

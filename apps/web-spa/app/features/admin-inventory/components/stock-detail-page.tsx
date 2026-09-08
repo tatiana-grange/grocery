@@ -1,3 +1,4 @@
+import { PageTitle } from '@grocery/ui/components/app'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
@@ -36,7 +37,7 @@ export default function StockDetailPage() {
       </Button>
 
       <div>
-        <h1 className="text-2xl font-black tracking-tight">{data.product.name}</h1>
+        <PageTitle>{data.product.name}</PageTitle>
         <div className="mt-2 flex gap-6 text-sm">
           <span data-testid="stock-detail-on-hand">
             {t('inventory.columns.onHand')}:{' '}

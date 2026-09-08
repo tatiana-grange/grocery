@@ -1,4 +1,4 @@
-import { Button } from '@grocery/ui/components/primitives/button'
+import { SegmentedControl } from '@grocery/ui/components/primitives/segmented-control'
 import { Grid3x3, LayoutGrid, List } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { SHOP_VIEWS, type ShopView } from '@/features/shop/hooks/use-shop-view'
@@ -15,24 +15,21 @@ export function ShopViewToggle({
   const { t } = useTranslation()
 
   return (
-    <div className="flex gap-1" data-testid="shop-view-toggle">
-      {SHOP_VIEWS.map((option) => {
+    <SegmentedControl
+      data-testid="shop-view-toggle"
+      className="gap-1"
+      size="icon-sm"
+      value={view}
+      onChange={onChange}
+      options={SHOP_VIEWS.map((option) => {
         const Icon = ICONS[option]
-        return (
-          <Button
-            key={option}
-            type="button"
-            size="icon-sm"
-            variant={view === option ? 'default' : 'outline'}
-            aria-pressed={view === option}
-            aria-label={t(`shop.view.${option}`)}
-            data-testid={`shop-view-${option}`}
-            onClick={() => onChange(option)}
-          >
-            <Icon className="size-4" />
-          </Button>
-        )
+        return {
+          value: option,
+          label: <Icon className="size-4" />,
+          ariaLabel: t(`shop.view.${option}`),
+          testId: `shop-view-${option}`,
+        }
       })}
-    </div>
+    />
   )
 }
