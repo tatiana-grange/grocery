@@ -1,11 +1,18 @@
 <!--
 Sync Impact Report
 ==================
-Version change: (template) → 1.0.0
-Ratification date: 2026-09-01
-Rationale: Initial constitution. Values derived from README.md, CLAUDE.md, CONTRIBUTING.md,
-apps/documentation guidelines (general, backend, frontend) and the project planning notes
-(apps/documentation/src/content/docs/project/).
+Version change: 1.0.0 → 1.1.0
+Last amended: 2026-09-10
+Rationale (1.1.0): Materially expanded the Development Workflow section with the branch
+flow. Feature pull requests target `staging`, not `main`; `main` is the release trunk and
+advances only through a non-squash promotion pull request from `staging`. This aligns the
+constitution with `.claude/` git-workflow guidance and the updated `CONTRIBUTING.md` and
+`apps/documentation` contribution/release pages. MINOR: guidance materially expanded, no
+principle removed or redefined.
+
+Rationale (1.0.0): Initial constitution. Values derived from README.md, CLAUDE.md,
+CONTRIBUTING.md, apps/documentation guidelines (general, backend, frontend) and the project
+planning notes (apps/documentation/src/content/docs/project/).
 
 Principles defined:
   I.   Full-Stack Type Safety (NON-NEGOTIABLE)
@@ -14,9 +21,9 @@ Principles defined:
   IV.  Independently Testable Increments
   V.   Single-Cooperative Scope Discipline
 
-Added sections:
+Sections:
   - Technology Constraints
-  - Development Workflow and Quality Gates
+  - Development Workflow and Quality Gates (expanded in 1.1.0: branch flow)
   - Governance
 
 Templates status:
@@ -166,8 +173,14 @@ credit notes, and a distribution screen that must be fast and tolerant of a flak
   type/scope from `commitlint.config.ts`, squash merge where the PR title and description
   become the commit. Never write `BREAKING-CHANGE:` unless a major release is intended.
   Do not co-author commits with Claude.
+- Branch flow: cut feature branches from `staging`, open every feature pull request against
+  `staging`, and never target `main` directly. `main` is the release trunk; it advances
+  only through a non-squash promotion pull request from `staging` (fast-forward or rebase),
+  so release-please keeps one conventional commit per change. The `staging` deploy
+  environment builds from the `staging` branch. Full detail in `CONTRIBUTING.md`.
 - Pre-merge gates: `pnpm lint`, `pnpm typecheck`, and `pnpm test` all pass; the feature's
-  task list is complete; affected documentation is updated.
+  task list is complete; affected documentation is updated. CI runs these on pull requests
+  to `staging` and to `main`.
 - Pre-production gates for anything touching money, stock, or user data: migrations tested
   with realistic data, and a review that checks the two non-negotiable principles above.
 
@@ -191,4 +204,4 @@ conventions, and tests where the feature requires them.
   violation is recorded in the feature's `plan.md` Complexity Tracking table, with the
   simpler alternative that was rejected and why.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-09-01
+**Version**: 1.1.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-09-10

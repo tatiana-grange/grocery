@@ -39,9 +39,9 @@ defaults that are easy to miss.
 
 ## Pull requests
 
-- Open PRs against `staging`, not `main`.
-- The repo squash-merges every PR and the squash commit is **the PR title plus the PR
-  description**, verbatim. So the title and description are the future git history and
+- Open every feature PR against `staging`, never `main`.
+- The repo squash-merges every feature PR and the squash commit is **the PR title plus the
+  PR description**, verbatim. So the title and description are the future git history and
   the changelog source.
 - Title: `type(scope): description` with a valid scope. CI lints it on every update.
 - Description when ready to merge: rationale prose first (why this approach), then one
@@ -50,12 +50,26 @@ defaults that are easy to miss.
 - The `finalize-pr` skill does the finalize step (title + description from the full
   diff). Do not merge as part of finalizing.
 
+## `main` and the promotion PR
+
+- `main` is the release trunk (release-please, `CHANGELOG.md`, tags, versioned images).
+  Nobody pushes to it and no feature PR targets it.
+- It moves forward through a **promotion PR** from `staging` → `main`, opened periodically
+  and always before a release. **Never squash the promotion PR** — fast-forward `main` to
+  `staging` (`git switch main && git merge --ff-only staging && git push`) or "Rebase and
+  merge". Squashing it would collapse every feature into one commit and break release-please.
+- The release-please **Release PR** targets `main` and is machine-generated. A human merges
+  it from the GitHub UI. You never open or merge it.
+- Only open a PR against `main` yourself if the user explicitly asks (e.g. the promotion PR).
+
 ## Project-specific gotchas
 
 - **Never run `pnpm fmt` repo-wide.** It rewrites dozens of unrelated files. Format only
   the files you touched.
 - Never commit `.env` files or secrets.
-- Heavy CI only runs on PRs targeting `main`. PRs to `staging` run the lighter checks.
+- Do commit the `specs/` directory. Spec-Kit artifacts are tracked and land on the feature PR.
+- CI (lint, knip, build, typecheck, test) and the e2e suite run on PRs to `staging` and to
+  `main`. `pr-lint` and the release-note check run on every PR regardless of base.
 - Pre-merge gates from the constitution: `pnpm lint`, `pnpm typecheck`, `pnpm test` pass;
   the feature's task list is complete; affected documentation is updated.
 

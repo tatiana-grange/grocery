@@ -5,6 +5,10 @@ description: Pourquoi les commits, les fichiers et les artefacts sont la mémoir
 
 Cette page explique le raisonnement derrière notre système de contribution et de release. Les règles elles-mêmes vivent dans [`CONTRIBUTING.md`](https://github.com/lonestone/grocery/blob/main/CONTRIBUTING.md), et la mécanique (versions, releases, déploiements) est décrite sur [Release et versionnement](/grocery/fr/references/1_release_and_versionning).
 
+:::note[Ce projet ajoute une branche d'intégration `staging`]
+Le boilerplate standard merge chaque pull request directement sur `main`. Ce projet insère une étape : les pull requests de fonctionnalité visent **`staging`**, et `main` — le tronc de release — n'avance que par une **pull request de promotion** `staging` → `main` sans squash. L'environnement de déploiement `staging` builde depuis la branche `staging`. La cérémonie de curation (commits WIP → un commit de squash soigné par PR) est inchangée ; elle se joue simplement sur `staging` d'abord. Dans le récit ci-dessous, lisez « merge sur `main` » comme « merge sur `staging`, puis promotion vers `main` ». Le raisonnement derrière la branche en plus est dans la section « Pourquoi ce projet ajoute une branche d'intégration `staging` » plus bas.
+:::
+
 ## Le problème que nous résolvons
 
 Le développement a toujours péché sur un point : consigner **pourquoi** un changement a été fait. Les messages de commit restent courts pour être lisibles, alors la justification finit dans un commentaire de pull request, un ticket ou un fil de discussion — quand elle existe. Un an plus tard, quelqu'un annule un changement fait pour une bonne raison, simplement parce que la raison n'était écrite nulle part.
@@ -17,7 +21,7 @@ Avant les règles, voici une semaine normale sur un projet versionné. Deux dév
 
 ### Lundi — Pierrick travaille
 
-Pierrick développe la révocation de session sur une branche. Il committe au fil de l'eau, via son agent. Les commits sont des notes de travail honnêtes — l'un d'eux est littéralement une correction de faute de frappe. Chacun passe commitlint (lefthook vérifie le format en local), mais personne ne les peaufine. Ils n'atteindront jamais `main` en tant que commits.
+Pierrick développe la révocation de session sur une branche tirée de `staging`. Il committe au fil de l'eau, via son agent. Les commits sont des notes de travail honnêtes — l'un d'eux est littéralement une correction de faute de frappe. Chacun passe commitlint (lefthook vérifie le format en local), mais personne ne les peaufine. Ils n'atteindront jamais `staging` ni `main` en tant que commits.
 
 ```mermaid
 gitGraph
@@ -34,9 +38,9 @@ gitGraph
 
 Le titre de la PR est `feat(auth): add session revocation endpoint` — la CI a vérifié que c'est un en-tête conventionnel valide, car ce titre est sur le point de devenir permanent. Quand la PR est prête, Pierrick dit à son agent « finalise cette PR ». L'agent — en suivant le skill `finalize-pr`, sur la machine de Pierrick — lit le diff complet et rédige la **description de la PR** comme futur corps du commit : un court paragraphe sur le *pourquoi* la révocation utilise des vérifications de type tombstone plutôt que des suppressions de session. Rien d'autre — pas de captures d'écran, pas de checklist ; les échanges de review vivent dans les commentaires. Un check CI valide la description et passe au vert.
 
-Ensuite, n'importe qui peut merger, depuis n'importe où. Le dépôt est configuré pour que le message du commit de squash soit *toujours* « titre de la PR + description de la PR » — le bouton de merge GitHub, `gh` et l'auto-merge produisent tous le même commit soigné. Il n'y a aucun message à composer au moment du merge, donc aucun moyen de le rater. Pierrick clique sur le bouton. La branche meurt. Les quatre sujets WIP ne suivent **pas** — « wip endpoint » et « typo in guard » n'apprennent rien à un futur lecteur que le diff et la justification ne disent déjà.
+Ensuite, n'importe qui peut merger, depuis n'importe où — dans `staging`. Le dépôt est configuré pour que le message du commit de squash soit *toujours* « titre de la PR + description de la PR » — le bouton de merge GitHub, `gh` et l'auto-merge produisent tous le même commit soigné. Il n'y a aucun message à composer au moment du merge, donc aucun moyen de le rater. Pierrick clique sur le bouton. La branche meurt. Les quatre sujets WIP ne suivent **pas** — « wip endpoint » et « typo in guard » n'apprennent rien à un futur lecteur que le diff et la justification ne disent déjà.
 
-`main` a maintenant **un** nouveau commit :
+`staging` a maintenant **un** nouveau commit, et l'environnement staging se redéploie :
 
 ```mermaid
 gitGraph
@@ -44,7 +48,7 @@ gitGraph
   commit id: "feat(auth): add session revocation endpoint (#142)"
 ```
 
-Quelques minutes plus tard, une PR de bot apparaît (ou se met à jour) : la **Release PR**, maintenue par release-please. Elle lit le nouveau commit, propose la version `1.3.0` (un `feat` signifie un bump mineur), et régénère `CHANGELOG.md` avec une ligne — « add session revocation endpoint », liée au commit `#142`. Personne ne la merge. Elle reste là, toujours à jour.
+La Release PR ne bouge pas encore — release-please surveille `main`, et ce commit est encore sur `staging`. Il atteint `main` à la prochaine promotion (voir Vendredi), et c'est seulement là que la Release PR le prend en compte.
 
 ### Mercredi — Nicolas merge
 
@@ -61,13 +65,15 @@ the S3 bucket is not fronted by a CDN yet; …
 fix(api): correct off-by-one in list endpoint pagination
 ```
 
-La Release PR se met à jour à nouveau : toujours `1.3.0` (deux feats et un fix restent un mineur), mais le changelog affiche maintenant **trois** lignes — révocation, miniatures et le fix de pagination. Deux d'entre elles pointent vers le même commit `#147` ; c'est normal, le fix a été déclaré comme un changement à part entière.
+Son commit de squash atterrit sur `staging` lui aussi. Deux commits de fonctionnalité sont maintenant sur `staging`, en avance sur `main`.
 
 Pendant ce temps, staging a été redéployé à chaque merge. La production n'a pas bougé — elle tourne une image épinglée, et il n'y a pas encore de nouvelle version à promouvoir.
 
 ### Vendredi — Pierrick publie
 
-Le client a validé les fonctionnalités sur staging ; Pierrick décide de livrer. Il ouvre la Release PR — le bump de version et le changelog sont déjà là. Son travail restant est la partie humaine : il rédige la note de release (`releases/v1.3.0.mdx` dans l'app de documentation) — quelques phrases sur pourquoi cette release existe et ce qu'elle change pour les utilisateurs. Un check CI peut rendre cette note obligatoire ; le dépôt du boilerplate l'impose. Il merge.
+Le client a validé les fonctionnalités sur staging ; Pierrick décide de livrer. Il promeut d'abord : il ouvre une pull request `staging` → `main` et la merge **sans squash**, pour que les deux commits de fonctionnalité atterrissent sur `main` individuellement (`main` avance en fast-forward jusqu'à `staging`). La Release PR se réveille alors — release-please lit les deux nouveaux commits, propose `1.3.0` (deux feats et un fix restent un mineur), et régénère `CHANGELOG.md` avec **trois** lignes : révocation, miniatures et le fix de pagination. Deux d'entre elles pointent vers le même commit `#147` ; c'est normal, le fix a été déclaré comme un changement à part entière.
+
+Son travail restant est la partie humaine : il rédige la note de release (`releases/v1.3.0.mdx` dans l'app de documentation) — quelques phrases sur pourquoi cette release existe et ce qu'elle change pour les utilisateurs. Un check CI peut rendre cette note obligatoire ; le dépôt du boilerplate l'impose. Il merge la Release PR.
 
 Release-please pose le tag `v1.3.0`, crée la GitHub Release (son corps est un miroir du MDX), et le tag déclenche le build Docker : les images `1.3.0`, `1.3`, `latest` arrivent sur GHCR. La production n'a toujours pas bougé. Pierrick lance le workflow **Promote** depuis GitHub, choisit `production` et `1.3.0`, et Dokploy tire cette image.
 
@@ -110,11 +116,17 @@ release-please analyse le message du commit de squash avec des règles précises
 
 ## Les décisions et leurs raisons
 
-### Pourquoi le squash merge, et pas de branche `develop`
+### Pourquoi le squash merge
 
-Un historique linéaire rend beaucoup plus facile de retrouver le commit qui a introduit un problème, et c'est ce que [release-please](https://github.com/googleapis/release-please) recommande pour analyser les changements de façon fiable. Il fait aussi de la pull request une unité de travail naturelle : aussi brouillons que soient les commits WIP, ce qui atterrit sur `main` est un seul commit bien écrit — ce qui rend d'ailleurs le cherry-pick trivial quand il est un jour nécessaire.
+Un historique linéaire rend beaucoup plus facile de retrouver le commit qui a introduit un problème, et c'est ce que [release-please](https://github.com/googleapis/release-please) recommande pour analyser les changements de façon fiable. Il fait aussi de la pull request une unité de travail naturelle : aussi brouillons que soient les commits WIP, ce qui atterrit est un seul commit bien écrit — ce qui rend d'ailleurs le cherry-pick trivial quand il est un jour nécessaire.
 
-Nous avons longtemps utilisé git-flow, donc abandonner `develop` est un choix délibéré : la « ligne stable » que les paires `develop`/`main` essaient de modéliser existe déjà — c'est la liste des tags. Les consommateurs n'installent jamais depuis une branche, l'outillage de release suppose un tronc unique, et git-flow résout des trains de release parallèles que nous n'avons pas à notre taille d'équipe.
+Le boilerplate standard s'arrête là : un seul tronc, `main`, et chaque pull request y merge en squash. La « ligne stable » qu'une paire `develop`/`main` essaie de modéliser existe déjà comme la liste des tags, et release-please suppose un tronc unique.
+
+### Pourquoi ce projet ajoute une branche d'intégration `staging`
+
+Le modèle mono-tronc du boilerplate demande à chaque merge d'être prêt pour une release, parce que chaque merge *est* sur le tronc de release. Ce projet veut un endroit pour intégrer et valider plusieurs fonctionnalités ensemble — sur un vrai environnement déployé, devant la coopérative — avant qu'aucune ne compte pour une release. Donc `staging` est une vraie branche, pas juste un pointeur d'environnement : les pull requests de fonctionnalité y atterrissent (même cérémonie de squash, même commit soigné), l'environnement `staging` builde depuis elle, et une pull request de promotion **sans squash** avance `main` en fast-forward jusqu'à `staging` quand le lot est validé.
+
+La promotion n'est délibérément pas un squash : `main` doit recevoir le commit soigné de chaque fonctionnalité individuellement, sinon release-please perd la granularité par changement dont il a besoin pour le changelog et le calcul de version. Comme `staging` n'est jamais qu'en avance sur `main`, la promotion est toujours un fast-forward — `main` reste exactement aussi linéaire que dans le modèle mono-tronc, juste un cran derrière `staging`.
 
 ### Pourquoi la transformation WIP → squash se joue avant le clic de merge
 
@@ -150,11 +162,11 @@ Nous avons envisagé de merger automatiquement la Release PR quand ses checks so
 
 Ce qui *peut* être automatisé, c'est tout ce qui suit ce clic : avec [`PROMOTE_ON_RELEASE`](/grocery/fr/references/1_release_and_versionning#promouvoir-automatiquement-à-la-release), merger la Release PR enchaîne directement sur le déploiement — avec, en option, une pause sur un bouton GitHub « Approve and deploy » quand l'environnement a des required reviewers. La porte se déplace au bon endroit ; elle ne disparaît pas.
 
-### Pourquoi les environnements de déploiement ne possèdent pas de branche
+### Pourquoi seule `staging` possède une branche, et pas `production`
 
-Nous avons longtemps utilisé des branches d'environnement à la git-flow : merger dans `staging` déployait staging, merger dans `main` déployait la production. Ça fonctionne, mais les branches deviennent lentement des espaces de travail — un hotfix atterrit sur une branche et pas l'autre, et l'historique cesse de dire la vérité.
+L'erreur classique de git-flow, c'est une branche par environnement : merger dans `staging` déploie staging, merger dans `main` déploie la production, et les deux branches deviennent lentement des espaces de travail — un hotfix atterrit sur l'une et pas l'autre, et l'historique cesse de dire la vérité.
 
-Dans ce système, aucun environnement ne possède de branche. `main` produit des artefacts (builds, images, tags) et chaque environnement pointe vers un flux d'artefacts — lequel est un choix par environnement, décrit sur [Release et versionnement](/grocery/fr/references/1_release_and_versionning). Si un hébergeur exige vraiment une branche à surveiller, une branche `deploy/<env>` peut exister comme **pointeur avancé en fast-forward** vers un tag — jamais un espace de travail, jamais de commit direct. C'est une échappatoire, pas le défaut.
+Ce projet garde exactement une branche d'intégration, `staging`, et la traite comme un espace de travail *volontairement* — c'est tout son rôle : un endroit pour assembler et valider un lot avant qu'il ne devienne publiable. Ce qu'il ne fait **pas**, c'est laisser `staging` diverger de `main` : la promotion est toujours un fast-forward, donc les deux branches ne portent jamais des versions différentes du même changement. `production` ne possède aucune branche — elle tourne un tag de version épinglé, promu explicitement. `main` produit des artefacts (builds, images, tags) ; la branche `staging` produit le build staging ; les tags de release alimentent la production. Si un autre hébergeur exige vraiment une branche à surveiller pour la production, une branche `deploy/production` peut exister comme **pointeur avancé en fast-forward** vers un tag — jamais un espace de travail, jamais de commit direct.
 
 ### Pourquoi lefthook plutôt que husky
 
@@ -169,30 +181,38 @@ Le problème récurrent « le client veut B sans A » (les deux mergés, A ne do
 ```mermaid
 flowchart TD
     subgraph LOCAL["1 · Committer (local)"]
-        A["Travail sur une branche feat/…<br/>Commits WIP conventionnels<br/>(lefthook + commitlint)"]
+        A["Branche tirée de staging · feat/…<br/>Commits WIP conventionnels<br/>(lefthook + commitlint)"]
     end
 
-    subgraph PR["2 · La Pull Request"]
+    subgraph PR["2 · La Pull Request (base : staging)"]
         B["Titre PR = futur sujet du squash (lint CI)<br/>Description PR = futur corps du commit (lint CI)"]
         B2["Boilerplate uniquement :<br/>intention dans unreleased/<br/>OU label no-intention (gate CI)"]
         B --> B2
     end
 
-    subgraph MERGE["3 · Le merge (squash)"]
+    subgraph MERGE["3 · Le merge (squash → staging)"]
         C["N'importe quel chemin (UI / gh) :<br/>GitHub matérialise titre + description<br/>dans le commit de squash (#123)"]
     end
 
-    subgraph MAIN["main"]
-        D["Historique linéaire, un commit par PR<br/>staging peut suivre main"]
+    subgraph STG["staging"]
+        S["Branche d'intégration · l'environnement staging builde depuis elle<br/>Un commit soigné par PR"]
     end
 
-    subgraph RELPR["4 · La Release PR (release-please)"]
+    subgraph PROMO["4 · PR de promotion (staging → main, sans squash)"]
+        P["Fast-forward de main jusqu'à staging<br/>chaque commit de fonctionnalité atterrit individuellement"]
+    end
+
+    subgraph MAIN["main"]
+        D["Tronc de release · historique linéaire<br/>release-please surveille ici"]
+    end
+
+    subgraph RELPR["5 · La Release PR (release-please)"]
         E["Auto-maintenue :<br/>prochaine version + CHANGELOG.md généré"]
         E2["L'humain ajoute :<br/>la note de release MDX<br/>boilerplate : ordonner les intentions dans vX.Y.Z/"]
         E --> E2
     end
 
-    subgraph REL["5 · La release (tag vX.Y.Z)"]
+    subgraph REL["6 · La release (tag vX.Y.Z)"]
         F["Tag + GitHub Release<br/>(corps miroir du MDX)"]
         F2["Images Docker versionnées (GHCR)"]
         F3["Workflow Promote<br/>met à jour un environnement"]
@@ -201,7 +221,7 @@ flowchart TD
         F --> F4
     end
 
-    LOCAL --> PR --> MERGE --> MAIN --> RELPR
+    LOCAL --> PR --> MERGE --> STG --> PROMO --> MAIN --> RELPR
     RELPR -->|"merge de la Release PR (humain)"| REL
 ```
 

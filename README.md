@@ -120,7 +120,9 @@ Docker Compose provides:
 - **Start development**: `pnpm dev`
 - **Build applications**: `pnpm build`
 - **Lint applications**: `pnpm lint`
-- **Format code**: `pnpm fmt`
+- **Type-check applications**: `pnpm typecheck`
+- **Format code**: `pnpm fmt` — ⚠️ run this only on the files you changed, never repo-wide;
+  a full run rewrites dozens of unrelated files. Use `pnpm fmt:check` to check without writing.
 - **Generate OpenAPI clients**: `pnpm generate`
 
 ### Database (API)
@@ -163,16 +165,21 @@ cd apps/api && pnpm dev
 ## 🔄 Continuous Integration (CI)
 
 GitHub Actions workflows live in `.github/workflows/`. The CI workflow (`ci.yml`) runs on
-pushes and pull requests and checks lint and format (oxlint / oxfmt), TypeScript types, and
-the build.
+pushes and pull requests to `staging` and `main` and checks lint, knip, format (oxlint /
+oxfmt), TypeScript types, the build, and the unit + API tests. The end-to-end suite
+(`e2e.yml`) runs alongside it. `pr-lint.yml` and `release-note.yml` run on every pull
+request regardless of base branch.
+
+Feature pull requests target `staging`. `main` is the release trunk and only advances
+through a non-squash promotion pull request from `staging` — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 For more information, see the [GitHub Actions documentation](.github/ACTIONS.md).
 
 ### CD Workflow
 
 The CD workflow (`push-to-ghcr.yml`) builds an image per runnable app (API, web-spa) and
-pushes them to GHCR. A push to `main` produces a SHA-tagged image for each app; a `v*` tag
-produces versioned images.
+pushes them to GHCR. A push to `main` or `staging` produces a SHA-tagged image for each
+app; a `v*` tag produces versioned images.
 
 See [Release and versioning](apps/documentation/src/content/docs/references/1_release_and_versionning.mdx)
 for how the project versions and what each environment runs.

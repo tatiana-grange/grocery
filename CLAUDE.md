@@ -25,7 +25,7 @@ Never write the token `BREAKING-CHANGE:` in a commit message unless you intend t
 
 ## Active Technologies
 - TypeScript 5.x on Node.js 24.13.0, pnpm 10.28.2 workspace + NestJS, MikroORM (PostgreSQL), Zod, `@lonestone/nzoth/server` (feat/foundation)
-- PostgreSQL via MikroORM; schema evolved with `pnpm --filter=api db:fresh:seed` (feat/foundation)
+- PostgreSQL via MikroORM. Schema changes go through MikroORM migrations (`pnpm --filter=api db:migrate:create`, then review the generated SQL). `pnpm --filter=api db:fresh:seed` is for local resets only, never against a shared or production database.
 
 ## Recent Changes
 - feat/foundation: Added TypeScript 5.x on Node.js 24.13.0, pnpm 10.28.2 workspace + NestJS, MikroORM (PostgreSQL), Zod, `@lonestone/nzoth/server`

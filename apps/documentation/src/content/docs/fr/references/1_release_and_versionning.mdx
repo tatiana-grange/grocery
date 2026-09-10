@@ -23,7 +23,11 @@ Mélanger ces deux questions est l'erreur classique : une équipe adopte une cé
 | **Sans versions**   | commitlint seul | publie un artefact frais ; l'hébergeur peut le déployer | n'existe pas — il n'y a pas de Release PR                                 |
 | **Versionné**       | semver complet  | publie un artefact frais                                | un humain merge la Release PR ; un tag `v*` et des images versionnées apparaissent |
 
-Un nouveau projet démarre généralement **sans versions** : en début de développement, chaque merge qui part directement sur staging est exactement ce qu'on veut. Le dépôt du boilerplate, lui, est versionné.
+Un nouveau projet démarre généralement **sans versions** : en début de développement, chaque merge qui atterrit sur `staging` et déploie l'environnement staging est exactement ce qu'on veut. Le dépôt du boilerplate, lui, est versionné.
+
+:::note[Ce projet utilise une branche d'intégration `staging`]
+Les pull requests de fonctionnalité visent `staging`, pas `main`. `main` est le tronc de release et n'avance que par une pull request de promotion sans squash depuis `staging`. L'environnement de déploiement `staging` builde depuis la branche `staging`. Voir [`CONTRIBUTING.md`](https://github.com/lonestone/grocery/blob/main/CONTRIBUTING.md) et [Contribution et release](/grocery/fr/explanations/2_contribution-and-release) pour le raisonnement. Partout où cette page dit « merge sur `main` », lisez « merge sur `staging`, puis promotion ».
+:::
 
 Les deux modes partagent le même pipeline de build — un mode est de la configuration, pas un chemin de CD différent. La config release-please et son workflow sont déjà livrés avec le template : passer de « sans versions » à « versionné » revient à activer ces fichiers.
 
@@ -39,7 +43,7 @@ Il y a aussi une raison technique : un merge fait avec le `GITHUB_TOKEN` par dé
 
 Le workflow `.github/workflows/push-to-ghcr.yml` construit une image Docker sur GHCR pour chaque app exécutable : API et web-spa. Si un Dockerfile manque (par exemple parce que vous avez supprimé une app), le workflow l'ignore simplement — pas besoin de l'éditer.
 
-- Un push sur `main` produit une image taguée avec le SHA pour chaque app.
+- Un push sur `main` ou sur `staging` produit une image taguée avec le SHA pour chaque app.
 - Un tag `v*` produit `{{version}}`, `{{major}}.{{minor}}` et `latest` pour chaque app.
 
 Notez que `latest` pointe vers la dernière **release**, pas vers le dernier merge sur `main`.
@@ -48,17 +52,17 @@ La configuration par environnement (URL de l'API, secrets, etc.) reste dans Dokp
 
 ## Recettes de déploiement
 
-Un environnement pointe vers un artefact : une branche à builder, ou une image à tirer. Il ne possède jamais de branche sur laquelle committer. Les recettes ci-dessous sont des recommandations — nommez vos environnements comme vous voulez, et choisissez l'artefact qui convient à chacun.
+Un environnement pointe vers un artefact : une branche à builder, ou une image à tirer. Les recettes ci-dessous sont des recommandations — nommez vos environnements comme vous voulez, et choisissez l'artefact qui convient à chacun.
 
 ### Sans versions
 
-Branchez l'environnement qui vous intéresse (généralement staging) sur `main` et laissez l'hébergeur builder. Chaque merge déploie. C'est parfait tant qu'il n'y a pas de production à protéger.
+Branchez l'environnement qui vous intéresse (généralement staging) sur la branche `staging` et laissez l'hébergeur builder. Chaque merge déploie. C'est parfait tant qu'il n'y a pas de production à protéger.
 
 ### Versionné
 
 Notre câblage recommandé :
 
-- **Staging** suit `main` (build de branche ou image SHA), pour valider le travail non publié avant de sortir une release.
+- **Staging** builde depuis la branche `staging` (build de branche ou image SHA), pour valider le travail intégré avant qu'il soit promu sur `main` et compté dans une release.
 - **La production** tourne sur un tag de version épinglé (`1.2.3`) pour **chaque** app — pas `latest`, et pas une branche.
 
 Quelques montages sont tentants mais annulent l'intérêt du versionnement :
@@ -71,11 +75,12 @@ Même si vous n'utilisez pas les versions pour contrôler les déploiements, le 
 
 Le cycle complet ressemble à ceci :
 
-1. Merge sur `main` — une image SHA existe, et staging peut suivre `main`.
-2. Merge de la Release PR — `v1.3.0` et les images `1.3.0` / `1.3` / `latest` existent. Rien ne se déploie encore.
-3. Lancement de Promote — la production tire `1.3.0` pour chaque app mappée.
+1. Merge des PR de fonctionnalité sur `staging` — une image SHA existe et l'environnement staging se redéploie.
+2. Ouverture de la PR de promotion `staging` → `main` et merge sans squash — les commits de fonctionnalité atteignent le tronc de release.
+3. Merge de la Release PR — `v1.3.0` et les images `1.3.0` / `1.3` / `latest` existent. Rien ne se déploie encore.
+4. Lancement de Promote — la production tire `1.3.0` pour chaque app mappée.
 
-Vous pouvez aussi promouvoir staging, quand cet environnement doit tourner sur une image publiée plutôt que sur `main` (typique d'un montage multi-environnements comme dev + staging + production).
+Vous pouvez aussi promouvoir staging, quand cet environnement doit tourner sur une image publiée plutôt que sur le build de la branche `staging` (typique d'un montage multi-environnements comme dev + staging + production).
 
 ## Promouvoir une version
 
@@ -135,7 +140,7 @@ Deux artefacts, deux rôles :
 
 Les notes de release sont **optionnelles par défaut** : le check CI sur la Release PR passe sans note. Quand votre équipe veut rendre la note obligatoire, mettez la variable de dépôt `REQUIRE_RELEASE_NOTE` à `true` (`gh variable set REQUIRE_RELEASE_NOTE --body true`) et le check bloquera la Release PR tant que `releases/vX.Y.Z.mdx` n'existe pas. Le dépôt du boilerplate l'impose.
 
-Vous pouvez écrire ce fichier **avant** que la Release PR n'existe — sur une PR normale vers `main`. Le check ne regarde que le HEAD de la Release PR, donc une note déjà sur `main` compte. Si la version dans le nom de fichier ne correspond plus, renommez le fichier ; ne réécrivez pas l'histoire.
+Vous pouvez écrire ce fichier **avant** que la Release PR n'existe — sur une PR de fonctionnalité normale vers `staging`. Elle atteint `main` à la prochaine promotion, et le check ne regarde que le HEAD de la Release PR, donc une note déjà sur `main` compte. Si la version dans le nom de fichier ne correspond plus, renommez le fichier ; ne réécrivez pas l'histoire.
 
 ## Feature flags
 

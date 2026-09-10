@@ -37,7 +37,8 @@ fi
 repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
 
 echo "Repository: ${repo}"
-echo "Squash merge only; default squash message = pull request title and description."
+echo "Squash merge for feature PRs (default message = PR title and description);"
+echo "rebase merge kept for the staging -> main promotion PR; merge commits off."
 echo
 
 run_or_print() {
@@ -50,10 +51,13 @@ run_or_print() {
   fi
 }
 
+# Feature PRs squash-merge into staging. Rebase merging stays enabled for the
+# staging -> main promotion PR, which must NOT squash (main needs one conventional
+# commit per change for release-please). Merge commits stay disabled.
 run_or_print gh api -X PATCH "repos/${repo}" \
   -F allow_merge_commit=false \
   -F allow_squash_merge=true \
-  -F allow_rebase_merge=false \
+  -F allow_rebase_merge=true \
   -F squash_merge_commit_title=PR_TITLE \
   -F squash_merge_commit_message=PR_BODY
 
@@ -98,6 +102,7 @@ fi
 
 echo
 echo "Still do in the GitHub UI (see scripts/github-repo-settings.md):"
-echo "  - Protect main; require checks \"PR title and description\", \"Intention gate\", \"Release note\", plus CI jobs"
-echo "  - Do not enable merge commits or rebase merging"
+echo "  - Set the default branch to staging (feature PRs target it)"
+echo "  - Protect staging and main; require checks \"PR title and description\", \"Release note\", plus CI jobs"
+echo "  - Keep rebase merging enabled only for the staging -> main promotion PR; do not enable merge commits"
 echo "  - On Environments staging and production, add DOKPLOY_URL, DOKPLOY_API_KEY, DOKPLOY_APPLICATIONS"

@@ -12,11 +12,15 @@ The script defaults to a dry run (prints the API calls, changes nothing). `--app
 
 ## Checklist
 
+### Default branch
+
+- [ ] Set the default branch to **`staging`**. Feature pull requests target `staging`; `main` is the release trunk and only advances through the promotion pull request. See [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+
 ### Merge strategy
 
-- [ ] Allow squash merging
+- [ ] Allow squash merging (feature pull requests into `staging`)
 - [ ] Disable merge commits
-- [ ] Disable rebase merging
+- [ ] **Allow rebase merging** — used only for the `staging` → `main` promotion pull request, which must not squash. (Alternatively keep rebase merging off and promote by fast-forward from the CLI: `git switch main && git merge --ff-only staging && git push`.)
 - [ ] Default squash commit message: **Pull request title and description**
   - Title source: `PR_TITLE`
   - Message source: `PR_BODY`
@@ -38,15 +42,17 @@ gh label create no-intention \
 
 `./scripts/configure-github-repo.sh --apply` also creates it if it is missing.
 
-### Branch protection on `main`
+### Branch protection on `staging` and `main`
 
-Require pull requests, and require these status checks to pass:
+Protect **both** branches: no direct pushes, require pull requests, and require these status checks to pass:
 
 - [ ] `PR title and description` (workflow: **PR lint**)
 - [ ] `Intention gate` (workflow: **Intention gate**) — boilerplate producer; skips successfully when `no-intention` or `autorelease: pending` is present
 - [ ] `Intention promote` (workflow: **Intention promote**) — boilerplate producer; skips on ordinary PRs. On a Release PR it fails until staged `unreleased/` files have moved into `vX.Y.Z/`
 - [ ] `Release note` (workflow: **Release note**) — other PRs skip this check successfully
-- [ ] Existing CI jobs (`Lint`, `Type Check`, `Build`, `Test`, …)
+- [ ] Existing CI jobs (`Lint`, `Type Check`, `Build`, `Test`, `Knip`, e2e) — these run on pull requests to `staging` and to `main`
+
+On `main`, the only pull requests are the `staging` → `main` promotion PR and the release-please Release PR.
 
 ### Repository variables
 
