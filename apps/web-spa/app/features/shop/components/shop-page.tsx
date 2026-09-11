@@ -5,7 +5,7 @@ import { NativeSelect } from '@grocery/ui/components/primitives/native-select'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { PackageSearch } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CategoryRail, CategoryRailSheet } from '@/features/shop/components/category-rail'
 import { ProductCard } from '@/features/shop/components/product-card'
@@ -15,6 +15,7 @@ import {
   shopCategoriesQueryOptions,
   shopProductsInfiniteQueryOptions,
 } from '@/features/shop/utils/shop-queries'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 const SORT_OPTIONS = [
@@ -34,14 +35,20 @@ export default function ShopPage() {
   const categoryId = searchParams.get('categoryId') ?? undefined
   const sortValue = searchParams.get('sort') ?? 'name:asc'
   const sortOption = SORT_OPTIONS.find((option) => option.value === sortValue) ?? SORT_OPTIONS[0]!
-  const [search, setSearch] = useState(searchParams.get('q') ?? '')
+  const committedSearch = searchParams.get('q') ?? ''
+  // Search and category are two ways to narrow the same catalogue, not layers on top of each
+  // other: committing a term drops the category so a match in another family still shows up,
+  // and picking a category clears the term so the rail's count is what the grid shows.
+  const { search, setSearch, flushSearch } = useDebouncedSearch(committedSearch, (value) =>
+    updateParams({ q: value, categoryId: undefined }, { replace: true }),
+  )
   const [view, setView] = useShopView()
   const layoutClass = LAYOUT_BY_VIEW[view]
 
   const { data: categories } = useQuery(shopCategoriesQueryOptions())
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(
     shopProductsInfiniteQueryOptions({
-      search: searchParams.get('q') ?? undefined,
+      search: committedSearch || undefined,
       categoryId,
       sort: sortOption.property,
       direction: sortOption.direction,
@@ -51,7 +58,7 @@ export default function ShopPage() {
   const products = data?.pages.flatMap((entry) => entry.data) ?? []
   const total = data?.pages[0]?.meta.itemCount ?? 0
   const hasCategories = Boolean(categories && categories.length > 0)
-  const onSelectCategory = (value?: string) => updateParams({ categoryId: value })
+  const onSelectCategory = (value?: string) => updateParams({ categoryId: value, q: undefined })
 
   // Load the next slice as its anchor scrolls into view, so reaching the bottom is enough —
   // the button below stays as an explicit fallback (keyboard, observer not yet fired).
@@ -74,6 +81,16 @@ export default function ShopPage() {
       <div>
         <PageTitle data-testid="shop-title">{t('shop.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
+        <Input
+          className="mt-4 w-full sm:max-w-md"
+          data-testid="shop-search"
+          placeholder={t('shop.searchPlaceholder')}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') flushSearch()
+          }}
+        />
       </div>
 
       <div className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
@@ -101,16 +118,6 @@ export default function ShopPage() {
                 />
               </div>
             )}
-            <Input
-              className="w-full sm:w-64"
-              data-testid="shop-search"
-              placeholder={t('shop.searchPlaceholder')}
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') updateParams({ q: search || undefined })
-              }}
-            />
             <div className="ml-auto flex items-center gap-2">
               <ShopViewToggle view={view} onChange={setView} />
               <NativeSelect

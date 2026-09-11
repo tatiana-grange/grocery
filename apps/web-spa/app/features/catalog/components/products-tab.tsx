@@ -13,19 +13,22 @@ import {
 } from '@grocery/ui/components/primitives/table'
 import { useQuery } from '@tanstack/react-query'
 import { PlusCircle } from 'lucide-react'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { CATALOG_PAGE_SIZE, productsQueryOptions } from '@/features/catalog/utils/catalog-queries'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export function ProductsTab() {
   const { t } = useTranslation()
   const { searchParams, page, updateParams } = useListSearchParams()
-  const [search, setSearch] = useState(searchParams.get('q') ?? '')
+  const committedSearch = searchParams.get('q') ?? ''
+  const { search, setSearch, flushSearch } = useDebouncedSearch(committedSearch, (value) =>
+    updateParams({ q: value, page: undefined }, { replace: true }),
+  )
 
   const { data, isLoading } = useQuery(
-    productsQueryOptions({ page, search: searchParams.get('q') ?? undefined }),
+    productsQueryOptions({ page, search: committedSearch || undefined }),
   )
 
   const total = data?.meta.itemCount ?? 0
@@ -41,7 +44,7 @@ export function ProductsTab() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
+            if (event.key === 'Enter') flushSearch()
           }}
         />
         <Button data-testid="products-new" render={<Link to="/admin/catalog/products/new" />}>

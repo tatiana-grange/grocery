@@ -11,13 +11,20 @@ export function useListSearchParams() {
   const pageParam = Number(searchParams.get('page'))
   const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1
 
-  const updateParams = (next: Record<string, string | undefined>) => {
+  /**
+   * `replace` swaps the current history entry instead of pushing a new one — what a debounced
+   * search box wants, so typing a word does not turn the back button into a dozen steps.
+   */
+  const updateParams = (
+    next: Record<string, string | undefined>,
+    options: { replace?: boolean } = {},
+  ) => {
     const params = new URLSearchParams(searchParams)
     for (const [key, value] of Object.entries(next)) {
       if (value) params.set(key, value)
       else params.delete(key)
     }
-    setSearchParams(params)
+    setSearchParams(params, { replace: options.replace ?? false })
   }
 
   return { searchParams, page, updateParams }

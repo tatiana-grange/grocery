@@ -292,7 +292,7 @@
       "pricePerKg": "Price per kg (€)",
       "pricePerPiece": "Price per piece (€)",
       "labels": "Labels",
-      "searchPlaceholder": "Search name or barcode…",
+      "searchPlaceholder": "Name, barcode, category, supplier…",
       "new": "New product",
       "edit": "Edit product",
       "empty": "No products yet.",
@@ -320,7 +320,7 @@
     },
     "title": "Shop",
     "subtitle": "Browse what the cooperative currently offers.",
-    "searchPlaceholder": "Search name or barcode…",
+    "searchPlaceholder": "Name, barcode, description, category…",
     "sort": {
       "nameAsc": "Name (A–Z)",
       "newest": "Newest first"
@@ -477,7 +477,7 @@
   "inventory": {
     "title": "Stock & cost price",
     "subtitle": "Current stock level and weighted average cost price per product.",
-    "searchPlaceholder": "Search a product…",
+    "searchPlaceholder": "Name, barcode, category…",
     "empty": "No products.",
     "open": "Open",
     "backToList": "Back to stock",

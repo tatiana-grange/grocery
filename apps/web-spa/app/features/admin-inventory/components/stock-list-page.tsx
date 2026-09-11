@@ -11,20 +11,22 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import {
   STOCK_PAGE_SIZE,
   stockListQueryOptions,
 } from '@/features/admin-inventory/utils/inventory-queries'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export default function StockListPage() {
   const { t } = useTranslation()
   const { searchParams, page, updateParams } = useListSearchParams()
   const committedSearch = searchParams.get('q') ?? ''
-  const [search, setSearch] = useState(committedSearch)
+  const { search, setSearch, flushSearch } = useDebouncedSearch(committedSearch, (value) =>
+    updateParams({ q: value, page: undefined }, { replace: true }),
+  )
 
   const { data, isLoading } = useQuery(
     stockListQueryOptions({ page, search: committedSearch || undefined }),
@@ -47,7 +49,7 @@ export default function StockListPage() {
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
+          if (event.key === 'Enter') flushSearch()
         }}
       />
 

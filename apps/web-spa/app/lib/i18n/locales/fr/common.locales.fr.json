@@ -292,7 +292,7 @@
       "pricePerKg": "Prix au kg (€)",
       "pricePerPiece": "Prix à la pièce (€)",
       "labels": "Labels",
-      "searchPlaceholder": "Rechercher un nom ou un code-barres…",
+      "searchPlaceholder": "Nom, code-barres, catégorie, fournisseur…",
       "new": "Nouveau produit",
       "edit": "Modifier le produit",
       "empty": "Aucun produit pour le moment.",
@@ -320,7 +320,7 @@
     },
     "title": "Boutique",
     "subtitle": "Découvrez les produits proposés par nos fournisseurs.",
-    "searchPlaceholder": "Rechercher un nom ou un code-barres…",
+    "searchPlaceholder": "Nom, code-barres, description, catégorie…",
     "sort": {
       "nameAsc": "Nom (A–Z)",
       "newest": "Plus récents"
@@ -477,7 +477,7 @@
   "inventory": {
     "title": "Stock et prix de revient",
     "subtitle": "Niveau de stock actuel et prix de revient moyen pondéré par produit.",
-    "searchPlaceholder": "Rechercher un produit…",
+    "searchPlaceholder": "Nom, code-barres, catégorie…",
     "empty": "Aucun produit.",
     "open": "Ouvrir",
     "backToList": "Retour au stock",

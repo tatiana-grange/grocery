@@ -34,6 +34,7 @@ import {
   membersListQueryOptions,
 } from '@/features/admin-members/utils/admin-members-queries'
 import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 const STATUS_TABS = ['pending', 'active', 'all'] as const
@@ -43,7 +44,9 @@ export default function MembersListPage() {
   const { searchParams, page, updateParams } = useListSearchParams()
   const status = (searchParams.get('status') ?? 'pending') as (typeof STATUS_TABS)[number]
   const committedSearch = searchParams.get('q') ?? ''
-  const [search, setSearch] = useState(committedSearch)
+  const { search, setSearch, flushSearch } = useDebouncedSearch(committedSearch, (value) =>
+    updateParams({ q: value, page: undefined }, { replace: true }),
+  )
 
   const { data, isLoading } = useQuery(
     membersListQueryOptions({
@@ -84,7 +87,7 @@ export default function MembersListPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
+              if (event.key === 'Enter') flushSearch()
             }}
           />
           <CreateMemberDialog />
