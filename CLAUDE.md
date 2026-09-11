@@ -23,9 +23,24 @@ You must always follow these guidelines.
 Before committing or opening a PR, read `CONTRIBUTING.md` and follow it.
 Never write the token `BREAKING-CHANGE:` in a commit message unless you intend to force a major release.
 
+## Git
+
+Commit on your own, share only when asked.
+
+- **Commit without asking.** On a feature branch, commit every coherent step as you go. You
+  do not need my go-ahead for that.
+- **Never push, open a pull request, or merge unless I ask for it.** Finishing the work is
+  not a request, and green CI is not consent.
+- **Never add a `Co-Authored-By:` line, and never credit Claude in a commit message.** If
+  the tool adds one by default, strip it before committing.
+- Branch off `staging` by default. Branch off the parent feature branch when the work
+  builds on an unmerged one, and base its pull request on that parent branch.
+
+Full detail: `CONTRIBUTING.md` and `.claude/skills/git-workflow/SKILL.md`.
+
 ## Active Technologies
 - TypeScript 5.x on Node.js 24.13.0, pnpm 10.28.2 workspace + NestJS, MikroORM (PostgreSQL), Zod, `@lonestone/nzoth/server` (feat/foundation)
-- PostgreSQL via MikroORM; schema evolved with `pnpm --filter=api db:fresh:seed` (feat/foundation)
+- PostgreSQL via MikroORM. Schema changes go through MikroORM migrations (`pnpm --filter=api db:migrate:create`, then review the generated SQL). `pnpm --filter=api db:fresh:seed` is for local resets only, never against a shared or production database.
 
 ## Recent Changes
 - feat/foundation: Added TypeScript 5.x on Node.js 24.13.0, pnpm 10.28.2 workspace + NestJS, MikroORM (PostgreSQL), Zod, `@lonestone/nzoth/server`

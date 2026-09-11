@@ -10,6 +10,9 @@ out
 build
 test-results
 
+# Playwright MCP scratch output (console logs, page snapshots)
+.playwright-mcp/
+
 # Expo / React Native
 /android
 /ios

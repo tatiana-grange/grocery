@@ -6,7 +6,7 @@ This folder contains the GitHub Actions workflows for the Grocery project.
 
 ### CI (Continuous Integration)
 
-The CI workflow (`workflows/ci.yml`) runs on every push to `main`, and on pull requests targeting `main`.
+The CI workflow (`workflows/ci.yml`) runs on every push to `staging` or `main`, and on pull requests targeting either branch. Feature pull requests target `staging`; `main` only receives the `staging` → `main` promotion pull request and the release-please Release PR (see [`CONTRIBUTING.md`](../CONTRIBUTING.md)).
 
 It includes the following jobs:
 

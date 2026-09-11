@@ -64,17 +64,19 @@ GEMINI_FILE="$REPO_ROOT/GEMINI.md"
 COPILOT_FILE="$REPO_ROOT/.github/agents/copilot-instructions.md"
 CURSOR_FILE="$REPO_ROOT/.cursor/rules/specify-rules.mdc"
 QWEN_FILE="$REPO_ROOT/QWEN.md"
-AGENTS_FILE="$REPO_ROOT/AGENTS.md"
+# AGENTS.md is a pointer to CLAUDE.md on this project (see AGENTS.md). Agents that key off
+# AGENTS.md therefore get their generated context written into CLAUDE.md, the single source.
+AGENTS_FILE="$REPO_ROOT/CLAUDE.md"
 WINDSURF_FILE="$REPO_ROOT/.windsurf/rules/specify-rules.md"
 KILOCODE_FILE="$REPO_ROOT/.kilocode/rules/specify-rules.md"
 AUGGIE_FILE="$REPO_ROOT/.augment/rules/specify-rules.md"
 ROO_FILE="$REPO_ROOT/.roo/rules/specify-rules.md"
 CODEBUDDY_FILE="$REPO_ROOT/CODEBUDDY.md"
 QODER_FILE="$REPO_ROOT/QODER.md"
-AMP_FILE="$REPO_ROOT/AGENTS.md"
+AMP_FILE="$REPO_ROOT/CLAUDE.md"
 SHAI_FILE="$REPO_ROOT/SHAI.md"
-Q_FILE="$REPO_ROOT/AGENTS.md"
-BOB_FILE="$REPO_ROOT/AGENTS.md"
+Q_FILE="$REPO_ROOT/CLAUDE.md"
+BOB_FILE="$REPO_ROOT/CLAUDE.md"
 
 # Template file
 TEMPLATE_FILE="$REPO_ROOT/.specify/templates/agent-file-template.md"
@@ -670,10 +672,8 @@ update_all_existing_agents() {
         found_agent=true
     fi
     
-    if [[ -f "$AGENTS_FILE" ]]; then
-        update_agent_file "$AGENTS_FILE" "Codex/opencode"
-        found_agent=true
-    fi
+    # $AGENTS_FILE is $CLAUDE_FILE on this project, already updated above. Skipping it here
+    # avoids writing the same generated sections twice.
     
     if [[ -f "$WINDSURF_FILE" ]]; then
         update_agent_file "$WINDSURF_FILE" "Windsurf"

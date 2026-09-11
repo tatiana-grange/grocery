@@ -15,7 +15,7 @@ This skill is a thin adapter. The canon lives at `apps/documentation/src/content
 
 ## Job
 
-1. Find the open Release PR (label `autorelease: pending`) if it exists. Otherwise draft the note on a regular PR targeting `main`.
+1. Find the open Release PR (label `autorelease: pending`) if it exists. Otherwise draft the note on a regular feature PR targeting `staging` — it reaches `main` with the next promotion PR, and the release-note check only reads the Release PR HEAD.
 2. Read the next version from `.release-please-manifest.json` on the Release PR, or from a release-please dry-run if that PR is not open yet.
 3. Draft `apps/documentation/src/content/docs/releases/vX.Y.Z.mdx` from `CHANGELOG.md` plus `git show` on the listed commits. The note is the human story of why this release exists. It is not a second changelog. Writing it *before* the Release PR exists is fine — the file just has to be on that PR's HEAD when it is merged. If the version later disagrees, rename the file.
 4. If the Release PR is open, verify its checks. The release-note check only blocks when the repository variable `REQUIRE_RELEASE_NOTE` is `true`; write the note anyway — it is the point of this skill. If a check fails, the error is the fix.

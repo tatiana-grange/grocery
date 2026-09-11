@@ -1,11 +1,30 @@
 <!--
 Sync Impact Report
 ==================
-Version change: (template) → 1.0.0
-Ratification date: 2026-09-01
-Rationale: Initial constitution. Values derived from README.md, CLAUDE.md, CONTRIBUTING.md,
-apps/documentation guidelines (general, backend, frontend) and the project planning notes
-(apps/documentation/src/content/docs/project/).
+Version change: 1.1.0 → 1.2.0
+Last amended: 2026-09-11
+
+Rationale (1.2.0): Two clarifications to the Development Workflow section, both resolving a
+contradiction between this file, `CONTRIBUTING.md` and the `.claude/` guidance. First,
+stacked branches: a feature built on an unmerged feature branches off that parent and bases
+its pull request on it, which the previous "never target anything but `staging`" wording
+forbade. Second, agent autonomy: committing needs no human request, while pushing, opening a
+pull request, and merging always do. Third, database schema: the "early development may use
+`db:fresh:seed`" exemption is removed, so migrations are the only way a schema changes and
+`db:fresh:seed` is a local reset tool. That exemption contradicted `CLAUDE.md` and
+`.cursor/rules/5_migrations.mdc`, and the governance clause made the loosest rule win. MINOR:
+guidance materially expanded and one exemption withdrawn, no principle removed or redefined.
+
+Rationale (1.1.0): Materially expanded the Development Workflow section with the branch
+flow. Feature pull requests target `staging`, not `main`; `main` is the release trunk and
+advances only through a non-squash promotion pull request from `staging`. This aligns the
+constitution with `.claude/` git-workflow guidance and the updated `CONTRIBUTING.md` and
+`apps/documentation` contribution/release pages. MINOR: guidance materially expanded, no
+principle removed or redefined.
+
+Rationale (1.0.0): Initial constitution. Values derived from README.md, CLAUDE.md,
+CONTRIBUTING.md, apps/documentation guidelines (general, backend, frontend) and the project
+planning notes (apps/documentation/src/content/docs/project/).
 
 Principles defined:
   I.   Full-Stack Type Safety (NON-NEGOTIABLE)
@@ -14,9 +33,10 @@ Principles defined:
   IV.  Independently Testable Increments
   V.   Single-Cooperative Scope Discipline
 
-Added sections:
-  - Technology Constraints
-  - Development Workflow and Quality Gates
+Sections:
+  - Technology Constraints (tightened in 1.2.0: migrations are mandatory)
+  - Development Workflow and Quality Gates (expanded in 1.1.0: branch flow;
+    in 1.2.0: stacked branches and agent autonomy)
   - Governance
 
 Templates status:
@@ -148,9 +168,13 @@ Data rules:
 
 - UUID primary keys with `defaultRaw: 'gen_random_uuid()'`.
 - `createdAt` and `updatedAt` audit fields on every entity.
-- Early development may use `pnpm --filter=api db:fresh:seed`; once a schema stabilises,
-  switch to the migration workflow. Review generated SQL before applying it (MikroORM can
-  emit DROP+ADD instead of RENAME). Never run a fresh/reset against production.
+- Every schema change goes through a MikroORM migration
+  (`pnpm --filter=api db:migrate:create`, then `db:migrate:up`). There is no early-development
+  exemption. Review the generated SQL before applying it — MikroORM can emit DROP+ADD where
+  you meant RENAME, which silently drops data.
+- `pnpm --filter=api db:fresh:seed` resets a local database and reseeds it. That is its only
+  use. Never run it against a shared or production database, and never use it in place of a
+  migration.
 
 Domain constraints to design for from the start: products sold by weight (priced per kg,
 delivered at an approximate weight, so pre-order, reception, and billing quantities
@@ -162,12 +186,26 @@ credit notes, and a distribution screen that must be fast and tolerant of a flak
 - Feature work uses the Spec-Driven flow: `/speckit.specify` → `/speckit.plan` →
   `/speckit.tasks` → `/speckit.implement`, with specs under `specs/<feature-name>/`.
 - Project documentation lives in `apps/documentation/`, never in a side `docs/` folder.
-- Commits and pull requests follow `CONTRIBUTING.md`: Conventional Commits, valid
-  type/scope from `commitlint.config.ts`, squash merge where the PR title and description
+- Commits and pull requests follow `CONTRIBUTING.md`: Conventional Commits with the
+  gitmoji of their type after the colon, valid type/scope/emoji from `commitlint.config.ts`, squash merge where the PR title and description
   become the commit. Never write `BREAKING-CHANGE:` unless a major release is intended.
-  Do not co-author commits with Claude.
+  Do not co-author commits with Claude: no `Co-Authored-By:` line and no AI attribution
+  trailer, whatever the tool adds by default.
+- Agent autonomy: an AI agent commits on a feature branch without being asked, as often as
+  the work has coherent steps. It never pushes, opens a pull request, or merges unless a
+  human explicitly asks for that step. Finished work and green checks are not a request.
+- Branch flow: cut feature branches from `staging`, open every feature pull request against
+  `staging`, and never target `main` directly. One exception, for stacked work: a feature
+  that depends on code still sitting in an open pull request is branched off that parent
+  feature branch and its pull request is based on the parent, so the diff shows only the new
+  work. It still reaches `staging` — stacking changes the base of the review, never the
+  destination. `main` is the release trunk; it advances
+  only through a non-squash promotion pull request from `staging` (fast-forward or rebase),
+  so release-please keeps one conventional commit per change. The `staging` deploy
+  environment builds from the `staging` branch. Full detail in `CONTRIBUTING.md`.
 - Pre-merge gates: `pnpm lint`, `pnpm typecheck`, and `pnpm test` all pass; the feature's
-  task list is complete; affected documentation is updated.
+  task list is complete; affected documentation is updated. CI runs these on pull requests
+  to `staging` and to `main`.
 - Pre-production gates for anything touching money, stock, or user data: migrations tested
   with realistic data, and a review that checks the two non-negotiable principles above.
 
@@ -191,4 +229,4 @@ conventions, and tests where the feature requires them.
   violation is recorded in the feature's `plan.md` Complexity Tracking table, with the
   simpler alternative that was rejected and why.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-09-01
+**Version**: 1.2.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-09-11

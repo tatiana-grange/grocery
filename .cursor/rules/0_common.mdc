@@ -18,3 +18,9 @@ Generate code, corrections, and refactorings that comply with the basic principl
 
 Before committing or opening a PR, read `CONTRIBUTING.md` and follow it.
 Never write the token `BREAKING-CHANGE:` in a commit message unless you intend to force a major release.
+
+Commit on your own, share only when asked: commit each coherent step on a feature branch
+without asking, but never push, open a pull request, or merge unless the user asks for it.
+Never add a `Co-Authored-By:` line and never credit an AI in a commit message.
+Branch off `staging` by default; branch off the parent feature branch when the work builds
+on an unmerged one, and base its pull request on that parent branch.

@@ -2,6 +2,20 @@
 
 set -e
 
+# Branch types mirror the commit types, so a branch is always named after the commit it will
+# produce. `commitlint.config.ts` is the single source of truth; it is parsed here, and the
+# fallback list is only used when the file cannot be read.
+COMMITLINT_CONFIG="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")/../../.." 2>/dev/null && pwd)/commitlint.config.ts"
+BRANCH_TYPES=""
+if [ -f "$COMMITLINT_CONFIG" ]; then
+    BRANCH_TYPES=$(sed -n "/^export const TYPES = \[/,/^\] as const/p" "$COMMITLINT_CONFIG" \
+        | grep -oE "'[a-z]+'" | tr -d "'" | tr '\n' ' ' || true)
+fi
+if [ -z "$BRANCH_TYPES" ]; then
+    BRANCH_TYPES="feat fix docs style refactor perf test build ci chore revert"
+fi
+BRANCH_TYPES_LIST=$(echo "$BRANCH_TYPES" | sed 's/[[:space:]]*$//' | sed 's/ /, /g')
+
 JSON_MODE=false
 SHORT_NAME=""
 BRANCH_TYPE="feat"
@@ -38,16 +52,20 @@ while [ $i -le $# ]; do
                 echo 'Error: --type requires a value' >&2
                 exit 1
             fi
-            # Validate branch type
-            case "$next_arg" in
-                feat|fix|docs|refactor|test|chore)
-                    BRANCH_TYPE="$next_arg"
-                    ;;
-                *)
-                    echo "Error: Invalid branch type '$next_arg'. Must be one of: feat, fix, docs, refactor, test, chore" >&2
-                    exit 1
-                    ;;
-            esac
+            # Validate branch type against the commit types in commitlint.config.ts
+            valid_type=false
+            for candidate in $BRANCH_TYPES; do
+                if [ "$next_arg" = "$candidate" ]; then
+                    valid_type=true
+                    break
+                fi
+            done
+            if [ "$valid_type" = true ]; then
+                BRANCH_TYPE="$next_arg"
+            else
+                echo "Error: Invalid branch type '$next_arg'. Must be one of: $BRANCH_TYPES_LIST" >&2
+                exit 1
+            fi
             ;;
         --task-id)
             if [ $((i + 1)) -gt $# ]; then
@@ -67,7 +85,8 @@ while [ $i -le $# ]; do
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
-            echo "  --type <type>       Branch type: feat, fix, docs, refactor, test, chore (default: feat)"
+            echo "  --type <type>       Branch type, one of the commit types in commitlint.config.ts:"
+            echo "                      $BRANCH_TYPES_LIST (default: feat)"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --help, -h          Show this help message"
             echo ""
