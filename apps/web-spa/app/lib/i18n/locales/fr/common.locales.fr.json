@@ -371,6 +371,13 @@
     "total": "Total",
     "signInToAdd": "Se connecter pour ajouter au panier",
     "addToCart": "Ajouter au panier",
+    "pickup": {
+      "now": "{{amount}} à retirer à la prochaine distribution",
+      "later": "{{amount}} qui sera commandé pour une distribution suivante",
+      "later_other": "{{amount}} qui seront commandés pour une distribution suivante",
+      "summaryTitle": "Ce qui ne sera pas à la prochaine distribution",
+      "summaryNote": "Ces quantités seront commandées à votre fournisseur et retirables lors d'une distribution suivante."
+    },
     "removeConfirm": {
       "title": "Retirer cette ligne ?",
       "description": "Le produit sera retiré de votre panier.",

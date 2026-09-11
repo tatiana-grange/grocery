@@ -1,4 +1,3 @@
-import type { CartLine } from '@grocery/openapi-generator/client/types.gen'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,18 +23,39 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { TFunction } from 'i18next'
 import { ShoppingCart, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import type { CartLine } from '@grocery/openapi-generator/client/types.gen'
 import { handleMutationError } from '@/features/common/lib/api-error'
 import { AddToCartControl } from '@/features/cart/components/add-to-cart-control'
 import { CheckoutConfirmation } from '@/features/cart/components/checkout-confirmation'
 import { useCartLineActions } from '@/features/cart/hooks/use-cart-line-actions'
+import { type CartLinePickup, splitCartByPickup } from '@/features/cart/utils/cart-pickup'
 import { cartQueryOptions, checkout, type CheckoutResult } from '@/features/cart/utils/cart-queries'
+import { formatQuantity, selectionUnitLabel } from '@/features/cart/utils/cart-quantity'
 
-function CartLineRow({ line }: { line: CartLine }) {
+/** A quantity in the line's own unit: a plain count, or a weight that names its unit. */
+function quantityLabel(product: CartLine['product'], quantity: number, t: TFunction) {
+  const unit =
+    product.saleMode === 'weight'
+      ? ` ${t(`catalog.pricingUnit.${selectionUnitLabel(product)}`)}`
+      : ''
+  return `${formatQuantity(product, quantity)}${unit}`
+}
+
+/**
+ * One cart line, with what the shopper can walk away with spelled out under the product name.
+ *
+ * The line stays whole — one row, one stepper, one total — because it is one order for one
+ * product. Only the collection dates differ, so when part of it is waiting on a delivery the
+ * row breaks the quantity down into what comes at the next distribution and what comes after.
+ */
+function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
   const { t } = useTranslation()
+  const { line, now, later } = pickup
   const { product } = line
 
   const actions = useCartLineActions({
@@ -44,22 +64,50 @@ function CartLineRow({ line }: { line: CartLine }) {
     lineId: line.id,
   })
 
+  const amount = (quantity: number) => quantityLabel(product, quantity, t)
+
   return (
     <TableRow data-testid={`cart-line-${line.id}`}>
-      <TableCell className="font-medium">
-        {line.product.name}
-        <div className="mt-1 flex flex-wrap gap-1">
-          <Badge variant="outline">{t(`catalog.orderingMode.${line.orderingMode}`)}</Badge>
-          {!line.isValid && line.invalidReasonCode && (
+      {/* The pickup breakdown is a sentence, not a label: it has to wrap inside the column
+          rather than push the table wider than the page. */}
+      <TableCell className="font-medium whitespace-normal wrap-break-word">
+        {product.name}
+        {/* The ordering mode is a catalogue detail the shopper has already acted on; what it
+            means for them here is the pickup breakdown below. Only a problem with the line
+            still earns a badge. */}
+        {!line.isValid && line.invalidReasonCode && (
+          <div className="mt-1">
             <Badge variant="destructive" data-testid={`cart-line-invalid-${line.id}`}>
               {t(`cart.invalidReason.${line.invalidReasonCode}`)}
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
+        {/* Nothing to explain while the whole line arrives at the next distribution — which is
+            what a shopper already expects — so the breakdown only shows up once some of it has
+            to wait for a delivery. */}
+        {later > 0 && (
+          <ul
+            className="mt-1.5 space-y-0.5 text-xs text-muted-foreground"
+            data-testid={`cart-line-pickup-${line.id}`}
+          >
+            {now > 0 && (
+              <li className="flex gap-1.5" data-testid={`cart-line-pickup-now-${line.id}`}>
+                <span aria-hidden="true">•</span>
+                <span>{t('cart.pickup.now', { amount: amount(now) })}</span>
+              </li>
+            )}
+            <li className="flex gap-1.5" data-testid={`cart-line-pickup-later-${line.id}`}>
+              <span aria-hidden="true">•</span>
+              {/* `count` picks the agreement, `amount` carries the formatting — a weight reads
+                  as "0,5 kg", which French still treats as singular. */}
+              <span>{t('cart.pickup.later', { amount: amount(later), count: later })}</span>
+            </li>
+          </ul>
+        )}
       </TableCell>
       <TableCell>
-        {/* The line is there by definition, so this only ever renders as the stepper. Taking
-            the amount down to nothing drops the line, exactly as it does in the shop. */}
+        {/* The line is there by definition, so this only ever renders as the stepper. Taking the
+            amount down to nothing drops the line, exactly as it does in the shop. */}
         <AddToCartControl
           product={product}
           line={line}
@@ -103,6 +151,36 @@ function CartLineRow({ line }: { line: CartLine }) {
         </AlertDialog>
       </TableCell>
     </TableRow>
+  )
+}
+
+/**
+ * What the shopper will not find waiting for them at the next distribution, gathered in one
+ * place above the checkout button.
+ *
+ * The same amounts are already spelled out line by line, but a shopper decides on the whole
+ * order at the bottom of the page, and that is where the surprise would otherwise be waiting.
+ */
+function PendingPickupNotice({ pickups }: { pickups: CartLinePickup[] }) {
+  const { t } = useTranslation()
+  const pending = pickups.filter((pickup) => pickup.later > 0)
+  if (pending.length === 0) return null
+
+  return (
+    <div className="rounded-lg bg-muted p-4" data-testid="cart-pending-notice">
+      <h2 className="text-sm font-semibold">{t('cart.pickup.summaryTitle')}</h2>
+      <ul className="mt-2 space-y-1 text-sm">
+        {pending.map(({ line, later }) => (
+          <li key={line.id} className="flex flex-wrap justify-between gap-x-4">
+            <span>{line.product.name}</span>
+            <span className="font-medium tabular-nums">
+              {quantityLabel(line.product, later, t)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs text-muted-foreground">{t('cart.pickup.summaryNote')}</p>
+    </div>
   )
 }
 
@@ -155,6 +233,8 @@ export default function CartPage() {
     )
   }
 
+  const pickups = splitCartByPickup(cart.lines)
+
   return (
     <div className="space-y-6" data-testid="page-cart">
       <PageTitle>{t('cart.title')}</PageTitle>
@@ -178,23 +258,28 @@ export default function CartPage() {
       ) : (
         <>
           <div className="rounded-lg border border-border">
-            <Table>
+            {/* Fixed widths: the product name and its pickup breakdown would otherwise size the
+                column from their longest line and scroll the table sideways. Everything else is
+                a short number, so the product column takes whatever room is left. */}
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('cart.product')}</TableHead>
-                  <TableHead>{t('cart.quantity')}</TableHead>
-                  <TableHead>{t('cart.unitPrice')}</TableHead>
-                  <TableHead>{t('cart.lineTotal')}</TableHead>
-                  <TableHead className="w-0" />
+                  <TableHead className="w-44">{t('cart.quantity')}</TableHead>
+                  <TableHead className="w-28">{t('cart.unitPrice')}</TableHead>
+                  <TableHead className="w-32">{t('cart.lineTotal')}</TableHead>
+                  <TableHead className="w-14" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cart.lines.map((line) => (
-                  <CartLineRow key={line.id} line={line} />
+                {pickups.map((pickup) => (
+                  <CartLineRow key={pickup.line.id} pickup={pickup} />
                 ))}
               </TableBody>
             </Table>
           </div>
+
+          <PendingPickupNotice pickups={pickups} />
 
           <div className="flex items-center justify-between">
             <span className="text-lg font-bold" data-testid="cart-total">

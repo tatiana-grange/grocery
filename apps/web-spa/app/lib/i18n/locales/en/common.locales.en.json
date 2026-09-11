@@ -371,6 +371,13 @@
     "total": "Total",
     "signInToAdd": "Sign in to add to cart",
     "addToCart": "Add to cart",
+    "pickup": {
+      "now": "{{amount}} ready at the next distribution",
+      "later": "{{amount}} to be ordered for a later distribution",
+      "later_other": "{{amount}} to be ordered for a later distribution",
+      "summaryTitle": "What will not be at the next distribution",
+      "summaryNote": "These quantities will be ordered from the supplier and collected at a later distribution."
+    },
     "removeConfirm": {
       "title": "Remove this line?",
       "description": "This removes the product from your cart.",
