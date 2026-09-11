@@ -3,11 +3,11 @@ import { resolve } from 'node:path'
 import process from 'node:process'
 import lint from '@commitlint/lint'
 import load from '@commitlint/load'
-import type { QualifiedConfig } from '@commitlint/types'
-import { TYPES, WIP_TRAILING_PATTERNS, WIP_WORDS } from '../commitlint.config.ts'
+import type { LintOptions, QualifiedConfig } from '@commitlint/types'
+import { stripGitmoji, TYPES, WIP_TRAILING_PATTERNS, WIP_WORDS } from '../commitlint.config.ts'
 
 const TITLE_FIX =
-  'the title becomes the squash subject — write it as `type(scope): description`; valid scopes live in commitlint.config.ts'
+  'the title becomes the squash subject — write it as `type(scope): <gitmoji> description`; valid scopes and the gitmoji per type live in commitlint.config.ts'
 
 const DESCRIPTION_FIX =
   'the description becomes the commit body verbatim — rationale prose + valid conventional paragraphs only; move screenshots/checklists to comments'
@@ -63,7 +63,8 @@ function isConventionalParagraph(paragraph: string): boolean {
 }
 
 function getSubjectDescription(header: string): string {
-  return header.replace(/^[a-z]+(?:\([^)]+\))?!?:\s*/u, '').trim()
+  const subject = header.replace(/^[a-z]+(?:\([^)]+\))?!?:\s*/u, '').trim()
+  return stripGitmoji(subject)
 }
 
 function findWipHits(text: string): string[] {
@@ -134,15 +135,19 @@ function readPullRequest(eventPath: string): PullRequestPayload {
   return event.pull_request
 }
 
-function getLintOptions(config: QualifiedConfig): { parserOpts?: object } {
+function getLintOptions(config: QualifiedConfig): LintOptions {
+  // `plugins` carries the implementation of the repo's custom rules
+  // (`subject-gitmoji`). Without it, lint throws on a rule it cannot resolve.
+  const options: LintOptions = { plugins: config.plugins }
+
   const parserOpts = config.parserPreset?.parserOpts
   if (parserOpts === undefined || parserOpts === null) {
-    return {}
+    return options
   }
   if (typeof parserOpts !== 'object') {
-    return {}
+    return options
   }
-  return { parserOpts }
+  return { ...options, parserOpts }
 }
 
 async function lintCommitMessage(
@@ -182,7 +187,7 @@ async function collectIssues(
   if (containsBreakingChangeToken(title) || containsBreakingChangeToken(body)) {
     issues.push({
       prompt:
-        'Never write the token `BREAKING-CHANGE:` unless you intend to force a major release. If you do, use `type(scope)!: description` in the title instead.',
+        'Never write the token `BREAKING-CHANGE:` unless you intend to force a major release. If you do, use `type(scope)!: <gitmoji> description` in the title instead.',
       details: [`found ${BREAKING_CHANGE_TOKEN}`],
     })
   }

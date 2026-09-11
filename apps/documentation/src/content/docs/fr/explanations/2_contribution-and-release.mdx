@@ -25,18 +25,18 @@ Pierrick développe la révocation de session sur une branche tirée de `staging
 
 ```mermaid
 gitGraph
-  commit id: "chore: release 1.2.0" tag: "v1.2.0"
+  commit id: "chore(ci): 🔧 release 1.2.0" tag: "v1.2.0"
   branch feat/session-revocation
   checkout feat/session-revocation
-  commit id: "feat(auth): wip revocation endpoint"
-  commit id: "fix(auth): typo in guard"
-  commit id: "feat(auth): wire into session service"
-  commit id: "test(auth): revocation e2e"
+  commit id: "feat(auth): ✨ wip revocation endpoint"
+  commit id: "fix(auth): 🐛 typo in guard"
+  commit id: "feat(auth): ✨ wire into session service"
+  commit id: "test(auth): ✅ revocation e2e"
 ```
 
 ### Mardi — Pierrick merge
 
-Le titre de la PR est `feat(auth): add session revocation endpoint` — la CI a vérifié que c'est un en-tête conventionnel valide, car ce titre est sur le point de devenir permanent. Quand la PR est prête, Pierrick dit à son agent « finalise cette PR ». L'agent — en suivant le skill `finalize-pr`, sur la machine de Pierrick — lit le diff complet et rédige la **description de la PR** comme futur corps du commit : un court paragraphe sur le *pourquoi* la révocation utilise des vérifications de type tombstone plutôt que des suppressions de session. Rien d'autre — pas de captures d'écran, pas de checklist ; les échanges de review vivent dans les commentaires. Un check CI valide la description et passe au vert.
+Le titre de la PR est `feat(auth): ✨ add session revocation endpoint` — la CI a vérifié que c'est un en-tête conventionnel valide, car ce titre est sur le point de devenir permanent. Quand la PR est prête, Pierrick dit à son agent « finalise cette PR ». L'agent — en suivant le skill `finalize-pr`, sur la machine de Pierrick — lit le diff complet et rédige la **description de la PR** comme futur corps du commit : un court paragraphe sur le *pourquoi* la révocation utilise des vérifications de type tombstone plutôt que des suppressions de session. Rien d'autre — pas de captures d'écran, pas de checklist ; les échanges de review vivent dans les commentaires. Un check CI valide la description et passe au vert.
 
 Ensuite, n'importe qui peut merger, depuis n'importe où — dans `staging`. Le dépôt est configuré pour que le message du commit de squash soit *toujours* « titre de la PR + description de la PR » — le bouton de merge GitHub, `gh` et l'auto-merge produisent tous le même commit soigné. Il n'y a aucun message à composer au moment du merge, donc aucun moyen de le rater. Pierrick clique sur le bouton. La branche meurt. Les quatre sujets WIP ne suivent **pas** — « wip endpoint » et « typo in guard » n'apprennent rien à un futur lecteur que le diff et la justification ne disent déjà.
 
@@ -44,8 +44,8 @@ Ensuite, n'importe qui peut merger, depuis n'importe où — dans `staging`. Le 
 
 ```mermaid
 gitGraph
-  commit id: "chore: release 1.2.0" tag: "v1.2.0"
-  commit id: "feat(auth): add session revocation endpoint (#142)"
+  commit id: "chore(ci): 🔧 release 1.2.0" tag: "v1.2.0"
+  commit id: "feat(auth): ✨ add session revocation endpoint (#142)"
 ```
 
 La Release PR ne bouge pas encore — release-please surveille `main`, et ce commit est encore sur `staging`. Il atteint `main` à la prochaine promotion (voir Vendredi), et c'est seulement là que la Release PR le prend en compte.
@@ -57,12 +57,12 @@ Nicolas livre la génération de miniatures. Pendant ses tests, il a aussi corri
 Le message du commit de squash ressemble à ceci (abrégé) :
 
 ```
-feat(storage): add image thumbnail generation (#147)
+feat(storage): ✨ add image thumbnail generation (#147)
 
 Thumbnails are generated at upload time rather than on-the-fly because
 the S3 bucket is not fronted by a CDN yet; …
 
-fix(api): correct off-by-one in list endpoint pagination
+fix(api): 🐛 correct off-by-one in list endpoint pagination
 ```
 
 Son commit de squash atterrit sur `staging` lui aussi. Deux commits de fonctionnalité sont maintenant sur `staging`, en avance sur `main`.
@@ -79,10 +79,10 @@ Release-please pose le tag `v1.3.0`, crée la GitHub Release (son corps est un m
 
 ```mermaid
 gitGraph
-  commit id: "chore: release 1.2.0" tag: "v1.2.0"
-  commit id: "feat(auth): session revocation (#142)"
-  commit id: "feat(storage): thumbnails (#147)"
-  commit id: "chore: release 1.3.0" tag: "v1.3.0"
+  commit id: "chore(ci): 🔧 release 1.2.0" tag: "v1.2.0"
+  commit id: "feat(auth): ✨ session revocation (#142)"
+  commit id: "feat(storage): ✨ thumbnails (#147)"
+  commit id: "chore(ci): 🔧 release 1.3.0" tag: "v1.3.0"
 ```
 
 Total du contenu écrit à la main sur tout le cycle : deux corps de squash et une note de release. Tout le reste — numéro de version, changelog, tag, GitHub Release, images, déploiements — a été dérivé. Et chaque « pourquoi » est à un `git show` de distance, pour toujours.
@@ -110,7 +110,7 @@ La justification est écrite **une seule fois**, dans le corps du commit. Le cha
 release-please analyse le message du commit de squash avec des règles précises. Les connaître explique plusieurs de nos conventions :
 
 - La **ligne de sujet** est analysée comme un commit conventionnel : une entrée de changelog, comptée dans le calcul de version.
-- Un **paragraphe du corps qui commence sans puce, après une ligne vide, par un type standard** (`fix(api): …`) est analysé comme un changement *supplémentaire* : sa propre ligne de changelog, comptée dans la version. C'est ainsi qu'une PR déclare deux changements.
+- Un **paragraphe du corps qui commence sans puce, après une ligne vide, par un type standard** (`fix(api): 🐛 …`) est analysé comme un changement *supplémentaire* : sa propre ligne de changelog, comptée dans la version. C'est ainsi qu'une PR déclare deux changements.
 - **Les lignes à puces (`* fix: typo`) ne matchent jamais.** Si la liste de commits auto-générée par GitHub se glisse un jour dans un merge, elle est invisible pour le parseur — un problème d'hygiène, pas un incident de versionnement.
 - Le token `BREAKING-CHANGE:` matche **n'importe où** dans le corps, même au milieu d'une phrase, et force une release majeure. C'est pourquoi nos règles d'agents toujours actives en avertissent : c'est une syntaxe valide qu'aucun linter ne peut distinguer de la prose.
 
@@ -140,6 +140,12 @@ Nous utilisons les types standards de Conventional Commits (`feat`, `fix`, `docs
 
 Les **scopes** des commits sont les domaines du projet, définis une seule fois dans `commitlint.config.ts`. Tout le reste (docs, skills, workflows) pointe vers ce fichier et ne recopie jamais la liste, parce que deux copies dérivent. Un projet consommateur personnalise ses scopes en éditant ce seul tableau.
 
+### Pourquoi le gitmoji se place après les deux-points
+
+Chaque sujet commence par un emoji, fixé par type (`feat(api): ✨ …`). C'est une aide à la lecture dans `git log` et dans le changelog, rien de plus. Comme la table associe exactement un emoji à chaque type, il n'y a rien à choisir ni à mémoriser — commitlint nomme le bon quand il manque.
+
+Il doit se placer **après** les deux-points. Conventional Commits impose le type en premier, et le parseur de release-please est strict là-dessus : un en-tête qui commence par un emoji, ou qui remplace le type par un emoji, ne s'analyse pas du tout. Le commit disparaîtrait alors du changelog et du calcul de version en silence — aucune erreur, juste une release qui oublie une fonctionnalité. Après les deux-points, l'emoji fait partie du sujet, qu'aucun parseur n'inspecte.
+
 ### Pourquoi nous laissons un outil écrire le changelog
 
 Nous interdisions les changelogs générés. Cette règle date d'avant les commits écrits par agents : à l'époque, générer voulait dire compiler des sujets WIP brouillons en bruit. Avec des messages de squash soignés, le changelog généré *est* l'inventaire soigné — la granularité est décidée par l'auteur (un paragraphe par changement) et les raisons vivent dans les corps de commits, à un lien de distance. Les deux arguments pour la curation manuelle ont disparu, la règle aussi.
@@ -150,7 +156,7 @@ Par défaut, release-please ne met à jour la Release PR que si le changelog gé
 
 Ce défaut est correct pour une PR qui n'est qu'un bump de version généré. La nôtre est aussi une branche de travail (promouvoir les intentions, mettre à jour la version d'exemple). Elle doit rester au-dessus de `main`. `always-update` est l'option officielle pour ça : chaque push rebase la PR. Le coût est un force-push, donc les commits extra sur la Release PR disparaissent quand `main` avance. Promouvoir en dernier ; merger avant le push suivant. Voir le [runbook du mainteneur de release](https://github.com/lonestone/grocery/blob/main/.boilerstone/docs/release-maintainer-runbook.md#working-the-release-pr).
 
-La même config fixe le titre de la Release PR à `chore(ci): release X.Y.Z`. Le titre par défaut utilise le nom de branche comme scope (`chore(main): …`), qui n'est pas un domaine dans `commitlint.config.ts`, donc le lint de PR bloquerait le merge.
+La même config fixe le titre de la Release PR à `chore(ci): 🔧 release X.Y.Z`. Le titre par défaut utilise le nom de branche comme scope (`chore(main): …`), qui n'est pas un domaine dans `commitlint.config.ts`, donc le lint de PR bloquerait le merge.
 
 ### Pourquoi les notes de release vivent dans l'app de documentation
 

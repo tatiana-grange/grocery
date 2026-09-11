@@ -24,10 +24,15 @@ defaults that are easy to miss.
 
 ## Commits
 
-- Format: `type(scope): subject`, Conventional Commits 1.0.0. A lefthook + commitlint
-  hook checks the message.
-- `type` and `scope` must be values from `commitlint.config.ts`. Do not copy the lists
-  into prose — point at that file. **The scope is required** (`scope-empty: never`).
+- Format: `type(scope): <gitmoji> subject`, Conventional Commits 1.0.0 plus one gitmoji.
+  Example: `feat(api): ✨ add a per-product quantity step`. A lefthook + commitlint hook
+  checks the message.
+- `type` and `scope` must be values from `commitlint.config.ts`. Each type has exactly one
+  emoji, in the same file. Do not copy the lists into prose — point at that file.
+  **The scope is required** (`scope-empty: never`).
+- The emoji goes **after the colon**, never before the type and never instead of it. A
+  header that opens with an emoji no longer parses as a conventional commit, and
+  release-please silently drops it from the changelog and the version math.
 - The subject says what changed. Write a **body** that says why — the approach, what you
   rejected, the constraint that drove it — whenever the commit makes a decision.
 - WIP / half-step commits on your own branch may use loose subjects; they die at squash.
@@ -35,7 +40,7 @@ defaults that are easy to miss.
   line. The project constitution forbids it. If a global setting adds one, strip it from
   the message.
 - Never write the token `BREAKING-CHANGE:` unless you intend to force a major release.
-  For an intentional major, use `type(scope)!: subject` instead.
+  For an intentional major, use `type(scope)!: <gitmoji> subject` instead.
 
 ## Pull requests
 
@@ -43,7 +48,8 @@ defaults that are easy to miss.
 - The repo squash-merges every feature PR and the squash commit is **the PR title plus the
   PR description**, verbatim. So the title and description are the future git history and
   the changelog source.
-- Title: `type(scope): description` with a valid scope. CI lints it on every update.
+- Title: `type(scope): <gitmoji> description` with a valid scope and the emoji of its type.
+  CI lints it on every update.
 - Description when ready to merge: rationale prose first (why this approach), then one
   unbulleted conventional paragraph per extra consumer-visible change. Screenshots,
   checklists, and review chatter go in comments, never the description.

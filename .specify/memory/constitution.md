@@ -169,8 +169,8 @@ credit notes, and a distribution screen that must be fast and tolerant of a flak
 - Feature work uses the Spec-Driven flow: `/speckit.specify` → `/speckit.plan` →
   `/speckit.tasks` → `/speckit.implement`, with specs under `specs/<feature-name>/`.
 - Project documentation lives in `apps/documentation/`, never in a side `docs/` folder.
-- Commits and pull requests follow `CONTRIBUTING.md`: Conventional Commits, valid
-  type/scope from `commitlint.config.ts`, squash merge where the PR title and description
+- Commits and pull requests follow `CONTRIBUTING.md`: Conventional Commits with the
+  gitmoji of their type after the colon, valid type/scope/emoji from `commitlint.config.ts`, squash merge where the PR title and description
   become the commit. Never write `BREAKING-CHANGE:` unless a major release is intended.
   Do not co-author commits with Claude.
 - Branch flow: cut feature branches from `staging`, open every feature pull request against

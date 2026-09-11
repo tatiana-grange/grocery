@@ -10,8 +10,10 @@ Key rules:
 - Open every feature pull request against `staging`, never `main`. `main` advances only
   through the non-squash promotion PR (`staging` → `main`), and through the release-please
   Release PR, which is machine-generated — you do not open PRs against `main` yourself.
-- Commit messages: Conventional Commits `type(scope): subject`. The type and scope must be
-  valid values from `commitlint.config.ts`; the scope is required. Write a body that says
+- Commit messages: Conventional Commits plus a gitmoji, `type(scope): <gitmoji> subject`
+  (`feat(api): ✨ add a quantity step`). The type, the scope, and the emoji for that type
+  must be valid values from `commitlint.config.ts`; the scope is required. The emoji goes
+  after the colon, never before the type. Write a body that says
   why (approach, what was rejected, the constraint) whenever the commit makes a decision.
 - Do NOT co-author commits with Claude. No `Co-Authored-By:` line, no attribution trailer.
   The project constitution forbids it.

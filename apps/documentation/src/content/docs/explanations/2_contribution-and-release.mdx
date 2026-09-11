@@ -25,18 +25,18 @@ Pierrick builds session revocation on a branch cut from `staging`. He commits as
 
 ```mermaid
 gitGraph
-  commit id: "chore: release 1.2.0" tag: "v1.2.0"
+  commit id: "chore(ci): 🔧 release 1.2.0" tag: "v1.2.0"
   branch feat/session-revocation
   checkout feat/session-revocation
-  commit id: "feat(auth): wip revocation endpoint"
-  commit id: "fix(auth): typo in guard"
-  commit id: "feat(auth): wire into session service"
-  commit id: "test(auth): revocation e2e"
+  commit id: "feat(auth): ✨ wip revocation endpoint"
+  commit id: "fix(auth): 🐛 typo in guard"
+  commit id: "feat(auth): ✨ wire into session service"
+  commit id: "test(auth): ✅ revocation e2e"
 ```
 
 ### Tuesday — Pierrick merges
 
-The PR title is `feat(auth): add session revocation endpoint` — CI checked that it is a valid conventional header, because this title is about to become permanent. When the PR is ready, Pierrick tells his agent "finalize this PR". The agent — following the `finalize-pr` skill, on Pierrick's machine — reads the full diff and writes the **PR description** as the future commit body: a short paragraph on *why* revocation uses tombstone checks instead of session deletes. Nothing else — no screenshots, no checklist; review chatter lives in comments. A CI check lints the description and goes green.
+The PR title is `feat(auth): ✨ add session revocation endpoint` — CI checked that it is a valid conventional header, because this title is about to become permanent. When the PR is ready, Pierrick tells his agent "finalize this PR". The agent — following the `finalize-pr` skill, on Pierrick's machine — reads the full diff and writes the **PR description** as the future commit body: a short paragraph on *why* revocation uses tombstone checks instead of session deletes. Nothing else — no screenshots, no checklist; review chatter lives in comments. A CI check lints the description and goes green.
 
 Then anyone can merge, from anywhere — into `staging`. The repository is configured so the squash commit message is *always* "PR title + PR description" — the GitHub merge button, `gh`, and auto-merge all produce the same curated commit. There is no message to compose at merge time, so there is no way to fumble it. Pierrick clicks the button. The branch dies. The four WIP subjects do **not** ride along — "wip endpoint" and "typo in guard" tell a future reader nothing the diff and the rationale don't.
 
@@ -44,8 +44,8 @@ Then anyone can merge, from anywhere — into `staging`. The repository is confi
 
 ```mermaid
 gitGraph
-  commit id: "chore: release 1.2.0" tag: "v1.2.0"
-  commit id: "feat(auth): add session revocation endpoint (#142)"
+  commit id: "chore(ci): 🔧 release 1.2.0" tag: "v1.2.0"
+  commit id: "feat(auth): ✨ add session revocation endpoint (#142)"
 ```
 
 The Release PR does not move yet — release-please watches `main`, and this commit is still on `staging`. It reaches `main` at the next promotion (see Friday), and only then does the Release PR pick it up.
@@ -57,12 +57,12 @@ Nicolas ships thumbnail generation. While testing, he also fixed a real paginati
 The squash commit message looks like this (abbreviated):
 
 ```
-feat(storage): add image thumbnail generation (#147)
+feat(storage): ✨ add image thumbnail generation (#147)
 
 Thumbnails are generated at upload time rather than on-the-fly because
 the S3 bucket is not fronted by a CDN yet; …
 
-fix(api): correct off-by-one in list endpoint pagination
+fix(api): 🐛 correct off-by-one in list endpoint pagination
 ```
 
 His squash commit lands on `staging` too. Two feature commits now sit on `staging`, ahead of `main`.
@@ -79,10 +79,10 @@ Release-please tags `v1.3.0`, creates the GitHub Release (its body mirrored from
 
 ```mermaid
 gitGraph
-  commit id: "chore: release 1.2.0" tag: "v1.2.0"
-  commit id: "feat(auth): session revocation (#142)"
-  commit id: "feat(storage): thumbnails (#147)"
-  commit id: "chore: release 1.3.0" tag: "v1.3.0"
+  commit id: "chore(ci): 🔧 release 1.2.0" tag: "v1.2.0"
+  commit id: "feat(auth): ✨ session revocation (#142)"
+  commit id: "feat(storage): ✨ thumbnails (#147)"
+  commit id: "chore(ci): 🔧 release 1.3.0" tag: "v1.3.0"
 ```
 
 Total hand-written material for the whole cycle: two squash bodies and one release note. Everything else — version number, changelog, tag, GitHub Release, images, deploys — was derived. And every "why" is one `git show` away, forever.
@@ -110,7 +110,7 @@ The rationale is written **once**, in the commit body. The changelog does not co
 release-please parses the squash commit message with precise rules. Knowing them explains several of our conventions:
 
 - The **subject line** is parsed as a conventional commit: one changelog entry, counted in the version math.
-- A body **paragraph that starts unbulleted, after a blank line, with a standard type** (`fix(api): …`) is parsed as an *additional* change: its own changelog line, counted in the version. That is how one PR declares two changes.
+- A body **paragraph that starts unbulleted, after a blank line, with a standard type** (`fix(api): 🐛 …`) is parsed as an *additional* change: its own changelog line, counted in the version. That is how one PR declares two changes.
 - **Bulleted lines (`* fix: typo`) never match.** If GitHub's auto-generated commit list ever slips into a merge, it is invisible to the parser — a hygiene problem, not a versioning incident.
 - The token `BREAKING-CHANGE:` matches **anywhere** in the body, even mid-sentence, and forces a major release. That is why our always-on agent rules warn about it: it is valid syntax that no linter can distinguish from prose.
 
@@ -140,6 +140,12 @@ We use the standard Conventional Commits types (`feat`, `fix`, `docs`, `refactor
 
 Commit **scopes** are the project's domains, defined once in `commitlint.config.ts`. Everything else (docs, skills, workflows) points to that file and never restates the list, because two copies drift. A consumer project personalizes its scopes by editing that one array.
 
+### Why the gitmoji sits after the colon
+
+Every subject opens with one emoji, fixed per type (`feat(api): ✨ …`). It is a scanning aid in `git log` and in the changelog, nothing more. Because the table maps exactly one emoji to each type, there is nothing to pick and nothing to memorize — commitlint names the right one when it is missing.
+
+It has to sit **after** the colon. Conventional Commits puts the type first and release-please's parser is strict about it: a header that opens with an emoji, or that replaces the type with one, does not parse at all. The commit would then drop out of the changelog and out of the version math in silence — no error, just a release that forgets a feature. After the colon, the emoji is part of the subject, which no parser inspects.
+
 ### Why we let a tool write the changelog
 
 We used to forbid generated changelogs. That rule predates agent-written commits: back then, generation meant compiling messy WIP subjects into noise. With curated squash messages, the generated changelog *is* the curated inventory — the granularity is decided by the author (one paragraph per change) and the reasons live in commit bodies, one link away. The two arguments for hand-curation disappeared, so the rule did too.
@@ -150,7 +156,7 @@ release-please's default is to update the Release PR only when the generated cha
 
 That default is correct for a PR that is only a generated version bump. Ours is also a working branch (promote intentions, bump the example version). It has to stay on top of `main`. `always-update` is the first-party switch for that: every push rebases the PR. The cost is a force-push, so extra commits on the Release PR are dropped when `main` moves. Promote last; merge before the next push. See the [release maintainer runbook](https://github.com/lonestone/grocery/blob/main/.boilerstone/docs/release-maintainer-runbook.md#working-the-release-pr).
 
-The same config sets the Release PR title to `chore(ci): release X.Y.Z`. The default title uses the branch name as scope (`chore(main): …`), which is not a domain in `commitlint.config.ts`, so PR lint would block the merge.
+The same config sets the Release PR title to `chore(ci): 🔧 release X.Y.Z`. The default title uses the branch name as scope (`chore(main): …`), which is not a domain in `commitlint.config.ts`, so PR lint would block the merge.
 
 ### Why release notes live in the docs app
 

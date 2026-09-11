@@ -14,7 +14,7 @@ You run on the author's machine. CI only checks. You compose nothing server-side
 1. There is an open pull request for the current branch (`gh pr view`). It targets `staging`
    (see `git-workflow`). The `staging` → `main` promotion PR is a separate step and is never
    finalized this way — its commits are already curated.
-2. Read `CONTRIBUTING.md` and `commitlint.config.ts` (types and scopes). Do not guess scopes.
+2. Read `CONTRIBUTING.md` and `commitlint.config.ts` (types, scopes, and the gitmoji per type). Do not guess scopes or emoji.
 3. **Never merge** the pull request. Finalization ends at `gh pr edit`. Merging afterwards is a human step, from any path (UI, `gh`, auto-merge).
 4. **Intention-or-label** (boilerplate producer only). If `.boilerstone/migration-intentions/` exists, this PR must either add a file under `.boilerstone/migration-intentions/unreleased/` (not the README) or carry the `no-intention` label. Check with `gh pr view --json labels,files`. If neither is present, stop: tell the user to write an intention (the `boilerstone-intention` skill) or apply the label. Do not invent the intention content without asking.
 
@@ -24,12 +24,12 @@ Run the transformation in `CONTRIBUTING.md` (messy WIP commits → one curated s
 
 1. Read the **full diff** (`gh pr diff`), not the WIP commit subjects. Subjects under-describe the result.
 2. Decide the consumer-visible changes this PR lands. One primary change = the title. Each additional one = one unbulleted conventional paragraph in the description. Drop the rest of the WIP history — "wip", "fmt", tests-only, and fix-of-the-fix subjects do not ride along.
-3. Set the **title** to a valid conventional header with a valid scope from `commitlint.config.ts`.
+3. Set the **title** to a valid conventional header with a valid scope from `commitlint.config.ts`, and the gitmoji of its type after the colon (`feat(api): ✨ description`).
 4. Write the **description** as the future commit body:
    - Rationale prose first: why this approach, what was rejected. Distill WIP commit *bodies* by judgment; do not concatenate subjects.
-   - Then, after a blank line, one unbulleted conventional paragraph per extra consumer-visible change (`fix(api): …`).
+   - Then, after a blank line, one unbulleted conventional paragraph per extra consumer-visible change (`fix(api): 🐛 …`), each one carrying its own gitmoji.
    - No screenshots, checklists, or review chatter (those stay in comments).
-5. Scan the title and description for accidental `BREAKING-CHANGE:`. Never write that token unless the user intends to force a major. Prefer `type(scope)!:` in the title for an intentional major.
+5. Scan the title and description for accidental `BREAKING-CHANGE:`. Never write that token unless the user intends to force a major. Prefer `type(scope)!: <gitmoji>` in the title for an intentional major.
 6. Apply both with `gh pr edit --title "..." --body "..."`.
 
 Wait for the **PR lint** check. If it fails, the error is the fix — edit and retry.
@@ -37,5 +37,5 @@ Wait for the **PR lint** check. If it fails, the error is the fix — edit and r
 ## Guardrails
 
 - Do not copy WIP subjects into the description.
-- Do not restate the type or scope lists; they live in `commitlint.config.ts`.
+- Do not restate the type, scope, or gitmoji tables; they live in `commitlint.config.ts`.
 - Do not merge. Do not enable auto-merge unless the user explicitly asks, and even then they click merge.

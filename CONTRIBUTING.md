@@ -2,17 +2,28 @@
 
 This file is the source of truth for how we commit and how we merge. Read it before you commit or open a pull request.
 
-Valid types and scopes live in [`commitlint.config.ts`](./commitlint.config.ts). Point to that file. Never copy the lists into docs, skills, or workflows.
+Valid types, scopes, and the gitmoji that goes with each type live in [`commitlint.config.ts`](./commitlint.config.ts). Point to that file. Never copy the lists into docs, skills, or workflows.
 
 ## Commits
 
-We follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). Every message looks like `type(scope): description`. A local git hook (lefthook) runs commitlint on the message. If it fails, the error tells you which rule broke; the allowed values are in `commitlint.config.ts`.
+We follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/), with a gitmoji. Every message looks like `type(scope): <gitmoji> description`:
 
-**WIP commits on your branch only need that format.** Half-steps, typo fixes, and "wip" subjects are fine. They will never land on `staging` or `main` as commits. We squash. Their messages die with them unless you deliberately promote the *content* into the pull request description.
+```
+feat(api): ✨ add a per-product quantity step
+fix(frontend): 🐛 correct the cart badge count
+```
+
+Each type has exactly one emoji, so there is nothing to choose. The table is in `commitlint.config.ts` next to the type list.
+
+**The emoji goes after the colon, never before the type and never instead of it.** A header that opens with an emoji stops being a Conventional Commit: release-please would no longer see the type, so the commit would drop out of the changelog and out of the version math without any error. After the colon it is just part of the subject, and everything keeps parsing.
+
+A local git hook (lefthook) runs commitlint on the message. If it fails, the error tells you which rule broke and what to write instead; the allowed values are in `commitlint.config.ts`.
+
+**WIP commits on your branch only need that format**, emoji included. Half-steps, typo fixes, and "wip" subjects are fine. They will never land on `staging` or `main` as commits. We squash. Their messages die with them unless you deliberately promote the *content* into the pull request description.
 
 The subject says what changed. The **body** says why: the approach you took, what you rejected, and the constraint that drove it. Write a body whenever the commit makes a decision.
 
-Never write the token `BREAKING-CHANGE:` unless you intend to force a major release. Release tooling matches that token anywhere in the message, even mid-sentence. If you do mean a major, use `type(scope)!: description` in the subject instead.
+Never write the token `BREAKING-CHANGE:` unless you intend to force a major release. Release tooling matches that token anywhere in the message, even mid-sentence. If you do mean a major, use `type(scope)!: <gitmoji> description` in the subject instead.
 
 ## Branches
 
@@ -33,7 +44,7 @@ Periodically — and always before cutting a release — open a promotion pull r
 
 - **Do not squash the promotion pull request.** Squashing it would collapse every feature into a single commit and release-please would lose the per-change granularity it needs for the changelog and the version math. Fast-forward `main` to `staging` (from the CLI: `git switch main && git merge --ff-only staging && git push`), or use "Rebase and merge" if you open it through the GitHub UI.
 - `staging` is only ever ahead of `main`, never diverged, so the fast-forward always applies. If they ever diverge, reconcile on `staging` first.
-- The promotion pull request needs no curated body — its commits are already curated. Give it a plain conventional title such as `chore(ci): promote staging to main`.
+- The promotion pull request needs no curated body — its commits are already curated. Give it a plain conventional title such as `chore(ci): 🔧 promote staging to main`.
 
 `CHANGELOG.md` is generated from the feature commits once they reach `main`. Do not edit it by hand.
 
@@ -41,14 +52,14 @@ That makes the title and description the future history. Reviewers: read them as
 
 ### Title
 
-The title becomes the squash subject. Write it as `type(scope): description`, with a scope from `commitlint.config.ts`. Keep it accurate from the first draft. CI lints it on every update, including drafts.
+The title becomes the squash subject. Write it as `type(scope): <gitmoji> description`, with a scope and an emoji from `commitlint.config.ts`. Keep it accurate from the first draft. CI lints it on every update, including drafts.
 
 ### Description
 
 The description becomes the commit body, copied verbatim. When the pull request is ready to merge it must contain only:
 
 1. **Rationale prose** — why this approach, what you rejected, what constraint drove it. Distill this from WIP commit bodies; do not concatenate them.
-2. **One paragraph per additional consumer-visible change.** After a blank line, no bullet, written as a conventional header, for example `fix(api): correct off-by-one in list pagination`. Each one becomes its own changelog line and counts in the version. Use a valid type and scope from `commitlint.config.ts`.
+2. **One paragraph per additional consumer-visible change.** After a blank line, no bullet, written as a conventional header, gitmoji included, for example `fix(api): 🐛 correct off-by-one in list pagination`. Each one becomes its own changelog line and counts in the version. Use a valid type and scope from `commitlint.config.ts`.
 
 Drop the rest of the WIP history. Subjects like "wip endpoint" or "fmt" describe the journey. The journey is over. The diff and the rationale describe the result.
 

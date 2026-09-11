@@ -153,7 +153,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    **b) THEN create the git commit** - Group all phase work into a single commit:
    - Stage all modified/created files for the phase
    - Include the updated CHANGELOG.md and tasks.md in the commit
-   - Use conventional commit format with appropriate emoji (✨ for features, 🔧 for config, etc.)
+   - Use the project's commit format, `type(scope): <gitmoji> subject`. The emoji of each type is in `commitlint.config.ts`; do not pick your own.
    
    **⛔ STOP: Do NOT start the next phase until the commit is created.**
    
