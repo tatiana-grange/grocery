@@ -268,6 +268,10 @@ export const shopCatalogControllerListProducts = <ThrowOnError extends boolean =
 
 export const shopCatalogControllerGetProduct = <ThrowOnError extends boolean = false>(options: Options<ShopCatalogControllerGetProductData, ThrowOnError>) => (options.client ?? client).get<ShopCatalogControllerGetProductResponses, unknown, ThrowOnError>({ url: '/api/shop/products/{id}', ...options });
 
+export const inventoryControllerList = <ThrowOnError extends boolean = false>(options: Options<InventoryControllerListData, ThrowOnError>) => (options.client ?? client).get<InventoryControllerListResponses, unknown, ThrowOnError>({ url: '/api/admin/inventory/stock', ...options });
+
+export const inventoryControllerDetail = <ThrowOnError extends boolean = false>(options: Options<InventoryControllerDetailData, ThrowOnError>) => (options.client ?? client).get<InventoryControllerDetailResponses, unknown, ThrowOnError>({ url: '/api/admin/inventory/products/{productId}/stock', ...options });
+
 export const cartControllerGetCart = <ThrowOnError extends boolean = false>(options?: Options<CartControllerGetCartData, ThrowOnError>) => (options?.client ?? client).get<CartControllerGetCartResponses, unknown, ThrowOnError>({ url: '/api/cart', ...options });
 
 export const cartControllerAddLine = <ThrowOnError extends boolean = false>(options: Options<CartControllerAddLineData, ThrowOnError>) => (options.client ?? client).post<CartControllerAddLineResponses, unknown, ThrowOnError>({
@@ -291,10 +295,6 @@ export const cartControllerUpdateLine = <ThrowOnError extends boolean = false>(o
 });
 
 export const cartControllerCheckout = <ThrowOnError extends boolean = false>(options?: Options<CartControllerCheckoutData, ThrowOnError>) => (options?.client ?? client).post<CartControllerCheckoutResponses, unknown, ThrowOnError>({ url: '/api/cart/checkout', ...options });
-
-export const inventoryControllerList = <ThrowOnError extends boolean = false>(options: Options<InventoryControllerListData, ThrowOnError>) => (options.client ?? client).get<InventoryControllerListResponses, unknown, ThrowOnError>({ url: '/api/admin/inventory/stock', ...options });
-
-export const inventoryControllerDetail = <ThrowOnError extends boolean = false>(options: Options<InventoryControllerDetailData, ThrowOnError>) => (options.client ?? client).get<InventoryControllerDetailResponses, unknown, ThrowOnError>({ url: '/api/admin/inventory/products/{productId}/stock', ...options });
 
 export const adminSupplierPurchasingControllerAggregate = <ThrowOnError extends boolean = false>(options: Options<AdminSupplierPurchasingControllerAggregateData, ThrowOnError>) => (options.client ?? client).post<AdminSupplierPurchasingControllerAggregateResponses, unknown, ThrowOnError>({ url: '/api/admin/suppliers/{supplierId}/purchasing/aggregate', ...options });
 

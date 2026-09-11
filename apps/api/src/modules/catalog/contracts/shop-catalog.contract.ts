@@ -52,6 +52,15 @@ export const shopProductSchema = z
     labels: z.array(productLabelSchema),
     currentPriceEur: z.number().positive(),
     orderingMode: productOrderingModeSchema,
+    /**
+     * What the last receptions put on the shelf, in the cart's own unit (whole pieces, or
+     * kilograms for a by-weight product). `0` covers both "never received" and "the ledger
+     * nets to nothing", which the shop treats the same way: it shows no stock line at all.
+     *
+     * Receptions are the only thing that writes to the stock ledger today, so this number
+     * never goes down when members order. Read it as "what arrived", not "what is left".
+     */
+    quantityOnHand: z.number().nonnegative(),
   })
   .meta({ title: 'ShopProduct', description: 'A product as shown in the public shop list' })
 

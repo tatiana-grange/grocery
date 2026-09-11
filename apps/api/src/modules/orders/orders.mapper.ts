@@ -27,7 +27,7 @@ export class OrdersMapper {
     return currentPrice(product)?.amountCents ?? 0
   }
 
-  toCartLine(line: CartLine): CartLineContract {
+  toCartLine(line: CartLine, quantityOnHand = 0): CartLineContract {
     const unitPriceCents = this.currentPriceCents(line.product)
     const quantity = Number(line.quantity)
     const { isValid, reasonCode } = checkLineValidity(line.product, line.orderingMode)
@@ -42,6 +42,7 @@ export class OrdersMapper {
         selectionUnit: selectionUnitFor(line.product),
         quantityStepGrams: quantityStepGramsFor(line.product),
         photos: line.product.photos,
+        quantityOnHand,
       },
       orderingMode: line.orderingMode,
       quantity,
@@ -52,9 +53,18 @@ export class OrdersMapper {
     }
   }
 
-  toCart(cart: Cart): CartContract {
+  /**
+   * `quantityOnHandByProduct` comes from the inventory ledger, which the cart controller reads
+   * — the same one-query-per-request shape the shop uses, rather than a lookup per line.
+   */
+  toCart(
+    cart: Cart,
+    quantityOnHandByProduct: ReadonlyMap<string, number> = new Map(),
+  ): CartContract {
     const lines = cart.lines.isInitialized() ? [...cart.lines.getItems()] : []
-    const mappedLines = lines.map((line) => this.toCartLine(line))
+    const mappedLines = lines.map((line) =>
+      this.toCartLine(line, quantityOnHandByProduct.get(line.product.id) ?? 0),
+    )
     const totalEur = mappedLines
       .filter((line) => line.isValid)
       .reduce((sum, line) => sum + line.lineTotalEur, 0)

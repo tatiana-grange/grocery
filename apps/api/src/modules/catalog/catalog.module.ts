@@ -1,5 +1,6 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
+import { InventoryModule } from '../inventory/inventory.module'
 import {
   AdminCategoriesController,
   AdminProducerCategoriesController,
@@ -27,6 +28,8 @@ import { ShopCatalogController } from './shop-catalog.controller'
       Referent,
       ProducerCategory,
     ]),
+    // The public shop shows each product's stock level, which lives in the inventory ledger.
+    InventoryModule,
   ],
   controllers: [
     AdminSuppliersController,

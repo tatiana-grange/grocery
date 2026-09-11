@@ -20,6 +20,12 @@ export const cartLineSchema = z
       /** +/- step of the quantity picker for a by-weight product, in grams. */
       quantityStepGrams: z.number().int().positive(),
       photos: z.array(z.string()),
+      /**
+       * What receptions put on the shelf, in the line's own unit — the same field the shop
+       * shows. The cart reads it to say which part of a line is there at the next
+       * distribution and which part waits for a delivery. `0` means nothing was received.
+       */
+      quantityOnHand: z.number().nonnegative(),
     }),
     orderingMode: orderingModeChoiceSchema,
     quantity: z.number().positive(),

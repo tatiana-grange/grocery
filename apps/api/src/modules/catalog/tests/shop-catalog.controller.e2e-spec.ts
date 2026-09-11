@@ -10,17 +10,20 @@ import {
   createSessionFromUser,
   type TestRequest,
 } from '../../../test/helpers/test-auth.helper'
+import { StockMovement } from '../../inventory/entities/stock-movement.entity'
 import { createMemberData } from '../../members/members.factory'
 import { CatalogModule } from '../catalog.module'
+import { Product } from '../entities/product.entity'
 
 describe('shopCatalogController (e2e)', () => {
   let request: TestRequest
   let admin: ReturnType<typeof createSessionFromUser>
+  let em: EntityManager
 
   beforeEach(async (context) => {
     const { orm, app } = await initializeTestApp({ orm: context.orm }, { imports: [CatalogModule] })
     context.app = app
-    const em: EntityManager = orm.em.fork()
+    em = orm.em.fork()
     request = createRequest(app)
     const { user } = await createMemberData(em, {
       user: { name: 'Admin', email: `admin-${Math.random().toString(36).slice(2)}@example.com` },
@@ -257,6 +260,46 @@ describe('shopCatalogController (e2e)', () => {
 
     const res = await request.get(`/shop/products/${product.id}`)
     expect(res.body).toMatchObject({ selectionUnit: 'g', quantityStepGrams: 250 })
+  })
+
+  /** Appends what a reception would, without going through the purchasing module. */
+  async function receive(productId: string, quantity: string, unitCostAmountCents = 420) {
+    const movement = new StockMovement()
+    movement.product = em.getReference(Product, productId)
+    movement.quantity = quantity
+    movement.unitCostAmountCents = unitCostAmountCents
+    await em.persist(movement).flush()
+  }
+
+  it('carries stock on hand to the shop, on the list and the detail, cost price on neither', async () => {
+    const { product } = await makeProduct({ name: 'Savonnette' })
+    await receive(product.id, '3')
+
+    const detail = await request.get(`/shop/products/${product.id}`)
+    expect(detail.status).toBe(200)
+    expect(detail.body).toMatchObject({ quantityOnHand: 3 })
+    expect(detail.body.costPriceEur).toBeUndefined()
+
+    const list = await request.get('/shop/products?filter=q:like:Savonnette')
+    expect(list.body.data[0]).toMatchObject({ id: product.id, quantityOnHand: 3 })
+    expect(list.body.data[0].costPriceEur).toBeUndefined()
+  })
+
+  it('reports a never-received product as zero on hand, not as missing', async () => {
+    const { product } = await makeProduct({ name: 'Jamaisrecu' })
+
+    const res = await request.get(`/shop/products/${product.id}`)
+    expect(res.status).toBe(200)
+    expect(res.body.quantityOnHand).toBe(0)
+  })
+
+  it('sums every movement of a product into one quantity on hand', async () => {
+    const { product } = await makeProduct({ name: 'Lessive' })
+    await receive(product.id, '2')
+    await receive(product.id, '5')
+
+    const res = await request.get(`/shop/products/${product.id}`)
+    expect(res.body.quantityOnHand).toBe(7)
   })
 
   it('404s on an archived or unknown product id', async () => {

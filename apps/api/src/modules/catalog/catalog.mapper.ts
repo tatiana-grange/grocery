@@ -210,7 +210,12 @@ export class CatalogMapper {
     }
   }
 
-  toShopProduct(product: Product): ShopProduct {
+  /**
+   * `quantityOnHand` is passed in rather than read here: the shop controller derives it from
+   * the inventory ledger. Only the quantity crosses over — the cost price sits next to it in
+   * `StockLevel` and must never reach a `@Public()` response.
+   */
+  toShopProduct(product: Product, quantityOnHand = 0): ShopProduct {
     return {
       id: product.id,
       name: product.name,
@@ -224,20 +229,26 @@ export class CatalogMapper {
       // Every product carries an open price from creation (see CatalogService.createProduct).
       currentPriceEur: this.currentPriceEur(product) ?? 0,
       orderingMode: product.orderingMode,
+      quantityOnHand,
     }
   }
 
-  toShopProductDetail(product: Product): ShopProductDetail {
+  toShopProductDetail(product: Product, quantityOnHand = 0): ShopProductDetail {
     return {
-      ...this.toShopProduct(product),
+      ...this.toShopProduct(product, quantityOnHand),
       description: product.description ?? null,
       barcode: product.barcode ?? null,
     }
   }
 
-  toShopProductsList({ products, total, pagination }: ProductsListResult): ShopProductsList {
+  toShopProductsList(
+    { products, total, pagination }: ProductsListResult,
+    quantityOnHandByProduct: ReadonlyMap<string, number> = new Map(),
+  ): ShopProductsList {
     return {
-      data: products.map((product) => this.toShopProduct(product)),
+      data: products.map((product) =>
+        this.toShopProduct(product, quantityOnHandByProduct.get(product.id) ?? 0),
+      ),
       meta: {
         itemCount: total,
         pageSize: pagination.pageSize,

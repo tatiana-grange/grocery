@@ -13,6 +13,7 @@ import {
 import { createProductData } from '../../catalog/catalog.factory'
 import { Product } from '../../catalog/entities/product.entity'
 import { CatalogModule } from '../../catalog/catalog.module'
+import { StockMovement } from '../../inventory/entities/stock-movement.entity'
 import { Member } from '../../members/entities/member.entity'
 import { createMemberData } from '../../members/members.factory'
 import { OrdersModule } from '../orders.module'
@@ -45,7 +46,39 @@ describe('ordersController (e2e)', () => {
     return product
   }
 
+  /** Appends what a reception would, without going through the purchasing module. */
+  async function receive(productId: string, quantity: string) {
+    const movement = new StockMovement()
+    movement.product = em.getReference(Product, productId)
+    movement.quantity = quantity
+    movement.unitCostAmountCents = 100
+    await em.persist(movement).flush()
+  }
+
   describe('GET /cart', () => {
+    it('carries each line product’s stock on hand, so the cart can split what is pickable now', async () => {
+      const stocked = await makeProduct({ name: 'Savonnette' })
+      const never = await makeProduct({ name: 'Jamaisrecu' })
+      await receive(stocked.id, '3')
+
+      for (const product of [stocked, never]) {
+        await request
+          .withSession(member)
+          .post('/cart/lines')
+          .send({ productId: product.id, orderingMode: 'in_store', quantity: 5 })
+      }
+
+      const res = await request.withSession(member).get('/cart')
+      const byName = new Map(
+        res.body.lines.map((line: { product: { name: string; quantityOnHand: number } }) => [
+          line.product.name,
+          line.product.quantityOnHand,
+        ]),
+      )
+      expect(byName.get('Savonnette')).toBe(3)
+      expect(byName.get('Jamaisrecu')).toBe(0)
+    })
+
     it('creates an empty cart on first read', async () => {
       const res = await request.withSession(member).get('/cart')
       expect(res.status).toBe(200)

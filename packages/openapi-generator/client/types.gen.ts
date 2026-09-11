@@ -331,6 +331,98 @@ export type RecordReception = {
 };
 
 /**
+ * StockList
+ *
+ * A paginated list of every product with its current stock level and cost price
+ */
+export type StockList = {
+    data: Array<StockSummary>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * StockSummary
+ */
+export type StockSummary = {
+    product: {
+        id: string;
+        name: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+    };
+    quantityOnHand: number;
+    costPriceEur?: number | null;
+};
+
+/**
+ * ProductSaleMode
+ *
+ * "unit" is sold per piece, "weight" is priced per kilogram
+ */
+export const ProductSaleMode = { UNIT: 'unit', WEIGHT: 'weight' } as const;
+
+/**
+ * ProductSaleMode
+ *
+ * "unit" is sold per piece, "weight" is priced per kilogram
+ */
+export type ProductSaleMode = typeof ProductSaleMode[keyof typeof ProductSaleMode];
+
+/**
+ * StockDetail
+ */
+export type StockDetail = {
+    product: {
+        id: string;
+        name: string;
+        saleMode: ProductSaleMode;
+    };
+    quantityOnHand: number;
+    costPriceEur?: number | null;
+    movements: Array<StockMovement>;
+};
+
+/**
+ * StockMovement
+ */
+export type StockMovement = {
+    id: string;
+    quantity: number;
+    unitCostEur: number;
+    /**
+     * StockMovementReason
+     *
+     * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+     */
+    reason: 'reception';
+    receptionLineId?: string | null;
+    createdAt: string;
+};
+
+/**
+ * StockMovementReason
+ *
+ * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ */
+export const StockMovementReason = { RECEPTION: 'reception' } as const;
+
+/**
+ * StockMovementReason
+ *
+ * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ */
+export type StockMovementReason = typeof StockMovementReason[keyof typeof StockMovementReason];
+
+/**
  * CatalogSuppliersList
  *
  * A paginated list of suppliers
@@ -498,20 +590,6 @@ export type CatalogProduct = {
     version: number;
     createdAt: string;
 };
-
-/**
- * ProductSaleMode
- *
- * "unit" is sold per piece, "weight" is priced per kilogram
- */
-export const ProductSaleMode = { UNIT: 'unit', WEIGHT: 'weight' } as const;
-
-/**
- * ProductSaleMode
- *
- * "unit" is sold per piece, "weight" is priced per kilogram
- */
-export type ProductSaleMode = typeof ProductSaleMode[keyof typeof ProductSaleMode];
 
 /**
  * ProductPricingUnit
@@ -686,6 +764,7 @@ export type ShopProduct = {
      * pre_order = ordered ahead from the producer for a future delivery; in_store = bought from what the cooperative currently has on the shelf; both = the member picks one when adding it to their cart
      */
     orderingMode: 'pre_order' | 'in_store' | 'both';
+    quantityOnHand: number;
 };
 
 /**
@@ -722,87 +801,10 @@ export type ShopProductDetail = {
     labels: Array<ProductLabel>;
     currentPriceEur: number;
     orderingMode: ProductOrderingMode;
+    quantityOnHand: number;
     description?: string | null;
     barcode?: string | null;
 };
-
-/**
- * StockList
- *
- * A paginated list of every product with its current stock level and cost price
- */
-export type StockList = {
-    data: Array<StockSummary>;
-    meta: {
-        offset: number;
-        pageSize: number;
-        itemCount: number;
-        hasMore: boolean;
-    };
-};
-
-/**
- * StockSummary
- */
-export type StockSummary = {
-    product: {
-        id: string;
-        name: string;
-        /**
-         * ProductSaleMode
-         *
-         * "unit" is sold per piece, "weight" is priced per kilogram
-         */
-        saleMode: 'unit' | 'weight';
-    };
-    quantityOnHand: number;
-    costPriceEur?: number | null;
-};
-
-/**
- * StockDetail
- */
-export type StockDetail = {
-    product: {
-        id: string;
-        name: string;
-        saleMode: ProductSaleMode;
-    };
-    quantityOnHand: number;
-    costPriceEur?: number | null;
-    movements: Array<StockMovement>;
-};
-
-/**
- * StockMovement
- */
-export type StockMovement = {
-    id: string;
-    quantity: number;
-    unitCostEur: number;
-    /**
-     * StockMovementReason
-     *
-     * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
-     */
-    reason: 'reception';
-    receptionLineId?: string | null;
-    createdAt: string;
-};
-
-/**
- * StockMovementReason
- *
- * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
- */
-export const StockMovementReason = { RECEPTION: 'reception' } as const;
-
-/**
- * StockMovementReason
- *
- * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
- */
-export type StockMovementReason = typeof StockMovementReason[keyof typeof StockMovementReason];
 
 /**
  * MembersList
@@ -1101,6 +1103,7 @@ export type CartLine = {
         selectionUnit: 'g' | 'kg';
         quantityStepGrams: number;
         photos: Array<string>;
+        quantityOnHand: number;
     };
     /**
      * OrderingModeChoice
@@ -2681,6 +2684,55 @@ export type ShopCatalogControllerGetProductResponses = {
 
 export type ShopCatalogControllerGetProductResponse = ShopCatalogControllerGetProductResponses[keyof ShopCatalogControllerGetProductResponses];
 
+export type InventoryControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: search, categoryId
+         */
+        filter?: InventoryControllerListFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/inventory/stock';
+};
+
+export type InventoryControllerListResponses = {
+    /**
+     * A paginated list of every product with its current stock level and cost price
+     */
+    200: StockList;
+};
+
+export type InventoryControllerListResponse = InventoryControllerListResponses[keyof InventoryControllerListResponses];
+
+export type InventoryControllerDetailData = {
+    body?: never;
+    path: {
+        productId: string;
+    };
+    query?: never;
+    url: '/api/admin/inventory/products/{productId}/stock';
+};
+
+export type InventoryControllerDetailResponses = {
+    /**
+     * Successful response
+     */
+    200: StockDetail;
+};
+
+export type InventoryControllerDetailResponse = InventoryControllerDetailResponses[keyof InventoryControllerDetailResponses];
+
 export type CartControllerGetCartData = {
     body?: never;
     path?: never;
@@ -2785,55 +2837,6 @@ export type CartControllerCheckoutResponses = {
 };
 
 export type CartControllerCheckoutResponse = CartControllerCheckoutResponses[keyof CartControllerCheckoutResponses];
-
-export type InventoryControllerListData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
-         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
-         * <br> Available properties: search, categoryId
-         */
-        filter?: InventoryControllerListFilterArray;
-        /**
-         * Starting position of the query
-         */
-        offset: number;
-        /**
-         * Number of items to return
-         */
-        pageSize: number;
-    };
-    url: '/api/admin/inventory/stock';
-};
-
-export type InventoryControllerListResponses = {
-    /**
-     * A paginated list of every product with its current stock level and cost price
-     */
-    200: StockList;
-};
-
-export type InventoryControllerListResponse = InventoryControllerListResponses[keyof InventoryControllerListResponses];
-
-export type InventoryControllerDetailData = {
-    body?: never;
-    path: {
-        productId: string;
-    };
-    query?: never;
-    url: '/api/admin/inventory/products/{productId}/stock';
-};
-
-export type InventoryControllerDetailResponses = {
-    /**
-     * Successful response
-     */
-    200: StockDetail;
-};
-
-export type InventoryControllerDetailResponse = InventoryControllerDetailResponses[keyof InventoryControllerDetailResponses];
 
 export type AdminSupplierPurchasingControllerAggregateData = {
     body?: never;
