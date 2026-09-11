@@ -12,15 +12,51 @@ defaults that are easy to miss.
 ## Before you commit or open a PR
 
 1. Read `CONTRIBUTING.md` if you have not yet this session.
-2. Confirm the user actually asked for the commit / push / PR. Do not do it unprompted.
+2. Know what you may do unprompted: commit yes, push / PR / merge no (see Autonomy).
 3. Check the branch (`git branch --show-current`).
+
+## Autonomy: commit freely, share only on request
+
+- **Committing is yours.** You do not need the user to ask. As soon as a coherent step is
+  done on a feature branch, commit it with a valid message. Small, frequent commits are
+  the expected rhythm — they are squashed at merge, so they cost nothing.
+- **Pushing and publishing are the user's.** `git push`, `gh pr create`, `gh pr merge`,
+  enabling auto-merge, and pushing tags happen only when the user explicitly asks for them.
+  Finishing the work, or CI being green, is not a request.
+- Same rule for anything else that leaves the machine: `gh pr edit` on an existing PR is
+  part of finalization and still waits for the user to ask for that finalization.
+- If you are unsure whether the user meant "commit" or "commit and push", commit and say
+  the branch is ready to push.
 
 ## Branches
 
 - Never commit directly to `staging` or `main`.
-- Branch off `staging`. Name it loosely after the work: `feat/…`, `fix/…`, `docs/…`,
-  `refactor/…`, `test/…`, `chore/…`. With squash merge the branch name never reaches
-  history, so it is a convention, not a gate.
+- **Default: branch off `staging`.** Refresh it first
+  (`git switch staging && git pull --ff-only`), then cut the branch.
+- Name it loosely after the work: `feat/…`, `fix/…`, `docs/…`, `refactor/…`, `test/…`,
+  `chore/…`. With squash merge the branch name never reaches history, so it is a
+  convention, not a gate.
+
+### Stacked branches (feature built on an unmerged feature)
+
+When the new work needs code that is still sitting in an open pull request, do not copy it
+and do not wait: stack the branches.
+
+- Cut the new branch off the **parent feature branch**, not off `staging`.
+- Open its pull request **against the parent branch**, so the diff shows only the new work.
+  A PR based on `staging` while the parent is unmerged shows both features at once and is
+  unreviewable.
+- Say it in a **PR comment**, for example `Stacked on #12; retarget to staging once #12
+  merges.` Not in the description: the description becomes the commit body verbatim, and
+  the stack is a fact about the review, not about the change.
+- When the parent merges, GitHub retargets the child PR to `staging` on its own. The branch
+  itself still carries the parent's old commits, so replay it onto the squashed result:
+  `git fetch origin && git rebase --onto origin/staging <parent-branch> <your-branch>`,
+  then force-push **your own** branch (never `staging` or `main`).
+- Keep stacks short. Two levels is normal, three is a warning sign: land the bottom of the
+  stack before you add to the top.
+- Everything lands on `staging` in the end. Stacking changes the base of the review, never
+  the destination.
 
 ## Commits
 
@@ -44,7 +80,9 @@ defaults that are easy to miss.
 
 ## Pull requests
 
-- Open every feature PR against `staging`, never `main`.
+- Open a PR only when the user asks for it (see Autonomy).
+- Base: `staging` for a normal feature PR; the parent feature branch for a stacked one
+  (see Stacked branches). Never `main`.
 - The repo squash-merges every feature PR and the squash commit is **the PR title plus the
   PR description**, verbatim. So the title and description are the future git history and
   the changelog source.

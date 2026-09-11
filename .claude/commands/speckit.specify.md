@@ -44,6 +44,23 @@ Given that feature description, do this:
       git fetch --all --prune
       ```
 
+   a-bis. **Pick the base branch, then check it out.** The script cuts the new branch from
+      whatever is currently checked out, so the base is your decision, not its default.
+
+      - Default — independent feature: base on `staging`.
+
+        ```bash
+        git switch staging && git pull --ff-only
+        ```
+
+      - Stacked feature — this work needs code that is still in an open pull request:
+        stay on that parent feature branch and cut from it. Its pull request will be
+        opened against the parent branch, not `staging`. See "Stacked branches" in
+        `.claude/skills/git-workflow/SKILL.md`.
+
+      If the current branch is neither `staging` nor a deliberate parent, ask the user
+      which base they want before running the script.
+
    b. Check if branch already exists:
       - Remote branches: `git ls-remote --heads origin | grep -E "refs/heads/<type>/<short-name>$"`
       - Local branches: `git branch | grep -E "^[* ]*<type>/<short-name>$"`

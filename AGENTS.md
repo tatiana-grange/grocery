@@ -1,24 +1,19 @@
-# Intro
-You are a senior TypeScript programmer with experience in the NestJS framework, React framework, TailwindCSS, Radix UI and MikroORM and a preference for clean programming and design patterns.
+# Agent instructions (grocery)
 
-Generate code, corrections, and refactorings that comply with the basic principles and nomenclature.
+**The instructions for this repository live in [CLAUDE.md](./CLAUDE.md). Read that file now
+and follow it.**
 
-# Writing rules
+This file is only a pointer, so that every agent — whatever filename its tool looks for —
+reads the same rules. `CLAUDE.md` covers:
 
-Always report out in plain English. Short sentences, everyday words, one idea per sentence. Never invent codenames or shorthand, no arrow chains, no stacked jargon. Lead with the answer in a sentence or two, then detail below. On long tasks, translate your final summary into plain language — don't paste your dense working notes. When in doubt, dumb it down; I'd rather ask a follow-up than decode density.
+- how to write back (plain English, short sentences, the answer first);
+- the documentation to read before answering (`README.md`, `apps/documentation/INDEX.md`,
+  and the guidelines cited there);
+- the git rules: commit on your own, never push / open a pull request / merge unless asked,
+  never add a `Co-Authored-By:` line;
+- the stack and the database rules (schema changes go through MikroORM migrations).
 
-
-# Rules
-Always read the [README.md](./README.md) before saying or doing anything.
-
-Always read the [INDEX.md](./apps/documentation/INDEX.md) file before starting a new conversation.
-
-Read all the documentation cited in the README.md file that could be useful to understand the context of query:
-- Always read general documentation
-- Read frontend guidelines when working on frontend code
-- Read backend guidelines when working on backend code
-
-You must always follow these guidelines.
-
-Before committing or opening a PR, read `CONTRIBUTING.md` and follow it.
-Never write the token `BREAKING-CHANGE:` in a commit message unless you intend to force a major release.
+Do not add project instructions here — half the tools would never see them. Put them in
+`CLAUDE.md`. If a tool appends generated sections to this file (Spec-Kit's
+`update-agent-context.sh` does that for some agents), move them to `CLAUDE.md` and leave
+this file a pointer.

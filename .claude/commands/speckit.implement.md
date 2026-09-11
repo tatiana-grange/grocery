@@ -155,6 +155,10 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Include the updated CHANGELOG.md and tasks.md in the commit
    - Use the project's commit format, `type(scope): <gitmoji> subject`. The emoji of each type is in `commitlint.config.ts`; do not pick your own.
    
+   **c) Commit only.** Do not `git push`, do not open a pull request, do not merge. Those
+   steps wait for the user to ask for them explicitly (see
+   `.claude/skills/git-workflow/SKILL.md`, section "Autonomy").
+
    **⛔ STOP: Do NOT start the next phase until the commit is created.**
    
    This ensures:

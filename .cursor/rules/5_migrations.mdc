@@ -8,3 +8,10 @@ Migrations should be created using the `mikro-orm` CLI, after modifying any enti
 cd apps/api
 pnpm db:migrate:create
 ```
+
+Review the generated SQL before applying it: MikroORM sometimes emits DROP+ADD where a
+RENAME was meant, which drops the column's data.
+
+`pnpm db:fresh:seed` rebuilds a local database from the entities and reseeds it. It is a
+local reset tool only. Never use it instead of a migration, and never run it against a
+shared or production database.

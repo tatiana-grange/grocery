@@ -29,14 +29,16 @@ Never write the token `BREAKING-CHANGE:` unless you intend to force a major rele
 
 Cut feature branches from `staging` and name them loosely after the work, for example `feat/session-revocation` or `fix/pagination`. This is a convention, not a gate. With squash merge, the branch name never appears in history.
 
+**Stacked branches.** When the next feature needs code that is still sitting in an open pull request, cut the new branch from that **parent feature branch** instead of `staging`, and open its pull request against the parent branch. The diff then shows only the new work; based on `staging` it would show both features at once. Note it in a comment — for example `Stacked on #12; retarget to staging once #12 merges.` — not in the description, which becomes the commit body verbatim. When the parent merges, GitHub retargets the child pull request to `staging` by itself, but the branch still carries the parent's pre-squash commits — replay it with `git rebase --onto origin/staging <parent-branch> <your-branch>` and force-push your own branch. Keep stacks to two levels where you can. The destination never changes: everything lands on `staging`.
+
 Two long-lived branches carry meaning:
 
-- **`staging`** is the integration line. Every feature pull request targets it, and the `staging` deploy environment builds from it. This is where work is validated before it counts toward a release.
+- **`staging`** is the integration line. Every feature pull request lands on it — directly, or through the parent of a stack — and the `staging` deploy environment builds from it. This is where work is validated before it counts toward a release.
 - **`main`** is the release trunk. release-please, `CHANGELOG.md`, version tags, and versioned images all key off `main`. Nobody pushes to it directly and no feature pull request targets it — it only moves forward through the promotion step below.
 
 ## Pull requests
 
-Every feature pull request targets `staging`. This repository squash-merges them, and GitHub is configured so the squash commit is always **the pull request title plus the pull request description**. The GitHub button, `gh`, and auto-merge all produce that same commit, so there is nothing to compose at merge time. Each merged pull request is one curated conventional commit on `staging`.
+Every feature pull request targets `staging` — or its parent feature branch when it is stacked (see Branches), which reaches `staging` all the same. This repository squash-merges them, and GitHub is configured so the squash commit is always **the pull request title plus the pull request description**. The GitHub button, `gh`, and auto-merge all produce that same commit, so there is nothing to compose at merge time. Each merged pull request is one curated conventional commit on `staging`.
 
 ## Promoting `staging` to `main`
 

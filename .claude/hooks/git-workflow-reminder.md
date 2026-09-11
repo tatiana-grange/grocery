@@ -6,8 +6,11 @@ workflow before you continue. Full detail: `.claude/skills/git-workflow/SKILL.md
 
 Key rules:
 
-- Branch first. Never commit straight to `staging` or `main`. Branch off `staging`.
-- Open every feature pull request against `staging`, never `main`. `main` advances only
+- Branch first. Never commit straight to `staging` or `main`. Branch off `staging` by
+  default. Exception: work that builds on an unmerged feature branch is branched off that
+  branch (a stacked branch) — see the git-workflow skill.
+- Open every feature pull request against `staging` — or against the parent feature branch
+  when the branch is stacked on an unmerged one — and never against `main`. `main` advances only
   through the non-squash promotion PR (`staging` → `main`), and through the release-please
   Release PR, which is machine-generated — you do not open PRs against `main` yourself.
 - Commit messages: Conventional Commits plus a gitmoji, `type(scope): <gitmoji> subject`
@@ -23,4 +26,6 @@ Key rules:
   `tasks.md`, …) are tracked on this project and ride along on the feature PR.
 - Never commit `.env` files or secrets of any kind.
 - Never write `BREAKING-CHANGE:` in a commit or PR unless a major release is intended.
-- Commit, push, or open a PR only when the user asked you to.
+- **Commit on your own; never share on your own.** Committing on a feature branch needs no
+  go-ahead: commit each coherent step, with a valid message. `git push`, `gh pr create`,
+  and any merge need the user to ask for them explicitly. Green checks are not consent.
