@@ -11,7 +11,7 @@ test.beforeEach(async ({ resetDb, page }) => {
 
 test('parcourir la boutique en visiteur, sans être connecté', async ({ page }) => {
   await expect(page.getByTestId('page-shop')).toBeVisible()
-  await expect(page.getByTestId('shop-nav-signin')).toBeVisible()
+  await expect(page.getByTestId('site-nav-signin')).toBeVisible()
   await expect(page.getByTestId('shop-product-card-link').first()).toBeVisible()
 })
 

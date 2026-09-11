@@ -31,7 +31,7 @@ test.describe('membre connecté', () => {
   test('ajouter, ajuster et retirer des lignes de panier', async ({ page }) => {
     await openProduct(page, 'Pommes Golden')
     await page.getByTestId('add-to-cart-submit').click()
-    await expect(page.getByTestId('shop-nav-cart-count')).toHaveText('1')
+    await expect(page.getByTestId('site-nav-cart-count')).toHaveText('1')
 
     // The add button is replaced by the stepper for the new line; the exact weight is set there.
     await page.getByTestId('add-to-cart-quantity').fill('2')
@@ -39,9 +39,9 @@ test.describe('membre connecté', () => {
 
     await openProduct(page, 'Panier de légumes du producteur')
     await page.getByTestId('add-to-cart-submit').click()
-    await expect(page.getByTestId('shop-nav-cart-count')).toHaveText('2')
+    await expect(page.getByTestId('site-nav-cart-count')).toHaveText('2')
 
-    await page.getByTestId('shop-nav-cart').click()
+    await page.getByTestId('site-nav-cart').click()
     await expect(page.getByTestId('page-cart')).toBeVisible()
     await expect(page.locator('tbody tr')).toHaveCount(2)
 
@@ -69,7 +69,7 @@ test.describe('membre connecté', () => {
       .locator('> *')
       .filter({ hasText: 'Pain de campagne' })
     await card.locator('[data-testid^="quick-add-submit-"]').click()
-    await expect(page.getByTestId('shop-nav-cart-count')).toHaveText('1')
+    await expect(page.getByTestId('site-nav-cart-count')).toHaveText('1')
 
     // The submit button is replaced by a stepper bound to the new cart line.
     await card.locator('[data-testid^="quick-add-increase-"]').click()
@@ -80,7 +80,7 @@ test.describe('membre connecté', () => {
 
     // Stepping to zero removes the line and brings the submit button back.
     await expect(card.locator('[data-testid^="quick-add-submit-"]')).toBeVisible()
-    await expect(page.getByTestId('shop-nav-cart-count')).toBeHidden()
+    await expect(page.getByTestId('site-nav-cart-count')).toBeHidden()
   })
 
   test('produit au poids : saisie du poids exact depuis la grille', async ({ page }) => {
@@ -93,14 +93,14 @@ test.describe('membre connecté', () => {
       .locator('> *')
       .filter({ hasText: 'Pommes Golden' })
     await card.locator('[data-testid^="quick-add-submit-"]').click()
-    await expect(page.getByTestId('shop-nav-cart-count')).toHaveText('1')
+    await expect(page.getByTestId('site-nav-cart-count')).toHaveText('1')
 
     // The by-weight line exposes an editable amount, not just +/-.
     const amount = card.locator('[data-testid^="quick-add-quantity-"]')
     await amount.fill('1.75')
     await amount.blur()
 
-    await page.getByTestId('shop-nav-cart').click()
+    await page.getByTestId('site-nav-cart').click()
     const row = page.locator('tr', { hasText: 'Pommes Golden' })
     await expect(row.locator('[data-testid^="cart-line-quantity-"]')).toHaveValue('1.75')
   })
@@ -115,14 +115,14 @@ test.describe('membre connecté', () => {
       .locator('> *')
       .filter({ hasText: 'Comté à la coupe' })
     await card.locator('[data-testid^="quick-add-submit-"]').click()
-    await expect(page.getByTestId('shop-nav-cart-count')).toHaveText('1')
+    await expect(page.getByTestId('site-nav-cart-count')).toHaveText('1')
     // Adding puts one step in the cart, shown in grams.
     await expect(card.locator('[data-testid^="quick-add-quantity-"]')).toHaveValue('200')
 
     await card.locator('[data-testid^="quick-add-increase-"]').click()
     await expect(card.locator('[data-testid^="quick-add-quantity-"]')).toHaveValue('400')
 
-    await page.getByTestId('shop-nav-cart').click()
+    await page.getByTestId('site-nav-cart').click()
     const row = page.locator('tr', { hasText: 'Comté à la coupe' })
     // The cart page shows the same grams unit and 200 g step as the shop card.
     await expect(row.locator('[data-testid^="cart-line-quantity-"]')).toHaveValue('400')
@@ -136,7 +136,7 @@ test.describe('membre connecté', () => {
     await page.getByTestId('add-to-cart-orderingmode-pre_order').click()
     await page.getByTestId('add-to-cart-submit').click()
 
-    await page.getByTestId('shop-nav-cart').click()
+    await page.getByTestId('site-nav-cart').click()
     const row = page.locator('tr', { hasText: 'Carottes en vrac' })
     await expect(row.getByText('Précommande')).toBeVisible()
   })

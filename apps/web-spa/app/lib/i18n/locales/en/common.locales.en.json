@@ -316,7 +316,8 @@
       "shop": "Shop",
       "cart": "Cart",
       "myAccount": "My account",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "backToShop": "Back to the shop"
     },
     "title": "Shop",
     "subtitle": "Browse what the cooperative currently offers.",

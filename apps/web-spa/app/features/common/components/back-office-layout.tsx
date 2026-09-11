@@ -12,7 +12,15 @@ import {
   SidebarMenuItem,
 } from '@grocery/ui/components/primitives/sidebar'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
-import { Boxes, ClipboardList, LogOut, PackageSearch, ShieldCheck, Users } from 'lucide-react'
+import {
+  Boxes,
+  ClipboardList,
+  LogOut,
+  PackageSearch,
+  ShieldCheck,
+  Store,
+  Users,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router'
 import { AppSettingsMenu } from '@/features/common/components/app-settings-menu'
@@ -126,7 +134,16 @@ export default function BackOfficeLayout() {
     <>
       <AppLayout sidebar={<BackOfficeSidebar />}>
         <AppLayoutHeader>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              data-testid="back-office-nav-shop"
+              render={<Link to="/shop" />}
+            >
+              <Store className="mr-2 size-4" />
+              {t('shop.nav.backToShop')}
+            </Button>
             <AppSettingsMenu />
           </div>
         </AppLayoutHeader>

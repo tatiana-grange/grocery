@@ -316,7 +316,8 @@
       "shop": "Boutique",
       "cart": "Panier",
       "myAccount": "Mon compte",
-      "signIn": "Se connecter"
+      "signIn": "Se connecter",
+      "backToShop": "Retour à la boutique"
     },
     "title": "Boutique",
     "subtitle": "Découvrez les produits proposés par nos fournisseurs.",
