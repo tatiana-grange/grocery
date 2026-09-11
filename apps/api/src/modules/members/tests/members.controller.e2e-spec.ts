@@ -68,6 +68,20 @@ describe('membersController (e2e)', () => {
       )
     })
 
+    it('searches members regardless of case and accents', async (context) => {
+      const { em, request } = context
+      const adminSession = await arrangeAdmin(em)
+      await createMemberData(em, { status: 'active', user: { name: 'Zoé Boulanger' } })
+
+      for (const term of ['zoé', 'ZOE', 'boulanger', 'BOULANGÉR']) {
+        const res = await request
+          .withSession(adminSession)
+          .get(`/admin/members?filter=q:like:${encodeURIComponent(term)}`)
+        expect(res.status).toBe(200)
+        expect(res.body.data.map((m: { name: string }) => m.name)).toContain('Zoé Boulanger')
+      }
+    })
+
     it('lets an admin create a member directly', async (context) => {
       const { em, request } = context
       const adminSession = await arrangeAdmin(em)
@@ -75,7 +89,10 @@ describe('membersController (e2e)', () => {
       const res = await request
         .withSession(adminSession)
         .post('/admin/members')
-        .send({ name: 'Zoé Martin', email: `zoe-${Math.random().toString(36).slice(2)}@example.com` })
+        .send({
+          name: 'Zoé Martin',
+          email: `zoe-${Math.random().toString(36).slice(2)}@example.com`,
+        })
       expect(res.status).toBe(201)
       expect(res.body).toMatchObject({ name: 'Zoé Martin', status: 'active' })
       expect(res.body.membershipNumber).toMatch(/^MEM-/)
@@ -252,7 +269,10 @@ describe('membersController (e2e)', () => {
       const { em, request } = context
       // Exactly one admin: the one we arrange here.
       const { user, member } = await createMemberData(em, {
-        user: { name: 'Only Admin', email: `only-${Math.random().toString(36).slice(2)}@example.com` },
+        user: {
+          name: 'Only Admin',
+          email: `only-${Math.random().toString(36).slice(2)}@example.com`,
+        },
         roles: ['member', 'admin'],
         status: 'active',
       })

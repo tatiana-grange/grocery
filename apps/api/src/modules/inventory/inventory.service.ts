@@ -2,10 +2,14 @@ import type { FilterQuery } from '@mikro-orm/core'
 import { EntityManager, QueryOrder } from '@mikro-orm/core'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Product } from '../catalog/entities/product.entity'
+import { buildSearchFilter } from '../db/search.util'
 import { ReceptionLine } from '../purchasing/entities/reception-line.entity'
 import { StockMovement } from './entities/stock-movement.entity'
 import type { StockLevel } from './inventory.util'
 import { deriveStockLevel, emptyStockLevel } from './inventory.util'
+
+/** Where a free-text search looks on the stock list. */
+const STOCK_SEARCH_PATHS = ['name', 'barcode', 'category.name'] as const
 
 export interface ProductStockListItem {
   product: Product
@@ -96,8 +100,7 @@ export class InventoryService {
     const where: FilterQuery<Product> = { archivedAt: null }
     if (filters.categoryId) Object.assign(where, { category: filters.categoryId })
     if (filters.search) {
-      const pattern = `%${filters.search.replace(/[\\%_]/g, (c) => `\\${c}`)}%`
-      Object.assign(where, { name: { $like: pattern } })
+      Object.assign(where, buildSearchFilter<Product>(filters.search, STOCK_SEARCH_PATHS))
     }
 
     const [products, total] = await this.em.findAndCount(Product, where, {

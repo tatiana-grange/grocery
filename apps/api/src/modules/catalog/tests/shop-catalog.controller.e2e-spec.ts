@@ -162,6 +162,47 @@ describe('shopCatalogController (e2e)', () => {
     expect(byBarcode.body.data.map((p: { id: string }) => p.id)).toContain(product.id)
   })
 
+  it('searches regardless of case and accents', async () => {
+    // The shape the catalogue import actually produces: upper case, no accent.
+    const { product } = await makeProduct({ name: 'POLAR BIERE BLANCHE 75 cl' })
+
+    for (const term of ['bière', 'BIÈRE', 'biere', 'Biere']) {
+      const res = await request.get(`/shop/products?filter=q:like:${encodeURIComponent(term)}`)
+      expect(res.status).toBe(200)
+      expect(res.body.data.map((p: { id: string }) => p.id)).toContain(product.id)
+    }
+  })
+
+  it('searches the description and the category name, not only the product name', async () => {
+    const category = await makeCategory(`Bières-${Math.random().toString(36).slice(2, 6)}`)
+    const byCategory = await makeProductIn(category.id, 'Polder Aramis Blonde')
+    const { product: byDescription } = await makeProduct({
+      name: 'Grizzly Stardust',
+      description: 'Une bière de style Saison brassée à dix kilomètres.',
+    })
+    const { product: unrelated } = await makeProduct({ name: 'Savon de Marseille' })
+
+    const res = await request.get(`/shop/products?filter=q:like:${encodeURIComponent('bieres')}`)
+    expect(res.status).toBe(200)
+    const ids = res.body.data.map((p: { id: string }) => p.id)
+    expect(ids).toContain(byCategory.id)
+    expect(ids).not.toContain(unrelated.id)
+
+    const single = await request.get(`/shop/products?filter=q:like:${encodeURIComponent('bière')}`)
+    expect(single.body.data.map((p: { id: string }) => p.id)).toContain(byDescription.id)
+  })
+
+  it('treats LIKE wildcards typed by a shopper as plain characters', async () => {
+    const { product: discounted } = await makeProduct({ name: 'Remise 50% jus de pomme' })
+    const { product: other } = await makeProduct({ name: 'Jus de pomme' })
+
+    const res = await request.get(`/shop/products?filter=q:like:${encodeURIComponent('%')}`)
+    expect(res.status).toBe(200)
+    const ids = res.body.data.map((p: { id: string }) => p.id)
+    expect(ids).toContain(discounted.id)
+    expect(ids).not.toContain(other.id)
+  })
+
   it('sorts the product list by name', async () => {
     await makeProduct({ name: 'Zucchini' })
     await makeProduct({ name: 'Abricots' })

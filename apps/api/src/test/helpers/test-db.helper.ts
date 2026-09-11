@@ -6,6 +6,7 @@
 import { MikroORM } from '@mikro-orm/core'
 import { ReflectMetadataProvider } from '@mikro-orm/decorators/legacy'
 import { createTestMikroOrmOptions } from '../../modules/db/db.config'
+import { applySearchNormalization } from '../../modules/db/search.util'
 
 export interface TestOrmContext {
   orm: MikroORM
@@ -52,6 +53,7 @@ export async function createTestOrm(dbConfig: {
 
   const orm = await MikroORM.init(mikroOrmOptions)
   await orm.schema.refresh()
+  await applySearchNormalization(orm.em)
 
   return {
     orm,
@@ -73,9 +75,11 @@ export async function cleanupTestOrm(orm: MikroORM): Promise<void> {
 }
 
 /**
- * Resets the ORM schema
- * @param orm The ORM instance to reset
+ * Resets the ORM schema. `schema.refresh()` builds the tables from entity metadata and knows
+ * nothing about the `normalize_search` function the migrations install, so create it by hand —
+ * otherwise the list endpoints fail the moment a test filters on `q`.
  */
 export async function resetOrmSchema(orm: MikroORM): Promise<void> {
   await orm.schema.refresh()
+  await applySearchNormalization(orm.em)
 }

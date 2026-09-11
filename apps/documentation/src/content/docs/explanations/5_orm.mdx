@@ -86,6 +86,33 @@ Use `mergeObjectProperties: true` when you want nested object fields merged inst
 
 Do not assign a whole DTO onto an entity whose fields live elsewhere. If some fields live on a child version entity and others arrive as names that must be resolved to references, `wrap(entity).assign(updateDto)` would silently skip them. Assign only what belongs on that entity; keep versioning and collection rebuilds as explicit steps.
 
+### Free-text search
+
+Every `q` filter goes through `buildSearchFilter` in `src/modules/db/search.util.ts`. Give it the
+term and the list of places to look; it returns the `$or` to merge into your `where`:
+
+```typescript
+Object.assign(where, buildSearchFilter<Product>(item.value, ['name', 'barcode', 'category.name']))
+```
+
+A path is a column of the entity, or a column reached through a relation — MikroORM adds the join.
+Paths are developer-written literals; the term is always bound as a parameter, and LIKE wildcards
+typed by a user are escaped.
+
+Both sides of the comparison are wrapped in a `normalize_search` SQL function, which lower-cases
+the text and strips its diacritics. That is what makes "biere" find "BIÈRE". Each searchable column
+also carries a GIN trigram index built on that same expression, so a leading-wildcard
+`like '%…%'` does not fall back to a sequential scan.
+
+Because that function is not part of entity metadata, anything that builds a schema without
+replaying the migrations has to create it. `schema:fresh` and `orm.schema.refresh()` both do, so
+`applySearchNormalization(em)` is called from the test database helper and from every seeder that
+can be the `--seed` target of a fresh schema — `DatabaseSeeder`, `E2eSeeder`, `MinimalSeeder`. Add
+that call to any new seeder of that kind: without it, the list endpoints return a 500 as soon as
+someone types in a search box.
+
+Adding a new searchable column means adding its index in a migration.
+
 :::note [About migrations]
 Migrations are an important part of database management, you can read more about them in the [Database Migrations](/grocery/explanations/6_database-migrations) page.
 :::

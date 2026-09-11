@@ -111,6 +111,23 @@ describe('catalogController (e2e)', () => {
     expect(detail.body.archivedAt).toBeTruthy()
   })
 
+  it('searches products by supplier and category name, ignoring case and accents', async () => {
+    const { product } = await makeProduct({ name: 'Carottes' })
+    const { product: other } = await makeProduct({ name: 'Savon' })
+    const bySupplier = await request
+      .withSession(admin)
+      .get(`/admin/products?filter=q:like:${encodeURIComponent(product.supplier.name)}`)
+    expect(bySupplier.status).toBe(200)
+    const supplierIds = bySupplier.body.data.map((p: { id: string }) => p.id)
+    expect(supplierIds).toContain(product.id)
+    expect(supplierIds).not.toContain(other.id)
+
+    const byName = await request
+      .withSession(admin)
+      .get(`/admin/products?filter=q:like:${encodeURIComponent('CAROTTES')}`)
+    expect(byName.body.data.map((p: { id: string }) => p.id)).toContain(product.id)
+  })
+
   it('blocks archiving a supplier with active products unless cascade', async () => {
     const { product, supplier } = await makeProduct()
 

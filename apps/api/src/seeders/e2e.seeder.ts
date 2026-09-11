@@ -13,6 +13,7 @@ import { Member } from '../modules/members/entities/member.entity'
 import { OrderLine } from '../modules/orders/entities/order-line.entity'
 import { Order } from '../modules/orders/entities/order.entity'
 import { Product } from '../modules/catalog/entities/product.entity'
+import { applySearchNormalization } from '../modules/db/search.util'
 import {
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
@@ -40,6 +41,10 @@ export {
  */
 export class E2eSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
+    // The E2E database is built by `schema:fresh`, which replays no migration, so the search
+    // function every list endpoint calls has to be created here.
+    await applySearchNormalization(em)
+
     // --- users we authenticate as -----------------------------------------------------------
     const { user: adminUser } = await createMemberData(em, {
       user: { name: E2E_USERS.admin.name, email: E2E_USERS.admin.email, emailVerified: true },
