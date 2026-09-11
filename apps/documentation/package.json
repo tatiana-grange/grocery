@@ -5,7 +5,7 @@
   "scripts": {
     "generate:index": "node ./scripts/generate-docs-index.mjs",
     "generate:index:watch": "node ./scripts/generate-docs-index.mjs --watch",
-    "dev": "pnpm run generate:index:watch & astro dev",
+    "dev": "astro dev && trap 'astro dev stop' INT TERM EXIT && pnpm run generate:index:watch",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
