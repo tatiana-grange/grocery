@@ -24,7 +24,7 @@ import {
 } from '@grocery/ui/components/primitives/table'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { TFunction } from 'i18next'
-import { ShoppingCart, Trash2 } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -184,6 +184,18 @@ function PendingPickupNotice({ pickups }: { pickups: CartLinePickup[] }) {
   )
 }
 
+/** The way back out of the cart, in the place a shopper looks for it: top left of the page. */
+function BackToShopButton() {
+  const { t } = useTranslation()
+
+  return (
+    <Button variant="ghost" size="sm" render={<Link to="/shop" />} data-testid="cart-back-to-shop">
+      <ArrowLeft className="mr-2 size-4" />
+      {t('shop.backToShop')}
+    </Button>
+  )
+}
+
 export default function CartPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -219,16 +231,26 @@ export default function CartPage() {
     )
   }
 
-  if (isLoading) return <Skeleton className="h-64 w-full" />
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <BackToShopButton />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
+  }
 
   if (error || !cart) {
     return (
-      <div className="space-y-4 text-center" data-testid="cart-load-error">
-        <PageTitle>{t('cart.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('cart.loadError')}</p>
-        <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
-          {t('common.retry')}
-        </Button>
+      <div className="space-y-4" data-testid="cart-load-error">
+        <BackToShopButton />
+        <div className="space-y-4 text-center">
+          <PageTitle>{t('cart.title')}</PageTitle>
+          <p className="text-sm text-muted-foreground">{t('cart.loadError')}</p>
+          <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+            {t('common.retry')}
+          </Button>
+        </div>
       </div>
     )
   }
@@ -237,6 +259,7 @@ export default function CartPage() {
 
   return (
     <div className="space-y-6" data-testid="page-cart">
+      <BackToShopButton />
       <PageTitle>{t('cart.title')}</PageTitle>
 
       {cart.lines.length === 0 ? (
