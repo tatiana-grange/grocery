@@ -347,6 +347,11 @@
       "decrease": "Decrease quantity",
       "amount": "Amount"
     },
+    "stock": {
+      "onHand": "{{amount}} in stock",
+      "overTooltip": "Only {{amount}} left. You will take that much when you collect your order, and the rest will come with this supplier's next delivery.",
+      "overLabel": "More than the stock available"
+    },
     "productNotFound": "This product doesn't exist or is no longer available.",
     "loadError": "We couldn't load this product right now.",
     "pagination": {

@@ -12,6 +12,7 @@ import { Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { QuickAddToCart } from '@/features/cart/components/quick-add-to-cart'
+import { StockNotice } from '@/features/shop/components/stock-notice'
 import type { ShopView } from '@/features/shop/hooks/use-shop-view'
 
 export function ProductCard({
@@ -51,7 +52,8 @@ export function ProductCard({
             <p className="text-sm text-muted-foreground">{price}</p>
           </div>
         </Link>
-        <div className="w-40 shrink-0">
+        <div className="w-40 shrink-0 space-y-1">
+          <StockNotice product={product} className="justify-end text-right" />
           <QuickAddToCart product={product} />
         </div>
       </div>
@@ -94,6 +96,7 @@ export function ProductCard({
       </Link>
       <CardFooter className="mt-auto flex-col items-stretch gap-2">
         <span className={cn('font-semibold', compact ? 'text-xs' : 'text-sm')}>{price}</span>
+        <StockNotice product={product} />
         <QuickAddToCart product={product} />
       </CardFooter>
     </Card>

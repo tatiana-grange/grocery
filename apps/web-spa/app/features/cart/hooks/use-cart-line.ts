@@ -23,3 +23,19 @@ export function useCartLine(
       line.product.id === productId && (!orderingMode || line.orderingMode === orderingMode),
   )
 }
+
+/**
+ * How much of a product the caller has asked for in total, in the cart's own unit (pieces, or
+ * kilograms for a by-weight product). `0` when it isn't in the cart, or nobody is signed in.
+ *
+ * Both ordering modes count: a product ordered partly in store and partly as a pre-order is
+ * still one product coming off one shelf, so comparing against stock has to see the sum.
+ */
+export function useCartProductQuantity(productId: string): number {
+  const { data: sessionData } = authClient.useSession()
+  const { data: cart } = useQuery({ ...cartQueryOptions(), enabled: Boolean(sessionData) })
+
+  return (cart?.lines ?? [])
+    .filter((line) => line.product.id === productId)
+    .reduce((total, line) => total + line.quantity, 0)
+}

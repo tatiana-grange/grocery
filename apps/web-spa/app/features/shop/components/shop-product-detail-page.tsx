@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { AddToCartForm } from '@/features/cart/components/add-to-cart-form'
 import { isNotFound } from '@/features/common/lib/api-error'
+import { StockNotice } from '@/features/shop/components/stock-notice'
 import { shopProductDetailQueryOptions } from '@/features/shop/utils/shop-queries'
 
 export default function ShopProductDetailPage() {
@@ -92,9 +93,12 @@ export default function ShopProductDetailPage() {
             </div>
           </div>
 
-          <p className="text-xl font-bold" data-testid="shop-product-price">
-            {product.currentPriceEur.toFixed(2)} € / {unit}
-          </p>
+          <div className="space-y-1">
+            <p className="text-xl font-bold" data-testid="shop-product-price">
+              {product.currentPriceEur.toFixed(2)} € / {unit}
+            </p>
+            <StockNotice product={product} />
+          </div>
 
           {product.description && (
             <p className="text-sm text-muted-foreground" data-testid="shop-product-description">

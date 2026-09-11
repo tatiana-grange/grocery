@@ -347,6 +347,11 @@
       "decrease": "Diminuer la quantité",
       "amount": "Quantité"
     },
+    "stock": {
+      "onHand": "{{amount}} en stock",
+      "overTooltip": "Il n'en reste que {{amount}}. Vous repartirez avec cette quantité au retrait de votre commande, le reste arrivera à la prochaine livraison de ce fournisseur.",
+      "overLabel": "Quantité supérieure au stock disponible"
+    },
     "productNotFound": "Ce produit n'existe pas ou n'est plus disponible.",
     "loadError": "Impossible de charger ce produit pour le moment.",
     "pagination": {
