@@ -26,10 +26,13 @@ Given that feature description, do this:
 
 1. **Determine branch type and generate short name**:
    - Follow branch naming conventions from [git-workflow/SKILL.md](../../.claude/skills/git-workflow/SKILL.md)
-   - Branch types: `feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`
+   - Branch types are the commit types of `commitlint.config.ts` — the same list the commit
+     will use. The script validates the value against that file, so do not keep a copy here.
    - Determine type from description:
      - `fix/` if description mentions "fix", "bug", "error", "issue"
      - `docs/` if documentation only
+     - `perf/` if it is only about speed or resource use
+     - `test/`, `ci/`, `build/`, `chore/` when the work is entirely that
      - `feat/` for most other cases (default)
    - Generate a concise short name (2-4 words, kebab-case)
    - Examples:

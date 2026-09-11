@@ -33,9 +33,10 @@ defaults that are easy to miss.
 - Never commit directly to `staging` or `main`.
 - **Default: branch off `staging`.** Refresh it first
   (`git switch staging && git pull --ff-only`), then cut the branch.
-- Name it loosely after the work: `feat/…`, `fix/…`, `docs/…`, `refactor/…`, `test/…`,
-  `chore/…`. With squash merge the branch name never reaches history, so it is a
-  convention, not a gate.
+- Name it loosely after the work, prefixed with the commit type it will produce. The
+  prefixes are exactly the types in `commitlint.config.ts` (`feat/`, `fix/`, `docs/`,
+  `perf/`, `ci/`, …), so the branch and its commit agree. With squash merge the branch name
+  never reaches history, so it is a convention, not a gate.
 
 ### Stacked branches (feature built on an unmerged feature)
 

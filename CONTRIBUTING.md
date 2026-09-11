@@ -27,7 +27,7 @@ Never write the token `BREAKING-CHANGE:` unless you intend to force a major rele
 
 ## Branches
 
-Cut feature branches from `staging` and name them loosely after the work, for example `feat/session-revocation` or `fix/pagination`. This is a convention, not a gate. With squash merge, the branch name never appears in history.
+Cut feature branches from `staging` and name them loosely after the work, prefixed with the commit type the work will produce — the prefixes are the types listed in [`commitlint.config.ts`](./commitlint.config.ts), so `feat/session-revocation`, `fix/pagination`, `perf/cart-query`. This is a convention, not a gate. With squash merge, the branch name never appears in history.
 
 **Stacked branches.** When the next feature needs code that is still sitting in an open pull request, cut the new branch from that **parent feature branch** instead of `staging`, and open its pull request against the parent branch. The diff then shows only the new work; based on `staging` it would show both features at once. Note it in a comment — for example `Stacked on #12; retarget to staging once #12 merges.` — not in the description, which becomes the commit body verbatim. When the parent merges, GitHub retargets the child pull request to `staging` by itself, but the branch still carries the parent's pre-squash commits — replay it with `git rebase --onto origin/staging <parent-branch> <your-branch>` and force-push your own branch. Keep stacks to two levels where you can. The destination never changes: everything lands on `staging`.
 

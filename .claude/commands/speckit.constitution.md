@@ -45,7 +45,12 @@ Follow this execution flow:
    - Read `.specify/templates/spec-template.md` for scope/requirements alignment—update if constitution adds/removes mandatory sections or constraints.
    - Read `.specify/templates/tasks-template.md` and ensure task categorization reflects new or removed principle-driven task types (e.g., observability, versioning, testing discipline).
    - Read each command file in `.specify/templates/commands/*.md` (including this one) to verify no outdated references (agent-specific names like CLAUDE only) remain when generic guidance is required.
-   - Read any runtime guidance docs (e.g., `README.md`, `docs/quickstart.md`, or agent-specific guidance files if present). Update references to principles changed.
+   - Read the runtime guidance docs of this project and update references to changed principles:
+     `README.md`, `CONTRIBUTING.md`, `CLAUDE.md` (`AGENTS.md` only points at it), and the pages under
+     `apps/documentation/src/content/docs/`. There is no top-level `docs/` folder here — project
+     documentation lives in `apps/documentation/` only. Do not confuse
+     `apps/documentation/src/content/docs/quickstart.mdx` (project documentation) with
+     `specs/<feature>/quickstart.md` (a Spec-Kit artifact, scoped to one feature).
 
 5. Produce a Sync Impact Report (prepend as an HTML comment at top of the constitution file after update):
    - Version change: old → new

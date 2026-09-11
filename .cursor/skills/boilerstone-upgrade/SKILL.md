@@ -18,9 +18,9 @@ The expected workflow is human-in-the-loop: the developer pilots you, and you us
 ## Quick map
 
 ```bash
-pnpm boilerplate upgrade status --json
-pnpm boilerplate upgrade path --to <ver> --json
-pnpm boilerplate upgrade prepare --to <ver> --include <ids>  # omit --include for all; no TTY = no prompt
+pnpm boilerplate upgrade status --json            # State + readiness checks (version, applied/skipped, tags)
+pnpm boilerplate upgrade path --to <ver> --json   # Pending intentions and target branch
+pnpm boilerplate upgrade prepare --to <ver> --include <ids>  # Stage intentions (omit --include for all; no TTY = no prompt)
 pnpm boilerplate upgrade record --id <id> --applied
 pnpm boilerplate upgrade finish --to <ver>
 ```
@@ -39,11 +39,11 @@ Wait for confirmation. Then execute only the confirmed plan (one intention at a 
 
 Then follow the runbook: smallest safe change, validation, `upgrade record`. Commit after each intention for risky upgrades; for small supervised batches, multiple recorded intentions may be committed together after validation. Use `upgrade finish` only after every staged intention is applied or skipped.
 
-## Guardrails
+## Guardrails (from the runbook — non-negotiable)
 
-- Propose apply/skip first; never auto-skip or auto-apply without human confirmation.
-- Never push, merge, or stash automatically.
-- Stop before editing on `breaking-manual` intentions; ask the human.
-- Stop on unsafe ambiguity and write `.boilerstone/upgrade/blocked.md`.
-- Preserve project-specific behavior; never rewrite divergent files wholesale.
-- Do not mark an intention applied before validation passes.
+- Propose apply/skip first; never auto-skip or auto-apply without human confirmation
+- Never push, merge, or stash automatically
+- Stop before editing on `breaking-manual` intentions; ask the human
+- Stop on unsafe ambiguity and write `.boilerstone/upgrade/blocked.md`
+- Preserve project-specific behavior; never rewrite divergent files wholesale
+- Do not mark an intention applied before its validation passes

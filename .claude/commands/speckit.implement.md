@@ -152,7 +152,11 @@ You **MUST** consider the user input before proceeding (if not empty).
    
    **b) THEN create the git commit** - Group all phase work into a single commit:
    - Stage all modified/created files for the phase
-   - Include the updated CHANGELOG.md and tasks.md in the commit
+   - Include the updated `FEATURE_DIR/CHANGELOG.md` and `tasks.md` in the commit. **Never
+     touch the repository's root `CHANGELOG.md`** — release-please generates it from the
+     commits that reach `main`, and a hand-written edit there is overwritten at the next
+     release (see `CONTRIBUTING.md`). The two files are unrelated: the feature changelog is
+     a work journal, the root one is the released history.
    - Use the project's commit format, `type(scope): <gitmoji> subject`. The emoji of each type is in `commitlint.config.ts`; do not pick your own.
    
    **c) Commit only.** Do not `git push`, do not open a pull request, do not merge. Those
