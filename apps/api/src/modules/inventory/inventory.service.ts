@@ -6,10 +6,20 @@ import { buildSearchFilter } from '../db/search.util'
 import { ReceptionLine } from '../purchasing/entities/reception-line.entity'
 import { StockMovement } from './entities/stock-movement.entity'
 import type { StockLevel } from './inventory.util'
-import { deriveStockLevel, emptyStockLevel } from './inventory.util'
+import { buildStockLevel, emptyStockLevel } from './inventory.util'
 
 /** Where a free-text search looks on the stock list. */
 const STOCK_SEARCH_PATHS = ['name', 'barcode', 'category.name'] as const
+
+/**
+ * One row of the grouped movement query. Postgres hands `sum()` over a `numeric` column back
+ * as a string, so both totals arrive as strings and are converted once, here.
+ */
+interface StockTotalsRow {
+  productId: string
+  quantity: string
+  costNumeratorCents: string
+}
 
 export interface ProductStockListItem {
   product: Product
@@ -48,28 +58,41 @@ export class InventoryService {
 
   /** One product's current stock level and cost price. */
   async getStockLevel(productId: string): Promise<StockLevel> {
-    const movements = await this.em.find(StockMovement, { product: productId })
-    return deriveStockLevel(movements)
+    const levels = await this.getStockLevels([productId])
+    return levels.get(productId) ?? emptyStockLevel()
   }
 
   /**
    * Stock level and cost price for many products in one query. Products with no movements
    * are absent from the map — callers fall back to {@link emptyStockLevel}.
+   *
+   * The ledger is summed by the database rather than read into memory: it is append-only and
+   * grows with every reception, while a shop page only ever needs the two totals. The product
+   * ids are bound as parameters; nothing from the request reaches the SQL as text.
    */
   async getStockLevels(productIds: string[]): Promise<Map<string, StockLevel>> {
     const result = new Map<string, StockLevel>()
     if (productIds.length === 0) return result
 
-    const movements = await this.em.find(StockMovement, { product: { $in: productIds } })
-    const byProduct = new Map<string, StockMovement[]>()
-    for (const movement of movements) {
-      const key = movement.product.id
-      const bucket = byProduct.get(key)
-      if (bucket) bucket.push(movement)
-      else byProduct.set(key, [movement])
-    }
-    for (const [productId, rows] of byProduct) {
-      result.set(productId, deriveStockLevel(rows))
+    const placeholders = productIds.map(() => '?').join(', ')
+    const rows: StockTotalsRow[] = await this.em.getConnection().execute(
+      `select "productId",
+              sum("quantity") as "quantity",
+              sum("quantity" * "unitCostAmountCents") as "costNumeratorCents"
+         from "stockMovement"
+        where "productId" in (${placeholders})
+        group by "productId"`,
+      productIds,
+    )
+
+    for (const row of rows) {
+      result.set(
+        row.productId,
+        buildStockLevel({
+          quantity: Number(row.quantity),
+          costNumeratorCents: Number(row.costNumeratorCents),
+        }),
+      )
     }
     return result
   }
