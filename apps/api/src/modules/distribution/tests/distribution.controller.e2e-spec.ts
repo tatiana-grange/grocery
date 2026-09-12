@@ -227,4 +227,325 @@ describe('distributionController (e2e)', () => {
       expect(res.status).toBe(404)
     })
   })
+
+  describe('POST /distribution/orders/:orderId/handovers', () => {
+    it('records the handover, drops stock and charges the member together (FR-009)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 40)
+      const order = await addOrder(member, product, 'in_store', { quantity: 4 })
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 3 }],
+        })
+
+      expect(res.status).toBe(201)
+      // 3 × 3.00 €, at the price recorded when the order was placed.
+      expect(res.body.totalEur).toBe(9)
+      expect(res.body.balanceAfterEur).toBe(51)
+      expect(res.body.lines[0].handedQuantity).toBe(3)
+      expect(res.body.lines[0].differenceQuantity).toBe(-1)
+
+      const screen = await request
+        .withSession(distributor)
+        .get(`/distribution/members/${member.id}`)
+      expect(screen.body.balanceEur).toBe(51)
+      // The order left the pending list, and stock fell by what was handed over, not ordered.
+      expect(screen.body.orders).toEqual([])
+
+      em.clear()
+      const movements = await em.find(StockMovement, { product: product.id })
+      const onHand = movements.reduce((sum, m) => sum + Number(m.quantity), 0)
+      expect(onHand).toBe(37)
+    })
+
+    it('prices a by-weight line at the weight actually handed over (FR-012)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const { product } = await createProductData(em, {
+        name: 'Comté',
+        saleMode: 'weight',
+        orderingMode: 'in_store',
+        priceEur: 20,
+      })
+      await addStock(product, 10)
+      const order = new Order()
+      order.member = member
+      order.orderingMode = 'in_store'
+      order.status = 'pending'
+      order.placedAt = new Date()
+      const line = new OrderLine()
+      line.order = order
+      line.product = product
+      line.productNameSnapshot = product.name
+      line.quantity = '0.5'
+      line.unitPriceAmountCents = 2000
+      line.lineTotalAmountCents = 1000
+      order.totalAmountCents = 1000
+      order.lines.add(line)
+      await em.persist([order, line]).flush()
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({ version: order.version, lines: [{ orderLineId: line.id, handedQuantity: 0.6 }] })
+
+      expect(res.status).toBe(201)
+      expect(res.body.totalEur).toBe(12)
+      expect(res.body.lines[0].differenceQuantity).toBeCloseTo(0.1, 3)
+    })
+
+    it('moves no stock for a line the member declined, and still settles the order', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const declined = await makeProduct('Declined apples')
+      const taken = await makeProduct('Taken pears')
+      await addStock(declined, 10)
+      await addStock(taken, 10)
+
+      const order = new Order()
+      order.member = member
+      order.orderingMode = 'in_store'
+      order.status = 'pending'
+      order.placedAt = new Date()
+      const lines = [declined, taken].map((product) => {
+        const line = new OrderLine()
+        line.order = order
+        line.product = product
+        line.productNameSnapshot = product.name
+        line.quantity = '2'
+        line.unitPriceAmountCents = 300
+        line.lineTotalAmountCents = 600
+        order.lines.add(line)
+        return line
+      })
+      order.totalAmountCents = 1200
+      await em.persist([order, ...lines]).flush()
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [
+            { orderLineId: lines[0].id, handedQuantity: 0 },
+            { orderLineId: lines[1].id, handedQuantity: 2 },
+          ],
+        })
+
+      expect(res.status).toBe(201)
+      expect(res.body.totalEur).toBe(6)
+
+      em.clear()
+      const declinedMovements = await em.find(StockMovement, { product: declined.id })
+      expect(declinedMovements).toHaveLength(1) // only the opening stock
+      const reloaded = await em.findOneOrFail(Order, { id: order.id })
+      expect(reloaded.status).toBe('handed_over')
+    })
+
+    it('refuses when the total exceeds the balance, and moves nothing (FR-027)', async () => {
+      const member = await makeMember('Bruno Broke')
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 2 })
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 2 }],
+        })
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('insufficient_balance')
+      expect(res.body.shortfallEur).toBe(6)
+
+      em.clear()
+      const reloaded = await em.findOneOrFail(Order, { id: order.id })
+      expect(reloaded.status).toBe('pending')
+      const movements = await em.find(StockMovement, { product: product.id })
+      expect(movements).toHaveLength(1) // only the opening stock
+      expect(await em.count(WalletEntry, { member: member.id })).toBe(0)
+    })
+
+    it('allows a handover that spends the balance down to exactly zero', async () => {
+      const member = await makeMember('Exact Change')
+      await credit(member, 600)
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 2 })
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 2 }],
+        })
+
+      expect(res.status).toBe(201)
+      expect(res.body.balanceAfterEur).toBe(0)
+    })
+
+    it('refuses a second validation of the same order (SC-003)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 2 })
+      const body = {
+        version: order.version,
+        lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 2 }],
+      }
+
+      const first = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send(body)
+      expect(first.status).toBe(201)
+
+      const second = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send(body)
+      expect(second.status).toBe(409)
+      expect(second.body.code).toBe('order_not_pending')
+
+      em.clear()
+      expect(await em.count(WalletEntry, { member: member.id, reason: 'handover_charge' })).toBe(1)
+    })
+
+    it('refuses a stale version — someone else validated it first (FR-011)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 2 })
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version + 5,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 2 }],
+        })
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('stale_version')
+    })
+
+    it('refuses a line whose goods have not arrived (FR-003)', async () => {
+      const member = await makeMember('Anna Awaiting')
+      await credit(member, 6000)
+      const product = await makeProduct('Leeks', 'pre_order')
+      const order = await addOrder(member, product, 'pre_order', { quantity: 2 })
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 2 }],
+        })
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('line_not_ready')
+    })
+
+    it('refuses a terminated member (FR-005)', async () => {
+      const { member } = await createMemberData(em, {
+        user: { name: 'Elio Ended', email: uniqueEmail('ended') },
+        roles: ['member'],
+        status: 'terminated',
+      })
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 1 })
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 1 }],
+        })
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('member_terminated')
+    })
+
+    it('refuses a handover where every line is zero', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 2 })
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 0 }],
+        })
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('nothing_handed_over')
+    })
+
+    it('leaves an untouched line outstanding for a later distribution', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const first = await makeProduct('First apples')
+      const second = await makeProduct('Second pears')
+      await addStock(first, 10)
+      await addStock(second, 10)
+
+      const order = new Order()
+      order.member = member
+      order.orderingMode = 'in_store'
+      order.status = 'pending'
+      order.placedAt = new Date()
+      const lines = [first, second].map((product) => {
+        const line = new OrderLine()
+        line.order = order
+        line.product = product
+        line.productNameSnapshot = product.name
+        line.quantity = '2'
+        line.unitPriceAmountCents = 300
+        line.lineTotalAmountCents = 600
+        order.lines.add(line)
+        return line
+      })
+      order.totalAmountCents = 1200
+      await em.persist([order, ...lines]).flush()
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: lines[0].id, handedQuantity: 2 }],
+        })
+      expect(res.status).toBe(201)
+
+      em.clear()
+      const reloaded = await em.findOneOrFail(Order, { id: order.id })
+      expect(reloaded.status).toBe('pending')
+    })
+
+    it('refuses a plain member (FR-035)', async () => {
+      const member = await makeMember('Fanny Funded')
+      const product = await makeProduct('Apples')
+      const order = await addOrder(member, product, 'in_store')
+      const res = await request
+        .withSession(plainMember)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({ version: order.version, lines: [] })
+      expect(res.status).toBe(403)
+    })
+  })
 })

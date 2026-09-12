@@ -1,14 +1,21 @@
 import {
   FilteringParams,
   PaginationParams,
+  TypedBody,
   TypedController,
   TypedParam,
   TypedRoute,
 } from '@lonestone/nzoth/server'
 import { UseGuards } from '@nestjs/common'
 import { z } from 'zod'
-import { StaffOnly } from '../auth/auth.decorator'
+import { LoggedInBetterAuthSession } from '../auth/auth.config'
+import { Session, StaffOnly } from '../auth/auth.decorator'
 import { AuthGuard } from '../auth/auth.guard'
+import {
+  handoverSchema,
+  type RecordHandoverInput,
+  recordHandoverSchema,
+} from './contracts/handover.contract'
 import {
   type DistributionMemberFiltering,
   distributionMemberFilteringSchema,
@@ -51,5 +58,26 @@ export class DistributionController {
   async memberScreen(@TypedParam('memberId', z.string()) memberId: string) {
     // A member with nothing outstanding is a normal state — an empty order list, not a 404.
     return this.mapper.toMemberScreen(await this.distribution.getMemberScreen(memberId))
+  }
+
+  /**
+   * Validate a handover. One transaction in the service: the order is marked handed over,
+   * stock drops, and the member is charged — together, or not at all (FR-009).
+   *
+   * Every refusal is a 409 carrying a `code` from `handoverRefusalCodeSchema`, so the table
+   * can show the right message (and, for `insufficient_balance`, offer to take payment).
+   */
+  @TypedRoute.Post('orders/:orderId/handovers', handoverSchema)
+  async recordHandover(
+    @TypedParam('orderId', z.string()) orderId: string,
+    @TypedBody(recordHandoverSchema) body: RecordHandoverInput,
+    @Session() session: LoggedInBetterAuthSession,
+  ) {
+    const { handover, balanceAfterCents } = await this.distribution.recordHandover(
+      orderId,
+      body,
+      session.user.id,
+    )
+    return this.mapper.toHandover(handover, balanceAfterCents, false)
   }
 }

@@ -166,6 +166,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   tests/distribution-screen.spec.ts, common.locales.{en,fr}.json,
   packages/openapi-generator/client/*
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 4: User Story 2 — hand over an order and charge the member
+- Tasks completed: T038, T039, T040, T041, T042, T043, T044, T045
+- `recordHandover` runs as one transaction: lock the member row, refuse a stale version or a
+  non-pending order, refuse an unready line or a terminated member, price at the order's
+  snapshot prices, read the balance before writing anything, refuse with the shortfall, then
+  write the handover, the negative stock movements and the single wallet charge, and flip
+  the order to `handed_over` only once every line is settled.
+- **Bug found and fixed**: the raw SQL in `getBalanceCents`, `getStockLevels` and
+  `settledOrderLineIds` did not join the caller's transaction. It checked out a second
+  pooled connection while the first held the member row lock — a deadlock under the test
+  pool of one, and a stale read in production. All three now pass
+  `em.getTransactionContext()`.
+- Verified: 7 Playwright tests (`distribution-handover.spec.ts`), 62 API tests across
+  distribution and inventory, both type-checks clean, no new lint warnings
+- **Author**: AI (Claude)
+- **Files**: distribution.util.ts, distribution.service.ts, distribution.mapper.ts,
+  distribution.controller.ts, wallet.service.ts, inventory.service.ts,
+  tests/distribution.service.spec.ts, tests/distribution.mapper.spec.ts,
+  tests/distribution.controller.e2e-spec.ts, handover-form.tsx,
+  distribution-member-page.tsx, distribution-queries.ts,
+  tests/distribution-handover.spec.ts, packages/openapi-generator/client/*
+
 ---
 
 <!--

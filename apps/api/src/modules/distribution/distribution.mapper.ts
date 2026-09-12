@@ -4,6 +4,12 @@ import type { Member } from '../members/entities/member.entity'
 import type { OrderLine } from '../orders/entities/order-line.entity'
 import type { Order } from '../orders/entities/order.entity'
 import type {
+  Handover as HandoverContract,
+  HandoverLine as HandoverLineContract,
+} from './contracts/handover.contract'
+import type { Handover } from './entities/handover.entity'
+import type { HandoverLine } from './entities/handover-line.entity'
+import type {
   DistributionLine as DistributionLineContract,
   DistributionMemberList as DistributionMemberListContract,
   DistributionMemberScreen as DistributionMemberScreenContract,
@@ -92,6 +98,41 @@ export class DistributionMapper {
     return {
       ...this.toMemberSummary(screen.member, screen.balanceCents, screen.orders.length),
       orders: screen.orders.map((order) => this.toOrder(order, screen.stockByProduct)),
+    }
+  }
+
+  toHandoverLine(line: HandoverLine): HandoverLineContract {
+    const handedQuantity = Number(line.handedQuantity)
+    const orderedQuantity = Number(line.orderLine.quantity)
+    return {
+      id: line.id,
+      orderLineId: line.orderLine.id,
+      productName: line.orderLine.productNameSnapshot,
+      orderedQuantity,
+      handedQuantity,
+      // Computed here rather than stored, so it can never drift from the two it derives from.
+      differenceQuantity: Math.round((handedQuantity - orderedQuantity) * 1000) / 1000,
+      unitPriceEur: centsToEur(line.unitPriceAmountCents),
+      lineTotalEur: centsToEur(line.lineTotalAmountCents),
+    }
+  }
+
+  toHandover(handover: Handover, balanceAfterCents: number, isReversed: boolean): HandoverContract {
+    return {
+      id: handover.id,
+      orderId: handover.order.id,
+      memberId: handover.member.id,
+      kind: handover.kind,
+      totalEur: centsToEur(handover.totalAmountCents),
+      reversesHandoverId: handover.reversesHandover?.id ?? null,
+      isReversed,
+      recordedBy: handover.recordedByUser?.name ?? null,
+      note: handover.note ?? null,
+      createdAt: handover.createdAt,
+      lines: handover.lines.isInitialized()
+        ? handover.lines.getItems().map((line) => this.toHandoverLine(line))
+        : [],
+      balanceAfterEur: centsToEur(balanceAfterCents),
     }
   }
 }

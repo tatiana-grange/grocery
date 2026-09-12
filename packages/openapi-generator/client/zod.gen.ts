@@ -110,6 +110,20 @@ export const zSetProductPrice = z.object({
 });
 
 /**
+ * RecordHandoverInput
+ *
+ * What was actually handed over. Lines left out stay outstanding for a later distribution.
+ */
+export const zRecordHandoverInput = z.object({
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    lines: z.array(z.object({
+        orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        handedQuantity: z.number().gte(0)
+    })).min(1),
+    note: z.optional(z.string().max(500))
+});
+
+/**
  * MemberValidation
  *
  * Validate a pending member (moves them to active) or reject them with a reason
@@ -1062,6 +1076,58 @@ export const zDistributionLine = z.object({
         z.enum(['awaiting_reception']),
         z.null()
     ]))
+});
+
+/**
+ * HandoverKind
+ *
+ * handover is goods going out; reversal is the row that undoes one. A reversal never edits the handover it undoes — it points at it.
+ */
+export const zHandoverKind = z.enum(['handover', 'reversal']);
+
+/**
+ * HandoverLine
+ *
+ * One product actually given, written once
+ */
+export const zHandoverLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productName: z.string(),
+    orderedQuantity: z.number(),
+    handedQuantity: z.number(),
+    differenceQuantity: z.number(),
+    unitPriceEur: z.number().gte(0),
+    lineTotalEur: z.number()
+});
+
+/**
+ * Handover
+ *
+ * A record of goods physically given to a member at a point in time
+ */
+export const zHandover = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    kind: zHandoverKind,
+    totalEur: z.number(),
+    reversesHandoverId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    isReversed: z.boolean(),
+    recordedBy: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    note: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    createdAt: z.string(),
+    lines: z.array(zHandoverLine),
+    balanceAfterEur: z.number()
 });
 
 /**
@@ -3062,3 +3128,23 @@ export const zDistributionControllerMemberScreenData = z.object({
  * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
  */
 export const zDistributionControllerMemberScreenResponse = zDistributionMemberScreen;
+
+export const zDistributionControllerRecordHandoverData = z.object({
+    body: z.object({
+        version: z.int().gte(-9007199254740991).lte(9007199254740991),
+        lines: z.array(z.object({
+            orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            handedQuantity: z.number().gte(0)
+        })).min(1),
+        note: z.optional(z.string().max(500))
+    }),
+    path: z.object({
+        orderId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A record of goods physically given to a member at a point in time
+ */
+export const zDistributionControllerRecordHandoverResponse = zHandover;

@@ -1,8 +1,12 @@
 import {
   distributionControllerMemberScreen,
+  distributionControllerRecordHandover,
   distributionControllerSearchMembers,
 } from '@grocery/openapi-generator/client/sdk.gen'
-import type { DistributionControllerSearchMembersData } from '@grocery/openapi-generator/client/types.gen'
+import type {
+  DistributionControllerSearchMembersData,
+  RecordHandoverInput,
+} from '@grocery/openapi-generator/client/types.gen'
 import { FilterRule } from '@lonestone/nzoth/client'
 import { unwrap } from '@/lib/api-client'
 
@@ -38,4 +42,13 @@ export function distributionMemberScreenQueryOptions(memberId: string) {
     queryKey: ['distribution', 'member-screen', memberId],
     queryFn: async () => unwrap(await distributionControllerMemberScreen({ path: { memberId } })),
   }
+}
+
+/**
+ * Validate a handover. The server does the whole thing in one transaction, so there is
+ * nothing to roll back here: either this resolves with the receipt, or it throws the 409
+ * body and nothing moved.
+ */
+export async function recordHandover(orderId: string, body: RecordHandoverInput) {
+  return unwrap(await distributionControllerRecordHandover({ path: { orderId }, body }))
 }

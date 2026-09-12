@@ -247,17 +247,17 @@ charged matches the adjusted total, and one ledger entry records it.
 
 > Write this first. It must fail before the implementation below.
 
-- [ ] T038 [US2] E2E test in `apps/web-spa-e2e/tests/distribution-handover.spec.ts`: adjust a
+- [X] T038 [US2] E2E test in `apps/web-spa-e2e/tests/distribution-handover.spec.ts`: adjust a
   quantity, zero a line, weigh a by-weight line, validate, then assert the balance fell by the
   adjusted total, the order shows as handed over, and a second validation is refused
 
 ### Implementation for User Story 2
 
-- [ ] T039 [P] [US2] Extend `apps/api/src/modules/distribution/distribution.util.ts` with
+- [X] T039 [P] [US2] Extend `apps/api/src/modules/distribution/distribution.util.ts` with
   `lineTotalCents(handedQuantity, unitPriceAmountCents)`, `handoverTotalCents(lines)`, and
   `isOrderFullySettled(order, handoverLines)` implementing the settlement query from
   data-model.md
-- [ ] T040 [US2] Implement `DistributionService.recordHandover` in
+- [X] T040 [US2] Implement `DistributionService.recordHandover` in
   `apps/api/src/modules/distribution/distribution.service.ts` as one `em.transactional`,
   in the exact order of data-model.md "Cross-entity rules": lock the `Member` row with
   `LockMode.PESSIMISTIC_WRITE`; refuse unless `order.status === 'pending'` and the caller's
@@ -267,26 +267,26 @@ charged matches the adjusted total, and one ledger entry records it.
   `Handover` and its lines; append one negative `StockMovement` per line with
   `handedQuantity > 0`; append one negative `WalletEntry`; set `status = 'handed_over'` if
   every line is settled
-- [ ] T041 [US2] Add `POST /distribution/orders/:orderId/handovers` to
+- [X] T041 [US2] Add `POST /distribution/orders/:orderId/handovers` to
   `apps/api/src/modules/distribution/distribution.controller.ts`, returning `handoverSchema`.
   Every refusal is a `409` whose body carries an explicit `statusCode` and a `code` from the
   table in contracts/distribution-api.md, so the generated client's `isConflict` helper works
-- [ ] T042 [P] [US2] Unit tests in
+- [X] T042 [P] [US2] Unit tests in
   `apps/api/src/modules/distribution/tests/distribution.service.spec.ts`: the total recomputed
   from adjusted quantities at snapshot prices (not current prices); a by-weight line handed
   over at a weight different from the one ordered; the insufficient-balance comparison
   **including the exact-match boundary** (total equals balance → allowed); the not-ready
   refusal; a zeroed line moving no stock but still settling; order settlement flipping the
   status only when every line is settled (research.md §15)
-- [ ] T043 [P] [US2] API e2e tests in
+- [X] T043 [P] [US2] API e2e tests in
   `apps/api/src/modules/distribution/tests/distribution.controller.e2e-spec.ts`: a successful
   handover asserting stock, balance and order status together; the repeat-validation refusal;
   the stale-`version` refusal; the terminated-member refusal; a partial handover leaving the
   rest outstanding
-- [ ] T044 [P] [US2] Unit tests in
+- [X] T044 [P] [US2] Unit tests in
   `apps/api/src/modules/distribution/tests/distribution.mapper.spec.ts` for the handover and
   handover-line mappers, including the read-time `differenceQuantity`
-- [ ] T045 [US2] Build `apps/web-spa/app/features/distribution/components/handover-form.tsx`:
+- [X] T045 [US2] Build `apps/web-spa/app/features/distribution/components/handover-form.tsx`:
   per-line quantity or weight input honouring `quantityStepGrams`, a running total, and a
   validate action that sends the loaded `version`; wire it into `distribution-member-page.tsx`
   and surface each `409` code as its translated message

@@ -161,6 +161,20 @@ export type SetProductPrice = {
 };
 
 /**
+ * RecordHandoverInput
+ *
+ * What was actually handed over. Lines left out stay outstanding for a later distribution.
+ */
+export type RecordHandoverInput = {
+    version: number;
+    lines: Array<{
+        orderLineId: string;
+        handedQuantity: number;
+    }>;
+    note?: string;
+};
+
+/**
  * CreateMember
  *
  * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
@@ -942,6 +956,56 @@ export type DistributionLine = {
     lineTotalEur: number;
     isReady: boolean;
     notReadyReason?: 'awaiting_reception' | null;
+};
+
+/**
+ * Handover
+ *
+ * A record of goods physically given to a member at a point in time
+ */
+export type Handover = {
+    id: string;
+    orderId: string;
+    memberId: string;
+    kind: HandoverKind;
+    totalEur: number;
+    reversesHandoverId?: string | null;
+    isReversed: boolean;
+    recordedBy?: string | null;
+    note?: string | null;
+    createdAt: string;
+    lines: Array<HandoverLine>;
+    balanceAfterEur: number;
+};
+
+/**
+ * HandoverKind
+ *
+ * handover is goods going out; reversal is the row that undoes one. A reversal never edits the handover it undoes — it points at it.
+ */
+export const HandoverKind = { HANDOVER: 'handover', REVERSAL: 'reversal' } as const;
+
+/**
+ * HandoverKind
+ *
+ * handover is goods going out; reversal is the row that undoes one. A reversal never edits the handover it undoes — it points at it.
+ */
+export type HandoverKind = typeof HandoverKind[keyof typeof HandoverKind];
+
+/**
+ * HandoverLine
+ *
+ * One product actually given, written once
+ */
+export type HandoverLine = {
+    id: string;
+    orderLineId: string;
+    productName: string;
+    orderedQuantity: number;
+    handedQuantity: number;
+    differenceQuantity: number;
+    unitPriceEur: number;
+    lineTotalEur: number;
 };
 
 /**
@@ -3171,3 +3235,33 @@ export type DistributionControllerMemberScreenResponses = {
 };
 
 export type DistributionControllerMemberScreenResponse = DistributionControllerMemberScreenResponses[keyof DistributionControllerMemberScreenResponses];
+
+export type DistributionControllerRecordHandoverData = {
+    /**
+     * RecordHandoverInput
+     *
+     * What was actually handed over. Lines left out stay outstanding for a later distribution.
+     */
+    body: {
+        version: number;
+        lines: Array<{
+            orderLineId: string;
+            handedQuantity: number;
+        }>;
+        note?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/api/distribution/orders/{orderId}/handovers';
+};
+
+export type DistributionControllerRecordHandoverResponses = {
+    /**
+     * A record of goods physically given to a member at a point in time
+     */
+    200: Handover;
+};
+
+export type DistributionControllerRecordHandoverResponse = DistributionControllerRecordHandoverResponses[keyof DistributionControllerRecordHandoverResponses];

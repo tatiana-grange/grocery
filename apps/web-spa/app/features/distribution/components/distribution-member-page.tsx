@@ -3,9 +3,11 @@ import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
+import { HandoverForm } from '@/features/distribution/components/handover-form'
 import { distributionMemberScreenQueryOptions } from '@/features/distribution/utils/distribution-queries'
 
 /**
@@ -17,6 +19,7 @@ export default function DistributionMemberPage() {
   const { t } = useTranslation()
   const { memberId = '' } = useParams()
   const { data, isLoading } = useQuery(distributionMemberScreenQueryOptions(memberId))
+  const [recordedHandoverId, setRecordedHandoverId] = useState<string | null>(null)
 
   if (isLoading || !data) {
     return <Skeleton className="h-64 w-full" data-testid="page-distribution-member-loading" />
@@ -52,6 +55,23 @@ export default function DistributionMemberPage() {
             {t('distribution.member.statusWarning', { status: data.status })}
             {data.status === 'terminated' ? ` ${t('distribution.member.terminatedBlocked')}` : ''}
           </span>
+        </div>
+      ) : null}
+
+      {recordedHandoverId ? (
+        <div
+          className="flex items-center gap-2 rounded-lg border border-border bg-accent/40 p-3 text-sm"
+          data-testid="handover-receipt"
+        >
+          <CheckCircle2 className="size-4 shrink-0" />
+          <span>{t('distribution.handover.receipt')}</span>
+          <Link
+            className="ml-auto underline"
+            to={`/distribution/handovers/${recordedHandoverId}`}
+            data-testid="handover-receipt-link"
+          >
+            {t('distribution.waiting.open')}
+          </Link>
         </div>
       ) : null}
 
@@ -118,6 +138,11 @@ export default function DistributionMemberPage() {
               </li>
             ))}
           </ul>
+
+          <HandoverForm
+            order={order}
+            onRecorded={(handoverId) => setRecordedHandoverId(handoverId)}
+          />
         </section>
       ))}
 

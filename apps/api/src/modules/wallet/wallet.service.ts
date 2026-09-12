@@ -37,11 +37,17 @@ export class WalletService {
    * screen needs one number.
    */
   async getBalanceCents(em: EntityManager, memberId: string): Promise<number> {
+    // The transaction context matters twice over. It keeps the read on the transaction's own
+    // connection — without it the query waits for a second one, which under a pool of one is
+    // a deadlock — and it is what makes the sum include rows this transaction has written but
+    // not yet committed.
     const rows: BalanceRow[] = await em
       .getConnection()
       .execute(
         'select sum("amountCents") as "balanceCents" from "walletEntry" where "memberId" = ?',
         [memberId],
+        'all',
+        em.getTransactionContext(),
       )
     return Number(rows[0]?.balanceCents ?? 0)
   }

@@ -153,6 +153,9 @@ export class InventoryService {
     if (productIds.length === 0) return result
 
     const placeholders = productIds.map(() => '?').join(', ')
+    // Passing the transaction context keeps this on the caller's own connection: without it
+    // the query waits for a second connection while the transaction holds the first, and it
+    // would not see the movements that transaction has already written.
     const rows: StockTotalsRow[] = await em.getConnection().execute(
       `select "productId",
               sum("quantity") as "quantity",
@@ -161,6 +164,8 @@ export class InventoryService {
         where "productId" in (${placeholders})
         group by "productId"`,
       productIds,
+      'all',
+      em.getTransactionContext(),
     )
 
     for (const row of rows) {

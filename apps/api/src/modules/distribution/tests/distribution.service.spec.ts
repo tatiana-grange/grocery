@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { lineReadiness } from '../distribution.util'
+import {
+  balanceCovers,
+  handoverTotalCents,
+  isOrderFullySettled,
+  lineReadiness,
+  lineTotalCents,
+} from '../distribution.util'
 
 /**
  * The DB-backed side of `DistributionService` (the queries, the transaction, the member
@@ -28,5 +34,85 @@ describe('lineReadiness', () => {
       notReadyReason: 'awaiting_reception',
     })
     expect(lineReadiness('pre_order', undefined).notReadyReason).toBe('awaiting_reception')
+  })
+})
+
+describe('lineTotalCents', () => {
+  it('prices a whole-unit line at the snapshot price', () => {
+    expect(lineTotalCents(3, 300)).toBe(900)
+  })
+
+  it('prices a by-weight line from the weight actually put on the scale (FR-012)', () => {
+    // 0.6 kg of a product priced at 20 €/kg, ordered as an estimated 0.5 kg.
+    expect(lineTotalCents(0.6, 2000)).toBe(1200)
+  })
+
+  it('contributes nothing for a line the member declined', () => {
+    expect(lineTotalCents(0, 2000)).toBe(0)
+  })
+
+  it('rounds to whole cents, the way checkout priced the line in the first place', () => {
+    // 0.333 kg at 19.99 €/kg = 665.667 cents.
+    expect(lineTotalCents(0.333, 1999)).toBe(666)
+  })
+})
+
+describe('handoverTotalCents', () => {
+  const line = (handedQuantity: number, unitPriceAmountCents: number) => ({
+    orderLineId: `line-${handedQuantity}-${unitPriceAmountCents}`,
+    handedQuantity,
+    unitPriceAmountCents,
+    lineTotalAmountCents: lineTotalCents(handedQuantity, unitPriceAmountCents),
+  })
+
+  it('sums the adjusted lines, not what was ordered', () => {
+    // 3 apples @ 3 € and 0.6 kg of cheese @ 20 €/kg = 21 €.
+    expect(handoverTotalCents([line(3, 300), line(0.6, 2000)])).toBe(2100)
+  })
+
+  it('drops a declined line out of the total', () => {
+    expect(handoverTotalCents([line(0, 300), line(0.5, 2000)])).toBe(1000)
+  })
+
+  it('is zero for a handover where everything was declined', () => {
+    expect(handoverTotalCents([line(0, 300), line(0, 2000)])).toBe(0)
+  })
+})
+
+describe('balanceCovers', () => {
+  it('allows a handover the balance covers', () => {
+    expect(balanceCovers(2100, 6000)).toBe(true)
+  })
+
+  it('allows spending the balance down to exactly zero — that is not an overdraft', () => {
+    expect(balanceCovers(6000, 6000)).toBe(true)
+  })
+
+  it('refuses a handover one cent over the balance (FR-027, SC-010)', () => {
+    expect(balanceCovers(6001, 6000)).toBe(false)
+  })
+
+  it('refuses anything at all on an empty account', () => {
+    expect(balanceCovers(1, 0)).toBe(false)
+    expect(balanceCovers(0, 0)).toBe(true)
+  })
+})
+
+describe('isOrderFullySettled', () => {
+  it('settles the order when this handover covers every line', () => {
+    expect(isOrderFullySettled(['a', 'b'], new Set(), new Set(['a', 'b']))).toBe(true)
+  })
+
+  it('counts a line handed over at zero as settled — the member was offered it', () => {
+    // The caller puts every line it priced into `settledNow`, zero included.
+    expect(isOrderFullySettled(['a', 'b'], new Set(), new Set(['a', 'b']))).toBe(true)
+  })
+
+  it('leaves the order pending when a line was not touched', () => {
+    expect(isOrderFullySettled(['a', 'b'], new Set(), new Set(['a']))).toBe(false)
+  })
+
+  it('counts a line settled by an earlier, un-reversed handover', () => {
+    expect(isOrderFullySettled(['a', 'b'], new Set(['a']), new Set(['b']))).toBe(true)
   })
 })
