@@ -1,6 +1,7 @@
 import {
   distributionControllerCreateExpressOrder,
   distributionControllerListSellableProducts,
+  distributionControllerListWaiting,
   distributionControllerMemberScreen,
   distributionControllerRecordHandover,
   distributionControllerSearchMembers,
@@ -8,6 +9,7 @@ import {
 import type {
   CreateExpressOrderInput,
   DistributionControllerListSellableProductsData,
+  DistributionControllerListWaitingData,
   DistributionControllerSearchMembersData,
   RecordHandoverInput,
 } from '@grocery/openapi-generator/client/types.gen'
@@ -21,6 +23,8 @@ type MemberFilter = NonNullable<DistributionControllerSearchMembersData['query']
 type ProductFilter = NonNullable<
   DistributionControllerListSellableProductsData['query']['filter']
 >[number]
+
+type WaitingFilter = NonNullable<DistributionControllerListWaitingData['query']['filter']>[number]
 
 export function distributionMemberSearchQueryOptions(search: string) {
   return {
@@ -81,4 +85,33 @@ export function sellableProductsQueryOptions(search: string) {
 /** Create the order and hand it over in one call — nothing is persisted before this. */
 export async function createExpressOrder(memberId: string, body: CreateExpressOrderInput) {
   return unwrap(await distributionControllerCreateExpressOrder({ path: { memberId }, body }))
+}
+
+export interface WaitingParams {
+  orderingMode: 'pre_order' | 'in_store'
+  placedFrom?: string
+  placedTo?: string
+}
+
+/** Orders still to hand over, for the two waiting lists. */
+export function waitingOrdersQueryOptions({ orderingMode, placedFrom, placedTo }: WaitingParams) {
+  return {
+    queryKey: ['distribution', 'waiting', orderingMode, placedFrom ?? '', placedTo ?? ''],
+    queryFn: async () => {
+      const filter: WaitingFilter[] = [
+        { property: 'orderingMode' as const, rule: FilterRule.EQUALS, value: orderingMode },
+        ...(placedFrom
+          ? [{ property: 'placedFrom' as const, rule: FilterRule.EQUALS, value: placedFrom }]
+          : []),
+        ...(placedTo
+          ? [{ property: 'placedTo' as const, rule: FilterRule.EQUALS, value: placedTo }]
+          : []),
+      ]
+      return unwrap(
+        await distributionControllerListWaiting({
+          query: { offset: 0, pageSize: 50, filter },
+        }),
+      )
+    },
+  }
 }

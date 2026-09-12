@@ -17,8 +17,15 @@ import type {
   DistributionOrder as DistributionOrderContract,
   DistributionProduct as DistributionProductContract,
   DistributionProductList as DistributionProductListContract,
+  WaitingOrder as WaitingOrderContract,
+  WaitingOrderList as WaitingOrderListContract,
 } from './contracts/distribution-screen.contract'
-import type { MemberScreen, MemberSearchRow, SellableProduct } from './distribution.service'
+import type {
+  MemberScreen,
+  MemberSearchRow,
+  SellableProduct,
+  WaitingOrderRow,
+} from './distribution.service'
 import { lineReadiness } from './distribution.util'
 
 @Injectable()
@@ -158,6 +165,38 @@ export class DistributionMapper {
   ): DistributionProductListContract {
     return {
       data: items.map((item) => this.toSellableProduct(item)),
+      meta: {
+        itemCount: total,
+        pageSize: pagination.pageSize,
+        offset: pagination.offset,
+        hasMore: pagination.offset + pagination.pageSize < total,
+      },
+    }
+  }
+
+  toWaitingOrder(row: WaitingOrderRow): WaitingOrderContract {
+    return {
+      orderId: row.order.id,
+      member: {
+        id: row.order.member.id,
+        membershipNumber: row.order.member.membershipNumber,
+        name: row.order.member.user.name,
+      },
+      orderingMode: row.order.orderingMode,
+      placedAt: row.order.placedAt,
+      totalEur: centsToEur(row.order.totalAmountCents),
+      lineCount: row.order.lines.isInitialized() ? row.order.lines.count() : 0,
+      isReady: row.isReady,
+    }
+  }
+
+  toWaitingOrderList(
+    items: WaitingOrderRow[],
+    total: number,
+    pagination: { pageSize: number; offset: number },
+  ): WaitingOrderListContract {
+    return {
+      data: items.map((row) => this.toWaitingOrder(row)),
       meta: {
         itemCount: total,
         pageSize: pagination.pageSize,

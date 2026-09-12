@@ -706,4 +706,85 @@ describe('distributionController (e2e)', () => {
       expect(res.status).toBe(403)
     })
   })
+
+  describe('GET /distribution/waiting', () => {
+    it('lists pending orders and separates them by ordering mode (FR-031)', async () => {
+      const member = await makeMember('Fanny Funded')
+      const stocked = await makeProduct('Apples')
+      const preOrdered = await makeProduct('Leeks', 'pre_order')
+      await addOrder(member, stocked, 'in_store')
+      await addOrder(member, preOrdered, 'pre_order')
+
+      const inStore = await request
+        .withSession(distributor)
+        .get('/distribution/waiting?filter=orderingMode:eq:in_store')
+      expect(inStore.status).toBe(200)
+      expect(inStore.body.data).toHaveLength(1)
+      expect(inStore.body.data[0].orderingMode).toBe('in_store')
+      expect(inStore.body.data[0].member.name).toBe('Fanny Funded')
+      expect(inStore.body.data[0].lineCount).toBe(1)
+
+      const preOrder = await request
+        .withSession(distributor)
+        .get('/distribution/waiting?filter=orderingMode:eq:pre_order')
+      expect(preOrder.body.data).toHaveLength(1)
+      expect(preOrder.body.data[0].isReady).toBe(false)
+    })
+
+    it('marks a pre-order ready once its goods arrived', async () => {
+      const member = await makeMember('Fanny Funded')
+      const product = await makeProduct('Cheese', 'pre_order')
+      await addOrder(member, product, 'pre_order', { fulfilled: true })
+
+      const res = await request
+        .withSession(distributor)
+        .get('/distribution/waiting?filter=orderingMode:eq:pre_order')
+      expect(res.body.data[0].isReady).toBe(true)
+    })
+
+    it('drops a handed-over order out of the list (FR-032)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 2 })
+
+      const before = await request.withSession(distributor).get('/distribution/waiting')
+      expect(before.body.data).toHaveLength(1)
+
+      await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 2 }],
+        })
+
+      const after = await request.withSession(distributor).get('/distribution/waiting')
+      expect(after.body.data).toHaveLength(0)
+    })
+
+    it('filters by the date the order was placed (FR-033)', async () => {
+      const member = await makeMember('Fanny Funded')
+      const product = await makeProduct('Apples')
+      await addOrder(member, product, 'in_store')
+
+      const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10)
+      const tooEarly = await request
+        .withSession(distributor)
+        .get(`/distribution/waiting?filter=placedTo:eq:${yesterday}`)
+      expect(tooEarly.body.data).toHaveLength(0)
+
+      const today = new Date().toISOString().slice(0, 10)
+      const included = await request
+        .withSession(distributor)
+        .get(`/distribution/waiting?filter=placedFrom:eq:${today}`)
+      expect(included.body.data).toHaveLength(1)
+    })
+
+    it('refuses a plain member', async () => {
+      const res = await request.withSession(plainMember).get('/distribution/waiting')
+      expect(res.status).toBe(403)
+    })
+  })
 })

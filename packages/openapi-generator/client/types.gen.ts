@@ -1141,6 +1141,45 @@ export type DistributionProduct = {
 };
 
 /**
+ * WaitingOrderList
+ *
+ * Orders still to hand over. A fully handed-over order leaves this list.
+ */
+export type WaitingOrderList = {
+    data: Array<WaitingOrder>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * WaitingOrder
+ *
+ * One order still waiting to be handed over
+ */
+export type WaitingOrder = {
+    orderId: string;
+    member: {
+        id: string;
+        membershipNumber: string;
+        name: string;
+    };
+    /**
+     * OrderingModeChoice
+     *
+     * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+     */
+    orderingMode: 'pre_order' | 'in_store';
+    placedAt: string;
+    totalEur: number;
+    lineCount: number;
+    isReady: boolean;
+};
+
+/**
  * MembersList
  *
  * A paginated list of members
@@ -1844,6 +1883,14 @@ export type DistributionControllerListSellableProductsFilterItem = {
 };
 
 export type DistributionControllerListSellableProductsFilterArray = Array<DistributionControllerListSellableProductsFilterItem>;
+
+export type DistributionControllerListWaitingFilterItem = {
+    property: 'orderingMode' | 'readyOnly' | 'placedFrom' | 'placedTo';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type DistributionControllerListWaitingFilterArray = Array<DistributionControllerListWaitingFilterItem>;
 
 export type AppControllerGetHelloData = {
     body?: never;
@@ -3576,3 +3623,34 @@ export type DistributionControllerCreateExpressOrderResponses = {
 };
 
 export type DistributionControllerCreateExpressOrderResponse = DistributionControllerCreateExpressOrderResponses[keyof DistributionControllerCreateExpressOrderResponses];
+
+export type DistributionControllerListWaitingData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: orderingMode, readyOnly, placedFrom, placedTo
+         */
+        filter?: DistributionControllerListWaitingFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/distribution/waiting';
+};
+
+export type DistributionControllerListWaitingResponses = {
+    /**
+     * Orders still to hand over. A fully handed-over order leaves this list.
+     */
+    200: WaitingOrderList;
+};
+
+export type DistributionControllerListWaitingResponse = DistributionControllerListWaitingResponses[keyof DistributionControllerListWaitingResponses];

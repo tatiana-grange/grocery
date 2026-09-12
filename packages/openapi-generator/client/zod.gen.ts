@@ -1280,6 +1280,40 @@ export const zDistributionProductList = z.object({
 });
 
 /**
+ * WaitingOrder
+ *
+ * One order still waiting to be handed over
+ */
+export const zWaitingOrder = z.object({
+    orderId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    member: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        membershipNumber: z.string(),
+        name: z.string()
+    }),
+    orderingMode: z.enum(['pre_order', 'in_store']),
+    placedAt: z.string(),
+    totalEur: z.number().gte(0),
+    lineCount: z.int().gt(0).lte(9007199254740991),
+    isReady: z.boolean()
+});
+
+/**
+ * WaitingOrderList
+ *
+ * Orders still to hand over. A fully handed-over order leaves this list.
+ */
+export const zWaitingOrderList = z.object({
+    data: z.array(zWaitingOrder),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
  * MemberListItem
  *
  * A member as shown in the back-office list
@@ -2165,6 +2199,32 @@ export const zDistributionControllerListSellableProductsFilterItem = z.object({
 });
 
 export const zDistributionControllerListSellableProductsFilterArray = z.array(zDistributionControllerListSellableProductsFilterItem);
+
+export const zDistributionControllerListWaitingFilterItem = z.object({
+    property: z.union([
+        z.literal('orderingMode'),
+        z.literal('readyOnly'),
+        z.literal('placedFrom'),
+        z.literal('placedTo')
+    ]),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zDistributionControllerListWaitingFilterArray = z.array(zDistributionControllerListWaitingFilterItem);
 
 export const zAppControllerGetHelloData = z.object({
     body: z.optional(z.never()),
@@ -3431,3 +3491,18 @@ export const zDistributionControllerCreateExpressOrderData = z.object({
  * A record of goods physically given to a member at a point in time
  */
 export const zDistributionControllerCreateExpressOrderResponse = zHandover;
+
+export const zDistributionControllerListWaitingData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zDistributionControllerListWaitingFilterArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * Orders still to hand over. A fully handed-over order leaves this list.
+ */
+export const zDistributionControllerListWaitingResponse = zWaitingOrderList;

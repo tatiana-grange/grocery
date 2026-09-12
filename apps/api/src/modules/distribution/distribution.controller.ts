@@ -28,6 +28,9 @@ import {
   type DistributionProductFiltering,
   distributionProductFilteringSchema,
   distributionProductListSchema,
+  type WaitingFiltering,
+  waitingFilteringSchema,
+  waitingOrderListSchema,
 } from './contracts/distribution-screen.contract'
 import { DistributionMapper } from './distribution.mapper'
 import { DistributionService } from './distribution.service'
@@ -114,5 +117,27 @@ export class DistributionController {
       session.user.id,
     )
     return this.mapper.toHandover(handover, balanceAfterCents, false)
+  }
+
+  /** Orders still to hand over (FR-031–FR-033). */
+  @TypedRoute.Get('waiting', waitingOrderListSchema)
+  async listWaiting(
+    @PaginationParams(distributionPaginationSchema) pagination: DistributionPagination,
+    @FilteringParams(waitingFilteringSchema) filter?: WaitingFiltering,
+  ) {
+    const filters: {
+      orderingMode?: string
+      readyOnly?: boolean
+      placedFrom?: string
+      placedTo?: string
+    } = {}
+    for (const item of filter ?? []) {
+      if (item.property === 'orderingMode') filters.orderingMode = item.value
+      if (item.property === 'readyOnly') filters.readyOnly = item.value === 'true'
+      if (item.property === 'placedFrom') filters.placedFrom = item.value
+      if (item.property === 'placedTo') filters.placedTo = item.value
+    }
+    const { items, total } = await this.distribution.listWaiting(pagination, filters)
+    return this.mapper.toWaitingOrderList(items, total, pagination)
   }
 }

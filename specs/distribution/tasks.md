@@ -412,22 +412,22 @@ opening a row lands on that member's screen.
 
 > Write this first. It must fail before the implementation below.
 
-- [ ] T062 [US5] E2E test in `apps/web-spa-e2e/tests/distribution-waiting.spec.ts`: both lists
+- [X] T062 [US5] E2E test in `apps/web-spa-e2e/tests/distribution-waiting.spec.ts`: both lists
   populated and kept separate, a date filter narrowing them, opening a row landing on the
   member screen, and a handed-over order having left the list
 
 ### Implementation for User Story 5
 
-- [ ] T063 [US5] Implement `DistributionService.listWaiting` in
+- [X] T063 [US5] Implement `DistributionService.listWaiting` in
   `apps/api/src/modules/distribution/distribution.service.ts`: paginated orders still
   `pending`, with `orderingMode`, `readyOnly`, `placedFrom` and `placedTo` filters, each row
   carrying its member, total, line count and readiness
-- [ ] T064 [US5] Add `GET /distribution/waiting` to
+- [X] T064 [US5] Add `GET /distribution/waiting` to
   `apps/api/src/modules/distribution/distribution.controller.ts`
-- [ ] T065 [P] [US5] API e2e tests in
+- [X] T065 [P] [US5] API e2e tests in
   `apps/api/src/modules/distribution/tests/distribution.controller.e2e-spec.ts` for the
   filters and for a handed-over order dropping out of the list
-- [ ] T066 [US5] Add the two lists as tabs on
+- [X] T066 [US5] Add the two lists as tabs on
   `apps/web-spa/app/features/distribution/components/distribution-home-page.tsx`, with the date
   filter and rows linking to the member screen
 

@@ -45,6 +45,11 @@ export interface SellableProduct {
   quantityOnHand: number
 }
 
+export interface WaitingOrderRow {
+  order: Order
+  isReady: boolean
+}
+
 export interface MemberScreen {
   member: Member
   balanceCents: number
@@ -266,6 +271,50 @@ export class DistributionService {
         balanceAfterCents: balanceCents - totalCents,
       }
     })
+  }
+
+  /**
+   * Orders still waiting to be handed over (FR-031–FR-033), newest last so the queue reads in
+   * the order people placed them. An order leaves this list the moment its status stops being
+   * `pending`, which is what "a handed-over order is no longer waiting" means (FR-032) — no
+   * second flag to keep in step.
+   */
+  async listWaiting(
+    pagination: { pageSize: number; offset: number },
+    filters: {
+      orderingMode?: string
+      readyOnly?: boolean
+      placedFrom?: string
+      placedTo?: string
+    } = {},
+  ): Promise<{ items: WaitingOrderRow[]; total: number }> {
+    const where: FilterQuery<Order> = { status: 'pending' }
+    if (filters.orderingMode) Object.assign(where, { orderingMode: filters.orderingMode })
+    if (filters.placedFrom || filters.placedTo) {
+      const placedAt: Record<string, Date> = {}
+      if (filters.placedFrom) placedAt.$gte = new Date(filters.placedFrom)
+      // An end date means "up to the end of that day", not midnight at its start.
+      if (filters.placedTo) placedAt.$lt = new Date(new Date(filters.placedTo).getTime() + 86_400_000)
+      Object.assign(where, { placedAt })
+    }
+
+    const [orders, total] = await this.em.findAndCount(Order, where, {
+      orderBy: { placedAt: QueryOrder.ASC },
+      limit: pagination.pageSize,
+      offset: pagination.offset,
+      populate: ['member', 'member.user', 'lines'],
+    })
+
+    const rows = orders.map((order) => ({
+      order,
+      isReady: order.lines
+        .getItems()
+        .every((line) => lineReadiness(order.orderingMode, line.fulfilledAt).isReady),
+    }))
+    return {
+      items: filters.readyOnly ? rows.filter((row) => row.isReady) : rows,
+      total,
+    }
   }
 
   /**

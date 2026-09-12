@@ -234,6 +234,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   handover-form.tsx, distribution-member-page.tsx, account-page.tsx,
   tests/distribution-wallet.spec.ts, packages/openapi-generator/client/*
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 7: User Story 5 — work through a distribution from the lists
+- Tasks completed: T062, T063, T064, T065, T066
+- An order leaves the waiting list the moment its status stops being `pending`, so there is
+  no second flag to keep in step with the handover.
+- Verified: 5 Playwright tests (`distribution-waiting.spec.ts`), 67 distribution API tests,
+  both type-checks clean, no new lint warnings
+- **Author**: AI (Claude)
+- **Files**: distribution.service.ts, distribution.mapper.ts, distribution.controller.ts,
+  tests/distribution.controller.e2e-spec.ts, distribution-queries.ts,
+  distribution-home-page.tsx, tests/distribution-waiting.spec.ts,
+  packages/openapi-generator/client/*
+
 ---
 
 <!--
