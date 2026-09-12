@@ -14,7 +14,7 @@ is a good match for this kind of management app.
 - **Money and stock** are the real risk. PostgreSQL plus MikroORM give real transactions and
   row locking, which is what a correct balance ledger needs. MikroORM wraps each controller
   request in a transaction by default.
-- **Roles** (member / grocer / admin): the Better Auth admin plugin is enough for one site.
+- **Roles** (member / distributor / admin): the Better Auth admin plugin is enough for one site.
   The organizations plugin is only needed for multi-site, which we do not do.
 - **Repetitive CRUD** (products, suppliers, members): the standard module pattern (entity,
   contract, mapper, service, controller, module, e2e test) is built for this, and the
