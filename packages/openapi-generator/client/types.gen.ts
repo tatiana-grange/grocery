@@ -811,6 +811,140 @@ export type ShopProductDetail = {
 };
 
 /**
+ * DistributionMemberList
+ */
+export type DistributionMemberList = {
+    data: Array<DistributionMemberSummary>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * DistributionMemberSummary
+ *
+ * One member as the distribution table sees them in a search result
+ */
+export type DistributionMemberSummary = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    /**
+     * MemberStatus
+     *
+     * Lifecycle status of a cooperative member
+     */
+    status: 'pending' | 'active' | 'rejected' | 'terminated';
+    balanceEur: number;
+    outstandingOrderCount: number;
+};
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export const MemberStatus = {
+    PENDING: 'pending',
+    ACTIVE: 'active',
+    REJECTED: 'rejected',
+    TERMINATED: 'terminated'
+} as const;
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export type MemberStatus = typeof MemberStatus[keyof typeof MemberStatus];
+
+/**
+ * DistributionMemberScreen
+ *
+ * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
+ */
+export type DistributionMemberScreen = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    status: MemberStatus;
+    balanceEur: number;
+    outstandingOrderCount: number;
+    orders: Array<DistributionOrder>;
+};
+
+/**
+ * DistributionOrder
+ */
+export type DistributionOrder = {
+    id: string;
+    /**
+     * OrderingModeChoice
+     *
+     * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+     */
+    orderingMode: 'pre_order' | 'in_store';
+    placedAt: string;
+    totalEur: number;
+    isReady: boolean;
+    version: number;
+    lines: Array<{
+        orderLineId: string;
+        productId: string;
+        productName: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+        selectionUnit?: 'g' | 'kg' | null;
+        quantityStepGrams?: number | null;
+        orderedQuantity: number;
+        availableQuantity: number;
+        unitPriceEur: number;
+        lineTotalEur: number;
+        isReady: boolean;
+        notReadyReason?: 'awaiting_reception' | null;
+    }>;
+};
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export const OrderingModeChoice = { PRE_ORDER: 'pre_order', IN_STORE: 'in_store' } as const;
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export type OrderingModeChoice = typeof OrderingModeChoice[keyof typeof OrderingModeChoice];
+
+/**
+ * DistributionLine
+ */
+export type DistributionLine = {
+    orderLineId: string;
+    productId: string;
+    productName: string;
+    saleMode: ProductSaleMode;
+    selectionUnit?: 'g' | 'kg' | null;
+    quantityStepGrams?: number | null;
+    orderedQuantity: number;
+    availableQuantity: number;
+    unitPriceEur: number;
+    lineTotalEur: number;
+    isReady: boolean;
+    notReadyReason?: 'awaiting_reception' | null;
+};
+
+/**
  * MembersList
  *
  * A paginated list of members
@@ -851,25 +985,6 @@ export type MemberListItem = {
     feeState: 'unpaid' | 'partly_paid' | 'paid';
     createdAt: string;
 };
-
-/**
- * MemberStatus
- *
- * Lifecycle status of a cooperative member
- */
-export const MemberStatus = {
-    PENDING: 'pending',
-    ACTIVE: 'active',
-    REJECTED: 'rejected',
-    TERMINATED: 'terminated'
-} as const;
-
-/**
- * MemberStatus
- *
- * Lifecycle status of a cooperative member
- */
-export type MemberStatus = typeof MemberStatus[keyof typeof MemberStatus];
 
 /**
  * UserRole
@@ -1125,20 +1240,6 @@ export type CartLine = {
     isValid: boolean;
     invalidReasonCode?: 'product_archived' | 'ordering_mode_unavailable' | null;
 };
-
-/**
- * OrderingModeChoice
- *
- * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
- */
-export const OrderingModeChoice = { PRE_ORDER: 'pre_order', IN_STORE: 'in_store' } as const;
-
-/**
- * OrderingModeChoice
- *
- * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
- */
-export type OrderingModeChoice = typeof OrderingModeChoice[keyof typeof OrderingModeChoice];
 
 /**
  * CheckoutResult
@@ -1513,6 +1614,14 @@ export type AdminPurchasingControllerListFilterItem = {
 };
 
 export type AdminPurchasingControllerListFilterArray = Array<AdminPurchasingControllerListFilterItem>;
+
+export type DistributionControllerSearchMembersFilterItem = {
+    property: 'search';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type DistributionControllerSearchMembersFilterArray = Array<DistributionControllerSearchMembersFilterItem>;
 
 export type AppControllerGetHelloData = {
     body?: never;
@@ -3013,3 +3122,52 @@ export type AdminPurchasingControllerRecordReceptionResponses = {
 };
 
 export type AdminPurchasingControllerRecordReceptionResponse = AdminPurchasingControllerRecordReceptionResponses[keyof AdminPurchasingControllerRecordReceptionResponses];
+
+export type DistributionControllerSearchMembersData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: search
+         */
+        filter?: DistributionControllerSearchMembersFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/distribution/members';
+};
+
+export type DistributionControllerSearchMembersResponses = {
+    /**
+     * Successful response
+     */
+    200: DistributionMemberList;
+};
+
+export type DistributionControllerSearchMembersResponse = DistributionControllerSearchMembersResponses[keyof DistributionControllerSearchMembersResponses];
+
+export type DistributionControllerMemberScreenData = {
+    body?: never;
+    path: {
+        memberId: string;
+    };
+    query?: never;
+    url: '/api/distribution/members/{memberId}';
+};
+
+export type DistributionControllerMemberScreenResponses = {
+    /**
+     * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
+     */
+    200: DistributionMemberScreen;
+};
+
+export type DistributionControllerMemberScreenResponse = DistributionControllerMemberScreenResponses[keyof DistributionControllerMemberScreenResponses];

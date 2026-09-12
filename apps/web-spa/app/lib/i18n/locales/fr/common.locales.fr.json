@@ -608,7 +608,8 @@
       "product_not_sellable": "Ce produit ne peut pas être vendu à la table.",
       "already_reversed": "Cette remise a déjà été annulée.",
       "cannot_reverse_reversal": "Une annulation ne peut pas être annulée."
-    }
+    },
+    "eur": "€{{value}}"
   },
   "wallet": {
     "title": "Compte",
@@ -638,6 +639,7 @@
       "reason": "Motif",
       "amount": "Montant",
       "recordedBy": "Enregistré par"
-    }
+    },
+    "eur": "€{{value}}"
   }
 }

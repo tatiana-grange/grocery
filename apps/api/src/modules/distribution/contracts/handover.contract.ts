@@ -70,9 +70,7 @@ export const recordHandoverSchema = z
     description:
       'What was actually handed over. Lines left out stay outstanding for a later ' +
       'distribution.',
-    examples: [
-      { version: 1, lines: [{ orderLineId: EXAMPLE_UUID, handedQuantity: 2 }] },
-    ],
+    examples: [{ version: 1, lines: [{ orderLineId: EXAMPLE_UUID, handedQuantity: 2 }] }],
   })
 export type RecordHandoverInput = z.infer<typeof recordHandoverSchema>
 

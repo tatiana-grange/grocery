@@ -191,40 +191,40 @@ three appear, correctly split into ready and not ready, with no handover perform
 
 > Write this first. It must fail before the implementation below.
 
-- [ ] T029 [US1] E2E test in `apps/web-spa-e2e/tests/distribution-screen.spec.ts`: as the
+- [X] T029 [US1] E2E test in `apps/web-spa-e2e/tests/distribution-screen.spec.ts`: as the
   distributor, find a member by name and again by membership number, see ready and not-ready
   lines distinguished with a reason, see the balance, and see the empty state for a member
   with nothing outstanding
 
 ### Implementation for User Story 1
 
-- [ ] T030 [P] [US1] Write the pure helpers in
+- [X] T030 [P] [US1] Write the pure helpers in
   `apps/api/src/modules/distribution/distribution.util.ts`: `isLineReady(orderLine)` —
   `pre_order` needs `fulfilledAt != null`, `in_store` is always ready — and the not-ready
   reason code (research.md §10)
-- [ ] T031 [US1] Implement `DistributionService.searchMembers` and `getMemberScreen` in
+- [X] T031 [US1] Implement `DistributionService.searchMembers` and `getMemberScreen` in
   `apps/api/src/modules/distribution/distribution.service.ts`: load the member, their
   non-cancelled orders that are not yet handed over with lines and products, the balance via
   `WalletService.getBalanceCents`, and each product's stock on hand via
   `InventoryService.getStockLevels` as the available quantity. A member with nothing
   outstanding returns an empty order list, not a 404
-- [ ] T032 [US1] Implement the screen mappers in
+- [X] T032 [US1] Implement the screen mappers in
   `apps/api/src/modules/distribution/distribution.mapper.ts`, handling collections through
   `getItems()` after `isInitialized()`
-- [ ] T033 [US1] Add `GET /distribution/members` (paginated, `search` filter) and
+- [X] T033 [US1] Add `GET /distribution/members` (paginated, `search` filter) and
   `GET /distribution/members/:memberId` to
   `apps/api/src/modules/distribution/distribution.controller.ts`, `@UseGuards(AuthGuard)` +
   `@StaffOnly()`, typed with the Phase 2 schemas
-- [ ] T034 [P] [US1] Unit tests in
+- [X] T034 [P] [US1] Unit tests in
   `apps/api/src/modules/distribution/tests/distribution.service.spec.ts` for readiness
   (pre-order fulfilled vs not, in-store always ready) and the available-quantity mapping
-- [ ] T035 [P] [US1] API e2e tests in
+- [X] T035 [P] [US1] API e2e tests in
   `apps/api/src/modules/distribution/tests/distribution.controller.e2e-spec.ts` for both
   routes, including the empty-outstanding case and the 404 for an unknown member
-- [ ] T036 [P] [US1] Add the TanStack Query options in
+- [X] T036 [P] [US1] Add the TanStack Query options in
   `apps/web-spa/app/features/distribution/utils/distribution-queries.ts` for the search and
   the member screen
-- [ ] T037 [US1] Build `apps/web-spa/app/features/distribution/components/distribution-home-page.tsx`
+- [X] T037 [US1] Build `apps/web-spa/app/features/distribution/components/distribution-home-page.tsx`
   (member search) and `.../distribution-member-page.tsx` (read-only: orders, lines, ready
   badges with their reason, available vs ordered quantity, balance, member status warning),
   with `data-testid` hooks for the E2E spec

@@ -926,6 +926,145 @@ export const zShopProductDetail = z.object({
 });
 
 /**
+ * DistributionMemberSummary
+ *
+ * One member as the distribution table sees them in a search result
+ */
+export const zDistributionMemberSummary = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    status: z.enum([
+        'pending',
+        'active',
+        'rejected',
+        'terminated'
+    ]),
+    balanceEur: z.number(),
+    outstandingOrderCount: z.int().gte(0).lte(9007199254740991)
+});
+
+/**
+ * DistributionMemberList
+ */
+export const zDistributionMemberList = z.object({
+    data: z.array(zDistributionMemberSummary),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export const zMemberStatus = z.enum([
+    'pending',
+    'active',
+    'rejected',
+    'terminated'
+]);
+
+/**
+ * DistributionOrder
+ */
+export const zDistributionOrder = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderingMode: z.enum(['pre_order', 'in_store']),
+    placedAt: z.string(),
+    totalEur: z.number().gte(0),
+    isReady: z.boolean(),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    lines: z.array(z.object({
+        orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        productName: z.string(),
+        saleMode: z.enum(['unit', 'weight']),
+        selectionUnit: z.optional(z.union([
+            z.enum(['g', 'kg']),
+            z.null()
+        ])),
+        quantityStepGrams: z.optional(z.union([
+            z.int().gte(-9007199254740991).lte(9007199254740991),
+            z.null()
+        ])),
+        orderedQuantity: z.number(),
+        availableQuantity: z.number(),
+        unitPriceEur: z.number().gte(0),
+        lineTotalEur: z.number().gte(0),
+        isReady: z.boolean(),
+        notReadyReason: z.optional(z.union([
+            z.enum(['awaiting_reception']),
+            z.null()
+        ]))
+    }))
+});
+
+/**
+ * DistributionMemberScreen
+ *
+ * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
+ */
+export const zDistributionMemberScreen = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    status: zMemberStatus,
+    balanceEur: z.number(),
+    outstandingOrderCount: z.int().gte(0).lte(9007199254740991),
+    orders: z.array(zDistributionOrder)
+});
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export const zOrderingModeChoice = z.enum(['pre_order', 'in_store']);
+
+/**
+ * AddCartLine
+ *
+ * quantity is a piece count (integer) for a unit-sale product, or kilograms (up to 3 decimals) for a by-weight product
+ */
+export const zAddCartLine = z.object({
+    productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderingMode: zOrderingModeChoice,
+    quantity: z.number().gt(0)
+});
+
+/**
+ * DistributionLine
+ */
+export const zDistributionLine = z.object({
+    orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productName: z.string(),
+    saleMode: zProductSaleMode,
+    selectionUnit: z.optional(z.union([
+        z.enum(['g', 'kg']),
+        z.null()
+    ])),
+    quantityStepGrams: z.optional(z.union([
+        z.int().gte(-9007199254740991).lte(9007199254740991),
+        z.null()
+    ])),
+    orderedQuantity: z.number(),
+    availableQuantity: z.number(),
+    unitPriceEur: z.number().gte(0),
+    lineTotalEur: z.number().gte(0),
+    isReady: z.boolean(),
+    notReadyReason: z.optional(z.union([
+        z.enum(['awaiting_reception']),
+        z.null()
+    ]))
+});
+
+/**
  * MemberListItem
  *
  * A member as shown in the back-office list
@@ -975,18 +1114,6 @@ export const zMembersList = z.object({
         hasMore: z.boolean()
     })
 });
-
-/**
- * MemberStatus
- *
- * Lifecycle status of a cooperative member
- */
-export const zMemberStatus = z.enum([
-    'pending',
-    'active',
-    'rejected',
-    'terminated'
-]);
 
 /**
  * UserRole
@@ -1300,24 +1427,6 @@ export const zCart = z.object({
     lines: z.array(zCartLine),
     totalEur: z.number().gte(0),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
-});
-
-/**
- * OrderingModeChoice
- *
- * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
- */
-export const zOrderingModeChoice = z.enum(['pre_order', 'in_store']);
-
-/**
- * AddCartLine
- *
- * quantity is a piece count (integer) for a unit-sale product, or kilograms (up to 3 decimals) for a by-weight product
- */
-export const zAddCartLine = z.object({
-    productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-    orderingMode: zOrderingModeChoice,
-    quantity: z.number().gt(0)
 });
 
 /**
@@ -1774,6 +1883,27 @@ export const zAdminPurchasingControllerListFilterItem = z.object({
 });
 
 export const zAdminPurchasingControllerListFilterArray = z.array(zAdminPurchasingControllerListFilterItem);
+
+export const zDistributionControllerSearchMembersFilterItem = z.object({
+    property: z.literal('search'),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zDistributionControllerSearchMembersFilterArray = z.array(zDistributionControllerSearchMembersFilterItem);
 
 export const zAppControllerGetHelloData = z.object({
     body: z.optional(z.never()),
@@ -2904,3 +3034,31 @@ export const zAdminPurchasingControllerRecordReceptionData = z.object({
  * Successful response
  */
 export const zAdminPurchasingControllerRecordReceptionResponse = zReception;
+
+export const zDistributionControllerSearchMembersData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zDistributionControllerSearchMembersFilterArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * Successful response
+ */
+export const zDistributionControllerSearchMembersResponse = zDistributionMemberList;
+
+export const zDistributionControllerMemberScreenData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
+ */
+export const zDistributionControllerMemberScreenResponse = zDistributionMemberScreen;

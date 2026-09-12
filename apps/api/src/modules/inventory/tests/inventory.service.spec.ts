@@ -63,9 +63,7 @@ describe('buildStockLevel with outbound movements', () => {
     expect(before.costPriceEur).toBe(1.3)
 
     // Hand over 12 of them, valued at the current average of 130 cents.
-    const after = buildStockLevel(
-      totalsAfter([...received, { quantity: -12, unitCostCents: 130 }]),
-    )
+    const after = buildStockLevel(totalsAfter([...received, { quantity: -12, unitCostCents: 130 }]))
     expect(after.quantityOnHand).toBe(28)
     expect(after.costPriceEur).toBe(1.3)
   })

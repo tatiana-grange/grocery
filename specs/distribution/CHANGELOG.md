@@ -147,6 +147,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   distribution-member-page.tsx, e2e.fixtures.ts, e2e.seeder.ts, web-spa-e2e env.ts /
   fixtures.ts / auth.setup.ts
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 3: User Story 1 — find a member and see what they have to collect
+- Tasks completed: T029, T030, T031, T032, T033, T034, T035, T036, T037
+- The whole table screen is one call: member, status, balance, every outstanding order with
+  its lines, and the current shelf quantity beside each ordered quantity. A member with
+  nothing waiting returns an empty order list, not a 404.
+- Verified: 6 Playwright tests pass (`distribution-screen.spec.ts`), 15 API tests pass,
+  both type-checks clean, no new lint warnings
+- **Author**: AI (Claude)
+- **Files**: distribution.util.ts, distribution.service.ts, distribution.mapper.ts,
+  distribution.controller.ts, distribution.module.ts, tests/distribution.service.spec.ts,
+  tests/distribution.controller.e2e-spec.ts, distribution-queries.ts,
+  distribution-home-page.tsx, distribution-member-page.tsx,
+  tests/distribution-screen.spec.ts, common.locales.{en,fr}.json,
+  packages/openapi-generator/client/*
+
 ---
 
 <!--

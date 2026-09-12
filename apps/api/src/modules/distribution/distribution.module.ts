@@ -2,6 +2,9 @@ import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
 import { InventoryModule } from '../inventory/inventory.module'
 import { WalletModule } from '../wallet/wallet.module'
+import { DistributionController } from './distribution.controller'
+import { DistributionMapper } from './distribution.mapper'
+import { DistributionService } from './distribution.service'
 import { Handover } from './entities/handover.entity'
 import { HandoverLine } from './entities/handover-line.entity'
 
@@ -14,5 +17,8 @@ import { HandoverLine } from './entities/handover-line.entity'
  */
 @Module({
   imports: [MikroOrmModule.forFeature([Handover, HandoverLine]), WalletModule, InventoryModule],
+  controllers: [DistributionController],
+  providers: [DistributionService, DistributionMapper],
+  exports: [DistributionService],
 })
 export class DistributionModule {}

@@ -608,7 +608,8 @@
       "product_not_sellable": "That product cannot be sold at the table.",
       "already_reversed": "This handover has already been reversed.",
       "cannot_reverse_reversal": "A reversal cannot itself be reversed."
-    }
+    },
+    "eur": "€{{value}}"
   },
   "wallet": {
     "title": "Account",
@@ -638,6 +639,7 @@
       "reason": "Reason",
       "amount": "Amount",
       "recordedBy": "Recorded by"
-    }
+    },
+    "eur": "€{{value}}"
   }
 }
