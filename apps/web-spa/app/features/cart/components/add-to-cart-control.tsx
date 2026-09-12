@@ -2,7 +2,7 @@ import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { cn } from '@grocery/ui/lib/utils'
 import { Minus, Plus } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
 import type { CartLineActions } from '@/features/cart/hooks/use-cart-line-actions'
@@ -85,14 +85,22 @@ export function AddToCartControl({
   // dropped when the server value changes (the change landed) and when a write settles without
   // changing it (the change was rejected) — the second case is why `pending` is watched here.
   const [draft, setDraft] = useState<string | null>(null)
+  // What the write in flight asked for. The amount field stays editable while a write is in
+  // flight, so a settling write may only drop the draft it put there itself; whatever the
+  // shopper has typed since then is theirs, and must not be wiped out from under them.
+  const sentAmount = useRef<string | null>(null)
+  const dropSentDraft = useCallback(() => {
+    setDraft((current) => (current === sentAmount.current ? null : current))
+    sentAmount.current = null
+  }, [])
   const wasPending = useRef(pending)
   useEffect(() => {
-    if (wasPending.current && !pending) setDraft(null)
+    if (wasPending.current && !pending) dropSentDraft()
     wasPending.current = pending
-  }, [pending])
+  }, [pending, dropSentDraft])
   useEffect(() => {
-    setDraft(null)
-  }, [serverAmount])
+    dropSentDraft()
+  }, [serverAmount, dropSentDraft])
 
   const shown = draft ?? serverAmount
 
@@ -100,14 +108,17 @@ export function AddToCartControl({
   // drop the line, which is what the shopper means by taking the last piece back off.
   const apply = (next: number) => {
     if (!Number.isFinite(next) || next === Number(serverAmount)) {
+      sentAmount.current = null
       setDraft(null)
       return
     }
     if (next <= 0) {
+      sentAmount.current = null
       setDraft(null)
       actions.remove()
       return
     }
+    sentAmount.current = String(next)
     setDraft(String(next))
     actions.update(parseQuantity(product, String(next)))
   }
