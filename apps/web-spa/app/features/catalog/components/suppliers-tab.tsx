@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from '@grocery/ui/components/primitives/dialog'
 import { Input } from '@grocery/ui/components/primitives/input'
+import { SegmentedControl } from '@grocery/ui/components/primitives/segmented-control'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import {
@@ -207,20 +208,15 @@ function SupplierDialog({ supplier, onSaved }: { supplier?: Supplier; onSaved: (
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
-          <div className="flex gap-2">
-            {(['producer', 'wholesaler'] as const).map((option) => (
-              <Button
-                key={option}
-                type="button"
-                data-testid={`supplier-type-${option}`}
-                variant={type === option ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setType(option)}
-              >
-                {t(`catalog.supplierType.${option}`)}
-              </Button>
-            ))}
-          </div>
+          <SegmentedControl
+            value={type}
+            onChange={setType}
+            options={(['producer', 'wholesaler'] as const).map((option) => ({
+              value: option,
+              label: t(`catalog.supplierType.${option}`),
+              testId: `supplier-type-${option}`,
+            }))}
+          />
         </div>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>

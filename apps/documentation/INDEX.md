@@ -57,6 +57,10 @@
 - [frontend.mdx](./src/content/docs/references/frontend.mdx) - Guidelines for the front-end of the Grocery project.
 - [general.mdx](./src/content/docs/references/general.mdx) - Common guidelines for development on the project
 
+## Releases
+
+- [v0.0.2.mdx](./src/content/docs/releases/v0.0.2.mdx) - Member lifecycle, catalogue, and the first version of the public shop
+
 ## Root
 
 - [index.mdx](./src/content/docs/index.mdx) - Architecture, conventions, and guides for the Grocery project.

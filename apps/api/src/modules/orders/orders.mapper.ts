@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { centsToEur, currentPrice } from '../catalog/catalog.util'
+import {
+  centsToEur,
+  currentPrice,
+  pricingUnitFor,
+  quantityStepGramsFor,
+  selectionUnitFor,
+} from '../catalog/catalog.util'
 import type { Product } from '../catalog/entities/product.entity'
 import { checkLineValidity } from './cart-line-validity.util'
 import type { Cart as CartContract, CartLine as CartLineContract } from './contracts/cart.contract'
@@ -21,7 +27,7 @@ export class OrdersMapper {
     return currentPrice(product)?.amountCents ?? 0
   }
 
-  toCartLine(line: CartLine): CartLineContract {
+  toCartLine(line: CartLine, quantityOnHand = 0): CartLineContract {
     const unitPriceCents = this.currentPriceCents(line.product)
     const quantity = Number(line.quantity)
     const { isValid, reasonCode } = checkLineValidity(line.product, line.orderingMode)
@@ -32,7 +38,11 @@ export class OrdersMapper {
         id: line.product.id,
         name: line.product.name,
         saleMode: line.product.saleMode,
+        pricingUnit: pricingUnitFor(line.product.saleMode),
+        selectionUnit: selectionUnitFor(line.product),
+        quantityStepGrams: quantityStepGramsFor(line.product),
         photos: line.product.photos,
+        quantityOnHand,
       },
       orderingMode: line.orderingMode,
       quantity,
@@ -43,9 +53,18 @@ export class OrdersMapper {
     }
   }
 
-  toCart(cart: Cart): CartContract {
+  /**
+   * `quantityOnHandByProduct` comes from the inventory ledger, which the cart controller reads
+   * — the same one-query-per-request shape the shop uses, rather than a lookup per line.
+   */
+  toCart(
+    cart: Cart,
+    quantityOnHandByProduct: ReadonlyMap<string, number> = new Map(),
+  ): CartContract {
     const lines = cart.lines.isInitialized() ? [...cart.lines.getItems()] : []
-    const mappedLines = lines.map((line) => this.toCartLine(line))
+    const mappedLines = lines.map((line) =>
+      this.toCartLine(line, quantityOnHandByProduct.get(line.product.id) ?? 0),
+    )
     const totalEur = mappedLines
       .filter((line) => line.isValid)
       .reduce((sum, line) => sum + line.lineTotalEur, 0)

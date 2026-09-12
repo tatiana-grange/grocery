@@ -1,3 +1,4 @@
+import { PageTitle, SectionTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Dialog,
@@ -100,7 +101,7 @@ export default function MemberDetailPage() {
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">{member.name}</h1>
+          <PageTitle>{member.name}</PageTitle>
           <p className="font-mono text-xs text-muted-foreground">{member.membershipNumber}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -243,9 +244,7 @@ export default function MemberDetailPage() {
       {member.status === 'active' && <MemberFeePanel member={member} />}
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          {t('adminMembers.history')}
-        </h2>
+        <SectionTitle>{t('adminMembers.history')}</SectionTitle>
         <ul className="space-y-1 text-sm">
           {member.statusHistory.map((entry, index) => (
             <li key={index} className="flex justify-between border-b border-border py-1">

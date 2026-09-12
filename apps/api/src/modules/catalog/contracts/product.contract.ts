@@ -21,6 +21,19 @@ export const productPricingUnitSchema = z.enum(PRODUCT_PRICING_UNITS).meta({
 })
 export type ProductPricingUnit = z.infer<typeof productPricingUnitSchema>
 
+export const PRODUCT_SELECTION_UNITS = ['g', 'kg'] as const
+export const productSelectionUnitSchema = z.enum(PRODUCT_SELECTION_UNITS).meta({
+  title: 'ProductSelectionUnit',
+  description:
+    'Display unit for the by-weight quantity picker in the shop. The price stays per kilogram; ' +
+    'this only changes how the chosen amount is shown (e.g. "300 g" vs "0.3 kg"). Ignored for ' +
+    'unit-sale products.',
+})
+export type ProductSelectionUnit = z.infer<typeof productSelectionUnitSchema>
+
+export const DEFAULT_SELECTION_UNIT: ProductSelectionUnit = 'kg'
+export const DEFAULT_QUANTITY_STEP_GRAMS = 100
+
 export const PRODUCT_LABELS = ['organic', 'local', 'vegetarian', 'vegan'] as const
 export const productLabelSchema = z.enum(PRODUCT_LABELS).meta({
   title: 'ProductLabel',
@@ -49,6 +62,8 @@ export const productSchema = z
     category: productRefSchema,
     saleMode: productSaleModeSchema,
     pricingUnit: productPricingUnitSchema,
+    selectionUnit: productSelectionUnitSchema.nullish(),
+    quantityStepGrams: z.number().int().positive().nullish(),
     orderingMode: productOrderingModeSchema,
     photos: z.array(z.string()),
     labels: z.array(productLabelSchema),
@@ -85,6 +100,8 @@ export const createProductSchema = z
     supplierId: z.string().uuid(),
     categoryId: z.string().uuid(),
     saleMode: productSaleModeSchema,
+    selectionUnit: productSelectionUnitSchema.nullish(),
+    quantityStepGrams: z.number().int().positive().max(100_000).nullish(),
     orderingMode: productOrderingModeSchema,
     photos: z.array(z.string()).default([]),
     labels: z.array(productLabelSchema).default([]),
@@ -95,7 +112,8 @@ export const createProductSchema = z
   })
   .meta({
     title: 'CreateProduct',
-    description: 'Create a catalogue product with its first price. pricingUnit is derived from saleMode.',
+    description:
+      'Create a catalogue product with its first price. pricingUnit is derived from saleMode.',
     examples: [
       {
         name: 'Carrots (loose)',

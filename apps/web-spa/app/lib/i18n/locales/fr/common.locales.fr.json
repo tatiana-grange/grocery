@@ -91,79 +91,17 @@
       }
     }
   },
-  "dashboard": {
-    "title": "Tableau de bord",
-    "brand": "Grocery",
-    "home": {
-      "eyebrow": "Aperçu",
-      "title": "Bienvenue, {{name}}",
-      "description": "Voici votre tableau de bord. Les fonctionnalités apparaîtront ici."
-    },
-    "userMenu": "Menu utilisateur",
-    "settings": "Paramètres",
+  "settings": {
+    "menu": "Paramètres",
     "lightMode": "Mode clair",
     "darkMode": "Mode sombre",
-    "logOut": "Se déconnecter",
-    "language": "Langue",
-    "navigation": "Navigation",
-    "actions": "Actions rapides",
-    "profile": "Profil",
-    "components": "Composants"
-  },
-  "commandPalette": {
-    "placeholder": "Rechercher des commandes…",
-    "noResults": "Aucun résultat.",
-    "title": "Palette de commandes",
-    "description": "Rechercher une commande à exécuter",
-    "groups": {
-      "navigate": "Naviguer",
-      "preferences": "Préférences"
-    },
-    "items": {
-      "dashboard": "Tableau de bord",
-      "components": "Composants",
-      "profile": "Profil",
-      "toggleTheme": "Changer le thème",
-      "lightMode": "Passer en mode clair",
-      "darkMode": "Passer en mode sombre"
-    }
-  },
-  "breadcrumbs": {
-    "dashboard": "Tableau de bord",
-    "components": "Composants",
-    "profile": "Profil"
-  },
-  "components": {
-    "title": "Composants",
-    "description": "Explorez la bibliothèque de composants @grocery/ui.",
-    "subtitle": "Galerie complète",
-    "sections": {
-      "buttons": "Boutons",
-      "badges": "Badges",
-      "inputs": "Champs",
-      "controls": "Contrôles",
-      "layout": "Mise en page & Affichage",
-      "feedback": "Retour utilisateur",
-      "dataDisplay": "Données & Tableaux",
-      "overlays": "Superpositions"
-    }
-  },
-  "profile": {
-    "eyebrow": "Compte",
-    "title": "Profil",
-    "description": "Les détails de votre compte.",
-    "name": "Nom",
-    "email": "Email",
-    "emailVerified": "Statut de l'email",
-    "verified": "Vérifié",
-    "unverified": "Non vérifié",
-    "userId": "ID utilisateur"
+    "language": "Langue"
   },
   "errorCodes": {
     "PASSWORDS_DO_NOT_MATCH": "Les mots de passe ne correspondent pas"
   },
   "members": {
-    "title": "MonÉpi",
+    "title": "Grocery",
     "nav": {
       "myAccount": "Mon compte",
       "logOut": "Se déconnecter"
@@ -317,7 +255,8 @@
     },
     "pricingUnit": {
       "piece": "pièce",
-      "kg": "kg"
+      "kg": "kg",
+      "g": "g"
     },
     "label": {
       "organic": "Bio",
@@ -347,11 +286,13 @@
       "price": "Prix",
       "saleMode": "Mode de vente",
       "saleModeLocked": "non modifiable une fois un prix défini",
+      "selectionUnit": "Unité de sélection",
+      "quantityStep": "Pas de sélection (g)",
       "orderingMode": "Mode de commande",
       "pricePerKg": "Prix au kg (€)",
       "pricePerPiece": "Prix à la pièce (€)",
       "labels": "Labels",
-      "searchPlaceholder": "Rechercher un nom ou un code-barres…",
+      "searchPlaceholder": "Nom, code-barres, catégorie, fournisseur…",
       "new": "Nouveau produit",
       "edit": "Modifier le produit",
       "empty": "Aucun produit pour le moment.",
@@ -375,24 +316,48 @@
       "shop": "Boutique",
       "cart": "Panier",
       "myAccount": "Mon compte",
-      "signIn": "Se connecter"
+      "signIn": "Se connecter",
+      "backToShop": "Retour à la boutique"
     },
     "title": "Boutique",
-    "subtitle": "Découvrez ce que la coopérative propose actuellement.",
-    "searchPlaceholder": "Rechercher un nom ou un code-barres…",
+    "subtitle": "Découvrez les produits proposés par nos fournisseurs.",
+    "searchPlaceholder": "Nom, code-barres, description, catégorie…",
     "sort": {
       "nameAsc": "Nom (A–Z)",
       "newest": "Plus récents"
     },
+    "view": {
+      "large": "Grandes images",
+      "compact": "Images compactes",
+      "list": "Liste"
+    },
     "categories": {
-      "all": "Toutes les catégories"
+      "all": "Toutes les catégories",
+      "heading": "Catégories",
+      "everythingIn": "Tout {{name}}"
     },
     "empty": "Aucun produit ne correspond à votre recherche.",
     "count": "{{count}} produit",
     "count_other": "{{count}} produits",
     "backToShop": "Retour à la boutique",
+    "quickAdd": {
+      "add": "Ajouter",
+      "chooseOptions": "Choisir les options",
+      "increase": "Augmenter la quantité",
+      "decrease": "Diminuer la quantité",
+      "amount": "Quantité"
+    },
+    "stock": {
+      "onHand": "{{amount}} en stock",
+      "overTooltip": "Il n'en reste que {{amount}}. Vous repartirez avec cette quantité au retrait de votre commande, le reste arrivera à la prochaine livraison de ce fournisseur.",
+      "overLabel": "Quantité supérieure au stock disponible"
+    },
     "productNotFound": "Ce produit n'existe pas ou n'est plus disponible.",
-    "loadError": "Impossible de charger ce produit pour le moment."
+    "loadError": "Impossible de charger ce produit pour le moment.",
+    "pagination": {
+      "loadMore": "Afficher plus",
+      "showing": "{{shown}} sur {{total}}"
+    }
   },
   "cart": {
     "title": "Panier",
@@ -406,6 +371,13 @@
     "total": "Total",
     "signInToAdd": "Se connecter pour ajouter au panier",
     "addToCart": "Ajouter au panier",
+    "pickup": {
+      "now": "{{amount}} à retirer à la prochaine distribution",
+      "later": "{{amount}} qui sera commandé pour une distribution suivante",
+      "later_other": "{{amount}} qui seront commandés pour une distribution suivante",
+      "summaryTitle": "Ce qui ne sera pas à la prochaine distribution",
+      "summaryNote": "Ces quantités seront commandées à votre fournisseur et retirables lors d'une distribution suivante."
+    },
     "removeConfirm": {
       "title": "Retirer cette ligne ?",
       "description": "Le produit sera retiré de votre panier.",
@@ -518,7 +490,7 @@
   "inventory": {
     "title": "Stock et prix de revient",
     "subtitle": "Niveau de stock actuel et prix de revient moyen pondéré par produit.",
-    "searchPlaceholder": "Rechercher un produit…",
+    "searchPlaceholder": "Nom, code-barres, catégorie…",
     "empty": "Aucun produit.",
     "open": "Ouvrir",
     "backToList": "Retour au stock",

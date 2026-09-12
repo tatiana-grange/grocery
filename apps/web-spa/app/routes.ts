@@ -3,11 +3,6 @@ import { index, layout, route } from '@react-router/dev/routes'
 
 export default [
   index('features/home/home-redirect.tsx'),
-  layout('features/dashboard/dashboard-page.tsx', [
-    route('dashboard', 'features/dashboard/dashboard-home-page.tsx'),
-    route('components', 'features/components/components-page.tsx'),
-    route('dashboard/profile', 'features/profile/profile-page.tsx'),
-  ]),
   layout('features/auth/components/auth-layout.tsx', [
     route('login', 'features/auth/pages/auth-login-page.tsx'),
     route('register', 'features/auth/pages/auth-register-page.tsx'),

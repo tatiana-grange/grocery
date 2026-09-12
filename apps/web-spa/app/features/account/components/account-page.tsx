@@ -1,3 +1,4 @@
+import { PageTitle, SectionTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
@@ -88,7 +89,7 @@ export default function AccountPage() {
   if (error && !isForbidden(error)) {
     return (
       <div className="space-y-4 text-center" data-testid="account-load-error">
-        <h1 className="text-2xl font-black tracking-tight">{t('members.account.title')}</h1>
+        <PageTitle>{t('members.account.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('members.account.loadError')}</p>
         <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
           {t('common.retry')}
@@ -100,7 +101,7 @@ export default function AccountPage() {
   if (error || !account) {
     return (
       <div className="space-y-4 text-center" data-testid="account-not-active">
-        <h1 className="text-2xl font-black tracking-tight">{t('members.account.title')}</h1>
+        <PageTitle>{t('members.account.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('members.account.notActive')}</p>
         <Button
           variant="outline"
@@ -118,7 +119,7 @@ export default function AccountPage() {
   return (
     <div className="space-y-8" data-testid="page-account">
       <div>
-        <h1 className="text-2xl font-black tracking-tight">{t('members.account.title')}</h1>
+        <PageTitle>{t('members.account.title')}</PageTitle>
         <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
           <Badge
             variant={account.status === 'active' ? 'default' : 'secondary'}
@@ -142,9 +143,7 @@ export default function AccountPage() {
 
       <div className="grid gap-8 sm:grid-cols-[1fr_auto]">
         <section className="space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            {t('members.account.personalDetails')}
-          </h2>
+          <SectionTitle>{t('members.account.personalDetails')}</SectionTitle>
           <label className="block space-y-1">
             <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
               {t('members.account.name')}

@@ -1,4 +1,4 @@
-import { EmptyState } from '@grocery/ui/components/app'
+import { EmptyState, PageTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { AddToCartForm } from '@/features/cart/components/add-to-cart-form'
 import { isNotFound } from '@/features/common/lib/api-error'
+import { StockNotice } from '@/features/shop/components/stock-notice'
 import { shopProductDetailQueryOptions } from '@/features/shop/utils/shop-queries'
 
 export default function ShopProductDetailPage() {
@@ -78,9 +79,7 @@ export default function ShopProductDetailPage() {
 
         <div className="space-y-4">
           <div>
-            <h1 className="text-2xl font-black tracking-tight" data-testid="shop-product-name">
-              {product.name}
-            </h1>
+            <PageTitle data-testid="shop-product-name">{product.name}</PageTitle>
             <p className="text-sm text-muted-foreground">{product.category.name}</p>
             <div className="mt-2 flex flex-wrap gap-1">
               <Badge variant="outline" data-testid="shop-product-ordering-mode">
@@ -94,9 +93,12 @@ export default function ShopProductDetailPage() {
             </div>
           </div>
 
-          <p className="text-xl font-bold" data-testid="shop-product-price">
-            {product.currentPriceEur.toFixed(2)} € / {unit}
-          </p>
+          <div className="space-y-1">
+            <p className="text-xl font-bold" data-testid="shop-product-price">
+              {product.currentPriceEur.toFixed(2)} € / {unit}
+            </p>
+            <StockNotice product={product} />
+          </div>
 
           {product.description && (
             <p className="text-sm text-muted-foreground" data-testid="shop-product-description">

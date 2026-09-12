@@ -1,3 +1,4 @@
+import { ListPagination } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
@@ -11,20 +12,23 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react'
-import { useState } from 'react'
+import { PlusCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { CATALOG_PAGE_SIZE, productsQueryOptions } from '@/features/catalog/utils/catalog-queries'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export function ProductsTab() {
   const { t } = useTranslation()
   const { searchParams, page, updateParams } = useListSearchParams()
-  const [search, setSearch] = useState(searchParams.get('q') ?? '')
+  const committedSearch = searchParams.get('q') ?? ''
+  const { search, setSearch, flushSearch } = useDebouncedSearch(committedSearch, (value) =>
+    updateParams({ q: value, page: undefined }, { replace: true }),
+  )
 
   const { data, isLoading } = useQuery(
-    productsQueryOptions({ page, search: searchParams.get('q') ?? undefined }),
+    productsQueryOptions({ page, search: committedSearch || undefined }),
   )
 
   const total = data?.meta.itemCount ?? 0
@@ -40,7 +44,7 @@ export function ProductsTab() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
+            if (event.key === 'Enter') flushSearch()
           }}
         />
         <Button data-testid="products-new" render={<Link to="/admin/catalog/products/new" />}>
@@ -114,32 +118,13 @@ export function ProductsTab() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span data-testid="products-count">{t('catalog.products.count', { count: total })}</span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid="products-page-prev"
-            disabled={page <= 1}
-            onClick={() => updateParams({ page: String(page - 1) })}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span data-testid="products-page-indicator">
-            {page} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid="products-page-next"
-            disabled={page >= pageCount}
-            onClick={() => updateParams({ page: String(page + 1) })}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+      <ListPagination
+        page={page}
+        pageCount={pageCount}
+        onPageChange={(next) => updateParams({ page: String(next) })}
+        testIdPrefix="products"
+        count={t('catalog.products.count', { count: total })}
+      />
     </div>
   )
 }

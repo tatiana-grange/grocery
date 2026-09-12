@@ -1,4 +1,3 @@
-import type { CartLine } from '@grocery/openapi-generator/client/types.gen'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,10 +9,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@grocery/ui/components/primitives/alert-dialog'
-import { EmptyState } from '@grocery/ui/components/app'
+import { EmptyState, PageTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
-import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import {
@@ -25,105 +23,104 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import type { TFunction } from 'i18next'
+import { ArrowLeft, ShoppingCart, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import type { CartLine } from '@grocery/openapi-generator/client/types.gen'
 import { handleMutationError } from '@/features/common/lib/api-error'
+import { AddToCartControl } from '@/features/cart/components/add-to-cart-control'
 import { CheckoutConfirmation } from '@/features/cart/components/checkout-confirmation'
-import {
-  cartQueryOptions,
-  checkout,
-  type CheckoutResult,
-  removeCartLine,
-  updateCartLine,
-} from '@/features/cart/utils/cart-queries'
+import { useCartLineActions } from '@/features/cart/hooks/use-cart-line-actions'
+import { type CartLinePickup, splitCartByPickup } from '@/features/cart/utils/cart-pickup'
+import { cartQueryOptions, checkout, type CheckoutResult } from '@/features/cart/utils/cart-queries'
+import { formatQuantity, selectionUnitLabel } from '@/features/cart/utils/cart-quantity'
 
-function CartLineRow({ line }: { line: CartLine }) {
+/** A quantity in the line's own unit: a plain count, or a weight that names its unit. */
+function quantityLabel(product: CartLine['product'], quantity: number, t: TFunction) {
+  const unit =
+    product.saleMode === 'weight'
+      ? ` ${t(`catalog.pricingUnit.${selectionUnitLabel(product)}`)}`
+      : ''
+  return `${formatQuantity(product, quantity)}${unit}`
+}
+
+/**
+ * One cart line, with what the shopper can walk away with spelled out under the product name.
+ *
+ * The line stays whole — one row, one stepper, one total — because it is one order for one
+ * product. Only the collection dates differ, so when part of it is waiting on a delivery the
+ * row breaks the quantity down into what comes at the next distribution and what comes after.
+ */
+function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
   const { t } = useTranslation()
-  const queryClient = useQueryClient()
-  const [quantity, setQuantity] = useState(String(line.quantity))
-  const step = line.product.saleMode === 'weight' ? 0.001 : 1
+  const { line, now, later } = pickup
+  const { product } = line
 
-  // Re-sync from the server value once a mutation resolves (success or failure) and the cart
-  // refetches — without this, a rejected update left the optimistic value on screen forever.
-  useEffect(() => {
-    setQuantity(String(line.quantity))
-  }, [line.quantity])
-
-  const invalidate = () => void queryClient.invalidateQueries({ queryKey: ['cart'] })
-
-  const updateMutation = useMutation({
-    mutationFn: (nextQuantity: number) => updateCartLine(line.id, { quantity: nextQuantity }),
-    onSuccess: invalidate,
-    onError: (error) => {
-      invalidate()
-      handleMutationError(error, toast.error, {
-        conflict: t('common.conflict'),
-        fallback: t('cart.toasts.error'),
-      })
-    },
+  const actions = useCartLineActions({
+    productId: product.id,
+    orderingMode: line.orderingMode,
+    lineId: line.id,
   })
 
-  const removeMutation = useMutation({
-    mutationFn: () => removeCartLine(line.id),
-    onSuccess: () => {
-      toast.success(t('cart.toasts.removed'))
-      invalidate()
-    },
-    onError: () => toast.error(t('cart.toasts.error')),
-  })
-
-  const applyQuantity = (next: number) => {
-    if (!(next > 0)) return
-    // Captured up front and restored on failure: invalidating alone won't fix a rejected update
-    // where the refetched value is unchanged (same string), so the effect above wouldn't re-run.
-    const previousQuantity = quantity
-    setQuantity(String(next))
-    updateMutation.mutate(next, { onError: () => setQuantity(previousQuantity) })
-  }
+  const amount = (quantity: number) => quantityLabel(product, quantity, t)
 
   return (
     <TableRow data-testid={`cart-line-${line.id}`}>
-      <TableCell className="font-medium">
-        {line.product.name}
-        <div className="mt-1 flex flex-wrap gap-1">
-          <Badge variant="outline">{t(`catalog.orderingMode.${line.orderingMode}`)}</Badge>
-          {!line.isValid && line.invalidReasonCode && (
+      {/* The pickup breakdown is a sentence, not a label: it has to wrap inside the column
+          rather than push the table wider than the page. */}
+      <TableCell className="font-medium whitespace-normal wrap-break-word">
+        {product.name}
+        {/* The ordering mode is a catalogue detail the shopper has already acted on; what it
+            means for them here is the pickup breakdown below. Only a problem with the line
+            still earns a badge. */}
+        {!line.isValid && line.invalidReasonCode && (
+          <div className="mt-1">
             <Badge variant="destructive" data-testid={`cart-line-invalid-${line.id}`}>
               {t(`cart.invalidReason.${line.invalidReasonCode}`)}
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
+        {/* Nothing to explain while the whole line arrives at the next distribution — which is
+            what a shopper already expects — so the breakdown only shows up once some of it has
+            to wait for a delivery. */}
+        {later > 0 && (
+          <ul
+            className="mt-1.5 space-y-0.5 text-xs text-muted-foreground"
+            data-testid={`cart-line-pickup-${line.id}`}
+          >
+            {now > 0 && (
+              <li className="flex gap-1.5" data-testid={`cart-line-pickup-now-${line.id}`}>
+                <span aria-hidden="true">•</span>
+                <span>{t('cart.pickup.now', { amount: amount(now) })}</span>
+              </li>
+            )}
+            <li className="flex gap-1.5" data-testid={`cart-line-pickup-later-${line.id}`}>
+              <span aria-hidden="true">•</span>
+              {/* `count` picks the agreement, `amount` carries the formatting — a weight reads
+                  as "0,5 kg", which French still treats as singular. */}
+              <span>{t('cart.pickup.later', { amount: amount(later), count: later })}</span>
+            </li>
+          </ul>
+        )}
       </TableCell>
       <TableCell>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid={`cart-line-decrease-${line.id}`}
-            onClick={() => applyQuantity(Number((Number(quantity) - step).toFixed(3)))}
-          >
-            <Minus className="size-3" />
-          </Button>
-          <Input
-            type="number"
-            step={step}
-            className="w-20 text-center"
-            data-testid={`cart-line-quantity-${line.id}`}
-            value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
-            onBlur={() => applyQuantity(Number(quantity))}
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid={`cart-line-increase-${line.id}`}
-            onClick={() => applyQuantity(Number((Number(quantity) + step).toFixed(3)))}
-          >
-            <Plus className="size-3" />
-          </Button>
-        </div>
+        {/* The line is there by definition, so this only ever renders as the stepper. Taking the
+            amount down to nothing drops the line, exactly as it does in the shop. */}
+        <AddToCartControl
+          product={product}
+          line={line}
+          actions={actions}
+          className="w-auto"
+          testIds={{
+            signIn: `cart-line-signin-${line.id}`,
+            add: `cart-line-add-${line.id}`,
+            decrease: `cart-line-decrease-${line.id}`,
+            increase: `cart-line-increase-${line.id}`,
+            amount: `cart-line-quantity-${line.id}`,
+          }}
+        />
       </TableCell>
       <TableCell>{line.unitPriceEur.toFixed(2)} €</TableCell>
       <TableCell className="font-semibold">{line.lineTotalEur.toFixed(2)} €</TableCell>
@@ -145,7 +142,7 @@ function CartLineRow({ line }: { line: CartLine }) {
               <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 data-testid={`cart-line-remove-confirm-${line.id}`}
-                onClick={() => removeMutation.mutate()}
+                onClick={() => actions.remove()}
               >
                 {t('cart.removeConfirm.confirm')}
               </AlertDialogAction>
@@ -154,6 +151,48 @@ function CartLineRow({ line }: { line: CartLine }) {
         </AlertDialog>
       </TableCell>
     </TableRow>
+  )
+}
+
+/**
+ * What the shopper will not find waiting for them at the next distribution, gathered in one
+ * place above the checkout button.
+ *
+ * The same amounts are already spelled out line by line, but a shopper decides on the whole
+ * order at the bottom of the page, and that is where the surprise would otherwise be waiting.
+ */
+function PendingPickupNotice({ pickups }: { pickups: CartLinePickup[] }) {
+  const { t } = useTranslation()
+  const pending = pickups.filter((pickup) => pickup.later > 0)
+  if (pending.length === 0) return null
+
+  return (
+    <div className="rounded-lg bg-muted p-4" data-testid="cart-pending-notice">
+      <h2 className="text-sm font-semibold">{t('cart.pickup.summaryTitle')}</h2>
+      <ul className="mt-2 space-y-1 text-sm">
+        {pending.map(({ line, later }) => (
+          <li key={line.id} className="flex flex-wrap justify-between gap-x-4">
+            <span>{line.product.name}</span>
+            <span className="font-medium tabular-nums">
+              {quantityLabel(line.product, later, t)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs text-muted-foreground">{t('cart.pickup.summaryNote')}</p>
+    </div>
+  )
+}
+
+/** The way back out of the cart, in the place a shopper looks for it: top left of the page. */
+function BackToShopButton() {
+  const { t } = useTranslation()
+
+  return (
+    <Button variant="ghost" size="sm" render={<Link to="/shop" />} data-testid="cart-back-to-shop">
+      <ArrowLeft className="mr-2 size-4" />
+      {t('shop.backToShop')}
+    </Button>
   )
 }
 
@@ -179,7 +218,7 @@ export default function CartPage() {
   if (confirmation) {
     return (
       <div className="space-y-6" data-testid="page-cart">
-        <h1 className="text-2xl font-black tracking-tight">{t('cart.checkout.title')}</h1>
+        <PageTitle>{t('cart.checkout.title')}</PageTitle>
         <CheckoutConfirmation result={confirmation} />
         <Link
           to="/shop"
@@ -192,23 +231,36 @@ export default function CartPage() {
     )
   }
 
-  if (isLoading) return <Skeleton className="h-64 w-full" />
-
-  if (error || !cart) {
+  if (isLoading) {
     return (
-      <div className="space-y-4 text-center" data-testid="cart-load-error">
-        <h1 className="text-2xl font-black tracking-tight">{t('cart.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('cart.loadError')}</p>
-        <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
-          {t('common.retry')}
-        </Button>
+      <div className="space-y-6">
+        <BackToShopButton />
+        <Skeleton className="h-64 w-full" />
       </div>
     )
   }
 
+  if (error || !cart) {
+    return (
+      <div className="space-y-4" data-testid="cart-load-error">
+        <BackToShopButton />
+        <div className="space-y-4 text-center">
+          <PageTitle>{t('cart.title')}</PageTitle>
+          <p className="text-sm text-muted-foreground">{t('cart.loadError')}</p>
+          <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+            {t('common.retry')}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const pickups = splitCartByPickup(cart.lines)
+
   return (
     <div className="space-y-6" data-testid="page-cart">
-      <h1 className="text-2xl font-black tracking-tight">{t('cart.title')}</h1>
+      <BackToShopButton />
+      <PageTitle>{t('cart.title')}</PageTitle>
 
       {cart.lines.length === 0 ? (
         <div data-testid="cart-empty">
@@ -229,23 +281,28 @@ export default function CartPage() {
       ) : (
         <>
           <div className="rounded-lg border border-border">
-            <Table>
+            {/* Fixed widths: the product name and its pickup breakdown would otherwise size the
+                column from their longest line and scroll the table sideways. Everything else is
+                a short number, so the product column takes whatever room is left. */}
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('cart.product')}</TableHead>
-                  <TableHead>{t('cart.quantity')}</TableHead>
-                  <TableHead>{t('cart.unitPrice')}</TableHead>
-                  <TableHead>{t('cart.lineTotal')}</TableHead>
-                  <TableHead className="w-0" />
+                  <TableHead className="w-44">{t('cart.quantity')}</TableHead>
+                  <TableHead className="w-28">{t('cart.unitPrice')}</TableHead>
+                  <TableHead className="w-32">{t('cart.lineTotal')}</TableHead>
+                  <TableHead className="w-14" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cart.lines.map((line) => (
-                  <CartLineRow key={line.id} line={line} />
+                {pickups.map((pickup) => (
+                  <CartLineRow key={pickup.line.id} pickup={pickup} />
                 ))}
               </TableBody>
             </Table>
           </div>
+
+          <PendingPickupNotice pickups={pickups} />
 
           <div className="flex items-center justify-between">
             <span className="text-lg font-bold" data-testid="cart-total">

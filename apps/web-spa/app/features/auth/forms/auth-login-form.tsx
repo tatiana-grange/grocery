@@ -8,6 +8,7 @@ import {
   FormMessage,
 } from '@grocery/ui/components/primitives/form'
 import { Input } from '@grocery/ui/components/primitives/input'
+import { SegmentedControl } from '@grocery/ui/components/primitives/segmented-control'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
@@ -52,21 +53,16 @@ export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         className="mt-8 space-y-6"
         onSubmit={form.handleSubmit((data) => onSubmit({ ...data, mode }))}
       >
-        <div className="flex gap-2">
-          {(['email', 'phone'] as const).map((option) => (
-            <Button
-              key={option}
-              type="button"
-              data-testid={`auth-login-mode-${option}`}
-              variant={mode === option ? 'default' : 'outline'}
-              size="sm"
-              className="flex-1"
-              onClick={() => onModeChange(option)}
-            >
-              {t(`auth.register.mode.${option}`)}
-            </Button>
-          ))}
-        </div>
+        <SegmentedControl
+          value={mode}
+          onChange={onModeChange}
+          itemClassName="flex-1"
+          options={(['email', 'phone'] as const).map((option) => ({
+            value: option,
+            label: t(`auth.register.mode.${option}`),
+            testId: `auth-login-mode-${option}`,
+          }))}
+        />
 
         <FormField
           control={form.control}

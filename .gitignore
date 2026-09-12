@@ -56,10 +56,10 @@ pnpm-debug.log*
 temp
 
 .react-router
-./temp
 
-./packages/openapi-generator/client
-./packages/openapi-generator/tmp
+# Intermediate spec that `pnpm generate` fetches from a running API and feeds to
+# openapi-ts. The generated client next to it IS tracked — the frontend imports it.
+packages/openapi-generator/tmp/
 openapi-ts-error-*
 
 # android

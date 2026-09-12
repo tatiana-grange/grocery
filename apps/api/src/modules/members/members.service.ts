@@ -11,6 +11,7 @@ import { randomBytes, randomUUID } from 'node:crypto'
 import { hashPassword } from 'better-auth/crypto'
 import { config } from '../../config/env.config'
 import { Account, Session, User } from '../auth/auth.entity'
+import { buildSearchFilter } from '../db/search.util'
 import { SmsService } from '../auth/sms.service'
 import { EmailService } from '../email/email.service'
 import type {
@@ -38,6 +39,14 @@ import {
   serializeRoles,
   synthesizedPhoneEmail,
 } from './members.util'
+
+/** Where a free-text `q` looks on the member list. */
+const MEMBER_SEARCH_PATHS = [
+  'membershipNumber',
+  'user.name',
+  'user.email',
+  'user.phoneNumber',
+] as const
 
 export interface MembersListResult {
   members: Member[]
@@ -119,16 +128,8 @@ export class MembersService {
         const ids = await this.memberIdsByFeeState(item.value as MembershipFeeState)
         Object.assign(where, { id: { $in: ids } })
       }
-      if (item.property === 'q') {
-        const like = `%${item.value}%`
-        Object.assign(where, {
-          $or: [
-            { membershipNumber: { $like: like } },
-            { user: { name: { $like: like } } },
-            { user: { email: { $like: like } } },
-            { user: { phoneNumber: { $like: like } } },
-          ],
-        })
+      if (item.property === 'q' && item.value) {
+        Object.assign(where, buildSearchFilter<Member>(item.value, MEMBER_SEARCH_PATHS))
       }
     }
 
@@ -138,9 +139,7 @@ export class MembersService {
         ? QueryOrder.ASC
         : QueryOrder.DESC
     const orderBy =
-      sortItem?.property === 'name'
-        ? { user: { name: direction } }
-        : { createdAt: direction }
+      sortItem?.property === 'name' ? { user: { name: direction } } : { createdAt: direction }
 
     const [members, total] = await this.em.findAndCount(Member, where, {
       populate: ['user', 'statusChanges'],
@@ -209,10 +208,7 @@ export class MembersService {
       const email = input.email ?? synthesizedPhoneEmail(input.phoneNumber!)
 
       const clash = await em.findOne(User, {
-        $or: [
-          { email },
-          ...(input.phoneNumber ? [{ phoneNumber: input.phoneNumber }] : []),
-        ],
+        $or: [{ email }, ...(input.phoneNumber ? [{ phoneNumber: input.phoneNumber }] : [])],
       })
       if (clash) {
         throw new ConflictException('An account already uses that email or phone number')
@@ -282,10 +278,7 @@ export class MembersService {
     )
     for (const fee of fees) {
       const paid = fee.payments.getItems().reduce((sum, payment) => sum + payment.amountCents, 0)
-      result.set(
-        fee.member.id,
-        MembersMapper.deriveFeeState(fee.expectedAmountCents, paid),
-      )
+      result.set(fee.member.id, MembersMapper.deriveFeeState(fee.expectedAmountCents, paid))
     }
     return result
   }
@@ -325,9 +318,7 @@ export class MembersService {
 
   private async applyProfile(member: Member, input: UpdateProfileInput): Promise<Member> {
     if (member.version !== input.version) {
-      throw new ConflictException(
-        'This member changed since you opened it — reload and try again',
-      )
+      throw new ConflictException('This member changed since you opened it — reload and try again')
     }
     const { version: _version, name, ...profile } = input
     if (name !== undefined) member.user.name = name
@@ -368,11 +359,7 @@ export class MembersService {
         )
       }
 
-      const fee = await em.findOne(
-        MembershipFee,
-        { member: memberId },
-        { populate: ['payments'] },
-      )
+      const fee = await em.findOne(MembershipFee, { member: memberId }, { populate: ['payments'] })
       if (!fee) throw new NotFoundException('This member has no fee record yet')
 
       fee.expectedAmountCents = input.expectedAmountCents

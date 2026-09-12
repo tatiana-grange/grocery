@@ -1,18 +1,21 @@
-import { EmptyState } from '@grocery/ui/components/app'
+import { EmptyState, PageTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
+import { NativeSelect } from '@grocery/ui/components/primitives/native-select'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
-import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, PackageSearch } from 'lucide-react'
-import { useState } from 'react'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { PackageSearch } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CategoryFilter } from '@/features/shop/components/category-filter'
+import { CategoryRail, CategoryRailSheet } from '@/features/shop/components/category-rail'
 import { ProductCard } from '@/features/shop/components/product-card'
+import { ShopViewToggle } from '@/features/shop/components/shop-view-toggle'
+import { useShopView } from '@/features/shop/hooks/use-shop-view'
 import {
-  SHOP_PAGE_SIZE,
   shopCategoriesQueryOptions,
-  shopProductsQueryOptions,
+  shopProductsInfiniteQueryOptions,
 } from '@/features/shop/utils/shop-queries'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 const SORT_OPTIONS = [
@@ -20,117 +23,167 @@ const SORT_OPTIONS = [
   { value: 'createdAt:desc', property: 'createdAt' as const, direction: 'desc' as const },
 ]
 
+const LAYOUT_BY_VIEW = {
+  large: 'grid grid-cols-2 gap-4 sm:grid-cols-3',
+  compact: 'grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5',
+  list: 'flex flex-col gap-2',
+} as const
+
 export default function ShopPage() {
   const { t } = useTranslation()
-  const { searchParams, page, updateParams } = useListSearchParams()
+  const { searchParams, updateParams } = useListSearchParams()
   const categoryId = searchParams.get('categoryId') ?? undefined
   const sortValue = searchParams.get('sort') ?? 'name:asc'
   const sortOption = SORT_OPTIONS.find((option) => option.value === sortValue) ?? SORT_OPTIONS[0]!
-  const [search, setSearch] = useState(searchParams.get('q') ?? '')
+  const committedSearch = searchParams.get('q') ?? ''
+  // Search and category are two ways to narrow the same catalogue, not layers on top of each
+  // other: committing a term drops the category so a match in another family still shows up,
+  // and picking a category clears the term so the rail's count is what the grid shows.
+  const { search, setSearch, flushSearch } = useDebouncedSearch(committedSearch, (value) =>
+    updateParams({ q: value, categoryId: undefined }, { replace: true }),
+  )
+  const [view, setView] = useShopView()
+  const layoutClass = LAYOUT_BY_VIEW[view]
 
   const { data: categories } = useQuery(shopCategoriesQueryOptions())
-  const { data, isLoading } = useQuery(
-    shopProductsQueryOptions({
-      page,
-      search: searchParams.get('q') ?? undefined,
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(
+    shopProductsInfiniteQueryOptions({
+      search: committedSearch || undefined,
       categoryId,
       sort: sortOption.property,
       direction: sortOption.direction,
     }),
   )
 
-  const total = data?.meta.itemCount ?? 0
-  const pageCount = Math.max(1, Math.ceil(total / SHOP_PAGE_SIZE))
+  const products = data?.pages.flatMap((entry) => entry.data) ?? []
+  const total = data?.pages[0]?.meta.itemCount ?? 0
+  const hasCategories = Boolean(categories && categories.length > 0)
+  const onSelectCategory = (value?: string) => updateParams({ categoryId: value, q: undefined })
+
+  // Load the next slice as its anchor scrolls into view, so reaching the bottom is enough —
+  // the button below stays as an explicit fallback (keyboard, observer not yet fired).
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const anchor = loadMoreRef.current
+    if (!anchor || !hasNextPage) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) fetchNextPage()
+      },
+      { rootMargin: '600px 0px' },
+    )
+    observer.observe(anchor)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <div className="space-y-6" data-testid="page-shop">
       <div>
-        <h1 className="text-2xl font-black tracking-tight">{t('shop.title')}</h1>
+        <PageTitle data-testid="shop-title">{t('shop.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
         <Input
-          className="w-64"
+          className="mt-4 w-full sm:max-w-md"
           data-testid="shop-search"
           placeholder={t('shop.searchPlaceholder')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
+            if (event.key === 'Enter') flushSearch()
           }}
         />
-        <select
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-          data-testid="shop-sort"
-          value={sortValue}
-          onChange={(event) => updateParams({ sort: event.target.value, page: undefined })}
-        >
-          <option value="name:asc">{t('shop.sort.nameAsc')}</option>
-          <option value="createdAt:desc">{t('shop.sort.newest')}</option>
-        </select>
       </div>
 
-      {categories && categories.length > 0 && (
-        <CategoryFilter
-          categories={categories}
-          selectedCategoryId={categoryId}
-          onSelect={(value) => updateParams({ categoryId: value, page: undefined })}
-        />
-      )}
+      <div className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
+        {hasCategories && (
+          <aside className="hidden self-start lg:sticky lg:top-6 lg:block">
+            <p className="mb-2 px-2 text-xs font-medium tracking-widest text-muted-foreground uppercase">
+              {t('shop.categories.heading')}
+            </p>
+            <CategoryRail
+              categories={categories!}
+              selectedCategoryId={categoryId}
+              onSelect={onSelectCategory}
+            />
+          </aside>
+        )}
 
-      {isLoading && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-          {Array.from({ length: 8 }, (_, index) => (
-            <Skeleton key={`shop-skeleton-${index}`} className="aspect-square w-full" />
-          ))}
-        </div>
-      )}
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            {hasCategories && (
+              <div className="lg:hidden">
+                <CategoryRailSheet
+                  categories={categories!}
+                  selectedCategoryId={categoryId}
+                  onSelect={onSelectCategory}
+                />
+              </div>
+            )}
+            <div className="ml-auto flex items-center gap-2">
+              <ShopViewToggle view={view} onChange={setView} />
+              <NativeSelect
+                data-testid="shop-sort"
+                value={sortValue}
+                onChange={(event) => updateParams({ sort: event.target.value })}
+              >
+                <option value="name:asc">{t('shop.sort.nameAsc')}</option>
+                <option value="createdAt:desc">{t('shop.sort.newest')}</option>
+              </NativeSelect>
+            </div>
+          </div>
 
-      {!isLoading && data?.data.length === 0 && (
-        <div data-testid="shop-empty">
-          <EmptyState
-            icon={<PackageSearch className="size-6 text-muted-foreground" />}
-            title={t('shop.empty')}
-          />
-        </div>
-      )}
+          {!isLoading && products.length > 0 && (
+            <div className="border-b border-border pb-3">
+              <span className="text-sm text-muted-foreground" data-testid="shop-count">
+                {t('shop.count', { count: total })}
+              </span>
+            </div>
+          )}
 
-      {!isLoading && data && data.data.length > 0 && (
-        <div
-          className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4"
-          data-testid="shop-product-grid"
-        >
-          {data.data.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      )}
+          {isLoading && (
+            <div className={layoutClass}>
+              {Array.from({ length: 9 }, (_, index) => (
+                <Skeleton
+                  key={`shop-skeleton-${index}`}
+                  className={view === 'list' ? 'h-20 w-full' : 'aspect-square w-full'}
+                />
+              ))}
+            </div>
+          )}
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span data-testid="shop-count">{t('shop.count', { count: total })}</span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid="shop-page-prev"
-            disabled={page <= 1}
-            onClick={() => updateParams({ page: String(page - 1) })}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span data-testid="shop-page-indicator">
-            {page} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid="shop-page-next"
-            disabled={page >= pageCount}
-            onClick={() => updateParams({ page: String(page + 1) })}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
+          {!isLoading && products.length === 0 && (
+            <div data-testid="shop-empty">
+              <EmptyState
+                icon={<PackageSearch className="size-6 text-muted-foreground" />}
+                title={t('shop.empty')}
+              />
+            </div>
+          )}
+
+          {!isLoading && products.length > 0 && (
+            <div className={layoutClass} data-testid="shop-product-grid" data-view={view}>
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} view={view} />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && products.length > 0 && (
+            <div ref={loadMoreRef} className="flex flex-col items-center gap-3 py-8">
+              {hasNextPage && (
+                <Button
+                  variant="outline"
+                  data-testid="shop-load-more"
+                  disabled={isFetchingNextPage}
+                  onClick={() => fetchNextPage()}
+                >
+                  {t('shop.pagination.loadMore')}
+                </Button>
+              )}
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {t('shop.pagination.showing', { shown: products.length, total })}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

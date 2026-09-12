@@ -1,74 +1,25 @@
 import { AppLoader } from '@grocery/ui/components/app'
-import { Badge } from '@grocery/ui/components/primitives/badge'
-import { Button } from '@grocery/ui/components/primitives/button'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
-import { LogOut, ShieldCheck, ShoppingCart } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router'
-import { useCartCount } from '@/features/cart/hooks/use-cart-count'
-import { useRoles } from '@/features/common/hooks/use-session'
+import { Navigate, Outlet, useLocation } from 'react-router'
+import { SiteHeader } from '@/features/common/components/site-header'
 import { authClient } from '@/lib/auth-client'
 
 /**
- * Shell for signed-in members. Keeps chrome light: a top bar with the cooperative name,
- * a link into the back office for admins, and sign-out.
+ * Shell for signed-in members. Same chrome as the shop — the shared SiteHeader — plus the
+ * guard that sends signed-out visitors to the login page with a return path.
  */
 export default function MemberAreaLayout() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
   const location = useLocation()
   const { data: sessionData, isPending } = authClient.useSession()
-  const { isAdmin } = useRoles()
-  const cartCount = useCartCount()
 
   if (isPending) return <AppLoader />
   if (!sessionData) {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />
   }
 
-  const handleLogout = async () => {
-    await authClient.signOut()
-    navigate('/login')
-  }
-
   return (
     <div className="min-h-svh bg-background">
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
-        <Link to="/account" className="text-sm font-black uppercase tracking-tight">
-          {t('members.title')}
-        </Link>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            data-testid="member-area-cart"
-            render={<Link to="/cart" />}
-          >
-            <ShoppingCart className="mr-2 size-4" />
-            {t('shop.nav.cart')}
-            {cartCount > 0 && (
-              <Badge variant="secondary" className="ml-2" data-testid="member-area-cart-count">
-                {cartCount}
-              </Badge>
-            )}
-          </Button>
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="sm"
-              data-testid="member-area-back-office"
-              render={<Link to="/admin/members" />}
-            >
-              <ShieldCheck className="mr-2 size-4" />
-              {t('adminMembers.backOffice')}
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" data-testid="nav-logout" onClick={handleLogout}>
-            <LogOut className="mr-2 size-4" />
-            {t('members.nav.logOut')}
-          </Button>
-        </div>
-      </header>
+      <SiteHeader />
       <main className="mx-auto max-w-3xl p-6">
         <Outlet />
       </main>

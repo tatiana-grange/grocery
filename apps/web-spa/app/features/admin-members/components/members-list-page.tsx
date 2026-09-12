@@ -1,3 +1,4 @@
+import { ListPagination, PageTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
@@ -22,7 +23,7 @@ import {
 } from '@grocery/ui/components/primitives/table'
 import { Tabs, TabsList, TabsTrigger } from '@grocery/ui/components/primitives/tabs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -33,6 +34,7 @@ import {
   membersListQueryOptions,
 } from '@/features/admin-members/utils/admin-members-queries'
 import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 const STATUS_TABS = ['pending', 'active', 'all'] as const
@@ -42,7 +44,9 @@ export default function MembersListPage() {
   const { searchParams, page, updateParams } = useListSearchParams()
   const status = (searchParams.get('status') ?? 'pending') as (typeof STATUS_TABS)[number]
   const committedSearch = searchParams.get('q') ?? ''
-  const [search, setSearch] = useState(committedSearch)
+  const { search, setSearch, flushSearch } = useDebouncedSearch(committedSearch, (value) =>
+    updateParams({ q: value, page: undefined }, { replace: true }),
+  )
 
   const { data, isLoading } = useQuery(
     membersListQueryOptions({
@@ -58,7 +62,7 @@ export default function MembersListPage() {
   return (
     <div className="space-y-6" data-testid="page-members-list">
       <div>
-        <h1 className="text-2xl font-black tracking-tight">{t('adminMembers.title')}</h1>
+        <PageTitle>{t('adminMembers.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('adminMembers.subtitle')}</p>
       </div>
 
@@ -83,7 +87,7 @@ export default function MembersListPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
+              if (event.key === 'Enter') flushSearch()
             }}
           />
           <CreateMemberDialog />
@@ -155,32 +159,13 @@ export default function MembersListPage() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span data-testid="members-count">{t('adminMembers.count', { count: total })}</span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid="members-page-prev"
-            disabled={page <= 1}
-            onClick={() => updateParams({ page: String(page - 1) })}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span data-testid="members-page-indicator">
-            {page} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid="members-page-next"
-            disabled={page >= pageCount}
-            onClick={() => updateParams({ page: String(page + 1) })}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+      <ListPagination
+        page={page}
+        pageCount={pageCount}
+        onPageChange={(next) => updateParams({ page: String(next) })}
+        testIdPrefix="members"
+        count={t('adminMembers.count', { count: total })}
+      />
     </div>
   )
 }

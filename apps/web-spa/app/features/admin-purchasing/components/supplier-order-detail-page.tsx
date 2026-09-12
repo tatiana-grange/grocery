@@ -1,3 +1,4 @@
+import { PageTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -89,7 +90,7 @@ export default function SupplierOrderDetailPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">{order.supplier.name}</h1>
+          <PageTitle>{order.supplier.name}</PageTitle>
           <p className="text-sm text-muted-foreground">
             {t('purchasing.createdAtLabel', {
               date: new Date(order.createdAt).toLocaleString(),

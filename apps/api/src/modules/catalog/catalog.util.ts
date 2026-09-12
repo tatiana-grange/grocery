@@ -1,4 +1,10 @@
-import type { ProductPricingUnit, ProductSaleMode } from './contracts/product.contract'
+import {
+  DEFAULT_QUANTITY_STEP_GRAMS,
+  DEFAULT_SELECTION_UNIT,
+  type ProductPricingUnit,
+  type ProductSaleMode,
+  type ProductSelectionUnit,
+} from './contracts/product.contract'
 import type { Product } from './entities/product.entity'
 import type { ProductPrice } from './entities/product-price.entity'
 
@@ -12,6 +18,16 @@ export function centsToEur(cents: number): number {
 
 export function pricingUnitFor(saleMode: ProductSaleMode): ProductPricingUnit {
   return saleMode === 'weight' ? 'kg' : 'piece'
+}
+
+/** Display unit for a by-weight quantity picker; 'kg' for anything else. */
+export function selectionUnitFor(product: Product): ProductSelectionUnit {
+  return product.selectionUnit ?? DEFAULT_SELECTION_UNIT
+}
+
+/** The +/- step of the quantity picker, in grams (100 g unless the product overrides it). */
+export function quantityStepGramsFor(product: Product): number {
+  return product.quantityStepGrams ?? DEFAULT_QUANTITY_STEP_GRAMS
 }
 
 /**

@@ -10,20 +10,20 @@ import {
   createSessionFromUser,
   type TestRequest,
 } from '../../../test/helpers/test-auth.helper'
+import { StockMovement } from '../../inventory/entities/stock-movement.entity'
 import { createMemberData } from '../../members/members.factory'
 import { CatalogModule } from '../catalog.module'
+import { Product } from '../entities/product.entity'
 
 describe('shopCatalogController (e2e)', () => {
   let request: TestRequest
   let admin: ReturnType<typeof createSessionFromUser>
+  let em: EntityManager
 
   beforeEach(async (context) => {
-    const { orm, app } = await initializeTestApp(
-      { orm: context.orm },
-      { imports: [CatalogModule] },
-    )
+    const { orm, app } = await initializeTestApp({ orm: context.orm }, { imports: [CatalogModule] })
     context.app = app
-    const em: EntityManager = orm.em.fork()
+    em = orm.em.fork()
     request = createRequest(app)
     const { user } = await createMemberData(em, {
       user: { name: 'Admin', email: `admin-${Math.random().toString(36).slice(2)}@example.com` },
@@ -41,8 +41,21 @@ describe('shopCatalogController (e2e)', () => {
     return res.body as { id: string }
   }
 
-  async function makeCategory(name = 'Légumes') {
-    const res = await request.withSession(admin).post('/admin/categories').send({ name })
+  async function makeCategory(name = 'Légumes', parentId?: string) {
+    const res = await request.withSession(admin).post('/admin/categories').send({ name, parentId })
+    return res.body as { id: string }
+  }
+
+  async function makeProductIn(categoryId: string, name: string) {
+    const supplier = await makeSupplier(`S-${Math.random().toString(36).slice(2, 6)}`)
+    const res = await request.withSession(admin).post('/admin/products').send({
+      name,
+      supplierId: supplier.id,
+      categoryId,
+      saleMode: 'unit',
+      orderingMode: 'in_store',
+      initialPriceEur: 1,
+    })
     return res.body as { id: string }
   }
 
@@ -76,6 +89,65 @@ describe('shopCatalogController (e2e)', () => {
     expect(after.body.some((c: { id: string }) => c.id === category.id)).toBe(false)
   })
 
+  it('surfaces a parent category via its children and carries parentId + productCount', async () => {
+    const parent = await makeCategory(`Crèmerie-${Math.random().toString(36).slice(2, 6)}`)
+    const child = await makeCategory(
+      `Fromages-${Math.random().toString(36).slice(2, 6)}`,
+      parent.id,
+    )
+    await makeProductIn(parent.id, 'Lait entier')
+    await makeProductIn(child.id, 'Comté')
+    await makeProductIn(child.id, 'Brie')
+
+    const res = await request.get('/shop/categories')
+    expect(res.status).toBe(200)
+    const byId = new Map<string, { parentId: string | null; productCount: number }>(
+      res.body.map((c: { id: string; parentId: string | null; productCount: number }) => [c.id, c]),
+    )
+    // The parent shows even though most of its products sit under the child.
+    expect(byId.get(parent.id)).toEqual({
+      id: parent.id,
+      name: expect.any(String),
+      parentId: null,
+      productCount: 1,
+    })
+    expect(byId.get(child.id)).toMatchObject({ parentId: parent.id, productCount: 2 })
+  })
+
+  it('filtering by a parent category returns its own products and its children’s', async () => {
+    const parent = await makeCategory(`Boucherie-${Math.random().toString(36).slice(2, 6)}`)
+    const child = await makeCategory(
+      `Volaille-${Math.random().toString(36).slice(2, 6)}`,
+      parent.id,
+    )
+    const own = await makeProductIn(parent.id, 'Steak haché')
+    const nested = await makeProductIn(child.id, 'Cuisse de poulet')
+    const elsewhere = await makeProductIn((await makeCategory('Ailleurs')).id, 'Savon')
+
+    const res = await request.get(`/shop/products?filter=categoryId:eq:${parent.id}`)
+    expect(res.status).toBe(200)
+    const ids = res.body.data.map((p: { id: string }) => p.id)
+    expect(ids).toEqual(expect.arrayContaining([own.id, nested.id]))
+    expect(ids).not.toContain(elsewhere.id)
+
+    // A leaf category still filters to exactly itself.
+    const leaf = await request.get(`/shop/products?filter=categoryId:eq:${child.id}`)
+    expect(leaf.body.data.map((p: { id: string }) => p.id)).toEqual([nested.id])
+  })
+
+  it('combines a category filter with a search query', async () => {
+    const parent = await makeCategory(`Épicerie-${Math.random().toString(36).slice(2, 6)}`)
+    const child = await makeCategory(`Pâtes-${Math.random().toString(36).slice(2, 6)}`, parent.id)
+    const match = await makeProductIn(child.id, 'Tagliatelles fraîches')
+    await makeProductIn(child.id, 'Penne')
+
+    const res = await request.get(
+      `/shop/products?filter=categoryId:eq:${parent.id};q:like:Tagliatelles`,
+    )
+    expect(res.status).toBe(200)
+    expect(res.body.data.map((p: { id: string }) => p.id)).toEqual([match.id])
+  })
+
   it('lists only non-archived products and supports search by name and barcode', async () => {
     const { product } = await makeProduct({ name: 'Pommes Golden', barcode: '1234567890123' })
     const { product: other } = await makeProduct({ name: 'Poires' })
@@ -91,6 +163,47 @@ describe('shopCatalogController (e2e)', () => {
 
     const byBarcode = await request.get('/shop/products?filter=q:like:1234567890123')
     expect(byBarcode.body.data.map((p: { id: string }) => p.id)).toContain(product.id)
+  })
+
+  it('searches regardless of case and accents', async () => {
+    // The shape the catalogue import actually produces: upper case, no accent.
+    const { product } = await makeProduct({ name: 'POLAR BIERE BLANCHE 75 cl' })
+
+    for (const term of ['bière', 'BIÈRE', 'biere', 'Biere']) {
+      const res = await request.get(`/shop/products?filter=q:like:${encodeURIComponent(term)}`)
+      expect(res.status).toBe(200)
+      expect(res.body.data.map((p: { id: string }) => p.id)).toContain(product.id)
+    }
+  })
+
+  it('searches the description and the category name, not only the product name', async () => {
+    const category = await makeCategory(`Bières-${Math.random().toString(36).slice(2, 6)}`)
+    const byCategory = await makeProductIn(category.id, 'Polder Aramis Blonde')
+    const { product: byDescription } = await makeProduct({
+      name: 'Grizzly Stardust',
+      description: 'Une bière de style Saison brassée à dix kilomètres.',
+    })
+    const { product: unrelated } = await makeProduct({ name: 'Savon de Marseille' })
+
+    const res = await request.get(`/shop/products?filter=q:like:${encodeURIComponent('bieres')}`)
+    expect(res.status).toBe(200)
+    const ids = res.body.data.map((p: { id: string }) => p.id)
+    expect(ids).toContain(byCategory.id)
+    expect(ids).not.toContain(unrelated.id)
+
+    const single = await request.get(`/shop/products?filter=q:like:${encodeURIComponent('bière')}`)
+    expect(single.body.data.map((p: { id: string }) => p.id)).toContain(byDescription.id)
+  })
+
+  it('treats LIKE wildcards typed by a shopper as plain characters', async () => {
+    const { product: discounted } = await makeProduct({ name: 'Remise 50% jus de pomme' })
+    const { product: other } = await makeProduct({ name: 'Jus de pomme' })
+
+    const res = await request.get(`/shop/products?filter=q:like:${encodeURIComponent('%')}`)
+    expect(res.status).toBe(200)
+    const ids = res.body.data.map((p: { id: string }) => p.id)
+    expect(ids).toContain(discounted.id)
+    expect(ids).not.toContain(other.id)
   })
 
   it('sorts the product list by name', async () => {
@@ -128,6 +241,65 @@ describe('shopCatalogController (e2e)', () => {
     })
     expect(res.body.version).toBeUndefined()
     expect(res.body.priceHistory).toBeUndefined()
+  })
+
+  it('defaults the by-weight quantity picker to 100 g steps shown in kilograms', async () => {
+    const { product } = await makeProduct({ name: 'Farine T65', saleMode: 'weight' })
+
+    const res = await request.get(`/shop/products/${product.id}`)
+    expect(res.body).toMatchObject({ selectionUnit: 'kg', quantityStepGrams: 100 })
+  })
+
+  it('carries a product-specific selection unit and step to the shop', async () => {
+    const { product } = await makeProduct({
+      name: 'Comté à la coupe',
+      saleMode: 'weight',
+      selectionUnit: 'g',
+      quantityStepGrams: 250,
+    })
+
+    const res = await request.get(`/shop/products/${product.id}`)
+    expect(res.body).toMatchObject({ selectionUnit: 'g', quantityStepGrams: 250 })
+  })
+
+  /** Appends what a reception would, without going through the purchasing module. */
+  async function receive(productId: string, quantity: string, unitCostAmountCents = 420) {
+    const movement = new StockMovement()
+    movement.product = em.getReference(Product, productId)
+    movement.quantity = quantity
+    movement.unitCostAmountCents = unitCostAmountCents
+    await em.persist(movement).flush()
+  }
+
+  it('carries stock on hand to the shop, on the list and the detail, cost price on neither', async () => {
+    const { product } = await makeProduct({ name: 'Savonnette' })
+    await receive(product.id, '3')
+
+    const detail = await request.get(`/shop/products/${product.id}`)
+    expect(detail.status).toBe(200)
+    expect(detail.body).toMatchObject({ quantityOnHand: 3 })
+    expect(detail.body.costPriceEur).toBeUndefined()
+
+    const list = await request.get('/shop/products?filter=q:like:Savonnette')
+    expect(list.body.data[0]).toMatchObject({ id: product.id, quantityOnHand: 3 })
+    expect(list.body.data[0].costPriceEur).toBeUndefined()
+  })
+
+  it('reports a never-received product as zero on hand, not as missing', async () => {
+    const { product } = await makeProduct({ name: 'Jamaisrecu' })
+
+    const res = await request.get(`/shop/products/${product.id}`)
+    expect(res.status).toBe(200)
+    expect(res.body.quantityOnHand).toBe(0)
+  })
+
+  it('sums every movement of a product into one quantity on hand', async () => {
+    const { product } = await makeProduct({ name: 'Lessive' })
+    await receive(product.id, '2')
+    await receive(product.id, '5')
+
+    const res = await request.get(`/shop/products/${product.id}`)
+    expect(res.body.quantityOnHand).toBe(7)
   })
 
   it('404s on an archived or unknown product id', async () => {

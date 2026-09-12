@@ -1,3 +1,4 @@
+import { ListPagination, PageTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -10,21 +11,22 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import {
   STOCK_PAGE_SIZE,
   stockListQueryOptions,
 } from '@/features/admin-inventory/utils/inventory-queries'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export default function StockListPage() {
   const { t } = useTranslation()
   const { searchParams, page, updateParams } = useListSearchParams()
   const committedSearch = searchParams.get('q') ?? ''
-  const [search, setSearch] = useState(committedSearch)
+  const { search, setSearch, flushSearch } = useDebouncedSearch(committedSearch, (value) =>
+    updateParams({ q: value, page: undefined }, { replace: true }),
+  )
 
   const { data, isLoading } = useQuery(
     stockListQueryOptions({ page, search: committedSearch || undefined }),
@@ -36,7 +38,7 @@ export default function StockListPage() {
   return (
     <div className="space-y-6" data-testid="page-stock-list">
       <div>
-        <h1 className="text-2xl font-black tracking-tight">{t('inventory.title')}</h1>
+        <PageTitle>{t('inventory.title')}</PageTitle>
         <p className="text-sm text-muted-foreground">{t('inventory.subtitle')}</p>
       </div>
 
@@ -47,7 +49,7 @@ export default function StockListPage() {
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') updateParams({ q: search || undefined, page: undefined })
+          if (event.key === 'Enter') flushSearch()
         }}
       />
 
@@ -106,27 +108,12 @@ export default function StockListPage() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
-        <Button
-          variant="outline"
-          size="icon"
-          disabled={page <= 1}
-          onClick={() => updateParams({ page: String(page - 1) })}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <span data-testid="stock-page-indicator">
-          {page} / {pageCount}
-        </span>
-        <Button
-          variant="outline"
-          size="icon"
-          disabled={page >= pageCount}
-          onClick={() => updateParams({ page: String(page + 1) })}
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
+      <ListPagination
+        page={page}
+        pageCount={pageCount}
+        onPageChange={(next) => updateParams({ page: String(next) })}
+        testIdPrefix="stock"
+      />
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { PageTitle, SectionTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
@@ -76,9 +77,7 @@ export default function ProductDetailPage() {
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight" data-testid="product-detail-name">
-            {product.name}
-          </h1>
+          <PageTitle data-testid="product-detail-name">{product.name}</PageTitle>
           <p className="text-sm text-muted-foreground">
             {product.supplier.name} · {product.category.name}
           </p>
@@ -152,9 +151,7 @@ export default function ProductDetailPage() {
       </div>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          {t('catalog.products.priceHistory')}
-        </h2>
+        <SectionTitle>{t('catalog.products.priceHistory')}</SectionTitle>
         <ul className="space-y-1 text-sm" data-testid="product-price-history">
           {[...product.priceHistory].reverse().map((window) => (
             <li

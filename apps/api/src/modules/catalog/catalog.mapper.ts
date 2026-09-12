@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { centsToEur, currentPrice, pricingUnitFor } from './catalog.util'
+import {
+  centsToEur,
+  currentPrice,
+  pricingUnitFor,
+  quantityStepGramsFor,
+  selectionUnitFor,
+} from './catalog.util'
 import type { Category as CategoryContract } from './contracts/category.contract'
 import type { PriceWindow } from './contracts/product-price.contract'
 import type {
@@ -25,7 +31,7 @@ import { ProductPrice } from './entities/product-price.entity'
 import { Product } from './entities/product.entity'
 import { Referent } from './entities/referent.entity'
 import { Supplier } from './entities/supplier.entity'
-import type { ProductsListResult } from './catalog.service'
+import type { ProductsListResult, ShopCategoryEntry } from './catalog.service'
 
 @Injectable()
 export class CatalogMapper {
@@ -142,6 +148,8 @@ export class CatalogMapper {
       category: { id: product.category.id, name: product.category.name },
       saleMode: product.saleMode,
       pricingUnit: pricingUnitFor(product.saleMode),
+      selectionUnit: product.selectionUnit ?? null,
+      quantityStepGrams: product.quantityStepGrams ?? null,
       orderingMode: product.orderingMode,
       photos: product.photos,
       labels: product.labels,
@@ -193,36 +201,54 @@ export class CatalogMapper {
   // Public shop
   // ============================================================================================
 
-  toShopCategory(category: Category): ShopCategory {
-    return { id: category.id, name: category.name }
+  toShopCategory({ category, productCount }: ShopCategoryEntry): ShopCategory {
+    return {
+      id: category.id,
+      name: category.name,
+      parentId: category.parent?.id ?? null,
+      productCount,
+    }
   }
 
-  toShopProduct(product: Product): ShopProduct {
+  /**
+   * `quantityOnHand` is passed in rather than read here: the shop controller derives it from
+   * the inventory ledger. Only the quantity crosses over — the cost price sits next to it in
+   * `StockLevel` and must never reach a `@Public()` response.
+   */
+  toShopProduct(product: Product, quantityOnHand = 0): ShopProduct {
     return {
       id: product.id,
       name: product.name,
       category: { id: product.category.id, name: product.category.name },
       saleMode: product.saleMode,
       pricingUnit: pricingUnitFor(product.saleMode),
+      selectionUnit: selectionUnitFor(product),
+      quantityStepGrams: quantityStepGramsFor(product),
       photos: product.photos,
       labels: product.labels,
       // Every product carries an open price from creation (see CatalogService.createProduct).
       currentPriceEur: this.currentPriceEur(product) ?? 0,
       orderingMode: product.orderingMode,
+      quantityOnHand,
     }
   }
 
-  toShopProductDetail(product: Product): ShopProductDetail {
+  toShopProductDetail(product: Product, quantityOnHand = 0): ShopProductDetail {
     return {
-      ...this.toShopProduct(product),
+      ...this.toShopProduct(product, quantityOnHand),
       description: product.description ?? null,
       barcode: product.barcode ?? null,
     }
   }
 
-  toShopProductsList({ products, total, pagination }: ProductsListResult): ShopProductsList {
+  toShopProductsList(
+    { products, total, pagination }: ProductsListResult,
+    quantityOnHandByProduct: ReadonlyMap<string, number> = new Map(),
+  ): ShopProductsList {
     return {
-      data: products.map((product) => this.toShopProduct(product)),
+      data: products.map((product) =>
+        this.toShopProduct(product, quantityOnHandByProduct.get(product.id) ?? 0),
+      ),
       meta: {
         itemCount: total,
         pageSize: pagination.pageSize,

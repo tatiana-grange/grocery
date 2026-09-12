@@ -19,7 +19,6 @@
     "@react-router/node": "catalog:frontend",
     "@react-router/serve": "catalog:frontend",
     "@tanstack/react-query": "catalog:frontend",
-    "@tanstack/react-table": "^8.21.3",
     "better-auth": "catalog:auth",
     "i18next": "catalog:frontend",
     "isbot": "^5.2.1",

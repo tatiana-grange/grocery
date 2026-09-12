@@ -4,7 +4,9 @@ import { z } from 'zod'
 import { LoggedInBetterAuthSession } from '../auth/auth.config'
 import { MemberScoped, Session } from '../auth/auth.decorator'
 import { AuthGuard } from '../auth/auth.guard'
+import { InventoryService } from '../inventory/inventory.service'
 import { CartService } from './cart.service'
+import type { Cart } from './entities/cart.entity'
 import {
   type AddCartLineInput,
   addCartLineSchema,
@@ -23,13 +25,28 @@ export class CartController {
   constructor(
     private readonly cartService: CartService,
     private readonly ordersService: OrdersService,
+    private readonly inventory: InventoryService,
     private readonly mapper: OrdersMapper,
   ) {}
+
+  /**
+   * Every route here answers with the whole cart, so they all leave through this: it pairs the
+   * cart with what the inventory ledger says is on the shelf for its products, in one grouped
+   * read. Only the quantity is carried over — the cost price alongside it is staff-only.
+   */
+  private async present(cart: Cart) {
+    const productIds = cart.lines.isInitialized()
+      ? cart.lines.getItems().map((line) => line.product.id)
+      : []
+    const levels = await this.inventory.getStockLevels(productIds)
+    const quantities = new Map([...levels].map(([id, level]) => [id, level.quantityOnHand]))
+    return this.mapper.toCart(cart, quantities)
+  }
 
   @TypedRoute.Get('', cartSchema)
   async getCart(@Session() session: LoggedInBetterAuthSession) {
     const cart = await this.cartService.getOrCreateCart(session.user.id)
-    return this.mapper.toCart(cart)
+    return this.present(cart)
   }
 
   @TypedRoute.Post('lines', cartSchema)
@@ -38,7 +55,7 @@ export class CartController {
     @TypedBody(addCartLineSchema) body: AddCartLineInput,
   ) {
     const cart = await this.cartService.addLine(session.user.id, body)
-    return this.mapper.toCart(cart)
+    return this.present(cart)
   }
 
   @TypedRoute.Put('lines/:lineId', cartSchema)
@@ -48,7 +65,7 @@ export class CartController {
     @TypedBody(updateCartLineSchema) body: UpdateCartLineInput,
   ) {
     const cart = await this.cartService.updateLine(session.user.id, lineId, body)
-    return this.mapper.toCart(cart)
+    return this.present(cart)
   }
 
   @TypedRoute.Delete('lines/:lineId', cartSchema)
@@ -57,7 +74,7 @@ export class CartController {
     @TypedParam('lineId', z.string()) lineId: string,
   ) {
     const cart = await this.cartService.removeLine(session.user.id, lineId)
-    return this.mapper.toCart(cart)
+    return this.present(cart)
   }
 
   @TypedRoute.Post('checkout', checkoutResultSchema)
