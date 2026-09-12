@@ -111,6 +111,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   `tests/` subfolders of both modules and the `components/` / `utils/` folders of the two
   new frontend feature areas
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 2 (part 1): the `distributor` role, the three new entities, the contracts,
+  the shared wallet and inventory primitives, module wiring, and the migration
+- Tasks completed: T005–T023
+- Notable: `InventoryService.recordIssue` values an outbound movement at the product's
+  current weighted average, which leaves that average unchanged — the property is now
+  pinned by five unit tests in `inventory.service.spec.ts`. `getStockLevels` takes an
+  optional `EntityManager` so a handover reads under its own transaction.
+- **Author**: AI (Claude)
+- **Files**: auth.config.ts, auth.decorator.ts, member.contract.ts, members.util.ts,
+  web-spa roles.ts + use-session.ts, wallet-entry/handover/handover-line entities,
+  stock-movement.entity.ts, stock.contract.ts, order.contract.ts, wallet.contract.ts,
+  handover.contract.ts, distribution-screen.contract.ts, wallet.service.ts,
+  inventory.service.ts, inventory.service.spec.ts, both modules, app.module.ts,
+  Migration20260912142034.ts
+
 ---
 
 <!--

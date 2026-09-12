@@ -1,9 +1,18 @@
+import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
+import { InventoryModule } from '../inventory/inventory.module'
+import { WalletModule } from '../wallet/wallet.module'
+import { Handover } from './entities/handover.entity'
+import { HandoverLine } from './entities/handover-line.entity'
 
 /**
- * Lot 4 distribution: the table screen, the handover records, the express order, and the
- * reversal. Filled in as the user stories land; entities, controllers, and the imports of
- * `WalletModule` / `InventoryModule` arrive in the foundational phase.
+ * Lot 4 distribution: the table screen, the write-once `Handover` / `HandoverLine` records,
+ * the express order, and the reversal. Imports `WalletModule` and `InventoryModule` so a
+ * handover can charge the member and move stock inside one transaction — the same shape
+ * `PurchasingModule` already uses for receptions. Service, mapper and controller are
+ * registered per user story.
  */
-@Module({})
+@Module({
+  imports: [MikroOrmModule.forFeature([Handover, HandoverLine]), WalletModule, InventoryModule],
+})
 export class DistributionModule {}

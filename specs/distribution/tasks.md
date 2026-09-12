@@ -57,62 +57,62 @@ every user story below builds on.
 
 ### The `distributor` role
 
-- [ ] T005 [P] Add `'distributor'` to `USER_ROLES` in
+- [X] T005 [P] Add `'distributor'` to `USER_ROLES` in
   `apps/api/src/modules/auth/auth.config.ts`, leaving `ADMIN_USER_ROLES` as `['admin']` so the
   role gains no Better Auth admin plugin powers, and correct the stale `grocer` comment on
   line 10 (research.md §2)
-- [ ] T006 [P] Add `'distributor'` to `USER_ROLES` / `userRoleSchema` in
+- [X] T006 [P] Add `'distributor'` to `USER_ROLES` / `userRoleSchema` in
   `apps/api/src/modules/members/contracts/member.contract.ts` and update its `.meta()`
   description, which still says `grocer` (this one feeds the OpenAPI description, so it must
   land before T024's `pnpm generate`)
-- [ ] T007 Add `StaffOnly()` = `SetMetadata(ROLES_KEY, ['distributor', 'admin'])` to
+- [X] T007 Add `StaffOnly()` = `SetMetadata(ROLES_KEY, ['distributor', 'admin'])` to
   `apps/api/src/modules/auth/auth.decorator.ts` alongside the existing `AdminOnly()`, and
   correct the stale `@Roles('grocer')` comment on line 16. `AuthGuard` needs no change — it
   already reads `ROLES_KEY` generically
-- [ ] T008 Teach `parseRoles` and `serializeRoles` in
+- [X] T008 Teach `parseRoles` and `serializeRoles` in
   `apps/api/src/modules/members/members.util.ts` to accept `'distributor'`; both currently
   hard-filter to `member | admin` and would silently drop it (research.md §2)
-- [ ] T009 [P] Add `'distributor'` to `UserRole` and `parseRoles` in
+- [X] T009 [P] Add `'distributor'` to `UserRole` and `parseRoles` in
   `apps/web-spa/app/features/common/lib/roles.ts`, and add `isDistributor` / `isStaff` to
   `useRoles` in `apps/web-spa/app/features/common/hooks/use-session.ts`
 
 ### Entities
 
-- [ ] T010 [P] Create the `WalletEntry` entity in
+- [X] T010 [P] Create the `WalletEntry` entity in
   `apps/api/src/modules/wallet/entities/wallet-entry.entity.ts`: `member` FK (not null,
   indexed), signed `amountCents`, `currency`, `reason`, nullable `paymentMethod`, nullable
   `handover` FK, nullable `recordedByUser` FK, nullable `note`, and **`createdAt` only — no
   `updatedAt`** (data-model.md, plan.md Complexity Tracking)
-- [ ] T011 [P] Create the `Handover` entity in
+- [X] T011 [P] Create the `Handover` entity in
   `apps/api/src/modules/distribution/entities/handover.entity.ts`: `order` FK, `member` FK,
   `totalAmountCents`, `currency`, `kind`, nullable self-FK `reversesHandover` (indexed),
   `recordedByUser` FK, nullable `note`, `lines` collection, **`createdAt` only**
-- [ ] T012 [P] Create the `HandoverLine` entity in
+- [X] T012 [P] Create the `HandoverLine` entity in
   `apps/api/src/modules/distribution/entities/handover-line.entity.ts`: `handover` FK,
   `orderLine` FK, `handedQuantity` as `decimal(10,3)` string (may be `0` or negative),
   `unitPriceAmountCents`, `lineTotalAmountCents`, **`createdAt` only**
-- [ ] T013 [P] Add the nullable `handoverLine` FK (indexed) to the existing `StockMovement`
+- [X] T013 [P] Add the nullable `handoverLine` FK (indexed) to the existing `StockMovement`
   entity in `apps/api/src/modules/inventory/entities/stock-movement.entity.ts`, and update its
   doc comment: lot 4 makes `quantity` genuinely signed
 
 ### Contracts
 
-- [ ] T014 [P] Widen `STOCK_MOVEMENT_REASONS` to
+- [X] T014 [P] Widen `STOCK_MOVEMENT_REASONS` to
   `['reception', 'distribution', 'distribution_reversal']` and **relax
   `stockSummarySchema.quantityOnHand` from `z.number().nonnegative()` to `z.number()`** in
   `apps/api/src/modules/inventory/contracts/stock.contract.ts` — negative stock is allowed and
   the old bound would fail response validation (research.md §6)
-- [ ] T015 [P] Add `'handed_over'` to `ORDER_STATUSES` in
+- [X] T015 [P] Add `'handed_over'` to `ORDER_STATUSES` in
   `apps/api/src/modules/orders/contracts/order.contract.ts` and update its `.meta()`
   description
-- [ ] T016 [P] Write `apps/api/src/modules/wallet/contracts/wallet.contract.ts`:
+- [X] T016 [P] Write `apps/api/src/modules/wallet/contracts/wallet.contract.ts`:
   `walletEntryReasonSchema`, `paymentMethodSchema`, `walletEntrySchema`, `walletSchema`,
   `recordPaymentSchema`, each with `.meta()` and an exported inferred type
   (contracts/wallet-api.md)
-- [ ] T017 [P] Write `apps/api/src/modules/distribution/contracts/handover.contract.ts`:
+- [X] T017 [P] Write `apps/api/src/modules/distribution/contracts/handover.contract.ts`:
   `handoverKindSchema`, `handoverLineSchema`, `handoverSchema`, `recordHandoverSchema`,
   `createExpressOrderSchema`, `reverseHandoverSchema` (contracts/distribution-api.md)
-- [ ] T018 [P] Write
+- [X] T018 [P] Write
   `apps/api/src/modules/distribution/contracts/distribution-screen.contract.ts`:
   `notReadyReasonCodeSchema`, `distributionMemberSummarySchema`, `distributionLineSchema`,
   `distributionOrderSchema`, `distributionMemberScreenSchema`, `distributionProductSchema`,
@@ -120,18 +120,18 @@ every user story below builds on.
 
 ### Shared services
 
-- [ ] T019 Implement `WalletService` core in
+- [X] T019 Implement `WalletService` core in
   `apps/api/src/modules/wallet/wallet.service.ts`: `getBalanceCents(em, memberId)` summing
   `amountCents` in the database (following `InventoryService.getStockLevels`),
   `charge(em, …)` and `credit(em, …)` appending one entry each and taking the caller's
   `EntityManager` so they join its transaction (research.md §3)
-- [ ] T020 Add `recordIssue(em, …)` and `recordIssueReversal(em, …)` to
+- [X] T020 Add `recordIssue(em, …)` and `recordIssueReversal(em, …)` to
   `apps/api/src/modules/inventory/inventory.service.ts`, mirroring the existing
   `recordReceipt`. `recordIssue` writes a negative `quantity` with `unitCostAmountCents` set
   to the product's current weighted average, read **before** the row is appended;
   `recordIssueReversal` copies the original outbound row's unit cost (research.md §5, §9).
   `buildStockLevel` / `inventory.util.ts` are not touched
-- [ ] T021 [P] Add a unit test in
+- [X] T021 [P] Add a unit test in
   `apps/api/src/modules/inventory/tests/inventory.service.spec.ts` proving the §5 property:
   receive the same product at two different unit costs, issue some of it, and assert the
   derived weighted average cost price is unchanged; plus a case asserting a negative stock
@@ -139,12 +139,12 @@ every user story below builds on.
 
 ### Wiring, schema, client
 
-- [ ] T022 Register `WalletModule` and `DistributionModule` in the application module and wire
+- [X] T022 Register `WalletModule` and `DistributionModule` in the application module and wire
   their cross-module dependencies (`distribution` imports `wallet` and `inventory`, the same
   way `purchasing` imports `inventory`) in
   `apps/api/src/modules/wallet/wallet.module.ts`,
   `apps/api/src/modules/distribution/distribution.module.ts`, and the app module
-- [ ] T023 Generate the migration with `pnpm --filter=api db:migrate:create`, **review the
+- [X] T023 Generate the migration with `pnpm --filter=api db:migrate:create`, **review the
   emitted SQL before applying it**, then `db:migrate:up`. Confirm: `walletEntry`, `handover`,
   `handoverLine` created with the indexes listed in data-model.md;
   `stockMovement.handoverLineId` **added** as a nullable column, not a table rewrite; and

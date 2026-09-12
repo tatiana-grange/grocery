@@ -38,10 +38,12 @@ export const membershipPaymentMethodSchema = z.enum(MEMBERSHIP_PAYMENT_METHODS).
 })
 export type MembershipPaymentMethod = z.infer<typeof membershipPaymentMethodSchema>
 
-export const USER_ROLES = ['member', 'admin'] as const
+export const USER_ROLES = ['member', 'distributor', 'admin'] as const
 export const userRoleSchema = z.enum(USER_ROLES).meta({
   title: 'UserRole',
-  description: 'Access role. "admin" is a superset of "member". "grocer" is added in lot 4.',
+  description:
+    'Access role. "admin" is a superset of "member". "distributor" opens the distribution ' +
+    'table and nothing else; an admin reaches it without holding the role.',
 })
 export type UserRole = z.infer<typeof userRoleSchema>
 

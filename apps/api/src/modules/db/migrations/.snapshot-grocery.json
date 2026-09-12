@@ -358,7 +358,8 @@
           "constraint": false,
           "keyName": "cart_memberId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"cart_memberId_index\" ON public.cart USING btree (\"memberId\")"
         },
         {
           "columnNames": [
@@ -368,7 +369,8 @@
           "constraint": true,
           "keyName": "cart_memberId_unique",
           "primary": false,
-          "unique": true
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"cart_memberId_unique\" ON public.cart USING btree (\"memberId\")"
         },
         {
           "columnNames": [
@@ -531,7 +533,8 @@
           "constraint": false,
           "keyName": "cartLine_cartId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"cartLine_cartId_index\" ON public.\"cartLine\" USING btree (\"cartId\")"
         },
         {
           "columnNames": [
@@ -543,7 +546,8 @@
           "constraint": true,
           "keyName": "cartLine_cartId_productId_orderingMode_unique",
           "primary": false,
-          "unique": true
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"cartLine_cartId_productId_orderingMode_unique\" ON public.\"cartLine\" USING btree (\"cartId\", \"productId\", \"orderingMode\")"
         },
         {
           "columnNames": [
@@ -563,7 +567,8 @@
           "constraint": false,
           "keyName": "cartLine_productId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"cartLine_productId_index\" ON public.\"cartLine\" USING btree (\"productId\")"
         }
       ],
       "checks": [],
@@ -727,7 +732,8 @@
           "constraint": false,
           "keyName": "category_archivedAt_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"category_archivedAt_index\" ON public.category USING btree (\"archivedAt\")"
         },
         {
           "columnNames": [
@@ -738,6 +744,18 @@
           "keyName": "category_name_index",
           "primary": false,
           "unique": false
+        },
+        {
+          "columnNames": [
+            "normalize_search(name::text)"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "category_name_search_idx",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX category_name_search_idx ON public.category USING gin (normalize_search((name)::text) gin_trgm_ops)",
+          "type": "gin"
         },
         {
           "columnNames": [
@@ -764,6 +782,463 @@
           ],
           "referencedTableName": "public.category",
           "deleteRule": "set null"
+        }
+      },
+      "comment": null
+    },
+    {
+      "name": "handover",
+      "schema": "public",
+      "columns": {
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "currency": {
+          "name": "currency",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'EUR'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "kind": {
+          "name": "kind",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'handover'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "memberId": {
+          "name": "memberId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "note": {
+          "name": "note",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "orderId": {
+          "name": "orderId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "recordedByUserId": {
+          "name": "recordedByUserId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "reversesHandoverId": {
+          "name": "reversesHandoverId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "totalAmountCents": {
+          "name": "totalAmountCents",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "memberId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "handover_memberId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"handover_memberId_index\" ON public.handover USING btree (\"memberId\")"
+        },
+        {
+          "columnNames": [
+            "orderId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "handover_orderId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"handover_orderId_index\" ON public.handover USING btree (\"orderId\")"
+        },
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "handover_pkey",
+          "primary": true,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "reversesHandoverId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "handover_reversesHandoverId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"handover_reversesHandoverId_index\" ON public.handover USING btree (\"reversesHandoverId\")"
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "handover_memberId_foreign": {
+          "columnNames": [
+            "memberId"
+          ],
+          "constraintName": "handover_memberId_foreign",
+          "localTableName": "public.handover",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.member"
+        },
+        "handover_orderId_foreign": {
+          "columnNames": [
+            "orderId"
+          ],
+          "constraintName": "handover_orderId_foreign",
+          "localTableName": "public.handover",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.order"
+        },
+        "handover_recordedByUserId_foreign": {
+          "columnNames": [
+            "recordedByUserId"
+          ],
+          "constraintName": "handover_recordedByUserId_foreign",
+          "localTableName": "public.handover",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.user"
+        },
+        "handover_reversesHandoverId_foreign": {
+          "columnNames": [
+            "reversesHandoverId"
+          ],
+          "constraintName": "handover_reversesHandoverId_foreign",
+          "localTableName": "public.handover",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.handover",
+          "deleteRule": "set null"
+        }
+      },
+      "comment": null
+    },
+    {
+      "name": "handoverLine",
+      "schema": "public",
+      "columns": {
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "handedQuantity": {
+          "name": "handedQuantity",
+          "type": "numeric(10,3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 10,
+          "scale": 3,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "handoverId": {
+          "name": "handoverId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "lineTotalAmountCents": {
+          "name": "lineTotalAmountCents",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
+        "orderLineId": {
+          "name": "orderLineId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "unitPriceAmountCents": {
+          "name": "unitPriceAmountCents",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "handoverId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "handoverLine_handoverId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"handoverLine_handoverId_index\" ON public.\"handoverLine\" USING btree (\"handoverId\")"
+        },
+        {
+          "columnNames": [
+            "orderLineId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "handoverLine_orderLineId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"handoverLine_orderLineId_index\" ON public.\"handoverLine\" USING btree (\"orderLineId\")"
+        },
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "handoverLine_pkey",
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "handoverLine_handoverId_foreign": {
+          "columnNames": [
+            "handoverId"
+          ],
+          "constraintName": "handoverLine_handoverId_foreign",
+          "localTableName": "public.handoverLine",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.handover"
+        },
+        "handoverLine_orderLineId_foreign": {
+          "columnNames": [
+            "orderLineId"
+          ],
+          "constraintName": "handoverLine_orderLineId_foreign",
+          "localTableName": "public.handoverLine",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.orderLine"
         }
       },
       "comment": null
@@ -1003,7 +1478,20 @@
           "constraint": false,
           "keyName": "member_membershipNumber_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"member_membershipNumber_index\" ON public.member USING btree (\"membershipNumber\")"
+        },
+        {
+          "columnNames": [
+            "normalize_search(membershipNumber::text)"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "member_membershipNumber_search_idx",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"member_membershipNumber_search_idx\" ON public.member USING gin (normalize_search((\"membershipNumber\")::text) gin_trgm_ops)",
+          "type": "gin"
         },
         {
           "columnNames": [
@@ -1013,7 +1501,8 @@
           "constraint": true,
           "keyName": "member_membershipNumber_unique",
           "primary": false,
-          "unique": true
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"member_membershipNumber_unique\" ON public.member USING btree (\"membershipNumber\")"
         },
         {
           "columnNames": [
@@ -1033,7 +1522,8 @@
           "constraint": false,
           "keyName": "member_userId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"member_userId_index\" ON public.member USING btree (\"userId\")"
         },
         {
           "columnNames": [
@@ -1043,7 +1533,8 @@
           "constraint": true,
           "keyName": "member_userId_unique",
           "primary": false,
-          "unique": true
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"member_userId_unique\" ON public.member USING btree (\"userId\")"
         }
       ],
       "checks": [],
@@ -1196,7 +1687,8 @@
           "constraint": false,
           "keyName": "memberStatusChange_memberId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"memberStatusChange_memberId_index\" ON public.\"memberStatusChange\" USING btree (\"memberId\")"
         },
         {
           "columnNames": [
@@ -1354,7 +1846,8 @@
           "constraint": true,
           "keyName": "membershipFee_memberId_unique",
           "primary": false,
-          "unique": true
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"membershipFee_memberId_unique\" ON public.\"membershipFee\" USING btree (\"memberId\")"
         },
         {
           "columnNames": [
@@ -1641,7 +2134,8 @@
           "constraint": false,
           "keyName": "membershipPayment_feeId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"membershipPayment_feeId_index\" ON public.\"membershipPayment\" USING btree (\"feeId\")"
         },
         {
           "columnNames": [
@@ -1883,7 +2377,8 @@
           "constraint": false,
           "keyName": "order_memberId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"order_memberId_index\" ON public.\"order\" USING btree (\"memberId\")"
         },
         {
           "columnNames": [
@@ -2097,7 +2592,8 @@
           "constraint": false,
           "keyName": "orderLine_orderId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"orderLine_orderId_index\" ON public.\"orderLine\" USING btree (\"orderId\")"
         },
         {
           "columnNames": [
@@ -2117,7 +2613,8 @@
           "constraint": false,
           "keyName": "orderLine_supplierOrderLineId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"orderLine_supplierOrderLineId_index\" ON public.\"orderLine\" USING btree (\"supplierOrderLineId\")"
         }
       ],
       "checks": [],
@@ -2276,7 +2773,8 @@
           "constraint": false,
           "keyName": "producerCategory_archivedAt_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"producerCategory_archivedAt_index\" ON public.\"producerCategory\" USING btree (\"archivedAt\")"
         },
         {
           "columnNames": [
@@ -2624,7 +3122,20 @@
           "constraint": false,
           "keyName": "product_archivedAt_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"product_archivedAt_index\" ON public.product USING btree (\"archivedAt\")"
+        },
+        {
+          "columnNames": [
+            "normalize_search(barcode::text)"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "product_barcode_search_idx",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX product_barcode_search_idx ON public.product USING gin (normalize_search((barcode)::text) gin_trgm_ops)",
+          "type": "gin"
         },
         {
           "columnNames": [
@@ -2644,7 +3155,20 @@
           "constraint": false,
           "keyName": "product_categoryId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"product_categoryId_index\" ON public.product USING btree (\"categoryId\")"
+        },
+        {
+          "columnNames": [
+            "normalize_search(description::text)"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "product_description_search_idx",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX product_description_search_idx ON public.product USING gin (normalize_search((description)::text) gin_trgm_ops)",
+          "type": "gin"
         },
         {
           "columnNames": [
@@ -2655,6 +3179,18 @@
           "keyName": "product_name_index",
           "primary": false,
           "unique": false
+        },
+        {
+          "columnNames": [
+            "normalize_search(name::text)"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "product_name_search_idx",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX product_name_search_idx ON public.product USING gin (normalize_search((name)::text) gin_trgm_ops)",
+          "type": "gin"
         },
         {
           "columnNames": [
@@ -2674,7 +3210,8 @@
           "constraint": false,
           "keyName": "product_supplierId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"product_supplierId_index\" ON public.product USING btree (\"supplierId\")"
         }
       ],
       "checks": [],
@@ -2784,7 +3321,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "unique": false,
+          "unique": true,
           "length": null,
           "precision": null,
           "scale": null,
@@ -2848,13 +3385,15 @@
       },
       "indexes": [
         {
-          "columnNames": [],
+          "columnNames": [
+            "productId"
+          ],
           "composite": false,
           "constraint": false,
           "keyName": "productPrice_one_open_per_product",
           "primary": false,
-          "unique": false,
-          "expression": "create unique index \"productPrice_one_open_per_product\" on \"productPrice\" (\"productId\") where \"validTo\" is null"
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"productPrice_one_open_per_product\" ON public.\"productPrice\" USING btree (\"productId\") WHERE (\"validTo\" IS NULL)"
         },
         {
           "columnNames": [
@@ -2875,7 +3414,8 @@
           "constraint": false,
           "keyName": "productPrice_productId_validTo_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"productPrice_productId_validTo_index\" ON public.\"productPrice\" USING btree (\"productId\", \"validTo\")"
         }
       ],
       "checks": [],
@@ -2998,7 +3538,8 @@
           "constraint": false,
           "keyName": "reception_supplierOrderId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"reception_supplierOrderId_index\" ON public.reception USING btree (\"supplierOrderId\")"
         }
       ],
       "checks": [],
@@ -3161,7 +3702,8 @@
           "constraint": false,
           "keyName": "receptionLine_receptionId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"receptionLine_receptionId_index\" ON public.\"receptionLine\" USING btree (\"receptionId\")"
         },
         {
           "columnNames": [
@@ -3171,7 +3713,8 @@
           "constraint": false,
           "keyName": "receptionLine_supplierOrderLineId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"receptionLine_supplierOrderLineId_index\" ON public.\"receptionLine\" USING btree (\"supplierOrderLineId\")"
         }
       ],
       "checks": [],
@@ -3369,7 +3912,8 @@
           "constraint": false,
           "keyName": "referent_lastName_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"referent_lastName_index\" ON public.referent USING btree (\"lastName\")"
         },
         {
           "columnNames": [
@@ -3635,6 +4179,23 @@
           "enumItems": [],
           "mappedType": "string"
         },
+        "handoverLineId": {
+          "name": "handoverLineId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
         "id": {
           "name": "id",
           "type": "uuid",
@@ -3741,6 +4302,17 @@
       "indexes": [
         {
           "columnNames": [
+            "handoverLineId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "stockMovement_handoverLineId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"stockMovement_handoverLineId_index\" ON public.\"stockMovement\" USING btree (\"handoverLineId\")"
+        },
+        {
+          "columnNames": [
             "id"
           ],
           "composite": false,
@@ -3757,7 +4329,8 @@
           "constraint": false,
           "keyName": "stockMovement_productId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"stockMovement_productId_index\" ON public.\"stockMovement\" USING btree (\"productId\")"
         },
         {
           "columnNames": [
@@ -3767,12 +4340,25 @@
           "constraint": false,
           "keyName": "stockMovement_receptionLineId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"stockMovement_receptionLineId_index\" ON public.\"stockMovement\" USING btree (\"receptionLineId\")"
         }
       ],
       "checks": [],
       "triggers": [],
       "foreignKeys": {
+        "stockMovement_handoverLineId_foreign": {
+          "columnNames": [
+            "handoverLineId"
+          ],
+          "constraintName": "stockMovement_handoverLineId_foreign",
+          "localTableName": "public.stockMovement",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.handoverLine",
+          "deleteRule": "set null"
+        },
         "stockMovement_productId_foreign": {
           "columnNames": [
             "productId"
@@ -4034,7 +4620,8 @@
           "constraint": false,
           "keyName": "supplier_archivedAt_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"supplier_archivedAt_index\" ON public.supplier USING btree (\"archivedAt\")"
         },
         {
           "columnNames": [
@@ -4064,7 +4651,8 @@
           "constraint": false,
           "keyName": "supplier_referentId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"supplier_referentId_index\" ON public.supplier USING btree (\"referentId\")"
         }
       ],
       "checks": [],
@@ -4245,7 +4833,8 @@
           "constraint": false,
           "keyName": "supplierOrder_supplierId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"supplierOrder_supplierId_index\" ON public.\"supplierOrder\" USING btree (\"supplierId\")"
         }
       ],
       "checks": [],
@@ -4391,7 +4980,8 @@
           "constraint": false,
           "keyName": "supplierOrderLine_productId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"supplierOrderLine_productId_index\" ON public.\"supplierOrderLine\" USING btree (\"productId\")"
         },
         {
           "columnNames": [
@@ -4401,7 +4991,8 @@
           "constraint": false,
           "keyName": "supplierOrderLine_supplierOrderId_index",
           "primary": false,
-          "unique": false
+          "unique": false,
+          "expression": "CREATE INDEX \"supplierOrderLine_supplierOrderId_index\" ON public.\"supplierOrderLine\" USING btree (\"supplierOrderId\")"
         },
         {
           "columnNames": [
@@ -4412,7 +5003,8 @@
           "constraint": true,
           "keyName": "supplierOrderLine_supplierOrderId_productId_unique",
           "primary": false,
-          "unique": true
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"supplierOrderLine_supplierOrderId_productId_unique\" ON public.\"supplierOrderLine\" USING btree (\"supplierOrderId\", \"productId\")"
         }
       ],
       "checks": [],
@@ -4492,7 +5084,8 @@
           "constraint": true,
           "keyName": "supplierProducerCategory_pkey",
           "primary": true,
-          "unique": true
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"supplierProducerCategory_pkey\" ON public.\"supplierProducerCategory\" USING btree (supplier, \"producerCategory\")"
         }
       ],
       "checks": [],
@@ -4756,6 +5349,18 @@
       "indexes": [
         {
           "columnNames": [
+            "normalize_search(email::text)"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "user_email_search_idx",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX user_email_search_idx ON public.\"user\" USING gin (normalize_search((email)::text) gin_trgm_ops)",
+          "type": "gin"
+        },
+        {
+          "columnNames": [
             "email"
           ],
           "composite": false,
@@ -4766,13 +5371,38 @@
         },
         {
           "columnNames": [
+            "normalize_search(name::text)"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "user_name_search_idx",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX user_name_search_idx ON public.\"user\" USING gin (normalize_search((name)::text) gin_trgm_ops)",
+          "type": "gin"
+        },
+        {
+          "columnNames": [
+            "normalize_search(phoneNumber::text)"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "user_phoneNumber_search_idx",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"user_phoneNumber_search_idx\" ON public.\"user\" USING gin (normalize_search((\"phoneNumber\")::text) gin_trgm_ops)",
+          "type": "gin"
+        },
+        {
+          "columnNames": [
             "phoneNumber"
           ],
           "composite": false,
           "constraint": true,
           "keyName": "user_phoneNumber_unique",
           "primary": false,
-          "unique": true
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"user_phoneNumber_unique\" ON public.\"user\" USING btree (\"phoneNumber\")"
         },
         {
           "columnNames": [
@@ -4912,6 +5542,256 @@
       "checks": [],
       "triggers": [],
       "foreignKeys": {},
+      "comment": null
+    },
+    {
+      "name": "walletEntry",
+      "schema": "public",
+      "columns": {
+        "amountCents": {
+          "name": "amountCents",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "currency": {
+          "name": "currency",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'EUR'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "handoverId": {
+          "name": "handoverId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "memberId": {
+          "name": "memberId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "note": {
+          "name": "note",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "paymentMethod": {
+          "name": "paymentMethod",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "recordedByUserId": {
+          "name": "recordedByUserId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "handoverId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "walletEntry_handoverId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"walletEntry_handoverId_index\" ON public.\"walletEntry\" USING btree (\"handoverId\")"
+        },
+        {
+          "columnNames": [
+            "memberId"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "walletEntry_memberId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"walletEntry_memberId_index\" ON public.\"walletEntry\" USING btree (\"memberId\")"
+        },
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "walletEntry_pkey",
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "walletEntry_handoverId_foreign": {
+          "columnNames": [
+            "handoverId"
+          ],
+          "constraintName": "walletEntry_handoverId_foreign",
+          "localTableName": "public.walletEntry",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.handover",
+          "deleteRule": "set null"
+        },
+        "walletEntry_memberId_foreign": {
+          "columnNames": [
+            "memberId"
+          ],
+          "constraintName": "walletEntry_memberId_foreign",
+          "localTableName": "public.walletEntry",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.member"
+        },
+        "walletEntry_recordedByUserId_foreign": {
+          "columnNames": [
+            "recordedByUserId"
+          ],
+          "constraintName": "walletEntry_recordedByUserId_foreign",
+          "localTableName": "public.walletEntry",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.user",
+          "deleteRule": "set null"
+        }
+      },
       "comment": null
     }
   ],

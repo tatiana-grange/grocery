@@ -6,12 +6,17 @@ import {
 import { z } from 'zod'
 import { productSaleModeSchema } from '../../catalog/contracts/product.contract'
 
-export const STOCK_MOVEMENT_REASONS = ['reception'] as const
+export const STOCK_MOVEMENT_REASONS = [
+  'reception',
+  'distribution',
+  'distribution_reversal',
+] as const
 export const stockMovementReasonSchema = z.enum(STOCK_MOVEMENT_REASONS).meta({
   title: 'StockMovementReason',
   description:
-    'reception is the only value in lot 3; a later inventory increment adds distribution, ' +
-    'adjustment, and count_correction to this same field.',
+    'reception adds stock, distribution removes it, distribution_reversal puts back what a ' +
+    'reversed handover took. A later inventory increment adds adjustment and ' +
+    'count_correction to this same field.',
 })
 export type StockMovementReason = z.infer<typeof stockMovementReasonSchema>
 
@@ -22,7 +27,10 @@ export const stockSummarySchema = z
       name: z.string(),
       saleMode: productSaleModeSchema,
     }),
-    quantityOnHand: z.number().nonnegative(),
+    // Signed, not `nonnegative()`: a handover may take stock below zero, because at the
+    // table the shelf is the source of truth (research.md §6). Bounding it here would make
+    // the API fail its own response validation the first time that happens.
+    quantityOnHand: z.number(),
     costPriceEur: z.number().nonnegative().nullish(),
   })
   .meta({ title: 'StockSummary' })

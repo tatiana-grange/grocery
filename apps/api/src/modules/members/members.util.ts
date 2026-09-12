@@ -1,6 +1,7 @@
 import type { EntityManager } from '@mikro-orm/core'
 import { UniqueConstraintViolationException } from '@mikro-orm/core'
 import type { UserRole } from './contracts/member.contract'
+import { USER_ROLES } from './contracts/member.contract'
 import { User } from '../auth/auth.entity'
 import { MemberStatusChange } from './entities/member-status-change.entity'
 import { MembershipIntakeSetting } from './entities/membership-intake-setting.entity'
@@ -62,13 +63,18 @@ export async function isMembershipIntakeOpen(em: EntityManager): Promise<boolean
   return setting?.open ?? true
 }
 
-/** Parses the comma-separated Better Auth `role` string into a role list. */
+/**
+ * Parses the comma-separated Better Auth `role` string into a role list. Unknown values are
+ * dropped, so every role this app grants MUST appear in `USER_ROLES` or it reads back as a
+ * plain member.
+ */
 export function parseRoles(role: string | null | undefined): UserRole[] {
   if (!role) return ['member']
+  const known = new Set<string>(USER_ROLES)
   const roles = role
     .split(',')
     .map((part) => part.trim())
-    .filter((part): part is UserRole => part === 'member' || part === 'admin')
+    .filter((part): part is UserRole => known.has(part))
   return roles.includes('member') ? roles : ['member', ...roles]
 }
 

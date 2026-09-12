@@ -38,3 +38,74 @@ describe('buildStockLevel', () => {
     expect(level.quantityOnHand).toBe(0.3)
   })
 })
+
+/**
+ * Lot 4 makes `quantity` signed. These pin the property the whole outbound design rests on
+ * (research.md §5): issuing stock at the product's *current* weighted average leaves that
+ * average unchanged, which is why one formula keeps serving both directions.
+ */
+describe('buildStockLevel with outbound movements', () => {
+  /** Mirrors what the grouped query would return after each movement. */
+  function totalsAfter(movements: { quantity: number; unitCostCents: number }[]) {
+    return {
+      quantity: movements.reduce((sum, m) => sum + m.quantity, 0),
+      costNumeratorCents: movements.reduce((sum, m) => sum + m.quantity * m.unitCostCents, 0),
+    }
+  }
+
+  it('leaves the weighted average untouched when stock is issued at that average', () => {
+    // Received 10 @ 1.00 € and 30 @ 1.40 € → average 1.30 €.
+    const received = [
+      { quantity: 10, unitCostCents: 100 },
+      { quantity: 30, unitCostCents: 140 },
+    ]
+    const before = buildStockLevel(totalsAfter(received))
+    expect(before.costPriceEur).toBe(1.3)
+
+    // Hand over 12 of them, valued at the current average of 130 cents.
+    const after = buildStockLevel(
+      totalsAfter([...received, { quantity: -12, unitCostCents: 130 }]),
+    )
+    expect(after.quantityOnHand).toBe(28)
+    expect(after.costPriceEur).toBe(1.3)
+  })
+
+  it('still holds after a second issue at the unchanged average', () => {
+    const movements = [
+      { quantity: 10, unitCostCents: 100 },
+      { quantity: 30, unitCostCents: 140 },
+      { quantity: -12, unitCostCents: 130 },
+      { quantity: -8, unitCostCents: 130 },
+    ]
+    const level = buildStockLevel(totalsAfter(movements))
+    expect(level.quantityOnHand).toBe(20)
+    expect(level.costPriceEur).toBe(1.3)
+  })
+
+  it('returns the average to exactly where it was when a reversal uses the original cost', () => {
+    const received = [
+      { quantity: 10, unitCostCents: 100 },
+      { quantity: 30, unitCostCents: 140 },
+    ]
+    const reversed = buildStockLevel(
+      totalsAfter([
+        ...received,
+        { quantity: -12, unitCostCents: 130 },
+        { quantity: 12, unitCostCents: 130 },
+      ]),
+    )
+    expect(reversed).toEqual(buildStockLevel(totalsAfter(received)))
+  })
+
+  it('reports a negative quantity on hand rather than clamping it (research.md §6)', () => {
+    const level = buildStockLevel(
+      totalsAfter([
+        { quantity: 2, unitCostCents: 100 },
+        { quantity: -5, unitCostCents: 100 },
+      ]),
+    )
+    expect(level.quantityOnHand).toBe(-3)
+    // No positive quantity left to average over, so no cost price to report.
+    expect(level.costPriceEur).toBeNull()
+  })
+})
