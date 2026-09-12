@@ -45,7 +45,11 @@ export function RecordPaymentForm({
           amount: t('wallet.eur', { value: (Number(amount) || 0).toFixed(2) }),
         }),
       )
-      void queryClient.invalidateQueries({ queryKey: ['wallet'] })
+      // The response *is* the updated wallet, so seed the cache rather than refetching it.
+      // The distribution screen still has to reload: its balance travels in a different
+      // payload, and a refused handover is about to be validated against it.
+      queryClient.setQueryData(['wallet', 'staff', memberId], wallet)
+      queryClient.setQueryData(['wallet', 'me'], wallet)
       void queryClient.invalidateQueries({ queryKey: ['distribution'] })
       onRecorded(wallet)
     },

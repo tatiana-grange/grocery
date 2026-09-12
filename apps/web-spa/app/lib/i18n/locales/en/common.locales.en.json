@@ -611,7 +611,8 @@
       "already_reversed": "This handover has already been reversed.",
       "cannot_reverse_reversal": "A reversal cannot itself be reversed."
     },
-    "eur": "€{{value}}"
+    "eur": "€{{value}}",
+    "dismiss": "Cancel"
   },
   "wallet": {
     "title": "Account",

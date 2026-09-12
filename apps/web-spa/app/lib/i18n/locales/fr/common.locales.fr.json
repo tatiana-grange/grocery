@@ -611,7 +611,8 @@
       "already_reversed": "Cette remise a déjà été annulée.",
       "cannot_reverse_reversal": "Une annulation ne peut pas être annulée."
     },
-    "eur": "€{{value}}"
+    "eur": "€{{value}}",
+    "dismiss": "Annuler"
   },
   "wallet": {
     "title": "Compte",

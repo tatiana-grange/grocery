@@ -522,13 +522,13 @@ member-administration actions.
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-- [ ] T078 [P] Write the lot 4 note at
+- [X] T078 [P] Write the lot 4 note at
   `apps/documentation/src/content/docs/project/lot-4-distribution.mdx`, following the shape of
   `lot-3-purchasing.mdx`, and update the "Status" section of
   `apps/documentation/src/content/docs/project/index.mdx`
-- [ ] T079 [P] Regenerate the documentation index with
+- [X] T079 [P] Regenerate the documentation index with
   `pnpm --filter @grocery/documentation generate:index`
-- [ ] T080 [P] Confirm the three stale `grocer` comments are gone from
+- [X] T080 [P] Confirm the three stale `grocer` comments are gone from
   `apps/api/src/modules/auth/auth.config.ts`,
   `apps/api/src/modules/auth/auth.decorator.ts` and
   `apps/api/src/modules/members/contracts/member.contract.ts`, then grep the repository for
@@ -536,21 +536,24 @@ member-administration actions.
   `specs/purchasing/` folders and
   `apps/documentation/src/content/docs/project/monepi-features.mdx`, all of which quote the
   old name deliberately
-- [ ] T081 Review the distribution screen against its two speed targets — SC-005 (a five-line
+- [X] T081 Review the distribution screen against its two speed targets — SC-005 (a five-line
   handover, two quantities adjusted, under 60 seconds) and SC-006 (a three-product express
   sale under 90 seconds): confirm
   `apps/web-spa/app/features/distribution/utils/distribution-queries.ts` fetches the member
   screen in one round trip, and that
   `apps/web-spa/app/features/wallet/components/record-payment-form.tsx` uses the updated
   wallet returned by the payment call instead of refetching
-- [ ] T082 Run `pnpm lint` and `pnpm typecheck`, then format **only the files this lot
+- [X] T082 Run `pnpm lint` and `pnpm typecheck`, then format **only the files this lot
   touched** — never `pnpm fmt` repo-wide, which rewrites dozens of unrelated files
-- [ ] T083 Run `pnpm --filter=api test` and confirm every new unit and controller e2e spec
+- [X] T083 Run `pnpm --filter=api test` and confirm every new unit and controller e2e spec
   passes alongside the existing ones
 - [ ] T084 Walk `specs/distribution/quickstart.md` end to end against a freshly seeded local
-  stack
-- [ ] T085 Run the full `pnpm e2e` suite and confirm every existing Playwright test still
-  passes alongside the six new specs. A failing test blocks the feature and needs a human to
+  stack. **Left open deliberately**: this needs `db:fresh:seed`, which wipes the maintainer's
+  local database, so it was not run unprompted. Its contents were verified instead — every
+  spec file and seed fixture it names exists — and all seven user-story walkthroughs are
+  covered by the Playwright specs against a real API and SPA
+- [X] T085 Run the full `pnpm e2e` suite and confirm every existing Playwright test still
+  passes alongside the seven new specs. A failing test blocks the feature and needs a human to
   decide whether to update the test or fix the behaviour — never edit or delete an existing
   spec to make it pass
 

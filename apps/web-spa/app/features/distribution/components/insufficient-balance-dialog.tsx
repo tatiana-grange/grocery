@@ -38,7 +38,7 @@ export function InsufficientBalanceDialog({
               })}
         </p>
         <Button variant="ghost" size="sm" onClick={onDismiss}>
-          {t('distribution.express.remove')}
+          {t('distribution.dismiss')}
         </Button>
       </div>
       <RecordPaymentForm

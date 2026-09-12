@@ -274,6 +274,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   tests/distribution-reversal.spec.ts, tests/rbac-distributor.spec.ts,
   common.locales.{en,fr}.json, packages/openapi-generator/client/*
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 10: Polish & cross-cutting concerns
+- Tasks completed: T078, T079, T080, T081, T082, T083, T085
+- Added the lot 4 documentation note and updated the project status page; regenerated the
+  documentation index
+- Confirmed no stale `grocer` reference survives in code or documentation — the only
+  remaining mentions are the deliberate rename history in this changelog, research.md §2,
+  tasks.md, and the constitution's amendment rationale
+- T081's performance review found a real discrepancy: the payment response carried the
+  updated wallet but the form threw it away and refetched. It now seeds the cache from the
+  response and only reloads the distribution screen, whose balance travels in a different
+  payload. Also replaced two dismiss buttons that were reusing the word "Remove".
+- **T084 left open deliberately**: walking the quickstart needs `db:fresh:seed`, which wipes
+  the maintainer's local database, so it was not run unprompted. Its contents were verified
+  instead, and the seven walkthroughs are covered by the Playwright specs.
+- Verified: **280 API tests pass (22 files)**, **110 Playwright tests pass**, both
+  type-checks clean, no new lint warnings. One existing cart spec failed on the first full
+  run; it was a flake caused by editing i18n files mid-run and passes cleanly on its own and
+  in the clean full re-run.
+- **Author**: AI (Claude)
+- **Files**: lot-4-distribution.mdx, project/index.mdx, INDEX.md, record-payment-form.tsx,
+  insufficient-balance-dialog.tsx, handover-receipt-page.tsx, common.locales.{en,fr}.json,
+  quickstart.md, tasks.md
+
 ---
 
 <!--

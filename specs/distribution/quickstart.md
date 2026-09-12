@@ -127,9 +127,13 @@ other-member refusal);
 issue some, assert the weighted average is unchanged (research.md §5), and assert a negative
 stock level reads back correctly.
 
+Plus `distribution/tests/distribution.mapper.spec.ts` (the read-time difference between
+ordered and handed over) and `members/tests/members.util.spec.ts` (the role round-trip, so a
+distributor cannot be silently dropped).
+
 Plus new Playwright specs under `apps/web-spa-e2e/tests/`: `distribution-screen`,
 `distribution-handover`, `distribution-express`, `distribution-wallet`,
-`distribution-reversal`, and `rbac-distributor`.
+`distribution-waiting`, `distribution-reversal`, and `rbac-distributor`.
 
 The E2E suite also needs a `distributor` role fixture — `E2E_USERS`, the `Role` union in
 `apps/web-spa-e2e/env.ts`, `withRole` in `fixtures.ts`, and the loop in `auth.setup.ts`

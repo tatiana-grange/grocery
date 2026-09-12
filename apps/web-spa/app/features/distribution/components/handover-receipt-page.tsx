@@ -122,7 +122,7 @@ export default function HandoverReceiptPage() {
                 {t('distribution.handover.reverseConfirm')}
               </Button>
               <Button variant="ghost" onClick={() => setConfirming(false)}>
-                {t('distribution.express.remove')}
+                {t('distribution.dismiss')}
               </Button>
             </div>
           </div>
