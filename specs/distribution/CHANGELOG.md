@@ -99,6 +99,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - **Author**: AI (Claude)
 - **Files**: tasks.md
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 1: Setup (module and feature skeletons)
+- Tasks completed: T001, T002, T003, T004
+- **Author**: AI (Claude)
+- **Files**: apps/api/src/modules/distribution/distribution.module.ts,
+  apps/api/src/modules/wallet/wallet.module.ts, plus the `entities/` / `contracts/` /
+  `tests/` subfolders of both modules and the `components/` / `utils/` folders of the two
+  new frontend feature areas
+
 ---
 
 <!--

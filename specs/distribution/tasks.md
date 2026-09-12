@@ -34,16 +34,16 @@ in Phase 2.
 **Purpose**: Scaffold the two new backend modules and two new frontend feature areas every
 later task fills in. No business logic here.
 
-- [ ] T001 Create the `distribution` module skeleton: empty `distribution.module.ts`,
+- [X] T001 Create the `distribution` module skeleton: empty `distribution.module.ts`,
   `distribution.controller.ts`, `distribution.service.ts`, `distribution.mapper.ts`,
   `distribution.util.ts`, and `entities/`, `contracts/`, `tests/` subfolders under
   `apps/api/src/modules/distribution/`
-- [ ] T002 [P] Create the `wallet` module skeleton: empty `wallet.module.ts`,
+- [X] T002 [P] Create the `wallet` module skeleton: empty `wallet.module.ts`,
   `wallet.controller.ts`, `wallet.service.ts`, `wallet.mapper.ts`, and `entities/`,
   `contracts/`, `tests/` subfolders under `apps/api/src/modules/wallet/`
-- [ ] T003 [P] Create the `distribution` frontend feature skeleton:
+- [X] T003 [P] Create the `distribution` frontend feature skeleton:
   `apps/web-spa/app/features/distribution/components/` and `.../utils/` directories
-- [ ] T004 [P] Create the `wallet` frontend feature skeleton:
+- [X] T004 [P] Create the `wallet` frontend feature skeleton:
   `apps/web-spa/app/features/wallet/components/` and `.../utils/` directories
 
 ---
