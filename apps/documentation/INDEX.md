@@ -60,6 +60,7 @@
 ## Releases
 
 - [v0.0.2.mdx](./src/content/docs/releases/v0.0.2.mdx) - Member lifecycle, catalogue, and the first version of the public shop
+- [v0.0.3.mdx](./src/content/docs/releases/v0.0.3.mdx) - Purchasing and stock for the staff, and a shop members can actually browse
 
 ## Root
 

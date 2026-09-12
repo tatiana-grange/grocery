@@ -1,0 +1,14 @@
+---
+title: v0.0.3
+description: Purchasing and stock for the staff, and a shop members can actually browse
+---
+
+This release closes the loop between what members ask for and what the cooperative has on the shelf. Staff can now turn pre-orders into supplier orders and record what comes back, and the shop finally behaves like a shop.
+
+- **Purchasing**: gather every pending pre-order for one supplier into a draft order, send it, then record the delivery line by line with the price actually paid. An order reads as draft, sent, received, or closed.
+- **Stock and cost price**: each reception is recorded and never rewritten, so a product's stock on hand and its weighted-average cost price can be read at any moment. A member's pre-order is marked fulfilled as soon as the delivery covering it arrives.
+- **Shopping**: a category rail, three ways to lay the products out, and a search that runs as you type over the whole catalogue — ignoring case and accents, so "biere" finds "Bière". Product cards show what is on the shelf, in red once the cart asks for more than that.
+- **One add-to-cart control** everywhere: the shop card, the product page, and the cart row can no longer disagree about rounding, units, or what removing the last piece does. Weights are typed in the unit you read on screen.
+- The boilerplate dashboard is gone. Signing in now lands on the shop, and the shop and the member area share one header.
+
+Shortages are never hidden: a delivery short of what was ordered, or over it, is reported rather than blocked, and an order can be closed with lines still outstanding.
