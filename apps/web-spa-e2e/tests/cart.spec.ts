@@ -1,4 +1,16 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { expect, test, withRole } from '../fixtures'
+
+// Read the copy from the same locale file the app renders, so the assertion follows the
+// stable cart.checkout.nextSteps.* key rather than a French string duplicated here.
+const localeUrl = new URL(
+  '../../web-spa/app/lib/i18n/locales/fr/common.locales.fr.json',
+  import.meta.url,
+)
+const frLocale = JSON.parse(readFileSync(fileURLToPath(localeUrl), 'utf-8')) as {
+  cart: { checkout: { nextSteps: { pre_order: string; in_store: string } } }
+}
 
 async function openProduct(page: import('@playwright/test').Page, name: string) {
   await page.goto('/shop')
@@ -136,8 +148,13 @@ test.describe('membre connecté', () => {
     await page.getByTestId('add-to-cart-orderingmode-pre_order').click()
     await page.getByTestId('add-to-cart-submit').click()
 
-    await page.getByTestId('site-nav-cart').click()
-    const row = page.locator('tr', { hasText: 'Carottes en vrac' })
-    await expect(row.getByText('Précommande')).toBeVisible()
+    // The cart row does not name the ordering mode any more: it says when the line can be
+    // collected instead. So the choice is checked where it is still spelled out — the order
+    // the checkout produces, which is grouped by ordering mode.
+    await page.goto('/cart')
+    await page.getByTestId('cart-checkout').click()
+    await expect(page.getByTestId('checkout-confirmation')).toBeVisible()
+    await expect(page.getByText(frLocale.cart.checkout.nextSteps.pre_order)).toBeVisible()
+    await expect(page.getByText(frLocale.cart.checkout.nextSteps.in_store)).toHaveCount(0)
   })
 })
