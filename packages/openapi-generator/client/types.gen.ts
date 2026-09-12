@@ -199,6 +199,15 @@ export type CreateExpressOrderInput = {
 };
 
 /**
+ * ReverseHandoverInput
+ *
+ * The reason for the correction, kept with the reversing entry (FR-029).
+ */
+export type ReverseHandoverInput = {
+    note: string;
+};
+
+/**
  * CreateMember
  *
  * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
@@ -3654,3 +3663,46 @@ export type DistributionControllerListWaitingResponses = {
 };
 
 export type DistributionControllerListWaitingResponse = DistributionControllerListWaitingResponses[keyof DistributionControllerListWaitingResponses];
+
+export type DistributionControllerGetHandoverData = {
+    body?: never;
+    path: {
+        handoverId: string;
+    };
+    query?: never;
+    url: '/api/distribution/handovers/{handoverId}';
+};
+
+export type DistributionControllerGetHandoverResponses = {
+    /**
+     * A record of goods physically given to a member at a point in time
+     */
+    200: Handover;
+};
+
+export type DistributionControllerGetHandoverResponse = DistributionControllerGetHandoverResponses[keyof DistributionControllerGetHandoverResponses];
+
+export type DistributionControllerReverseHandoverData = {
+    /**
+     * ReverseHandoverInput
+     *
+     * The reason for the correction, kept with the reversing entry (FR-029).
+     */
+    body: {
+        note: string;
+    };
+    path: {
+        handoverId: string;
+    };
+    query?: never;
+    url: '/api/distribution/handovers/{handoverId}/reversal';
+};
+
+export type DistributionControllerReverseHandoverResponses = {
+    /**
+     * A record of goods physically given to a member at a point in time
+     */
+    200: Handover;
+};
+
+export type DistributionControllerReverseHandoverResponse = DistributionControllerReverseHandoverResponses[keyof DistributionControllerReverseHandoverResponses];

@@ -22,6 +22,7 @@ import { Order } from '../../orders/entities/order.entity'
 import { WalletEntry } from '../../wallet/entities/wallet-entry.entity'
 import { WalletModule } from '../../wallet/wallet.module'
 import { DistributionModule } from '../distribution.module'
+import { Handover } from '../entities/handover.entity'
 
 describe('distributionController (e2e)', () => {
   let em: EntityManager
@@ -68,6 +69,16 @@ describe('distributionController (e2e)', () => {
   async function makeProduct(name: string, orderingMode: 'pre_order' | 'in_store' = 'in_store') {
     const { product } = await createProductData(em, { name, orderingMode, priceEur: 3 })
     return product
+  }
+
+  async function addStockAt(product: Product, quantity: number, unitCostCents: number) {
+    const movement = new StockMovement()
+    movement.product = product
+    movement.quantity = String(quantity)
+    movement.unitCostAmountCents = unitCostCents
+    movement.currency = 'EUR'
+    movement.reason = 'reception'
+    await em.persist(movement).flush()
   }
 
   async function addStock(product: Product, quantity: number) {
@@ -785,6 +796,253 @@ describe('distributionController (e2e)', () => {
     it('refuses a plain member', async () => {
       const res = await request.withSession(plainMember).get('/distribution/waiting')
       expect(res.status).toBe(403)
+    })
+  })
+
+  describe('reversal', () => {
+    async function handOver(member: Member, product: Product, quantity: number) {
+      const order = await addOrder(member, product, 'in_store', { quantity })
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: quantity }],
+        })
+      expect(res.status).toBe(201)
+      return { order, handoverId: res.body.id as string }
+    }
+
+    it('credits the member back and returns stock, leaving the original untouched', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 40)
+      const { handoverId } = await handOver(member, product, 3)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: 'Wrong member' })
+
+      expect(res.status).toBe(201)
+      expect(res.body.kind).toBe('reversal')
+      expect(res.body.reversesHandoverId).toBe(handoverId)
+      expect(res.body.totalEur).toBe(-9)
+      expect(res.body.balanceAfterEur).toBe(60)
+
+      em.clear()
+      // Stock is whole again.
+      const movements = await em.find(StockMovement, { product: product.id })
+      expect(movements.reduce((sum, m) => sum + Number(m.quantity), 0)).toBe(40)
+      // Both ledger entries are there, and the original charge is unchanged.
+      const entries = await em.find(
+        WalletEntry,
+        { member: member.id },
+        { orderBy: { createdAt: 'asc' } },
+      )
+      expect(entries.map((e) => e.amountCents)).toEqual([6000, -900, 900])
+      // The original handover row was never written to.
+      const original = await em.findOneOrFail(Handover, { id: handoverId })
+      expect(original.kind).toBe('handover')
+      expect(original.totalAmountCents).toBe(900)
+    })
+
+    it('returns the weighted average cost price to exactly where it was', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      // 10 @ 1.00 € and 30 @ 1.40 € → average 1.30 €.
+      await addStockAt(product, 10, 100)
+      await addStockAt(product, 30, 140)
+
+      const before = await request
+        .withSession(distributor)
+        .get(`/distribution/members/${member.id}`)
+      expect(before.status).toBe(200)
+
+      const { handoverId } = await handOver(member, product, 12)
+      await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: 'Undo' })
+
+      em.clear()
+      const movements = await em.find(StockMovement, { product: product.id })
+      const quantity = movements.reduce((sum, m) => sum + Number(m.quantity), 0)
+      const numerator = movements.reduce(
+        (sum, m) => sum + Number(m.quantity) * m.unitCostAmountCents,
+        0,
+      )
+      expect(quantity).toBe(40)
+      expect(numerator / quantity).toBeCloseTo(130, 6)
+    })
+
+    it('puts the order back to pending so it can be handed over again (FR-030)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 40)
+      const { order, handoverId } = await handOver(member, product, 2)
+
+      em.clear()
+      expect((await em.findOneOrFail(Order, { id: order.id })).status).toBe('handed_over')
+
+      await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: 'Undo' })
+
+      em.clear()
+      expect((await em.findOneOrFail(Order, { id: order.id })).status).toBe('pending')
+    })
+
+    it('refuses a second reversal of the same handover', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 40)
+      const { handoverId } = await handOver(member, product, 2)
+
+      const first = await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: 'Undo' })
+      expect(first.status).toBe(201)
+
+      const second = await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: 'Undo again' })
+      expect(second.status).toBe(409)
+      expect(second.body.code).toBe('already_reversed')
+    })
+
+    it('refuses reversing a reversal', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 40)
+      const { handoverId } = await handOver(member, product, 2)
+
+      const reversal = await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: 'Undo' })
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${reversal.body.id}/reversal`)
+        .send({ note: 'Undo the undo' })
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('cannot_reverse_reversal')
+    })
+
+    it('reports a handover as reversed once one exists', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 40)
+      const { handoverId } = await handOver(member, product, 2)
+
+      const before = await request
+        .withSession(distributor)
+        .get(`/distribution/handovers/${handoverId}`)
+      expect(before.body.isReversed).toBe(false)
+      expect(before.body.recordedBy).toBe('Dina Distributor')
+
+      await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: 'Undo' })
+
+      const after = await request
+        .withSession(distributor)
+        .get(`/distribution/handovers/${handoverId}`)
+      expect(after.body.isReversed).toBe(true)
+    })
+
+    it('keeps the reason with the reversal (FR-029)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 40)
+      const { handoverId } = await handOver(member, product, 2)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: 'Charged the wrong member' })
+      expect(res.body.note).toBe('Charged the wrong member')
+      expect(res.body.recordedBy).toBe('Dina Distributor')
+    })
+
+    it('rejects a reversal with no reason given', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 40)
+      const { handoverId } = await handOver(member, product, 2)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${handoverId}/reversal`)
+        .send({ note: '' })
+      expect(res.status).toBe(400)
+    })
+  })
+
+  describe('role boundary (US7)', () => {
+    const STAFF_READ_ROUTES = [
+      '/distribution/members',
+      '/distribution/products',
+      '/distribution/waiting',
+    ] as const
+
+    it('lets a distributor reach every staff read route', async () => {
+      for (const route of STAFF_READ_ROUTES) {
+        const res = await request.withSession(distributor).get(route)
+        expect(res.status, route).toBe(200)
+      }
+    })
+
+    it('lets an admin reach them too — admin is a superset (FR-035)', async () => {
+      const { user } = await createMemberData(em, {
+        user: { name: 'Ada Admin', email: uniqueEmail('admin') },
+        roles: ['member', 'admin'],
+        status: 'active',
+      })
+      const admin = createSessionFromUser(user)
+      for (const route of STAFF_READ_ROUTES) {
+        const res = await request.withSession(admin).get(route)
+        expect(res.status, route).toBe(200)
+      }
+    })
+
+    it('refuses a plain member on every one of them (FR-035)', async () => {
+      for (const route of STAFF_READ_ROUTES) {
+        const res = await request.withSession(plainMember).get(route)
+        expect(res.status, route).toBe(403)
+      }
+    })
+
+    it('refuses an anonymous caller on every one of them', async () => {
+      for (const route of STAFF_READ_ROUTES) {
+        const res = await request.get(route)
+        expect(res.status, route).toBe(401)
+      }
+    })
+
+    it('does not grant a distributor the Better Auth admin role set', async () => {
+      // `ADMIN_USER_ROLES` stays ['admin'], so a distributor gains none of the admin plugin's
+      // powers (banning, impersonation). This asserts the role string itself stays distinct.
+      const { user } = await createMemberData(em, {
+        user: { name: 'Dee Distributor', email: uniqueEmail('dist2') },
+        roles: ['member', 'distributor'],
+        status: 'active',
+      })
+      expect(user.role).toBe('member,distributor')
+      expect(user.role).not.toContain('admin')
     })
   })
 })

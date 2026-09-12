@@ -1,9 +1,11 @@
 import {
   distributionControllerCreateExpressOrder,
+  distributionControllerGetHandover,
   distributionControllerListSellableProducts,
   distributionControllerListWaiting,
   distributionControllerMemberScreen,
   distributionControllerRecordHandover,
+  distributionControllerReverseHandover,
   distributionControllerSearchMembers,
 } from '@grocery/openapi-generator/client/sdk.gen'
 import type {
@@ -114,4 +116,18 @@ export function waitingOrdersQueryOptions({ orderingMode, placedFrom, placedTo }
       )
     },
   }
+}
+
+export function handoverQueryOptions(handoverId: string) {
+  return {
+    queryKey: ['distribution', 'handover', handoverId],
+    queryFn: async () => unwrap(await distributionControllerGetHandover({ path: { handoverId } })),
+  }
+}
+
+/** Undo a validated handover. The original is never written to — this adds a reversing row. */
+export async function reverseHandover(handoverId: string, note: string) {
+  return unwrap(
+    await distributionControllerReverseHandover({ path: { handoverId }, body: { note } }),
+  )
 }

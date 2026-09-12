@@ -140,3 +140,46 @@ describe('isSellableAtTable', () => {
     expect(isSellableAtTable({ orderingMode: 'in_store', archivedAt: null })).toBe(true)
   })
 })
+
+/**
+ * Reversal arithmetic. The stock side of this — the weighted average landing exactly back
+ * where it was — is pinned in `inventory/tests/inventory.service.spec.ts`, because that is
+ * where the formula lives. What is checked here is that the signs compose: a reversal is the
+ * negation of what it undoes, so the two together net to nothing.
+ */
+describe('reversal arithmetic', () => {
+  const line = (handedQuantity: number, unitPriceAmountCents: number) => ({
+    orderLineId: `line-${handedQuantity}`,
+    handedQuantity,
+    unitPriceAmountCents,
+    lineTotalAmountCents: lineTotalCents(handedQuantity, unitPriceAmountCents),
+  })
+
+  it('negates the total it undoes', () => {
+    const original = [line(3, 300), line(0.6, 2000)]
+    const reversal = original.map((entry) => ({
+      ...entry,
+      handedQuantity: -entry.handedQuantity,
+      lineTotalAmountCents: -entry.lineTotalAmountCents,
+    }))
+    expect(handoverTotalCents(original)).toBe(2100)
+    expect(handoverTotalCents(reversal)).toBe(-2100)
+    expect(handoverTotalCents([...original, ...reversal])).toBe(0)
+  })
+
+  it('leaves a declined line at zero on both sides', () => {
+    const original = [line(0, 300)]
+    const reversal = original.map((entry) => ({ ...entry, lineTotalAmountCents: -0 }))
+    expect(handoverTotalCents([...original, ...reversal])).toBe(0)
+  })
+
+  it('restores a balance the original handover had spent to exactly zero', () => {
+    const balanceCents = 600
+    const totalCents = handoverTotalCents([line(2, 300)])
+    expect(balanceCovers(totalCents, balanceCents)).toBe(true)
+    const afterHandover = balanceCents - totalCents
+    expect(afterHandover).toBe(0)
+    // The reversal credits the exact original charge, never a recomputed one.
+    expect(afterHandover + totalCents).toBe(balanceCents)
+  })
+})

@@ -17,6 +17,8 @@ import {
   handoverSchema,
   type RecordHandoverInput,
   recordHandoverSchema,
+  type ReverseHandoverInput,
+  reverseHandoverSchema,
 } from './contracts/handover.contract'
 import {
   type DistributionMemberFiltering,
@@ -139,5 +141,27 @@ export class DistributionController {
     }
     const { items, total } = await this.distribution.listWaiting(pagination, filters)
     return this.mapper.toWaitingOrderList(items, total, pagination)
+  }
+
+  /** One handover, for the on-screen receipt. */
+  @TypedRoute.Get('handovers/:handoverId', handoverSchema)
+  async getHandover(@TypedParam('handoverId', z.string()) handoverId: string) {
+    const { handover, isReversed, balanceCents } = await this.distribution.getHandover(handoverId)
+    return this.mapper.toHandover(handover, balanceCents, isReversed)
+  }
+
+  /** Undo a validated handover (FR-028–FR-030). The original is never written to. */
+  @TypedRoute.Post('handovers/:handoverId/reversal', handoverSchema)
+  async reverseHandover(
+    @TypedParam('handoverId', z.string()) handoverId: string,
+    @TypedBody(reverseHandoverSchema) body: ReverseHandoverInput,
+    @Session() session: LoggedInBetterAuthSession,
+  ) {
+    const { handover, balanceAfterCents } = await this.distribution.reverseHandover(
+      handoverId,
+      body.note,
+      session.user.id,
+    )
+    return this.mapper.toHandover(handover, balanceAfterCents, false)
   }
 }

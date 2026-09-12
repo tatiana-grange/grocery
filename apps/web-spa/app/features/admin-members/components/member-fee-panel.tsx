@@ -28,9 +28,7 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
   const queryClient = useQueryClient()
   const { data: payments } = useQuery(feePaymentsQueryOptions(member.id))
 
-  const [expectedEur, setExpectedEur] = useState(
-    (member.fee.expectedAmountCents / 100).toString(),
-  )
+  const [expectedEur, setExpectedEur] = useState((member.fee.expectedAmountCents / 100).toString())
   const [amountEur, setAmountEur] = useState('')
   const [method, setMethod] = useState<'cash' | 'transfer' | 'other'>('cash')
 
@@ -68,7 +66,10 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
   })
 
   return (
-    <section className="space-y-3 rounded-lg border border-border p-4" data-testid="member-fee-panel">
+    <section
+      className="space-y-3 rounded-lg border border-border p-4"
+      data-testid="member-fee-panel"
+    >
       <div className="flex items-center justify-between">
         <SectionTitle>{t('adminMembers.fee.title')}</SectionTitle>
         <Badge variant="outline" data-testid="member-fee-state">
@@ -98,9 +99,7 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
           variant="outline"
           data-testid="member-fee-save"
           disabled={
-            !Number.isFinite(Number(expectedEur)) ||
-            Number(expectedEur) < 0 ||
-            setFee.isPending
+            !Number.isFinite(Number(expectedEur)) || Number(expectedEur) < 0 || setFee.isPending
           }
           onClick={() => setFee.mutate()}
         >

@@ -218,7 +218,9 @@
     "nav": {
       "section": "Management",
       "members": "Members"
-    }
+    },
+    "makeDistributor": "Make distributor",
+    "removeDistributor": "Remove distributor"
   },
   "catalog": {
     "title": "Catalogue",

@@ -448,31 +448,31 @@ individually visible.
 
 > Write this first. It must fail before the implementation below.
 
-- [ ] T067 [US6] E2E test in `apps/web-spa-e2e/tests/distribution-reversal.spec.ts`: reverse a
+- [X] T067 [US6] E2E test in `apps/web-spa-e2e/tests/distribution-reversal.spec.ts`: reverse a
   handover with a reason, see the balance and stock restored, see both the original charge and
   the credit in the history, and hand the order over again
 
 ### Implementation for User Story 6
 
-- [ ] T068 [US6] Implement `DistributionService.reverseHandover` in
+- [X] T068 [US6] Implement `DistributionService.reverseHandover` in
   `apps/api/src/modules/distribution/distribution.service.ts` as one `em.transactional`:
   create the reversing `Handover` with `kind: 'reversal'`, `reversesHandover` set and
   negative-quantity lines; append positive `StockMovement`s **at the original outbound rows'
   unit costs** via `InventoryService.recordIssueReversal`; append one positive `WalletEntry`
   for exactly the original charge; set the order back to `pending`. Nothing on the original
   handover is written (research.md §9)
-- [ ] T069 [US6] Add `POST /distribution/handovers/:handoverId/reversal` and
+- [X] T069 [US6] Add `POST /distribution/handovers/:handoverId/reversal` and
   `GET /distribution/handovers/:handoverId` to
   `apps/api/src/modules/distribution/distribution.controller.ts`, with the `already_reversed`
   and `cannot_reverse_reversal` refusals
-- [ ] T070 [P] [US6] Unit tests in
+- [X] T070 [P] [US6] Unit tests in
   `apps/api/src/modules/distribution/tests/distribution.service.spec.ts`: the reversal
   returning balance **and** the weighted average cost price to their exact prior values, the
   original rows left untouched, and both refusals (research.md §15)
-- [ ] T071 [P] [US6] API e2e tests in
+- [X] T071 [P] [US6] API e2e tests in
   `apps/api/src/modules/distribution/tests/distribution.controller.e2e-spec.ts` for the
   reversal, the double-reversal refusal, and the order becoming handable again
-- [ ] T072 [US6] Build
+- [X] T072 [US6] Build
   `apps/web-spa/app/features/distribution/components/handover-receipt-page.tsx`: the on-screen
   receipt with its lines and total, and a reversal action that requires a reason
 
@@ -492,7 +492,7 @@ member-administration actions.
 
 > Write this first. It must fail before the implementation below.
 
-- [ ] T073 [US7] E2E test in `apps/web-spa-e2e/tests/rbac-distributor.spec.ts`: the distributor
+- [X] T073 [US7] E2E test in `apps/web-spa-e2e/tests/rbac-distributor.spec.ts`: the distributor
   reaches `/distribution` and completes a handover; the distributor is refused on
   `/admin/members`, `/admin/catalog`, `/admin/purchasing` and `/admin/inventory`; a plain member
   is refused on `/distribution`; an admin reaches `/distribution`. Do not modify the existing
@@ -500,19 +500,19 @@ member-administration actions.
 
 ### Implementation for User Story 7
 
-- [ ] T074 [P] [US7] API e2e tests in
+- [X] T074 [P] [US7] API e2e tests in
   `apps/api/src/modules/distribution/tests/distribution.controller.e2e-spec.ts` and
   `apps/api/src/modules/wallet/tests/wallet.controller.e2e-spec.ts` asserting the role boundary
   route by route: a distributor is allowed on every `@StaffOnly()` route and refused on a
   representative `@AdminOnly()` route; a plain member is refused on both
-- [ ] T075 [P] [US7] Unit tests in
+- [X] T075 [P] [US7] Unit tests in
   `apps/api/src/modules/members/tests/` covering `parseRoles` / `serializeRoles` round-tripping
   `member,distributor` and never dropping the new value
-- [ ] T076 [US7] Surface `distributor` in the admin role editor on
+- [X] T076 [US7] Surface `distributor` in the admin role editor on
   `apps/web-spa/app/features/admin-members/components/member-detail-page.tsx` so an admin can
   grant and remove it (FR-037), and confirm the existing roles endpoint accepts it now that
   `userRoleSchema` carries the value
-- [ ] T077 [US7] Add a link from the back-office sidebar in
+- [X] T077 [US7] Add a link from the back-office sidebar in
   `apps/web-spa/app/features/common/components/back-office-layout.tsx` across to
   `/distribution`, and a link back to the shop from the distribution layout
 

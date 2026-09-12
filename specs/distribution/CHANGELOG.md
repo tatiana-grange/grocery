@@ -250,6 +250,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   distribution-home-page.tsx, tests/distribution-waiting.spec.ts,
   packages/openapi-generator/client/*
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 8 (US6 — correct a handover validated by mistake) and Phase 9 (US7 — the
+  distributor role boundary)
+- Tasks completed: T067–T077
+- The reversal writes nothing to the handover it undoes: the reversing row carries a forward
+  link, and "has this been reversed?" is a lookup for that link. Stock goes back at the unit
+  cost of the rows being undone, not today's average, so the weighted average lands exactly
+  where it was.
+- **Bug found and fixed**: `recordedByUser` was set as an unloaded reference, so the staff
+  name came back null on every write response. All three write paths now populate it before
+  returning.
+- Verified: 4 + 11 Playwright tests (`distribution-reversal`, `rbac-distributor`), 111 API
+  tests across distribution and members, both type-checks clean
+- **Author**: AI (Claude)
+- **Files**: distribution.service.ts, distribution.controller.ts, distribution-queries.ts,
+  handover-receipt-page.tsx, routes.ts, member-detail-page.tsx,
+  admin-members-queries.ts, back-office-layout.tsx, tests/distribution.service.spec.ts,
+  tests/distribution.controller.e2e-spec.ts, members/tests/members.util.spec.ts,
+  tests/distribution-reversal.spec.ts, tests/rbac-distributor.spec.ts,
+  common.locales.{en,fr}.json, packages/openapi-generator/client/*
+
 ---
 
 <!--

@@ -45,9 +45,7 @@ export function CategoriesTab() {
     },
     onError: (error: unknown) => {
       const count = (error as { productCount?: number })?.productCount
-      toast.error(
-        count ? t('catalog.categories.blocked', { count }) : t('catalog.toasts.error'),
-      )
+      toast.error(count ? t('catalog.categories.blocked', { count }) : t('catalog.toasts.error'))
     },
   })
   const unarchive = useMutation({

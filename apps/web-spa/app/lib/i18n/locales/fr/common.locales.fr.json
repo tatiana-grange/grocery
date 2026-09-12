@@ -218,7 +218,9 @@
     "nav": {
       "section": "Gestion",
       "members": "Adhérents"
-    }
+    },
+    "makeDistributor": "Nommer distributeur",
+    "removeDistributor": "Retirer distributeur"
   },
   "catalog": {
     "title": "Catalogue",

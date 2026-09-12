@@ -1,8 +1,6 @@
 {
   "name": "public",
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "tables": [
     {
       "name": "account",
@@ -232,9 +230,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "account_pkey",
@@ -246,14 +242,10 @@
       "triggers": [],
       "foreignKeys": {
         "account_userId_foreign": {
-          "columnNames": [
-            "userId"
-          ],
+          "columnNames": ["userId"],
           "constraintName": "account_userId_foreign",
           "localTableName": "public.account",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user"
         }
       },
@@ -351,9 +343,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "composite": false,
           "constraint": false,
           "keyName": "cart_memberId_index",
@@ -362,9 +352,7 @@
           "expression": "CREATE INDEX \"cart_memberId_index\" ON public.cart USING btree (\"memberId\")"
         },
         {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "composite": false,
           "constraint": true,
           "keyName": "cart_memberId_unique",
@@ -373,9 +361,7 @@
           "expression": "CREATE UNIQUE INDEX \"cart_memberId_unique\" ON public.cart USING btree (\"memberId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "cart_pkey",
@@ -387,14 +373,10 @@
       "triggers": [],
       "foreignKeys": {
         "cart_memberId_foreign": {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "constraintName": "cart_memberId_foreign",
           "localTableName": "public.cart",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.member"
         }
       },
@@ -526,9 +508,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "cartId"
-          ],
+          "columnNames": ["cartId"],
           "composite": false,
           "constraint": false,
           "keyName": "cartLine_cartId_index",
@@ -537,11 +517,7 @@
           "expression": "CREATE INDEX \"cartLine_cartId_index\" ON public.\"cartLine\" USING btree (\"cartId\")"
         },
         {
-          "columnNames": [
-            "cartId",
-            "productId",
-            "orderingMode"
-          ],
+          "columnNames": ["cartId", "productId", "orderingMode"],
           "composite": true,
           "constraint": true,
           "keyName": "cartLine_cartId_productId_orderingMode_unique",
@@ -550,9 +526,7 @@
           "expression": "CREATE UNIQUE INDEX \"cartLine_cartId_productId_orderingMode_unique\" ON public.\"cartLine\" USING btree (\"cartId\", \"productId\", \"orderingMode\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "cartLine_pkey",
@@ -560,9 +534,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "composite": false,
           "constraint": false,
           "keyName": "cartLine_productId_index",
@@ -575,25 +547,17 @@
       "triggers": [],
       "foreignKeys": {
         "cartLine_cartId_foreign": {
-          "columnNames": [
-            "cartId"
-          ],
+          "columnNames": ["cartId"],
           "constraintName": "cartLine_cartId_foreign",
           "localTableName": "public.cartLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.cart"
         },
         "cartLine_productId_foreign": {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "constraintName": "cartLine_productId_foreign",
           "localTableName": "public.cartLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.product"
         }
       },
@@ -725,9 +689,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "archivedAt"
-          ],
+          "columnNames": ["archivedAt"],
           "composite": false,
           "constraint": false,
           "keyName": "category_archivedAt_index",
@@ -736,9 +698,7 @@
           "expression": "CREATE INDEX \"category_archivedAt_index\" ON public.category USING btree (\"archivedAt\")"
         },
         {
-          "columnNames": [
-            "name"
-          ],
+          "columnNames": ["name"],
           "composite": false,
           "constraint": false,
           "keyName": "category_name_index",
@@ -746,9 +706,7 @@
           "unique": false
         },
         {
-          "columnNames": [
-            "normalize_search(name::text)"
-          ],
+          "columnNames": ["normalize_search(name::text)"],
           "composite": false,
           "constraint": false,
           "keyName": "category_name_search_idx",
@@ -758,9 +716,7 @@
           "type": "gin"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "category_pkey",
@@ -772,14 +728,10 @@
       "triggers": [],
       "foreignKeys": {
         "category_parentId_foreign": {
-          "columnNames": [
-            "parentId"
-          ],
+          "columnNames": ["parentId"],
           "constraintName": "category_parentId_foreign",
           "localTableName": "public.category",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.category",
           "deleteRule": "set null"
         }
@@ -963,9 +915,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "composite": false,
           "constraint": false,
           "keyName": "handover_memberId_index",
@@ -974,9 +924,7 @@
           "expression": "CREATE INDEX \"handover_memberId_index\" ON public.handover USING btree (\"memberId\")"
         },
         {
-          "columnNames": [
-            "orderId"
-          ],
+          "columnNames": ["orderId"],
           "composite": false,
           "constraint": false,
           "keyName": "handover_orderId_index",
@@ -985,9 +933,7 @@
           "expression": "CREATE INDEX \"handover_orderId_index\" ON public.handover USING btree (\"orderId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "handover_pkey",
@@ -995,9 +941,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "reversesHandoverId"
-          ],
+          "columnNames": ["reversesHandoverId"],
           "composite": false,
           "constraint": false,
           "keyName": "handover_reversesHandoverId_index",
@@ -1010,47 +954,31 @@
       "triggers": [],
       "foreignKeys": {
         "handover_memberId_foreign": {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "constraintName": "handover_memberId_foreign",
           "localTableName": "public.handover",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.member"
         },
         "handover_orderId_foreign": {
-          "columnNames": [
-            "orderId"
-          ],
+          "columnNames": ["orderId"],
           "constraintName": "handover_orderId_foreign",
           "localTableName": "public.handover",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.order"
         },
         "handover_recordedByUserId_foreign": {
-          "columnNames": [
-            "recordedByUserId"
-          ],
+          "columnNames": ["recordedByUserId"],
           "constraintName": "handover_recordedByUserId_foreign",
           "localTableName": "public.handover",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user"
         },
         "handover_reversesHandoverId_foreign": {
-          "columnNames": [
-            "reversesHandoverId"
-          ],
+          "columnNames": ["reversesHandoverId"],
           "constraintName": "handover_reversesHandoverId_foreign",
           "localTableName": "public.handover",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.handover",
           "deleteRule": "set null"
         }
@@ -1183,9 +1111,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "handoverId"
-          ],
+          "columnNames": ["handoverId"],
           "composite": false,
           "constraint": false,
           "keyName": "handoverLine_handoverId_index",
@@ -1194,9 +1120,7 @@
           "expression": "CREATE INDEX \"handoverLine_handoverId_index\" ON public.\"handoverLine\" USING btree (\"handoverId\")"
         },
         {
-          "columnNames": [
-            "orderLineId"
-          ],
+          "columnNames": ["orderLineId"],
           "composite": false,
           "constraint": false,
           "keyName": "handoverLine_orderLineId_index",
@@ -1205,9 +1129,7 @@
           "expression": "CREATE INDEX \"handoverLine_orderLineId_index\" ON public.\"handoverLine\" USING btree (\"orderLineId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "handoverLine_pkey",
@@ -1219,25 +1141,17 @@
       "triggers": [],
       "foreignKeys": {
         "handoverLine_handoverId_foreign": {
-          "columnNames": [
-            "handoverId"
-          ],
+          "columnNames": ["handoverId"],
           "constraintName": "handoverLine_handoverId_foreign",
           "localTableName": "public.handoverLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.handover"
         },
         "handoverLine_orderLineId_foreign": {
-          "columnNames": [
-            "orderLineId"
-          ],
+          "columnNames": ["orderLineId"],
           "constraintName": "handoverLine_orderLineId_foreign",
           "localTableName": "public.handoverLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.orderLine"
         }
       },
@@ -1471,9 +1385,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "membershipNumber"
-          ],
+          "columnNames": ["membershipNumber"],
           "composite": false,
           "constraint": false,
           "keyName": "member_membershipNumber_index",
@@ -1482,9 +1394,7 @@
           "expression": "CREATE INDEX \"member_membershipNumber_index\" ON public.member USING btree (\"membershipNumber\")"
         },
         {
-          "columnNames": [
-            "normalize_search(membershipNumber::text)"
-          ],
+          "columnNames": ["normalize_search(membershipNumber::text)"],
           "composite": false,
           "constraint": false,
           "keyName": "member_membershipNumber_search_idx",
@@ -1494,9 +1404,7 @@
           "type": "gin"
         },
         {
-          "columnNames": [
-            "membershipNumber"
-          ],
+          "columnNames": ["membershipNumber"],
           "composite": false,
           "constraint": true,
           "keyName": "member_membershipNumber_unique",
@@ -1505,9 +1413,7 @@
           "expression": "CREATE UNIQUE INDEX \"member_membershipNumber_unique\" ON public.member USING btree (\"membershipNumber\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "member_pkey",
@@ -1515,9 +1421,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "userId"
-          ],
+          "columnNames": ["userId"],
           "composite": false,
           "constraint": false,
           "keyName": "member_userId_index",
@@ -1526,9 +1430,7 @@
           "expression": "CREATE INDEX \"member_userId_index\" ON public.member USING btree (\"userId\")"
         },
         {
-          "columnNames": [
-            "userId"
-          ],
+          "columnNames": ["userId"],
           "composite": false,
           "constraint": true,
           "keyName": "member_userId_unique",
@@ -1541,14 +1443,10 @@
       "triggers": [],
       "foreignKeys": {
         "member_userId_foreign": {
-          "columnNames": [
-            "userId"
-          ],
+          "columnNames": ["userId"],
           "constraintName": "member_userId_foreign",
           "localTableName": "public.member",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user"
         }
       },
@@ -1680,9 +1578,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "composite": false,
           "constraint": false,
           "keyName": "memberStatusChange_memberId_index",
@@ -1691,9 +1587,7 @@
           "expression": "CREATE INDEX \"memberStatusChange_memberId_index\" ON public.\"memberStatusChange\" USING btree (\"memberId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "memberStatusChange_pkey",
@@ -1705,26 +1599,18 @@
       "triggers": [],
       "foreignKeys": {
         "memberStatusChange_changedByUserId_foreign": {
-          "columnNames": [
-            "changedByUserId"
-          ],
+          "columnNames": ["changedByUserId"],
           "constraintName": "memberStatusChange_changedByUserId_foreign",
           "localTableName": "public.memberStatusChange",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user",
           "deleteRule": "set null"
         },
         "memberStatusChange_memberId_foreign": {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "constraintName": "memberStatusChange_memberId_foreign",
           "localTableName": "public.memberStatusChange",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.member"
         }
       },
@@ -1839,9 +1725,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "composite": false,
           "constraint": true,
           "keyName": "membershipFee_memberId_unique",
@@ -1850,9 +1734,7 @@
           "expression": "CREATE UNIQUE INDEX \"membershipFee_memberId_unique\" ON public.\"membershipFee\" USING btree (\"memberId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "membershipFee_pkey",
@@ -1864,14 +1746,10 @@
       "triggers": [],
       "foreignKeys": {
         "membershipFee_memberId_foreign": {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "constraintName": "membershipFee_memberId_foreign",
           "localTableName": "public.membershipFee",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.member"
         }
       },
@@ -1952,9 +1830,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "membershipIntakeSetting_pkey",
@@ -2127,9 +2003,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "feeId"
-          ],
+          "columnNames": ["feeId"],
           "composite": false,
           "constraint": false,
           "keyName": "membershipPayment_feeId_index",
@@ -2138,9 +2012,7 @@
           "expression": "CREATE INDEX \"membershipPayment_feeId_index\" ON public.\"membershipPayment\" USING btree (\"feeId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "membershipPayment_pkey",
@@ -2152,25 +2024,17 @@
       "triggers": [],
       "foreignKeys": {
         "membershipPayment_feeId_foreign": {
-          "columnNames": [
-            "feeId"
-          ],
+          "columnNames": ["feeId"],
           "constraintName": "membershipPayment_feeId_foreign",
           "localTableName": "public.membershipPayment",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.membershipFee"
         },
         "membershipPayment_recordedByUserId_foreign": {
-          "columnNames": [
-            "recordedByUserId"
-          ],
+          "columnNames": ["recordedByUserId"],
           "constraintName": "membershipPayment_recordedByUserId_foreign",
           "localTableName": "public.membershipPayment",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user"
         }
       },
@@ -2370,9 +2234,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "composite": false,
           "constraint": false,
           "keyName": "order_memberId_index",
@@ -2381,9 +2243,7 @@
           "expression": "CREATE INDEX \"order_memberId_index\" ON public.\"order\" USING btree (\"memberId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "order_pkey",
@@ -2395,14 +2255,10 @@
       "triggers": [],
       "foreignKeys": {
         "order_memberId_foreign": {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "constraintName": "order_memberId_foreign",
           "localTableName": "public.order",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.member"
         }
       },
@@ -2585,9 +2441,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "orderId"
-          ],
+          "columnNames": ["orderId"],
           "composite": false,
           "constraint": false,
           "keyName": "orderLine_orderId_index",
@@ -2596,9 +2450,7 @@
           "expression": "CREATE INDEX \"orderLine_orderId_index\" ON public.\"orderLine\" USING btree (\"orderId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "orderLine_pkey",
@@ -2606,9 +2458,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "supplierOrderLineId"
-          ],
+          "columnNames": ["supplierOrderLineId"],
           "composite": false,
           "constraint": false,
           "keyName": "orderLine_supplierOrderLineId_index",
@@ -2621,36 +2471,24 @@
       "triggers": [],
       "foreignKeys": {
         "orderLine_orderId_foreign": {
-          "columnNames": [
-            "orderId"
-          ],
+          "columnNames": ["orderId"],
           "constraintName": "orderLine_orderId_foreign",
           "localTableName": "public.orderLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.order"
         },
         "orderLine_productId_foreign": {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "constraintName": "orderLine_productId_foreign",
           "localTableName": "public.orderLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.product"
         },
         "orderLine_supplierOrderLineId_foreign": {
-          "columnNames": [
-            "supplierOrderLineId"
-          ],
+          "columnNames": ["supplierOrderLineId"],
           "constraintName": "orderLine_supplierOrderLineId_foreign",
           "localTableName": "public.orderLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.supplierOrderLine",
           "deleteRule": "set null"
         }
@@ -2766,9 +2604,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "archivedAt"
-          ],
+          "columnNames": ["archivedAt"],
           "composite": false,
           "constraint": false,
           "keyName": "producerCategory_archivedAt_index",
@@ -2777,9 +2613,7 @@
           "expression": "CREATE INDEX \"producerCategory_archivedAt_index\" ON public.\"producerCategory\" USING btree (\"archivedAt\")"
         },
         {
-          "columnNames": [
-            "name"
-          ],
+          "columnNames": ["name"],
           "composite": false,
           "constraint": false,
           "keyName": "producerCategory_name_index",
@@ -2787,9 +2621,7 @@
           "unique": false
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "producerCategory_pkey",
@@ -3115,9 +2947,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "archivedAt"
-          ],
+          "columnNames": ["archivedAt"],
           "composite": false,
           "constraint": false,
           "keyName": "product_archivedAt_index",
@@ -3126,9 +2956,7 @@
           "expression": "CREATE INDEX \"product_archivedAt_index\" ON public.product USING btree (\"archivedAt\")"
         },
         {
-          "columnNames": [
-            "normalize_search(barcode::text)"
-          ],
+          "columnNames": ["normalize_search(barcode::text)"],
           "composite": false,
           "constraint": false,
           "keyName": "product_barcode_search_idx",
@@ -3138,9 +2966,7 @@
           "type": "gin"
         },
         {
-          "columnNames": [
-            "barcode"
-          ],
+          "columnNames": ["barcode"],
           "composite": false,
           "constraint": true,
           "keyName": "product_barcode_unique",
@@ -3148,9 +2974,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "categoryId"
-          ],
+          "columnNames": ["categoryId"],
           "composite": false,
           "constraint": false,
           "keyName": "product_categoryId_index",
@@ -3159,9 +2983,7 @@
           "expression": "CREATE INDEX \"product_categoryId_index\" ON public.product USING btree (\"categoryId\")"
         },
         {
-          "columnNames": [
-            "normalize_search(description::text)"
-          ],
+          "columnNames": ["normalize_search(description::text)"],
           "composite": false,
           "constraint": false,
           "keyName": "product_description_search_idx",
@@ -3171,9 +2993,7 @@
           "type": "gin"
         },
         {
-          "columnNames": [
-            "name"
-          ],
+          "columnNames": ["name"],
           "composite": false,
           "constraint": false,
           "keyName": "product_name_index",
@@ -3181,9 +3001,7 @@
           "unique": false
         },
         {
-          "columnNames": [
-            "normalize_search(name::text)"
-          ],
+          "columnNames": ["normalize_search(name::text)"],
           "composite": false,
           "constraint": false,
           "keyName": "product_name_search_idx",
@@ -3193,9 +3011,7 @@
           "type": "gin"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "product_pkey",
@@ -3203,9 +3019,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "supplierId"
-          ],
+          "columnNames": ["supplierId"],
           "composite": false,
           "constraint": false,
           "keyName": "product_supplierId_index",
@@ -3218,25 +3032,17 @@
       "triggers": [],
       "foreignKeys": {
         "product_categoryId_foreign": {
-          "columnNames": [
-            "categoryId"
-          ],
+          "columnNames": ["categoryId"],
           "constraintName": "product_categoryId_foreign",
           "localTableName": "public.product",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.category"
         },
         "product_supplierId_foreign": {
-          "columnNames": [
-            "supplierId"
-          ],
+          "columnNames": ["supplierId"],
           "constraintName": "product_supplierId_foreign",
           "localTableName": "public.product",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.supplier"
         }
       },
@@ -3385,9 +3191,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "composite": false,
           "constraint": false,
           "keyName": "productPrice_one_open_per_product",
@@ -3396,9 +3200,7 @@
           "expression": "CREATE UNIQUE INDEX \"productPrice_one_open_per_product\" ON public.\"productPrice\" USING btree (\"productId\") WHERE (\"validTo\" IS NULL)"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "productPrice_pkey",
@@ -3406,10 +3208,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "productId",
-            "validTo"
-          ],
+          "columnNames": ["productId", "validTo"],
           "composite": true,
           "constraint": false,
           "keyName": "productPrice_productId_validTo_index",
@@ -3422,25 +3221,17 @@
       "triggers": [],
       "foreignKeys": {
         "productPrice_productId_foreign": {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "constraintName": "productPrice_productId_foreign",
           "localTableName": "public.productPrice",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.product"
         },
         "productPrice_setByUserId_foreign": {
-          "columnNames": [
-            "setByUserId"
-          ],
+          "columnNames": ["setByUserId"],
           "constraintName": "productPrice_setByUserId_foreign",
           "localTableName": "public.productPrice",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user"
         }
       },
@@ -3521,9 +3312,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "reception_pkey",
@@ -3531,9 +3320,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "supplierOrderId"
-          ],
+          "columnNames": ["supplierOrderId"],
           "composite": false,
           "constraint": false,
           "keyName": "reception_supplierOrderId_index",
@@ -3546,14 +3333,10 @@
       "triggers": [],
       "foreignKeys": {
         "reception_supplierOrderId_foreign": {
-          "columnNames": [
-            "supplierOrderId"
-          ],
+          "columnNames": ["supplierOrderId"],
           "constraintName": "reception_supplierOrderId_foreign",
           "localTableName": "public.reception",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.supplierOrder"
         }
       },
@@ -3685,9 +3468,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "receptionLine_pkey",
@@ -3695,9 +3476,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "receptionId"
-          ],
+          "columnNames": ["receptionId"],
           "composite": false,
           "constraint": false,
           "keyName": "receptionLine_receptionId_index",
@@ -3706,9 +3485,7 @@
           "expression": "CREATE INDEX \"receptionLine_receptionId_index\" ON public.\"receptionLine\" USING btree (\"receptionId\")"
         },
         {
-          "columnNames": [
-            "supplierOrderLineId"
-          ],
+          "columnNames": ["supplierOrderLineId"],
           "composite": false,
           "constraint": false,
           "keyName": "receptionLine_supplierOrderLineId_index",
@@ -3721,25 +3498,17 @@
       "triggers": [],
       "foreignKeys": {
         "receptionLine_receptionId_foreign": {
-          "columnNames": [
-            "receptionId"
-          ],
+          "columnNames": ["receptionId"],
           "constraintName": "receptionLine_receptionId_foreign",
           "localTableName": "public.receptionLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.reception"
         },
         "receptionLine_supplierOrderLineId_foreign": {
-          "columnNames": [
-            "supplierOrderLineId"
-          ],
+          "columnNames": ["supplierOrderLineId"],
           "constraintName": "receptionLine_supplierOrderLineId_foreign",
           "localTableName": "public.receptionLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.supplierOrderLine"
         }
       },
@@ -3905,9 +3674,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "lastName"
-          ],
+          "columnNames": ["lastName"],
           "composite": false,
           "constraint": false,
           "keyName": "referent_lastName_index",
@@ -3916,9 +3683,7 @@
           "expression": "CREATE INDEX \"referent_lastName_index\" ON public.referent USING btree (\"lastName\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "referent_pkey",
@@ -3930,14 +3695,10 @@
       "triggers": [],
       "foreignKeys": {
         "referent_userId_foreign": {
-          "columnNames": [
-            "userId"
-          ],
+          "columnNames": ["userId"],
           "constraintName": "referent_userId_foreign",
           "localTableName": "public.referent",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user",
           "deleteRule": "set null"
         }
@@ -4104,9 +3865,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "session_pkey",
@@ -4114,9 +3873,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "token"
-          ],
+          "columnNames": ["token"],
           "composite": false,
           "constraint": true,
           "keyName": "session_token_unique",
@@ -4128,14 +3885,10 @@
       "triggers": [],
       "foreignKeys": {
         "session_userId_foreign": {
-          "columnNames": [
-            "userId"
-          ],
+          "columnNames": ["userId"],
           "constraintName": "session_userId_foreign",
           "localTableName": "public.session",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user"
         }
       },
@@ -4301,9 +4054,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "handoverLineId"
-          ],
+          "columnNames": ["handoverLineId"],
           "composite": false,
           "constraint": false,
           "keyName": "stockMovement_handoverLineId_index",
@@ -4312,9 +4063,7 @@
           "expression": "CREATE INDEX \"stockMovement_handoverLineId_index\" ON public.\"stockMovement\" USING btree (\"handoverLineId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "stockMovement_pkey",
@@ -4322,9 +4071,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "composite": false,
           "constraint": false,
           "keyName": "stockMovement_productId_index",
@@ -4333,9 +4080,7 @@
           "expression": "CREATE INDEX \"stockMovement_productId_index\" ON public.\"stockMovement\" USING btree (\"productId\")"
         },
         {
-          "columnNames": [
-            "receptionLineId"
-          ],
+          "columnNames": ["receptionLineId"],
           "composite": false,
           "constraint": false,
           "keyName": "stockMovement_receptionLineId_index",
@@ -4348,37 +4093,25 @@
       "triggers": [],
       "foreignKeys": {
         "stockMovement_handoverLineId_foreign": {
-          "columnNames": [
-            "handoverLineId"
-          ],
+          "columnNames": ["handoverLineId"],
           "constraintName": "stockMovement_handoverLineId_foreign",
           "localTableName": "public.stockMovement",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.handoverLine",
           "deleteRule": "set null"
         },
         "stockMovement_productId_foreign": {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "constraintName": "stockMovement_productId_foreign",
           "localTableName": "public.stockMovement",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.product"
         },
         "stockMovement_receptionLineId_foreign": {
-          "columnNames": [
-            "receptionLineId"
-          ],
+          "columnNames": ["receptionLineId"],
           "constraintName": "stockMovement_receptionLineId_foreign",
           "localTableName": "public.stockMovement",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.receptionLine",
           "deleteRule": "set null"
         }
@@ -4613,9 +4346,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "archivedAt"
-          ],
+          "columnNames": ["archivedAt"],
           "composite": false,
           "constraint": false,
           "keyName": "supplier_archivedAt_index",
@@ -4624,9 +4355,7 @@
           "expression": "CREATE INDEX \"supplier_archivedAt_index\" ON public.supplier USING btree (\"archivedAt\")"
         },
         {
-          "columnNames": [
-            "name"
-          ],
+          "columnNames": ["name"],
           "composite": false,
           "constraint": false,
           "keyName": "supplier_name_index",
@@ -4634,9 +4363,7 @@
           "unique": false
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "supplier_pkey",
@@ -4644,9 +4371,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "referentId"
-          ],
+          "columnNames": ["referentId"],
           "composite": false,
           "constraint": false,
           "keyName": "supplier_referentId_index",
@@ -4659,14 +4384,10 @@
       "triggers": [],
       "foreignKeys": {
         "supplier_referentId_foreign": {
-          "columnNames": [
-            "referentId"
-          ],
+          "columnNames": ["referentId"],
           "constraintName": "supplier_referentId_foreign",
           "localTableName": "public.supplier",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.referent",
           "deleteRule": "set null"
         }
@@ -4816,9 +4537,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "supplierOrder_pkey",
@@ -4826,9 +4545,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "supplierId"
-          ],
+          "columnNames": ["supplierId"],
           "composite": false,
           "constraint": false,
           "keyName": "supplierOrder_supplierId_index",
@@ -4841,14 +4558,10 @@
       "triggers": [],
       "foreignKeys": {
         "supplierOrder_supplierId_foreign": {
-          "columnNames": [
-            "supplierId"
-          ],
+          "columnNames": ["supplierId"],
           "constraintName": "supplierOrder_supplierId_foreign",
           "localTableName": "public.supplierOrder",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.supplier"
         }
       },
@@ -4963,9 +4676,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "supplierOrderLine_pkey",
@@ -4973,9 +4684,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "composite": false,
           "constraint": false,
           "keyName": "supplierOrderLine_productId_index",
@@ -4984,9 +4693,7 @@
           "expression": "CREATE INDEX \"supplierOrderLine_productId_index\" ON public.\"supplierOrderLine\" USING btree (\"productId\")"
         },
         {
-          "columnNames": [
-            "supplierOrderId"
-          ],
+          "columnNames": ["supplierOrderId"],
           "composite": false,
           "constraint": false,
           "keyName": "supplierOrderLine_supplierOrderId_index",
@@ -4995,10 +4702,7 @@
           "expression": "CREATE INDEX \"supplierOrderLine_supplierOrderId_index\" ON public.\"supplierOrderLine\" USING btree (\"supplierOrderId\")"
         },
         {
-          "columnNames": [
-            "supplierOrderId",
-            "productId"
-          ],
+          "columnNames": ["supplierOrderId", "productId"],
           "composite": true,
           "constraint": true,
           "keyName": "supplierOrderLine_supplierOrderId_productId_unique",
@@ -5011,25 +4715,17 @@
       "triggers": [],
       "foreignKeys": {
         "supplierOrderLine_productId_foreign": {
-          "columnNames": [
-            "productId"
-          ],
+          "columnNames": ["productId"],
           "constraintName": "supplierOrderLine_productId_foreign",
           "localTableName": "public.supplierOrderLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.product"
         },
         "supplierOrderLine_supplierOrderId_foreign": {
-          "columnNames": [
-            "supplierOrderId"
-          ],
+          "columnNames": ["supplierOrderId"],
           "constraintName": "supplierOrderLine_supplierOrderId_foreign",
           "localTableName": "public.supplierOrderLine",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.supplierOrder"
         }
       },
@@ -5076,10 +4772,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "supplier",
-            "producerCategory"
-          ],
+          "columnNames": ["supplier", "producerCategory"],
           "composite": true,
           "constraint": true,
           "keyName": "supplierProducerCategory_pkey",
@@ -5092,27 +4785,19 @@
       "triggers": [],
       "foreignKeys": {
         "supplierProducerCategory_producerCategory_foreign": {
-          "columnNames": [
-            "producerCategory"
-          ],
+          "columnNames": ["producerCategory"],
           "constraintName": "supplierProducerCategory_producerCategory_foreign",
           "localTableName": "public.supplierProducerCategory",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.producerCategory",
           "updateRule": "cascade",
           "deleteRule": "cascade"
         },
         "supplierProducerCategory_supplier_foreign": {
-          "columnNames": [
-            "supplier"
-          ],
+          "columnNames": ["supplier"],
           "constraintName": "supplierProducerCategory_supplier_foreign",
           "localTableName": "public.supplierProducerCategory",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.supplier",
           "updateRule": "cascade",
           "deleteRule": "cascade"
@@ -5348,9 +5033,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "normalize_search(email::text)"
-          ],
+          "columnNames": ["normalize_search(email::text)"],
           "composite": false,
           "constraint": false,
           "keyName": "user_email_search_idx",
@@ -5360,9 +5043,7 @@
           "type": "gin"
         },
         {
-          "columnNames": [
-            "email"
-          ],
+          "columnNames": ["email"],
           "composite": false,
           "constraint": true,
           "keyName": "user_email_unique",
@@ -5370,9 +5051,7 @@
           "unique": true
         },
         {
-          "columnNames": [
-            "normalize_search(name::text)"
-          ],
+          "columnNames": ["normalize_search(name::text)"],
           "composite": false,
           "constraint": false,
           "keyName": "user_name_search_idx",
@@ -5382,9 +5061,7 @@
           "type": "gin"
         },
         {
-          "columnNames": [
-            "normalize_search(phoneNumber::text)"
-          ],
+          "columnNames": ["normalize_search(phoneNumber::text)"],
           "composite": false,
           "constraint": false,
           "keyName": "user_phoneNumber_search_idx",
@@ -5394,9 +5071,7 @@
           "type": "gin"
         },
         {
-          "columnNames": [
-            "phoneNumber"
-          ],
+          "columnNames": ["phoneNumber"],
           "composite": false,
           "constraint": true,
           "keyName": "user_phoneNumber_unique",
@@ -5405,9 +5080,7 @@
           "expression": "CREATE UNIQUE INDEX \"user_phoneNumber_unique\" ON public.\"user\" USING btree (\"phoneNumber\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "user_pkey",
@@ -5529,9 +5202,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "verification_pkey",
@@ -5721,9 +5392,7 @@
       },
       "indexes": [
         {
-          "columnNames": [
-            "handoverId"
-          ],
+          "columnNames": ["handoverId"],
           "composite": false,
           "constraint": false,
           "keyName": "walletEntry_handoverId_index",
@@ -5732,9 +5401,7 @@
           "expression": "CREATE INDEX \"walletEntry_handoverId_index\" ON public.\"walletEntry\" USING btree (\"handoverId\")"
         },
         {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "composite": false,
           "constraint": false,
           "keyName": "walletEntry_memberId_index",
@@ -5743,9 +5410,7 @@
           "expression": "CREATE INDEX \"walletEntry_memberId_index\" ON public.\"walletEntry\" USING btree (\"memberId\")"
         },
         {
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "keyName": "walletEntry_pkey",
@@ -5757,37 +5422,25 @@
       "triggers": [],
       "foreignKeys": {
         "walletEntry_handoverId_foreign": {
-          "columnNames": [
-            "handoverId"
-          ],
+          "columnNames": ["handoverId"],
           "constraintName": "walletEntry_handoverId_foreign",
           "localTableName": "public.walletEntry",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.handover",
           "deleteRule": "set null"
         },
         "walletEntry_memberId_foreign": {
-          "columnNames": [
-            "memberId"
-          ],
+          "columnNames": ["memberId"],
           "constraintName": "walletEntry_memberId_foreign",
           "localTableName": "public.walletEntry",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.member"
         },
         "walletEntry_recordedByUserId_foreign": {
-          "columnNames": [
-            "recordedByUserId"
-          ],
+          "columnNames": ["recordedByUserId"],
           "constraintName": "walletEntry_recordedByUserId_foreign",
           "localTableName": "public.walletEntry",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user",
           "deleteRule": "set null"
         }

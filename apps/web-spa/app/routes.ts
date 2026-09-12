@@ -28,6 +28,10 @@ export default [
       'distribution/members/:memberId/express',
       'features/distribution/components/express-order-form.tsx',
     ),
+    route(
+      'distribution/handovers/:handoverId',
+      'features/distribution/components/handover-receipt-page.tsx',
+    ),
   ]),
   layout('features/common/components/back-office-layout.tsx', [
     route('admin/members', 'features/admin-members/components/members-list-page.tsx'),

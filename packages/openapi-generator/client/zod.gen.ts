@@ -137,6 +137,15 @@ export const zCreateExpressOrderInput = z.object({
 });
 
 /**
+ * ReverseHandoverInput
+ *
+ * The reason for the correction, kept with the reversing entry (FR-029).
+ */
+export const zReverseHandoverInput = z.object({
+    note: z.string().min(1).max(500)
+});
+
+/**
  * MemberValidation
  *
  * Validate a pending member (moves them to active) or reject them with a reason
@@ -3506,3 +3515,31 @@ export const zDistributionControllerListWaitingData = z.object({
  * Orders still to hand over. A fully handed-over order leaves this list.
  */
 export const zDistributionControllerListWaitingResponse = zWaitingOrderList;
+
+export const zDistributionControllerGetHandoverData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        handoverId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A record of goods physically given to a member at a point in time
+ */
+export const zDistributionControllerGetHandoverResponse = zHandover;
+
+export const zDistributionControllerReverseHandoverData = z.object({
+    body: z.object({
+        note: z.string().min(1).max(500)
+    }),
+    path: z.object({
+        handoverId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A record of goods physically given to a member at a point in time
+ */
+export const zDistributionControllerReverseHandoverResponse = zHandover;

@@ -3,6 +3,7 @@ import { EntityManager, LockMode, QueryOrder } from '@mikro-orm/core'
 import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
 import { centsToEur, currentPrice } from '../catalog/catalog.util'
 import { Product } from '../catalog/entities/product.entity'
+import { StockMovement } from '../inventory/entities/stock-movement.entity'
 import { User } from '../auth/auth.entity'
 import { buildSearchFilter } from '../db/search.util'
 import { InventoryService } from '../inventory/inventory.service'
@@ -266,6 +267,8 @@ export class DistributionService {
       if (allSettled) order.status = 'handed_over'
 
       await em.flush()
+      // `recordedByUser` was set as a reference; the receipt shows the staffer's name.
+      await em.populate(handover, ['recordedByUser', 'lines', 'lines.orderLine'])
       return {
         handover,
         balanceAfterCents: balanceCents - totalCents,
@@ -294,7 +297,8 @@ export class DistributionService {
       const placedAt: Record<string, Date> = {}
       if (filters.placedFrom) placedAt.$gte = new Date(filters.placedFrom)
       // An end date means "up to the end of that day", not midnight at its start.
-      if (filters.placedTo) placedAt.$lt = new Date(new Date(filters.placedTo).getTime() + 86_400_000)
+      if (filters.placedTo)
+        placedAt.$lt = new Date(new Date(filters.placedTo).getTime() + 86_400_000)
       Object.assign(where, { placedAt })
     }
 
@@ -490,8 +494,133 @@ export class DistributionService {
       order.status = 'handed_over'
 
       await em.flush()
+      await em.populate(handover, ['recordedByUser', 'lines', 'lines.orderLine'])
       return { handover, balanceAfterCents: balanceCents - totalCents }
     })
+  }
+
+  /**
+   * Undoes a validated handover (FR-028–FR-030).
+   *
+   * Nothing on the original is written. The reversing handover carries a forward link to it,
+   * and "has this been reversed?" is answered by looking for that link — which is what lets
+   * the original stay genuinely write-once (research.md §9).
+   *
+   * The stock movements are put back **at the unit cost of the rows they undo**, not at
+   * today's average. That is the difference between the weighted average landing exactly
+   * where it was and merely landing close to it.
+   */
+  async reverseHandover(
+    handoverId: string,
+    note: string,
+    recordedByUserId: string,
+  ): Promise<HandoverResult> {
+    return this.em.transactional(async (em) => {
+      const original = await em.findOne(
+        Handover,
+        { id: handoverId },
+        { populate: ['lines', 'lines.orderLine', 'lines.orderLine.product', 'order', 'member'] },
+      )
+      if (!original) throw new NotFoundException('Handover not found')
+      if (original.kind === 'reversal') {
+        throw this.refuse('cannot_reverse_reversal', 'A reversal cannot itself be reversed')
+      }
+
+      // Lock the member for the same reason a handover does: the balance is about to move.
+      await em.findOne(Member, { id: original.member.id }, { lockMode: LockMode.PESSIMISTIC_WRITE })
+
+      const existing = await em.count(Handover, { reversesHandover: original.id })
+      if (existing > 0) {
+        throw this.refuse('already_reversed', 'This handover has already been reversed')
+      }
+
+      const reversal = new Handover()
+      reversal.order = original.order
+      reversal.member = original.member
+      reversal.totalAmountCents = -original.totalAmountCents
+      reversal.currency = original.currency
+      reversal.kind = 'reversal'
+      reversal.reversesHandover = original
+      reversal.recordedByUser = em.getReference(User, recordedByUserId)
+      reversal.note = note
+      em.persist(reversal)
+
+      // The outbound rows this handover created, so each can be put back at its own cost.
+      const originalLineIds = original.lines.getItems().map((line) => line.id)
+      const outbound = await em.find(StockMovement, {
+        handoverLine: { $in: originalLineIds },
+        reason: 'distribution',
+      })
+      const costByHandoverLine = new Map(
+        outbound.map((movement) => [movement.handoverLine!.id, movement.unitCostAmountCents]),
+      )
+
+      for (const line of original.lines.getItems()) {
+        const handedQuantity = Number(line.handedQuantity)
+        const reversalLine = new HandoverLine()
+        reversalLine.handover = reversal
+        reversalLine.orderLine = line.orderLine
+        reversalLine.handedQuantity = String(-handedQuantity)
+        reversalLine.unitPriceAmountCents = line.unitPriceAmountCents
+        reversalLine.lineTotalAmountCents = -line.lineTotalAmountCents
+        em.persist(reversalLine)
+
+        if (handedQuantity > 0) {
+          this.inventory.recordIssueReversal(em, {
+            productId: line.orderLine.product.id,
+            quantity: String(handedQuantity),
+            unitCostAmountCents: costByHandoverLine.get(line.id) ?? 0,
+            currency: 'EUR',
+            handoverLine: reversalLine,
+          })
+        }
+      }
+
+      this.wallet.credit(em, {
+        memberId: original.member.id,
+        amountCents: original.totalAmountCents,
+        reason: 'handover_reversal',
+        handover: reversal,
+        recordedByUserId,
+        note,
+      })
+
+      // The order can be handed over again (FR-030). `Order` is mutable, so moving its status
+      // back is an ordinary edit, not a ledger write.
+      original.order.status = 'pending'
+
+      await em.flush()
+      await em.populate(reversal, ['recordedByUser', 'lines', 'lines.orderLine'])
+      const balanceAfterCents = await this.wallet.getBalanceCents(em, original.member.id)
+      return { handover: reversal, balanceAfterCents }
+    })
+  }
+
+  /** One handover, for the on-screen receipt and the reversal confirmation. */
+  async getHandover(
+    id: string,
+  ): Promise<{ handover: Handover; isReversed: boolean; balanceCents: number }> {
+    const handover = await this.em.findOne(
+      Handover,
+      { id },
+      {
+        populate: [
+          'lines',
+          'lines.orderLine',
+          'lines.orderLine.product',
+          'order',
+          'member',
+          'recordedByUser',
+          'reversesHandover',
+        ],
+      },
+    )
+    if (!handover) throw new NotFoundException('Handover not found')
+    const [reversalCount, balanceCents] = await Promise.all([
+      this.em.count(Handover, { reversesHandover: handover.id }),
+      this.wallet.getBalanceCents(this.em, handover.member.id),
+    ])
+    return { handover, isReversed: reversalCount > 0, balanceCents }
   }
 
   /**
