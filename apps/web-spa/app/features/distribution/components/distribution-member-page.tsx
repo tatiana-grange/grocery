@@ -8,7 +8,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { HandoverForm } from '@/features/distribution/components/handover-form'
+import { InsufficientBalanceDialog } from '@/features/distribution/components/insufficient-balance-dialog'
 import { distributionMemberScreenQueryOptions } from '@/features/distribution/utils/distribution-queries'
+import { WalletPanel } from '@/features/wallet/components/wallet-panel'
+import { staffWalletQueryOptions } from '@/features/wallet/utils/wallet-queries'
 
 /**
  * One member's table screen: status, balance, and every order still waiting, each line
@@ -20,6 +23,9 @@ export default function DistributionMemberPage() {
   const { memberId = '' } = useParams()
   const { data, isLoading } = useQuery(distributionMemberScreenQueryOptions(memberId))
   const [recordedHandoverId, setRecordedHandoverId] = useState<string | null>(null)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [shortfallEur, setShortfallEur] = useState<number | undefined>(undefined)
+  const { data: wallet } = useQuery(staffWalletQueryOptions(memberId))
 
   if (isLoading || !data) {
     return <Skeleton className="h-64 w-full" data-testid="page-distribution-member-loading" />
@@ -141,7 +147,15 @@ export default function DistributionMemberPage() {
 
           <HandoverForm
             order={order}
-            onRecorded={(handoverId) => setRecordedHandoverId(handoverId)}
+            onRecorded={(handoverId) => {
+              setRecordedHandoverId(handoverId)
+              setPaymentOpen(false)
+              setShortfallEur(undefined)
+            }}
+            onInsufficientBalance={(shortfall) => {
+              setShortfallEur(shortfall)
+              setPaymentOpen(true)
+            }}
           />
         </section>
       ))}
@@ -154,7 +168,31 @@ export default function DistributionMemberPage() {
         >
           {t('distribution.member.startExpress')}
         </Button>
+        <Button
+          variant="outline"
+          data-testid="wallet-record-payment"
+          onClick={() => setPaymentOpen(true)}
+        >
+          {t('wallet.recordPayment')}
+        </Button>
       </div>
+
+      {paymentOpen ? (
+        <InsufficientBalanceDialog
+          memberId={memberId}
+          shortfallEur={shortfallEur}
+          onPaid={() => {
+            setPaymentOpen(false)
+            setShortfallEur(undefined)
+          }}
+          onDismiss={() => {
+            setPaymentOpen(false)
+            setShortfallEur(undefined)
+          }}
+        />
+      ) : null}
+
+      <WalletPanel wallet={wallet} />
     </div>
   )
 }

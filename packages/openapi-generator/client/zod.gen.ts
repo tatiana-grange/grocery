@@ -953,6 +953,104 @@ export const zShopProductDetail = z.object({
 });
 
 /**
+ * WalletEntryList
+ *
+ * A paginated page of a member’s account movements, newest first
+ */
+export const zWalletEntryList = z.object({
+    data: z.array(z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        amountEur: z.number(),
+        reason: z.enum([
+            'handover_charge',
+            'payment_received',
+            'handover_reversal'
+        ]),
+        paymentMethod: z.optional(z.union([
+            z.enum([
+                'cash',
+                'cheque',
+                'transfer'
+            ]),
+            z.null()
+        ])),
+        handoverId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        recordedBy: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        note: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        createdAt: z.string()
+    })),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * Wallet
+ *
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export const zWallet = z.object({
+    memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    balanceEur: z.number(),
+    entries: zWalletEntryList
+});
+
+/**
+ * WalletEntryReason
+ *
+ * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ */
+export const zWalletEntryReason = z.enum([
+    'handover_charge',
+    'payment_received',
+    'handover_reversal'
+]);
+
+/**
+ * WalletEntry
+ *
+ * One movement on a member account. Written once, never edited or deleted.
+ */
+export const zWalletEntry = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    amountEur: z.number(),
+    reason: zWalletEntryReason,
+    paymentMethod: z.optional(z.union([
+        z.enum([
+            'cash',
+            'cheque',
+            'transfer'
+        ]),
+        z.null()
+    ])),
+    handoverId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    recordedBy: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    note: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    createdAt: z.string()
+});
+
+/**
  * DistributionMemberSummary
  *
  * One member as the distribution table sees them in a search result
@@ -1821,6 +1919,28 @@ export const zFilterQueryStringSchema = z.string();
  * Schema for sorting items
  */
 export const zSortingQueryStringSchema = z.string();
+
+/**
+ * PaymentMethod
+ *
+ * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ */
+export const zPaymentMethod = z.enum([
+    'cash',
+    'cheque',
+    'transfer'
+]);
+
+/**
+ * RecordPaymentInput
+ *
+ * Money the member has actually handed over. Entered by a human after the fact — the system does not reconcile against a bank feed.
+ */
+export const zRecordPaymentInput = z.object({
+    amountEur: z.number().gt(0),
+    paymentMethod: zPaymentMethod,
+    note: z.optional(z.string().max(500))
+});
 
 export const zAdminMembersControllerListFilterItem = z.object({
     property: z.union([
@@ -3175,6 +3295,60 @@ export const zAdminPurchasingControllerRecordReceptionData = z.object({
  * Successful response
  */
 export const zAdminPurchasingControllerRecordReceptionResponse = zReception;
+
+export const zStaffWalletControllerGetWalletData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export const zStaffWalletControllerGetWalletResponse = zWallet;
+
+export const zStaffWalletControllerRecordPaymentData = z.object({
+    body: z.object({
+        amountEur: z.number().gt(0),
+        paymentMethod: z.enum([
+            'cash',
+            'cheque',
+            'transfer'
+        ]),
+        note: z.optional(z.string().max(500))
+    }),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export const zStaffWalletControllerRecordPaymentResponse = zWallet;
+
+export const zMemberWalletControllerGetOwnWalletData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export const zMemberWalletControllerGetOwnWalletResponse = zWallet;
 
 export const zDistributionControllerSearchMembersData = z.object({
     body: z.optional(z.never()),

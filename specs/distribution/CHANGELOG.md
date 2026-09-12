@@ -213,6 +213,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   distribution-queries.ts, routes.ts, tests/distribution-express.spec.ts,
   packages/openapi-generator/client/*
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 6: User Story 4 — member account: balance, history, and putting money in
+- Tasks completed: T053, T054, T055, T056, T057, T058, T059, T060, T061
+- Two controllers in one file: `StaffWalletController` at `wallet` (`@StaffOnly()`) and
+  `MemberWalletController` at `me/wallet` (`@MemberScoped()`). The member-facing route takes
+  no member id at all, which is what makes "a member cannot read another's account"
+  structural rather than a check.
+- Recording a payment returns the updated wallet, so a refused handover is retried without a
+  refetch. The refusal now opens the payment form with the shortfall prefilled.
+- Verified: 4 Playwright tests (`distribution-wallet.spec.ts`), 15 wallet API tests, both
+  type-checks clean, no new lint warnings
+- **Author**: AI (Claude)
+- **Files**: wallet.service.ts, wallet.mapper.ts, wallet.controller.ts, wallet.module.ts,
+  tests/wallet.service.spec.ts, tests/wallet.controller.e2e-spec.ts, wallet-queries.ts,
+  wallet-panel.tsx, record-payment-form.tsx, insufficient-balance-dialog.tsx,
+  handover-form.tsx, distribution-member-page.tsx, account-page.tsx,
+  tests/distribution-wallet.spec.ts, packages/openapi-generator/client/*
+
 ---
 
 <!--

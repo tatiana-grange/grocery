@@ -161,6 +161,17 @@ export type SetProductPrice = {
 };
 
 /**
+ * RecordPaymentInput
+ *
+ * Money the member has actually handed over. Entered by a human after the fact — the system does not reconcile against a bank feed.
+ */
+export type RecordPaymentInput = {
+    amountEur: number;
+    paymentMethod: PaymentMethod;
+    note?: string;
+};
+
+/**
  * RecordHandoverInput
  *
  * What was actually handed over. Lines left out stay outstanding for a later distribution.
@@ -836,6 +847,80 @@ export type ShopProductDetail = {
     description?: string | null;
     barcode?: string | null;
 };
+
+/**
+ * Wallet
+ *
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export type Wallet = {
+    memberId: string;
+    balanceEur: number;
+    entries: WalletEntryList;
+};
+
+/**
+ * WalletEntryList
+ *
+ * A paginated page of a member’s account movements, newest first
+ */
+export type WalletEntryList = {
+    data: Array<{
+        id: string;
+        amountEur: number;
+        /**
+         * WalletEntryReason
+         *
+         * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+         */
+        reason: 'handover_charge' | 'payment_received' | 'handover_reversal';
+        paymentMethod?: 'cash' | 'cheque' | 'transfer' | null;
+        handoverId?: string | null;
+        recordedBy?: string | null;
+        note?: string | null;
+        createdAt: string;
+    }>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * WalletEntry
+ *
+ * One movement on a member account. Written once, never edited or deleted.
+ */
+export type WalletEntry = {
+    id: string;
+    amountEur: number;
+    reason: WalletEntryReason;
+    paymentMethod?: 'cash' | 'cheque' | 'transfer' | null;
+    handoverId?: string | null;
+    recordedBy?: string | null;
+    note?: string | null;
+    createdAt: string;
+};
+
+/**
+ * WalletEntryReason
+ *
+ * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ */
+export const WalletEntryReason = {
+    HANDOVER_CHARGE: 'handover_charge',
+    PAYMENT_RECEIVED: 'payment_received',
+    HANDOVER_REVERSAL: 'handover_reversal'
+} as const;
+
+/**
+ * WalletEntryReason
+ *
+ * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ */
+export type WalletEntryReason = typeof WalletEntryReason[keyof typeof WalletEntryReason];
 
 /**
  * DistributionMemberList
@@ -1656,6 +1741,24 @@ export type FilterQueryStringSchema = string;
  * Schema for sorting items
  */
 export type SortingQueryStringSchema = string;
+
+/**
+ * PaymentMethod
+ *
+ * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ */
+export const PaymentMethod = {
+    CASH: 'cash',
+    CHEQUE: 'cheque',
+    TRANSFER: 'transfer'
+} as const;
+
+/**
+ * PaymentMethod
+ *
+ * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ */
+export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
 
 export type AdminMembersControllerListFilterItem = {
     property: 'status' | 'feeState' | 'role' | 'q';
@@ -3241,6 +3344,99 @@ export type AdminPurchasingControllerRecordReceptionResponses = {
 };
 
 export type AdminPurchasingControllerRecordReceptionResponse = AdminPurchasingControllerRecordReceptionResponses[keyof AdminPurchasingControllerRecordReceptionResponses];
+
+export type StaffWalletControllerGetWalletData = {
+    body?: never;
+    path: {
+        memberId: string;
+    };
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/wallet/members/{memberId}';
+};
+
+export type StaffWalletControllerGetWalletResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     */
+    200: Wallet;
+};
+
+export type StaffWalletControllerGetWalletResponse = StaffWalletControllerGetWalletResponses[keyof StaffWalletControllerGetWalletResponses];
+
+export type StaffWalletControllerRecordPaymentData = {
+    /**
+     * RecordPaymentInput
+     *
+     * Money the member has actually handed over. Entered by a human after the fact — the system does not reconcile against a bank feed.
+     */
+    body: {
+        amountEur: number;
+        /**
+         * PaymentMethod
+         *
+         * How money reached the cooperative by hand. "online" is reserved for lot 5.
+         */
+        paymentMethod: 'cash' | 'cheque' | 'transfer';
+        note?: string;
+    };
+    path: {
+        memberId: string;
+    };
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/wallet/members/{memberId}/payments';
+};
+
+export type StaffWalletControllerRecordPaymentResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     */
+    200: Wallet;
+};
+
+export type StaffWalletControllerRecordPaymentResponse = StaffWalletControllerRecordPaymentResponses[keyof StaffWalletControllerRecordPaymentResponses];
+
+export type MemberWalletControllerGetOwnWalletData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/me/wallet';
+};
+
+export type MemberWalletControllerGetOwnWalletResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     */
+    200: Wallet;
+};
+
+export type MemberWalletControllerGetOwnWalletResponse = MemberWalletControllerGetOwnWalletResponses[keyof MemberWalletControllerGetOwnWalletResponses];
 
 export type DistributionControllerSearchMembersData = {
     body?: never;

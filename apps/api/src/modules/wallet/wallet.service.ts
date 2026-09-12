@@ -26,6 +26,11 @@ export interface WalletWriteInput {
 export class WalletService {
   constructor(private readonly em: EntityManager) {}
 
+  /** The ambient request EntityManager, for callers reading outside a transaction. */
+  get entityManager(): EntityManager {
+    return this.em
+  }
+
   /**
    * A member's balance, in cents. Always `SUM(amountCents)` over their entries — there is no
    * stored balance anywhere, by Principle II.
@@ -75,6 +80,31 @@ export class WalletService {
       : undefined
     entry.note = input.note
     em.persist(entry)
+    return entry
+  }
+
+  /**
+   * Records money a member has actually handed over (FR-026). One positive entry carrying the
+   * amount, the means it was paid by, and who took it.
+   *
+   * No lock and no transaction of its own: a credit can never take a balance below zero, so
+   * there is nothing here that two concurrent calls could break.
+   */
+  async recordPayment(
+    memberId: string,
+    input: { amountCents: number; paymentMethod: PaymentMethod; note?: string },
+    recordedByUserId: string,
+  ): Promise<WalletEntry> {
+    const member = await this.getMember(memberId)
+    const entry = this.credit(this.em, {
+      memberId: member.id,
+      amountCents: input.amountCents,
+      reason: 'payment_received',
+      paymentMethod: input.paymentMethod,
+      note: input.note,
+      recordedByUserId,
+    })
+    await this.em.flush()
     return entry
   }
 

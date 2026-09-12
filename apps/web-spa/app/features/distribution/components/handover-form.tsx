@@ -10,6 +10,8 @@ import { recordHandover } from '@/features/distribution/utils/distribution-queri
 interface HandoverFormProps {
   order: DistributionOrder
   onRecorded: (handoverId: string) => void
+  /** Raised when the balance is short, so the page can offer to take the payment. */
+  onInsufficientBalance: (shortfallEur: number | undefined) => void
 }
 
 /**
@@ -30,7 +32,7 @@ interface RefusalBody {
  * The total is recomputed here at the order's snapshot prices so it matches what the server
  * will charge, and the member sees the figure before anyone commits to it.
  */
-export function HandoverForm({ order, onRecorded }: HandoverFormProps) {
+export function HandoverForm({ order, onRecorded, onInsufficientBalance }: HandoverFormProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [quantities, setQuantities] = useState<Record<string, string>>(() =>
@@ -62,7 +64,9 @@ export function HandoverForm({ order, onRecorded }: HandoverFormProps) {
       onRecorded(handover.id)
     },
     onError: (error: unknown) => {
-      setRefusal((error as RefusalBody | undefined) ?? {})
+      const body = (error as RefusalBody | undefined) ?? {}
+      setRefusal(body)
+      if (body.code === 'insufficient_balance') onInsufficientBalance(body.shortfallEur)
     },
   })
 

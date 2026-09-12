@@ -357,38 +357,38 @@ total, with both movements in the history with their dates and reasons.
 
 > Write this first. It must fail before the implementation below.
 
-- [ ] T053 [US4] E2E test in `apps/web-spa-e2e/tests/distribution-wallet.spec.ts`: validate a
+- [X] T053 [US4] E2E test in `apps/web-spa-e2e/tests/distribution-wallet.spec.ts`: validate a
   handover for the zero-balance member and see it refused with the shortfall, record a cash
   payment, validate again successfully, then sign in as that member and see the same balance
   and movements on `/account`
 
 ### Implementation for User Story 4
 
-- [ ] T054 [US4] Add `recordPayment` and `listEntries` to
+- [X] T054 [US4] Add `recordPayment` and `listEntries` to
   `apps/api/src/modules/wallet/wallet.service.ts`: one positive entry carrying the amount, the
   payment means, the staff user, and an optional note; no lock is needed because a credit can
   never take the balance below zero (data-model.md "Cross-entity rules")
-- [ ] T055 [P] [US4] Implement `apps/api/src/modules/wallet/wallet.mapper.ts` for
+- [X] T055 [P] [US4] Implement `apps/api/src/modules/wallet/wallet.mapper.ts` for
   `walletSchema` and `walletEntrySchema`
-- [ ] T056 [US4] Implement `apps/api/src/modules/wallet/wallet.controller.ts` with two
+- [X] T056 [US4] Implement `apps/api/src/modules/wallet/wallet.controller.ts` with two
   controller classes in one file, per the `catalog.controller.ts` precedent:
   `StaffWalletController` at `wallet` (`@StaffOnly()`) with
   `GET /wallet/members/:memberId` and `POST /wallet/members/:memberId/payments` returning the
   updated wallet; and `MemberWalletController` at `me/wallet` (`@MemberScoped()`) with
   `GET /me/wallet` resolving the caller's own member record only
-- [ ] T057 [P] [US4] Unit tests in
+- [X] T057 [P] [US4] Unit tests in
   `apps/api/src/modules/wallet/tests/wallet.service.spec.ts`: balance as the sum of entries, a
   member with no movements reading `0`, and a credit followed by a charge netting correctly
-- [ ] T058 [P] [US4] API e2e tests in
+- [X] T058 [P] [US4] API e2e tests in
   `apps/api/src/modules/wallet/tests/wallet.controller.e2e-spec.ts`: recording each of cash,
   cheque and transfer; the non-positive amount rejection; a member reading their own wallet;
   and a member being refused another member's
-- [ ] T059 [P] [US4] Add the query options in
+- [X] T059 [P] [US4] Add the query options in
   `apps/web-spa/app/features/wallet/utils/wallet-queries.ts`
-- [ ] T060 [P] [US4] Build `apps/web-spa/app/features/wallet/components/wallet-panel.tsx`
+- [X] T060 [P] [US4] Build `apps/web-spa/app/features/wallet/components/wallet-panel.tsx`
   (balance plus movement history with date, amount and reason) and mount it on
   `apps/web-spa/app/features/account/components/account-page.tsx`
-- [ ] T061 [US4] Build
+- [X] T061 [US4] Build
   `apps/web-spa/app/features/wallet/components/record-payment-form.tsx` (amount, means, note)
   and
   `apps/web-spa/app/features/distribution/components/insufficient-balance-dialog.tsx`, which

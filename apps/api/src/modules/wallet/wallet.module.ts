@@ -1,6 +1,8 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
+import { MemberWalletController, StaffWalletController } from './wallet.controller'
 import { WalletEntry } from './entities/wallet-entry.entity'
+import { WalletMapper } from './wallet.mapper'
 import { WalletService } from './wallet.service'
 
 /**
@@ -11,7 +13,8 @@ import { WalletService } from './wallet.service'
  */
 @Module({
   imports: [MikroOrmModule.forFeature([WalletEntry])],
-  providers: [WalletService],
+  controllers: [StaffWalletController, MemberWalletController],
+  providers: [WalletService, WalletMapper],
   exports: [WalletService],
 })
 export class WalletModule {}
