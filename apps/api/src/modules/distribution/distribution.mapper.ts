@@ -15,8 +15,10 @@ import type {
   DistributionMemberScreen as DistributionMemberScreenContract,
   DistributionMemberSummary as DistributionMemberSummaryContract,
   DistributionOrder as DistributionOrderContract,
+  DistributionProduct as DistributionProductContract,
+  DistributionProductList as DistributionProductListContract,
 } from './contracts/distribution-screen.contract'
-import type { MemberScreen, MemberSearchRow } from './distribution.service'
+import type { MemberScreen, MemberSearchRow, SellableProduct } from './distribution.service'
 import { lineReadiness } from './distribution.util'
 
 @Injectable()
@@ -133,6 +135,35 @@ export class DistributionMapper {
         ? handover.lines.getItems().map((line) => this.toHandoverLine(line))
         : [],
       balanceAfterEur: centsToEur(balanceAfterCents),
+    }
+  }
+
+  toSellableProduct(item: SellableProduct): DistributionProductContract {
+    return {
+      id: item.product.id,
+      name: item.product.name,
+      barcode: item.product.barcode ?? null,
+      saleMode: item.product.saleMode,
+      selectionUnit: item.product.selectionUnit ?? null,
+      quantityStepGrams: item.product.quantityStepGrams ?? null,
+      unitPriceEur: centsToEur(item.unitPriceAmountCents),
+      quantityOnHand: item.quantityOnHand,
+    }
+  }
+
+  toSellableProductList(
+    items: SellableProduct[],
+    total: number,
+    pagination: { pageSize: number; offset: number },
+  ): DistributionProductListContract {
+    return {
+      data: items.map((item) => this.toSellableProduct(item)),
+      meta: {
+        itemCount: total,
+        pageSize: pagination.pageSize,
+        offset: pagination.offset,
+        hasMore: pagination.offset + pagination.pageSize < total,
+      },
     }
   }
 }

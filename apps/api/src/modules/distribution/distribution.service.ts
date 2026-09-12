@@ -1,19 +1,22 @@
 import type { FilterQuery } from '@mikro-orm/core'
 import { EntityManager, LockMode, QueryOrder } from '@mikro-orm/core'
 import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
-import { centsToEur } from '../catalog/catalog.util'
+import { centsToEur, currentPrice } from '../catalog/catalog.util'
+import { Product } from '../catalog/entities/product.entity'
 import { User } from '../auth/auth.entity'
 import { buildSearchFilter } from '../db/search.util'
 import { InventoryService } from '../inventory/inventory.service'
 import { Member } from '../members/entities/member.entity'
 import { Order } from '../orders/entities/order.entity'
 import { WalletService } from '../wallet/wallet.service'
-import type { RecordHandoverInput } from './contracts/handover.contract'
+import { OrderLine } from '../orders/entities/order-line.entity'
+import type { CreateExpressOrderInput, RecordHandoverInput } from './contracts/handover.contract'
 import { Handover } from './entities/handover.entity'
 import { HandoverLine } from './entities/handover-line.entity'
 import {
   balanceCovers,
   handoverTotalCents,
+  isSellableAtTable,
   lineReadiness,
   lineTotalCents,
   type PricedHandoverLine,
@@ -21,6 +24,9 @@ import {
 
 /** Where the distribution table's member search looks (FR-001). */
 const MEMBER_SEARCH_PATHS = ['membershipNumber', 'user.name'] as const
+
+/** Where the express-order product search looks — barcode included, for the scanner (FR-014). */
+const SELLABLE_PRODUCT_SEARCH_PATHS = ['name', 'barcode', 'category.name'] as const
 
 export interface MemberSearchRow {
   member: Member
@@ -31,6 +37,12 @@ export interface MemberSearchRow {
 export interface HandoverResult {
   handover: Handover
   balanceAfterCents: number
+}
+
+export interface SellableProduct {
+  product: Product
+  unitPriceAmountCents: number
+  quantityOnHand: number
 }
 
 export interface MemberScreen {
@@ -253,6 +265,183 @@ export class DistributionService {
         handover,
         balanceAfterCents: balanceCents - totalCents,
       }
+    })
+  }
+
+  /**
+   * Products a staffer can sell at the table (FR-014): not archived, orderable from stock,
+   * searchable by name or barcode so a scanner works with no extra plumbing. Each row
+   * carries its current price and current stock, so the screen can warn before the call
+   * rather than after it.
+   */
+  async listSellableProducts(
+    pagination: { pageSize: number; offset: number },
+    filters: { search?: string; categoryId?: string } = {},
+  ): Promise<{ items: SellableProduct[]; total: number }> {
+    const where: FilterQuery<Product> = {
+      archivedAt: null,
+      orderingMode: { $in: ['in_store', 'both'] },
+    }
+    if (filters.categoryId) Object.assign(where, { category: filters.categoryId })
+    if (filters.search) {
+      Object.assign(
+        where,
+        buildSearchFilter<Product>(filters.search, SELLABLE_PRODUCT_SEARCH_PATHS),
+      )
+    }
+
+    const [products, total] = await this.em.findAndCount(Product, where, {
+      orderBy: { name: QueryOrder.ASC },
+      limit: pagination.pageSize,
+      offset: pagination.offset,
+      populate: ['prices'],
+    })
+
+    const levels = await this.inventory.getStockLevels(products.map((p) => p.id))
+    const items = products.map((product) => ({
+      product,
+      unitPriceAmountCents: currentPrice(product)?.amountCents ?? 0,
+      quantityOnHand: levels.get(product.id)?.quantityOnHand ?? 0,
+    }))
+    return { items, total }
+  }
+
+  /**
+   * An express sale: create the order and hand it over in one motion (FR-017).
+   *
+   * The order is a real `Order` with real `OrderLine`s, priced by the same `currentPrice`
+   * helper checkout uses. That keeps one shape downstream — the member's own order history,
+   * the reversal path and lot 7's exports all work on an express sale without a special
+   * case (research.md §8).
+   *
+   * Everything then runs through the same guarded path as a planned handover: same member
+   * lock, same balance refusal, same stock and wallet writes.
+   */
+  async createExpressOrder(
+    memberId: string,
+    input: CreateExpressOrderInput,
+    recordedByUserId: string,
+  ): Promise<HandoverResult> {
+    return this.em.transactional(async (em) => {
+      const member = await em.findOne(
+        Member,
+        { id: memberId },
+        { lockMode: LockMode.PESSIMISTIC_WRITE, populate: ['user'] },
+      )
+      if (!member) throw new NotFoundException('Member not found')
+      if (member.status === 'terminated') {
+        throw this.refuse('member_terminated', 'This member’s membership is terminated')
+      }
+
+      const products = await em.find(
+        Product,
+        { id: { $in: input.lines.map((line) => line.productId) } },
+        { populate: ['prices'] },
+      )
+      const productsById = new Map(products.map((product) => [product.id, product]))
+
+      const order = new Order()
+      order.member = member
+      order.orderingMode = 'in_store'
+      order.status = 'pending'
+      order.placedAt = new Date()
+      em.persist(order)
+
+      const priced: PricedHandoverLine[] = []
+      const orderLines = new Map<string, OrderLine>()
+      let orderTotalCents = 0
+      for (const entry of input.lines) {
+        const product = productsById.get(entry.productId)
+        if (!product) throw new NotFoundException(`Product ${entry.productId} not found`)
+        if (!isSellableAtTable(product)) {
+          throw this.refuse('product_not_sellable', `${product.name} cannot be sold at the table`, {
+            productName: product.name,
+          })
+        }
+
+        const unitPriceAmountCents = currentPrice(product)?.amountCents ?? 0
+        const lineTotalAmountCents = lineTotalCents(entry.quantity, unitPriceAmountCents)
+
+        const orderLine = new OrderLine()
+        orderLine.order = order
+        orderLine.product = product
+        orderLine.productNameSnapshot = product.name
+        orderLine.quantity = String(entry.quantity)
+        orderLine.unitPriceAmountCents = unitPriceAmountCents
+        orderLine.lineTotalAmountCents = lineTotalAmountCents
+        order.lines.add(orderLine)
+        em.persist(orderLine)
+
+        orderTotalCents += lineTotalAmountCents
+        orderLines.set(entry.productId, orderLine)
+        priced.push({
+          orderLineId: entry.productId,
+          handedQuantity: entry.quantity,
+          unitPriceAmountCents,
+          lineTotalAmountCents,
+        })
+      }
+      order.totalAmountCents = orderTotalCents
+
+      if (priced.every((line) => line.handedQuantity === 0)) {
+        throw this.refuse('nothing_handed_over', 'Every line is zero — nothing to sell')
+      }
+
+      const totalCents = handoverTotalCents(priced)
+      const balanceCents = await this.wallet.getBalanceCents(em, member.id)
+      if (!balanceCovers(totalCents, balanceCents)) {
+        throw this.refuse('insufficient_balance', 'This member’s balance does not cover it', {
+          shortfallEur: centsToEur(totalCents - balanceCents),
+          balanceEur: centsToEur(balanceCents),
+          totalEur: centsToEur(totalCents),
+        })
+      }
+
+      const handover = new Handover()
+      handover.order = order
+      handover.member = member
+      handover.totalAmountCents = totalCents
+      handover.currency = 'EUR'
+      handover.kind = 'handover'
+      handover.recordedByUser = em.getReference(User, recordedByUserId)
+      handover.note = input.note
+      em.persist(handover)
+
+      for (const line of priced) {
+        const orderLine = orderLines.get(line.orderLineId)!
+        const handoverLine = new HandoverLine()
+        handoverLine.handover = handover
+        handoverLine.orderLine = orderLine
+        handoverLine.handedQuantity = String(line.handedQuantity)
+        handoverLine.unitPriceAmountCents = line.unitPriceAmountCents
+        handoverLine.lineTotalAmountCents = line.lineTotalAmountCents
+        em.persist(handoverLine)
+
+        // Stock may go below zero here, on purpose: the shelf is what the member is holding,
+        // and refusing a real sale over a stale number would be worse (FR-018).
+        if (line.handedQuantity > 0) {
+          await this.inventory.recordIssue(em, {
+            productId: orderLine.product.id,
+            quantity: String(line.handedQuantity),
+            currency: 'EUR',
+            handoverLine,
+          })
+        }
+      }
+
+      this.wallet.charge(em, {
+        memberId: member.id,
+        amountCents: totalCents,
+        reason: 'handover_charge',
+        handover,
+        recordedByUserId,
+      })
+
+      // An express order is created and settled in the same breath.
+      order.status = 'handed_over'
+
+      await em.flush()
+      return { handover, balanceAfterCents: balanceCents - totalCents }
     })
   }
 

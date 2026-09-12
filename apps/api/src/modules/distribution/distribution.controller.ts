@@ -12,6 +12,8 @@ import { LoggedInBetterAuthSession } from '../auth/auth.config'
 import { Session, StaffOnly } from '../auth/auth.decorator'
 import { AuthGuard } from '../auth/auth.guard'
 import {
+  type CreateExpressOrderInput,
+  createExpressOrderSchema,
   handoverSchema,
   type RecordHandoverInput,
   recordHandoverSchema,
@@ -23,6 +25,9 @@ import {
   distributionMemberScreenSchema,
   type DistributionPagination,
   distributionPaginationSchema,
+  type DistributionProductFiltering,
+  distributionProductFilteringSchema,
+  distributionProductListSchema,
 } from './contracts/distribution-screen.contract'
 import { DistributionMapper } from './distribution.mapper'
 import { DistributionService } from './distribution.service'
@@ -75,6 +80,36 @@ export class DistributionController {
   ) {
     const { handover, balanceAfterCents } = await this.distribution.recordHandover(
       orderId,
+      body,
+      session.user.id,
+    )
+    return this.mapper.toHandover(handover, balanceAfterCents, false)
+  }
+
+  /** Products a staffer can sell at the table, searchable by name or barcode (FR-014). */
+  @TypedRoute.Get('products', distributionProductListSchema)
+  async listSellableProducts(
+    @PaginationParams(distributionPaginationSchema) pagination: DistributionPagination,
+    @FilteringParams(distributionProductFilteringSchema) filter?: DistributionProductFiltering,
+  ) {
+    const filters: { search?: string; categoryId?: string } = {}
+    for (const item of filter ?? []) {
+      if (item.property === 'search') filters.search = item.value
+      if (item.property === 'categoryId') filters.categoryId = item.value
+    }
+    const { items, total } = await this.distribution.listSellableProducts(pagination, filters)
+    return this.mapper.toSellableProductList(items, total, pagination)
+  }
+
+  /** Create the order and hand it over in one step (FR-017). Nothing exists before this. */
+  @TypedRoute.Post('members/:memberId/express-orders', handoverSchema)
+  async createExpressOrder(
+    @TypedParam('memberId', z.string()) memberId: string,
+    @TypedBody(createExpressOrderSchema) body: CreateExpressOrderInput,
+    @Session() session: LoggedInBetterAuthSession,
+  ) {
+    const { handover, balanceAfterCents } = await this.distribution.createExpressOrder(
+      memberId,
       body,
       session.user.id,
     )

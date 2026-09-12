@@ -1,9 +1,13 @@
 import {
+  distributionControllerCreateExpressOrder,
+  distributionControllerListSellableProducts,
   distributionControllerMemberScreen,
   distributionControllerRecordHandover,
   distributionControllerSearchMembers,
 } from '@grocery/openapi-generator/client/sdk.gen'
 import type {
+  CreateExpressOrderInput,
+  DistributionControllerListSellableProductsData,
   DistributionControllerSearchMembersData,
   RecordHandoverInput,
 } from '@grocery/openapi-generator/client/types.gen'
@@ -13,6 +17,10 @@ import { unwrap } from '@/lib/api-client'
 export const DISTRIBUTION_MEMBER_PAGE_SIZE = 10
 
 type MemberFilter = NonNullable<DistributionControllerSearchMembersData['query']['filter']>[number]
+
+type ProductFilter = NonNullable<
+  DistributionControllerListSellableProductsData['query']['filter']
+>[number]
 
 export function distributionMemberSearchQueryOptions(search: string) {
   return {
@@ -51,4 +59,26 @@ export function distributionMemberScreenQueryOptions(memberId: string) {
  */
 export async function recordHandover(orderId: string, body: RecordHandoverInput) {
   return unwrap(await distributionControllerRecordHandover({ path: { orderId }, body }))
+}
+
+export function sellableProductsQueryOptions(search: string) {
+  return {
+    queryKey: ['distribution', 'products', search],
+    queryFn: async () => {
+      const filter: ProductFilter[] = search
+        ? [{ property: 'search' as const, rule: FilterRule.LIKE, value: search }]
+        : []
+      return unwrap(
+        await distributionControllerListSellableProducts({
+          query: { offset: 0, pageSize: DISTRIBUTION_MEMBER_PAGE_SIZE, filter },
+        }),
+      )
+    },
+    enabled: search.trim().length > 0,
+  }
+}
+
+/** Create the order and hand it over in one call — nothing is persisted before this. */
+export async function createExpressOrder(memberId: string, body: CreateExpressOrderInput) {
+  return unwrap(await distributionControllerCreateExpressOrder({ path: { memberId }, body }))
 }

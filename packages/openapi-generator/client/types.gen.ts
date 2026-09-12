@@ -175,6 +175,19 @@ export type RecordHandoverInput = {
 };
 
 /**
+ * CreateExpressOrderInput
+ *
+ * Built at the table and sent once. Nothing is persisted before this call (FR-016).
+ */
+export type CreateExpressOrderInput = {
+    lines: Array<{
+        productId: string;
+        quantity: number;
+    }>;
+    note?: string;
+};
+
+/**
  * CreateMember
  *
  * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
@@ -1009,6 +1022,40 @@ export type HandoverLine = {
 };
 
 /**
+ * DistributionProductList
+ */
+export type DistributionProductList = {
+    data: Array<DistributionProduct>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * DistributionProduct
+ *
+ * A product a staffer can sell at the table, with its price and current stock
+ */
+export type DistributionProduct = {
+    id: string;
+    name: string;
+    barcode?: string | null;
+    /**
+     * ProductSaleMode
+     *
+     * "unit" is sold per piece, "weight" is priced per kilogram
+     */
+    saleMode: 'unit' | 'weight';
+    selectionUnit?: 'g' | 'kg' | null;
+    quantityStepGrams?: number | null;
+    unitPriceEur: number;
+    quantityOnHand: number;
+};
+
+/**
  * MembersList
  *
  * A paginated list of members
@@ -1686,6 +1733,14 @@ export type DistributionControllerSearchMembersFilterItem = {
 };
 
 export type DistributionControllerSearchMembersFilterArray = Array<DistributionControllerSearchMembersFilterItem>;
+
+export type DistributionControllerListSellableProductsFilterItem = {
+    property: 'search' | 'categoryId';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type DistributionControllerListSellableProductsFilterArray = Array<DistributionControllerListSellableProductsFilterItem>;
 
 export type AppControllerGetHelloData = {
     body?: never;
@@ -3265,3 +3320,63 @@ export type DistributionControllerRecordHandoverResponses = {
 };
 
 export type DistributionControllerRecordHandoverResponse = DistributionControllerRecordHandoverResponses[keyof DistributionControllerRecordHandoverResponses];
+
+export type DistributionControllerListSellableProductsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: search, categoryId
+         */
+        filter?: DistributionControllerListSellableProductsFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/distribution/products';
+};
+
+export type DistributionControllerListSellableProductsResponses = {
+    /**
+     * Successful response
+     */
+    200: DistributionProductList;
+};
+
+export type DistributionControllerListSellableProductsResponse = DistributionControllerListSellableProductsResponses[keyof DistributionControllerListSellableProductsResponses];
+
+export type DistributionControllerCreateExpressOrderData = {
+    /**
+     * CreateExpressOrderInput
+     *
+     * Built at the table and sent once. Nothing is persisted before this call (FR-016).
+     */
+    body: {
+        lines: Array<{
+            productId: string;
+            quantity: number;
+        }>;
+        note?: string;
+    };
+    path: {
+        memberId: string;
+    };
+    query?: never;
+    url: '/api/distribution/members/{memberId}/express-orders';
+};
+
+export type DistributionControllerCreateExpressOrderResponses = {
+    /**
+     * A record of goods physically given to a member at a point in time
+     */
+    200: Handover;
+};
+
+export type DistributionControllerCreateExpressOrderResponse = DistributionControllerCreateExpressOrderResponses[keyof DistributionControllerCreateExpressOrderResponses];

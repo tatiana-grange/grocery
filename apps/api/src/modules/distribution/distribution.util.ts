@@ -72,3 +72,21 @@ export function isOrderFullySettled(
 ): boolean {
   return allOrderLineIds.every((id) => alreadySettledLineIds.has(id) || settledNowLineIds.has(id))
 }
+
+/** The two fields that decide whether a product can be sold at the table. */
+export interface SellabilityInput {
+  archivedAt?: Date | null
+  orderingMode: 'pre_order' | 'in_store' | 'both'
+}
+
+/**
+ * Whether a product can go on an express order (FR-014).
+ *
+ * Archived products are out, and so are pre-order-only ones: they are ordered ahead from the
+ * producer, so there is nothing on the shelf to hand over today. `both` is fine — it is sold
+ * from stock as well as pre-ordered.
+ */
+export function isSellableAtTable(product: SellabilityInput): boolean {
+  if (product.archivedAt) return false
+  return product.orderingMode !== 'pre_order'
+}

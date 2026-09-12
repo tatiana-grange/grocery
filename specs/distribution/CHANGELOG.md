@@ -192,6 +192,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   distribution-member-page.tsx, distribution-queries.ts,
   tests/distribution-handover.spec.ts, packages/openapi-generator/client/*
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 5: User Story 3 — express order at the table
+- Tasks completed: T046, T047, T048, T049, T050, T051, T052
+- An express sale creates a real `Order` with real `OrderLine`s, priced by the same
+  `currentPrice` helper checkout uses, then runs the same guarded handover path — same member
+  lock, same balance refusal, same stock and wallet writes. One shape downstream rather than
+  a second one to maintain.
+- Product search covers name and barcode, so a scanner needs no extra plumbing. Selling past
+  recorded stock warns but never blocks, and stock is allowed below zero.
+- Verified: 5 Playwright tests (`distribution-express.spec.ts`), 57 distribution API tests,
+  both type-checks clean, no new lint warnings
+- **Author**: AI (Claude)
+- **Files**: distribution.util.ts, distribution.service.ts, distribution.mapper.ts,
+  distribution.controller.ts, tests/distribution.service.spec.ts,
+  tests/distribution.controller.e2e-spec.ts, express-order-form.tsx,
+  distribution-queries.ts, routes.ts, tests/distribution-express.spec.ts,
+  packages/openapi-generator/client/*
+
 ---
 
 <!--

@@ -548,4 +548,162 @@ describe('distributionController (e2e)', () => {
       expect(res.status).toBe(403)
     })
   })
+
+  describe('express orders', () => {
+    it('lists sellable products, searchable by name and by barcode (FR-014)', async () => {
+      const { product } = await createProductData(em, {
+        name: 'Miel du coin',
+        orderingMode: 'in_store',
+        priceEur: 7,
+      })
+      product.barcode = '3761111111118'
+      await em.persist(product).flush()
+      await addStock(product, 25)
+
+      const byName = await request
+        .withSession(distributor)
+        .get('/distribution/products?filter=search:like:Miel')
+      expect(byName.status).toBe(200)
+      expect(byName.body.data[0].unitPriceEur).toBe(7)
+      expect(byName.body.data[0].quantityOnHand).toBe(25)
+
+      const byBarcode = await request
+        .withSession(distributor)
+        .get('/distribution/products?filter=search:like:3761111111118')
+      expect(byBarcode.body.data.map((row: { id: string }) => row.id)).toContain(product.id)
+    })
+
+    it('leaves an archived or pre-order-only product out of the sellable list', async () => {
+      const { product: archived } = await createProductData(em, {
+        name: 'Archived jam',
+        orderingMode: 'in_store',
+        archivedAt: new Date(),
+      })
+      const { product: preOrderOnly } = await createProductData(em, {
+        name: 'Pre-order leeks',
+        orderingMode: 'pre_order',
+      })
+      await em.flush()
+
+      const res = await request.withSession(distributor).get('/distribution/products')
+      const ids = res.body.data.map((row: { id: string }) => row.id)
+      expect(ids).not.toContain(archived.id)
+      expect(ids).not.toContain(preOrderOnly.id)
+    })
+
+    it('creates the order, drops stock and charges the member in one step (FR-017)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Honey')
+      await addStock(product, 25)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [{ productId: product.id, quantity: 2 }] })
+
+      expect(res.status).toBe(201)
+      expect(res.body.totalEur).toBe(6)
+      expect(res.body.balanceAfterEur).toBe(54)
+
+      em.clear()
+      const order = await em.findOneOrFail(Order, { member: member.id })
+      expect(order.orderingMode).toBe('in_store')
+      expect(order.status).toBe('handed_over')
+      const movements = await em.find(StockMovement, { product: product.id })
+      expect(movements.reduce((sum, m) => sum + Number(m.quantity), 0)).toBe(23)
+    })
+
+    it('prices a by-weight line at the current price per kilogram (FR-015)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const { product } = await createProductData(em, {
+        name: 'Comté au comptoir',
+        saleMode: 'weight',
+        orderingMode: 'in_store',
+        priceEur: 20,
+      })
+      await em.flush()
+      await addStock(product, 10)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [{ productId: product.id, quantity: 0.35 }] })
+
+      expect(res.status).toBe(201)
+      expect(res.body.totalEur).toBe(7)
+    })
+
+    it('sells past the recorded stock rather than blocking, and lets it go negative', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Scarce honey')
+      await addStock(product, 1)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [{ productId: product.id, quantity: 3 }] })
+      expect(res.status).toBe(201)
+
+      em.clear()
+      const movements = await em.find(StockMovement, { product: product.id })
+      expect(movements.reduce((sum, m) => sum + Number(m.quantity), 0)).toBe(-2)
+    })
+
+    it('refuses an archived product', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const { product } = await createProductData(em, {
+        name: 'Archived jam',
+        orderingMode: 'in_store',
+        archivedAt: new Date(),
+      })
+      await em.flush()
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [{ productId: product.id, quantity: 1 }] })
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('product_not_sellable')
+    })
+
+    it('refuses when the balance does not cover it, and creates no order', async () => {
+      const member = await makeMember('Bruno Broke')
+      const product = await makeProduct('Honey')
+      await addStock(product, 10)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [{ productId: product.id, quantity: 2 }] })
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('insufficient_balance')
+
+      em.clear()
+      expect(await em.count(Order, { member: member.id })).toBe(0)
+      const movements = await em.find(StockMovement, { product: product.id })
+      expect(movements).toHaveLength(1) // only the opening stock
+    })
+
+    it('rejects an empty line list before it reaches the service (FR-019)', async () => {
+      const member = await makeMember('Fanny Funded')
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [] })
+      expect(res.status).toBe(400)
+    })
+
+    it('refuses a plain member', async () => {
+      const member = await makeMember('Fanny Funded')
+      const res = await request
+        .withSession(plainMember)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [] })
+      expect(res.status).toBe(403)
+    })
+  })
 })

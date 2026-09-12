@@ -307,33 +307,33 @@ fell, and the account was charged, without touching any pre-existing order.
 
 > Write this first. It must fail before the implementation below.
 
-- [ ] T046 [US3] E2E test in `apps/web-spa-e2e/tests/distribution-express.spec.ts`: add a
+- [X] T046 [US3] E2E test in `apps/web-spa-e2e/tests/distribution-express.spec.ts`: add a
   product by name and one by barcode, see the over-stock warning without being blocked, remove
   a line, validate, and assert the new order, the stock drop and the charge
 
 ### Implementation for User Story 3
 
-- [ ] T047 [US3] Implement `DistributionService.listSellableProducts` in
+- [X] T047 [US3] Implement `DistributionService.listSellableProducts` in
   `apps/api/src/modules/distribution/distribution.service.ts`: non-archived, in-store-orderable
   products searchable by name **or barcode**, each with its current price and current stock on
   hand, reusing `buildSearchFilter` and `InventoryService.getStockLevels`
-- [ ] T048 [US3] Implement `DistributionService.createExpressOrder` in
+- [X] T048 [US3] Implement `DistributionService.createExpressOrder` in
   `apps/api/src/modules/distribution/distribution.service.ts` as one `em.transactional`
   that creates the `Order` (`orderingMode: 'in_store'`) and its `OrderLine`s at current prices
   via the existing `currentPrice(product)` helper, then runs the same handover path as T040 —
   same member lock, same balance refusal, same stock and wallet writes (research.md §8)
-- [ ] T049 [US3] Add `GET /distribution/products` (paginated, `search` / `categoryId` filters)
+- [X] T049 [US3] Add `GET /distribution/products` (paginated, `search` / `categoryId` filters)
   and `POST /distribution/members/:memberId/express-orders` to
   `apps/api/src/modules/distribution/distribution.controller.ts`
-- [ ] T050 [P] [US3] Unit tests in
+- [X] T050 [P] [US3] Unit tests in
   `apps/api/src/modules/distribution/tests/distribution.service.spec.ts`: express pricing at
   the current price (including per-kilogram for a by-weight product), the archived or
   non-in-store product refusal, and the empty or all-zero line refusal
-- [ ] T051 [P] [US3] API e2e tests in
+- [X] T051 [P] [US3] API e2e tests in
   `apps/api/src/modules/distribution/tests/distribution.controller.e2e-spec.ts`: product search
   by name and by barcode, a successful express sale, and the insufficient-balance refusal on
   the express path
-- [ ] T052 [US3] Build
+- [X] T052 [US3] Build
   `apps/web-spa/app/features/distribution/components/express-order-form.tsx`: product search
   accepting a scanned or typed barcode, quantity or weight per line, a running total, an
   over-stock warning that does not block, and a single-flight validate action (research.md §11

@@ -124,6 +124,19 @@ export const zRecordHandoverInput = z.object({
 });
 
 /**
+ * CreateExpressOrderInput
+ *
+ * Built at the table and sent once. Nothing is persisted before this call (FR-016).
+ */
+export const zCreateExpressOrderInput = z.object({
+    lines: z.array(z.object({
+        productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        quantity: z.number().gt(0)
+    })).min(1),
+    note: z.optional(z.string().max(500))
+});
+
+/**
  * MemberValidation
  *
  * Validate a pending member (moves them to active) or reject them with a reason
@@ -1131,6 +1144,44 @@ export const zHandover = z.object({
 });
 
 /**
+ * DistributionProduct
+ *
+ * A product a staffer can sell at the table, with its price and current stock
+ */
+export const zDistributionProduct = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    name: z.string(),
+    barcode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    saleMode: z.enum(['unit', 'weight']),
+    selectionUnit: z.optional(z.union([
+        z.enum(['g', 'kg']),
+        z.null()
+    ])),
+    quantityStepGrams: z.optional(z.union([
+        z.int().gte(-9007199254740991).lte(9007199254740991),
+        z.null()
+    ])),
+    unitPriceEur: z.number().gte(0),
+    quantityOnHand: z.number()
+});
+
+/**
+ * DistributionProductList
+ */
+export const zDistributionProductList = z.object({
+    data: z.array(zDistributionProduct),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
  * MemberListItem
  *
  * A member as shown in the back-office list
@@ -1970,6 +2021,30 @@ export const zDistributionControllerSearchMembersFilterItem = z.object({
 });
 
 export const zDistributionControllerSearchMembersFilterArray = z.array(zDistributionControllerSearchMembersFilterItem);
+
+export const zDistributionControllerListSellableProductsFilterItem = z.object({
+    property: z.union([
+        z.literal('search'),
+        z.literal('categoryId')
+    ]),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zDistributionControllerListSellableProductsFilterArray = z.array(zDistributionControllerListSellableProductsFilterItem);
 
 export const zAppControllerGetHelloData = z.object({
     body: z.optional(z.never()),
@@ -3148,3 +3223,37 @@ export const zDistributionControllerRecordHandoverData = z.object({
  * A record of goods physically given to a member at a point in time
  */
 export const zDistributionControllerRecordHandoverResponse = zHandover;
+
+export const zDistributionControllerListSellableProductsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zDistributionControllerListSellableProductsFilterArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * Successful response
+ */
+export const zDistributionControllerListSellableProductsResponse = zDistributionProductList;
+
+export const zDistributionControllerCreateExpressOrderData = z.object({
+    body: z.object({
+        lines: z.array(z.object({
+            productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            quantity: z.number().gt(0)
+        })).min(1),
+        note: z.optional(z.string().max(500))
+    }),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A record of goods physically given to a member at a point in time
+ */
+export const zDistributionControllerCreateExpressOrderResponse = zHandover;

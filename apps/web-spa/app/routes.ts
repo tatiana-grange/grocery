@@ -24,6 +24,10 @@ export default [
       'distribution/members/:memberId',
       'features/distribution/components/distribution-member-page.tsx',
     ),
+    route(
+      'distribution/members/:memberId/express',
+      'features/distribution/components/express-order-form.tsx',
+    ),
   ]),
   layout('features/common/components/back-office-layout.tsx', [
     route('admin/members', 'features/admin-members/components/members-list-page.tsx'),

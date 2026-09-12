@@ -3,6 +3,7 @@ import {
   balanceCovers,
   handoverTotalCents,
   isOrderFullySettled,
+  isSellableAtTable,
   lineReadiness,
   lineTotalCents,
 } from '../distribution.util'
@@ -114,5 +115,28 @@ describe('isOrderFullySettled', () => {
 
   it('counts a line settled by an earlier, un-reversed handover', () => {
     expect(isOrderFullySettled(['a', 'b'], new Set(['a']), new Set(['b']))).toBe(true)
+  })
+})
+
+describe('isSellableAtTable', () => {
+  it('sells a product stocked for in-store buying', () => {
+    expect(isSellableAtTable({ orderingMode: 'in_store' })).toBe(true)
+  })
+
+  it('sells a product that is both pre-orderable and stocked', () => {
+    expect(isSellableAtTable({ orderingMode: 'both' })).toBe(true)
+  })
+
+  it('refuses a pre-order-only product — nothing is on the shelf today', () => {
+    expect(isSellableAtTable({ orderingMode: 'pre_order' })).toBe(false)
+  })
+
+  it('refuses an archived product whatever its ordering mode', () => {
+    expect(isSellableAtTable({ orderingMode: 'in_store', archivedAt: new Date() })).toBe(false)
+    expect(isSellableAtTable({ orderingMode: 'both', archivedAt: new Date() })).toBe(false)
+  })
+
+  it('treats a null archivedAt as not archived', () => {
+    expect(isSellableAtTable({ orderingMode: 'in_store', archivedAt: null })).toBe(true)
   })
 })
