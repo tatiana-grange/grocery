@@ -401,9 +401,9 @@ export type StockMovement = {
     /**
      * StockMovementReason
      *
-     * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+     * reception adds stock, distribution removes it, distribution_reversal puts back what a reversed handover took. A later inventory increment adds adjustment and count_correction to this same field.
      */
-    reason: 'reception';
+    reason: 'reception' | 'distribution' | 'distribution_reversal';
     receptionLineId?: string | null;
     createdAt: string;
 };
@@ -411,14 +411,18 @@ export type StockMovement = {
 /**
  * StockMovementReason
  *
- * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ * reception adds stock, distribution removes it, distribution_reversal puts back what a reversed handover took. A later inventory increment adds adjustment and count_correction to this same field.
  */
-export const StockMovementReason = { RECEPTION: 'reception' } as const;
+export const StockMovementReason = {
+    RECEPTION: 'reception',
+    DISTRIBUTION: 'distribution',
+    DISTRIBUTION_REVERSAL: 'distribution_reversal'
+} as const;
 
 /**
  * StockMovementReason
  *
- * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ * reception adds stock, distribution removes it, distribution_reversal puts back what a reversed handover took. A later inventory increment adds adjustment and count_correction to this same field.
  */
 export type StockMovementReason = typeof StockMovementReason[keyof typeof StockMovementReason];
 
@@ -838,7 +842,7 @@ export type MemberListItem = {
      * Lifecycle status of a cooperative member
      */
     status: 'pending' | 'active' | 'rejected' | 'terminated';
-    roles: Array<'member' | 'admin'>;
+    roles: Array<'member' | 'distributor' | 'admin'>;
     /**
      * MembershipFeeState
      *
@@ -870,14 +874,18 @@ export type MemberStatus = typeof MemberStatus[keyof typeof MemberStatus];
 /**
  * UserRole
  *
- * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ * Access role. "admin" is a superset of "member". "distributor" opens the distribution table and nothing else; an admin reaches it without holding the role.
  */
-export const UserRole = { MEMBER: 'member', ADMIN: 'admin' } as const;
+export const UserRole = {
+    MEMBER: 'member',
+    DISTRIBUTOR: 'distributor',
+    ADMIN: 'admin'
+} as const;
 
 /**
  * UserRole
  *
- * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ * Access role. "admin" is a superset of "member". "distributor" opens the distribution table and nothing else; an admin reaches it without holding the role.
  */
 export type UserRole = typeof UserRole[keyof typeof UserRole];
 
@@ -1159,9 +1167,9 @@ export type OrderDetail = {
     /**
      * OrderStatus
      *
-     * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+     * pending is the starting value. handed_over is set once every line has been handed over or zeroed at the distribution table, and returns to pending if that handover is reversed.
      */
-    status: 'pending' | 'cancelled';
+    status: 'pending' | 'cancelled' | 'handed_over';
     totalEur: number;
     placedAt: string;
     cancelledAt?: string | null;
@@ -1178,14 +1186,18 @@ export type OrderDetail = {
 /**
  * OrderStatus
  *
- * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ * pending is the starting value. handed_over is set once every line has been handed over or zeroed at the distribution table, and returns to pending if that handover is reversed.
  */
-export const OrderStatus = { PENDING: 'pending', CANCELLED: 'cancelled' } as const;
+export const OrderStatus = {
+    PENDING: 'pending',
+    CANCELLED: 'cancelled',
+    HANDED_OVER: 'handed_over'
+} as const;
 
 /**
  * OrderStatus
  *
- * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ * pending is the starting value. handed_over is set once every line has been handed over or zeroed at the distribution table, and returns to pending if that handover is reversed.
  */
 export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
 
@@ -1565,7 +1577,7 @@ export type AdminMembersControllerCreateData = {
             city?: string | null;
             phone?: string | null;
         };
-        roles: Array<'member' | 'admin'>;
+        roles: Array<'member' | 'distributor' | 'admin'>;
         status: 'pending' | 'active';
     };
     path?: never;
@@ -1751,7 +1763,7 @@ export type AdminMembersControllerSetRolesData = {
      * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
      */
     body: {
-        roles: Array<'member' | 'admin'>;
+        roles: Array<'member' | 'distributor' | 'admin'>;
         version: number;
     };
     path: {

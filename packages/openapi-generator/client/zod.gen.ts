@@ -252,7 +252,7 @@ export const zStockSummary = z.object({
         name: z.string(),
         saleMode: z.enum(['unit', 'weight'])
     }),
-    quantityOnHand: z.number().gte(0),
+    quantityOnHand: z.number(),
     costPriceEur: z.optional(z.union([
         z.number().gte(0),
         z.null()
@@ -288,7 +288,11 @@ export const zStockMovement = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     quantity: z.number(),
     unitCostEur: z.number().gte(0),
-    reason: z.enum(['reception']),
+    reason: z.enum([
+        'reception',
+        'distribution',
+        'distribution_reversal'
+    ]),
     receptionLineId: z.optional(z.union([
         z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         z.null()
@@ -305,7 +309,7 @@ export const zStockDetail = z.object({
         name: z.string(),
         saleMode: zProductSaleMode
     }),
-    quantityOnHand: z.number().gte(0),
+    quantityOnHand: z.number(),
     costPriceEur: z.optional(z.union([
         z.number().gte(0),
         z.null()
@@ -316,9 +320,13 @@ export const zStockDetail = z.object({
 /**
  * StockMovementReason
  *
- * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ * reception adds stock, distribution removes it, distribution_reversal puts back what a reversed handover took. A later inventory increment adds adjustment and count_correction to this same field.
  */
-export const zStockMovementReason = z.enum(['reception']);
+export const zStockMovementReason = z.enum([
+    'reception',
+    'distribution',
+    'distribution_reversal'
+]);
 
 /**
  * SupplierType
@@ -940,7 +948,11 @@ export const zMemberListItem = z.object({
         'rejected',
         'terminated'
     ]),
-    roles: z.array(z.enum(['member', 'admin'])),
+    roles: z.array(z.enum([
+        'member',
+        'distributor',
+        'admin'
+    ])),
     feeState: z.enum([
         'unpaid',
         'partly_paid',
@@ -979,9 +991,13 @@ export const zMemberStatus = z.enum([
 /**
  * UserRole
  *
- * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ * Access role. "admin" is a superset of "member". "distributor" opens the distribution table and nothing else; an admin reaches it without holding the role.
  */
-export const zUserRole = z.enum(['member', 'admin']);
+export const zUserRole = z.enum([
+    'member',
+    'distributor',
+    'admin'
+]);
 
 /**
  * CreateMember
@@ -1310,7 +1326,11 @@ export const zAddCartLine = z.object({
 export const zOrderDetail = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     orderingMode: z.enum(['pre_order', 'in_store']),
-    status: z.enum(['pending', 'cancelled']),
+    status: z.enum([
+        'pending',
+        'cancelled',
+        'handed_over'
+    ]),
     totalEur: z.number().gte(0),
     placedAt: z.string(),
     cancelledAt: z.optional(z.union([
@@ -1330,9 +1350,13 @@ export const zOrderDetail = z.object({
 /**
  * OrderStatus
  *
- * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ * pending is the starting value. handed_over is set once every line has been handed over or zeroed at the distribution table, and returns to pending if that handover is reversed.
  */
-export const zOrderStatus = z.enum(['pending', 'cancelled']);
+export const zOrderStatus = z.enum([
+    'pending',
+    'cancelled',
+    'handed_over'
+]);
 
 /**
  * OrderLine
@@ -1806,7 +1830,11 @@ export const zAdminMembersControllerCreateData = z.object({
                 z.null()
             ]))
         })),
-        roles: z.array(z.enum(['member', 'admin'])).min(1).default(['member']),
+        roles: z.array(z.enum([
+            'member',
+            'distributor',
+            'admin'
+        ])).min(1).default(['member']),
         status: z.enum(['pending', 'active'])
     }),
     path: z.optional(z.never()),
@@ -1947,7 +1975,11 @@ export const zAdminMembersControllerRecordFeePaymentResponse = zFeeSummary;
 
 export const zAdminMembersControllerSetRolesData = z.object({
     body: z.object({
-        roles: z.array(z.enum(['member', 'admin'])).min(1),
+        roles: z.array(z.enum([
+            'member',
+            'distributor',
+            'admin'
+        ])).min(1),
         version: z.int().gte(-9007199254740991).lte(9007199254740991)
     }),
     path: z.object({

@@ -150,26 +150,26 @@ every user story below builds on.
   `stockMovement.handoverLineId` **added** as a nullable column, not a table rewrite; and
   **no DDL at all** for `order.status`, `stockMovement.reason`, or the roles — all three are
   varchar columns whose values live in contract enums
-- [ ] T024 Run `pnpm generate` to regenerate `@grocery/openapi-generator` against the new and
+- [X] T024 Run `pnpm generate` to regenerate `@grocery/openapi-generator` against the new and
   changed contracts (notably the relaxed `quantityOnHand` and the new role value), and confirm
   the frontend type-checks against it
 
 ### Frontend shell and E2E fixtures
 
-- [ ] T025 Create `apps/web-spa/app/features/common/components/distribution-layout.tsx` gated
+- [X] T025 Create `apps/web-spa/app/features/common/components/distribution-layout.tsx` gated
   on distributor-or-admin via `useRoles().isStaff`, reusing the `rbac-access-denied` panel
   pattern from `back-office-layout.tsx`, and register the `/distribution` route group in
   `apps/web-spa/app/routes.ts`. Leave `back-office-layout.tsx`'s own `isAdmin` gate untouched
   (research.md §13)
-- [ ] T026 [P] Add the `distribution` and `wallet` i18n namespaces to
+- [X] T026 [P] Add the `distribution` and `wallet` i18n namespaces to
   `apps/web-spa/app/lib/i18n/locales/en/` and `.../fr/` — no hardcoded user-facing strings
   anywhere in this lot
-- [ ] T027 [P] Add a `distributor` account to `E2E_USERS` and an `E2E_DISTRIBUTION` fixture
+- [X] T027 [P] Add a `distributor` account to `E2E_USERS` and an `E2E_DISTRIBUTION` fixture
   block in `apps/api/src/seeders/e2e.fixtures.ts` (a funded member holding a fulfilled
   pre-order, an in-store order, and a by-weight line; a zero-balance member with a ready
   order; a member with an unreceived pre-order; a terminated member with an order), isolated
   from the lot 2 and lot 3 fixtures the way `E2E_PURCHASING` already is
-- [ ] T028 Seed those fixtures in the E2E seeder, then add `'distributor'` to the `Role` union
+- [X] T028 Seed those fixtures in the E2E seeder, then add `'distributor'` to the `Role` union
   in `apps/web-spa-e2e/env.ts`, to `withRole` in `apps/web-spa-e2e/fixtures.ts`, and to the
   role loop in `apps/web-spa-e2e/auth.setup.ts` (depends on T027)
 

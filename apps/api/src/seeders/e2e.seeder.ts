@@ -14,7 +14,10 @@ import { OrderLine } from '../modules/orders/entities/order-line.entity'
 import { Order } from '../modules/orders/entities/order.entity'
 import { Product } from '../modules/catalog/entities/product.entity'
 import { applySearchNormalization } from '../modules/db/search.util'
+import { StockMovement } from '../modules/inventory/entities/stock-movement.entity'
+import { WalletEntry } from '../modules/wallet/entities/wallet-entry.entity'
 import {
+  E2E_DISTRIBUTION,
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
   E2E_PURCHASING,
@@ -26,6 +29,7 @@ import {
 // Re-exported so existing importers keep working; the definitions live in `e2e.fixtures.ts`,
 // which the `@grocery/web-spa-e2e` package also imports.
 export {
+  E2E_DISTRIBUTION,
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
   E2E_PURCHASING,
@@ -82,6 +86,19 @@ export class E2eSeeder extends Seeder {
         status: 'active',
       })
     }
+
+    // Lot 4: the account the distribution specs sign in as. `member,distributor` — enough
+    // to run a distribution, not enough to reach any admin screen.
+    await createMemberData(em, {
+      user: {
+        name: E2E_USERS.distributor.name,
+        email: E2E_USERS.distributor.email,
+        emailVerified: true,
+      },
+      password: E2E_PASSWORD,
+      roles: ['member', 'distributor'],
+      status: 'active',
+    })
 
     const { user: bannedUser } = await createMemberData(em, {
       user: { name: E2E_USERS.banned.name, email: E2E_USERS.banned.email, emailVerified: true },
@@ -273,6 +290,168 @@ export class E2eSeeder extends Seeder {
     seedPreOrder(zelda, unitPreOrder, 3)
     seedPreOrder(zelda, weightPreOrder, 1)
     seedPreOrder(milo, archivedPreOrder, 1)
+
+    // --- lot 4 distribution: stocked products + four members in the states the table handles
+    const distributionSupplier = await createSupplierData(em, {
+      name: E2E_DISTRIBUTION.supplierName,
+      type: 'producer',
+    })
+    const { product: readyProduct } = await createProductData(em, {
+      name: E2E_DISTRIBUTION.readyProductName,
+      saleMode: 'unit',
+      orderingMode: 'both',
+      priceEur: 3,
+      supplier: distributionSupplier,
+      category,
+      setByUser: adminUser,
+    })
+    const { product: weightProduct } = await createProductData(em, {
+      name: E2E_DISTRIBUTION.weightProductName,
+      saleMode: 'weight',
+      orderingMode: 'both',
+      priceEur: 20,
+      supplier: distributionSupplier,
+      category,
+      setByUser: adminUser,
+    })
+    weightProduct.averageWeightGrams = 400
+    weightProduct.weightTolerancePercent = 10
+    em.persist(weightProduct)
+    const { product: expressProduct } = await createProductData(em, {
+      name: E2E_DISTRIBUTION.expressProductName,
+      saleMode: 'unit',
+      orderingMode: 'in_store',
+      priceEur: 7,
+      supplier: distributionSupplier,
+      category,
+      setByUser: adminUser,
+    })
+    expressProduct.barcode = E2E_DISTRIBUTION.expressBarcode
+    em.persist(expressProduct)
+    const { product: awaitingProduct } = await createProductData(em, {
+      name: E2E_DISTRIBUTION.awaitingProductName,
+      saleMode: 'unit',
+      orderingMode: 'pre_order',
+      priceEur: 2,
+      supplier: distributionSupplier,
+      category,
+      setByUser: adminUser,
+    })
+
+    /**
+     * Puts stock on the shelf without replaying lot 3's paperwork. `receptionLine` is
+     * nullable, so a fixture can seed an opening balance directly; every movement the
+     * application itself writes still carries its reception or handover.
+     */
+    const seedStock = (product: Product, quantity: number, unitCostCents: number): void => {
+      const movement = new StockMovement()
+      movement.product = product
+      movement.quantity = String(quantity)
+      movement.unitCostAmountCents = unitCostCents
+      movement.currency = 'EUR'
+      movement.reason = 'reception'
+      em.persist(movement)
+    }
+    seedStock(readyProduct, 40, 200)
+    seedStock(weightProduct, 10, 1400)
+    seedStock(expressProduct, 25, 450)
+
+    const seedOrder = (
+      member: Member,
+      orderingMode: 'pre_order' | 'in_store',
+      lines: { product: Product; quantity: number; unitPriceCents: number }[],
+      options: { fulfilled?: boolean } = {},
+    ): Order => {
+      const order = new Order()
+      order.member = member
+      order.orderingMode = orderingMode
+      order.status = 'pending'
+      order.placedAt = new Date()
+      let totalAmountCents = 0
+      for (const entry of lines) {
+        const line = new OrderLine()
+        line.order = order
+        line.product = entry.product
+        line.productNameSnapshot = entry.product.name
+        line.quantity = String(entry.quantity)
+        line.unitPriceAmountCents = entry.unitPriceCents
+        line.lineTotalAmountCents = Math.round(entry.quantity * entry.unitPriceCents)
+        // A pre-order is only ready once lot 3 marked it fulfilled; an in-store line always is.
+        if (orderingMode === 'pre_order' && options.fulfilled) line.fulfilledAt = new Date()
+        totalAmountCents += line.lineTotalAmountCents
+        order.lines.add(line)
+        em.persist(line)
+      }
+      order.totalAmountCents = totalAmountCents
+      em.persist(order)
+      return order
+    }
+
+    const { member: fanny } = await createMemberData(em, {
+      user: {
+        name: E2E_DISTRIBUTION.funded.name,
+        email: E2E_DISTRIBUTION.funded.email,
+        emailVerified: true,
+      },
+      password: E2E_PASSWORD,
+      roles: ['member'],
+      status: 'active',
+    })
+    const opening = new WalletEntry()
+    opening.member = fanny
+    opening.amountCents = E2E_DISTRIBUTION.funded.balanceEur * 100
+    opening.currency = 'EUR'
+    opening.reason = 'payment_received'
+    opening.paymentMethod = 'transfer'
+    em.persist(opening)
+    seedOrder(
+      fanny,
+      'pre_order',
+      [
+        { product: readyProduct, quantity: 4, unitPriceCents: 300 },
+        { product: weightProduct, quantity: 0.5, unitPriceCents: 2000 },
+      ],
+      { fulfilled: true },
+    )
+    seedOrder(fanny, 'in_store', [{ product: expressProduct, quantity: 1, unitPriceCents: 700 }])
+
+    const { member: bruno } = await createMemberData(em, {
+      user: {
+        name: E2E_DISTRIBUTION.broke.name,
+        email: E2E_DISTRIBUTION.broke.email,
+        emailVerified: true,
+      },
+      password: E2E_PASSWORD,
+      roles: ['member'],
+      status: 'active',
+    })
+    // No wallet entry at all: balance reads 0, so any handover is refused until staff take
+    // payment at the table.
+    seedOrder(bruno, 'in_store', [{ product: readyProduct, quantity: 2, unitPriceCents: 300 }])
+
+    const { member: anna } = await createMemberData(em, {
+      user: {
+        name: E2E_DISTRIBUTION.awaiting.name,
+        email: E2E_DISTRIBUTION.awaiting.email,
+        emailVerified: true,
+      },
+      password: E2E_PASSWORD,
+      roles: ['member'],
+      status: 'active',
+    })
+    seedOrder(anna, 'pre_order', [{ product: awaitingProduct, quantity: 3, unitPriceCents: 200 }])
+
+    const { member: elio } = await createMemberData(em, {
+      user: {
+        name: E2E_DISTRIBUTION.ended.name,
+        email: E2E_DISTRIBUTION.ended.email,
+        emailVerified: true,
+      },
+      password: E2E_PASSWORD,
+      roles: ['member'],
+      status: 'terminated',
+    })
+    seedOrder(elio, 'in_store', [{ product: readyProduct, quantity: 1, unitPriceCents: 300 }])
 
     // --- restore the canonical password ---------------------------------------------------
     // `POST /api/test/seed/reset` keeps the Better Auth tables, and `createUserData` leaves an

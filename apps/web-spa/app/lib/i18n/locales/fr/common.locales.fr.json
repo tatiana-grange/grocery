@@ -521,5 +521,123 @@
     "cancel": "Annuler",
     "conflict": "Cet élément a changé depuis son ouverture — rechargez et réessayez",
     "retry": "Réessayer"
+  },
+  "distribution": {
+    "title": "Distribution",
+    "subtitle": "Trouvez un adhérent, remettez ses commandes ou vendez depuis le rayon.",
+    "nav": {
+      "distribution": "Distribution",
+      "backToShop": "Retour à la boutique"
+    },
+    "accessDenied": "Il faut le rôle distributeur pour tenir une distribution.",
+    "search": {
+      "label": "Trouver un adhérent",
+      "placeholder": "Nom ou numéro d'adhérent…",
+      "empty": "Aucun adhérent ne correspond.",
+      "outstanding_one": "{{count}} commande en attente",
+      "outstanding_other": "{{count}} commandes en attente",
+      "nothingOutstanding": "Rien en attente"
+    },
+    "member": {
+      "balance": "Solde",
+      "aboutToCharge": "À débiter",
+      "shortfall": "Il manque {{amount}}",
+      "nothingToCollect": "Rien à retirer.",
+      "startExpress": "Commande express",
+      "statusWarning": "Cet adhérent est {{status}}.",
+      "terminatedBlocked": "On ne peut rien remettre à un adhérent résilié."
+    },
+    "order": {
+      "preOrder": "Précommande",
+      "inStore": "Sur stock",
+      "placedAt": "Passée le {{date}}",
+      "notReady": "Pas prête",
+      "ready": "Prête",
+      "total": "Total"
+    },
+    "notReadyReason": {
+      "awaiting_reception": "En attente de la livraison du fournisseur"
+    },
+    "line": {
+      "ordered": "Commandé",
+      "available": "En rayon",
+      "handedOver": "Remis",
+      "unitPrice": "Prix unitaire",
+      "lineTotal": "Total ligne",
+      "negativeStock": "Le stock enregistré est négatif — un inventaire s'impose."
+    },
+    "handover": {
+      "validate": "Valider la remise",
+      "validating": "Validation…",
+      "success": "Remis. {{amount}} débités.",
+      "receipt": "Ticket",
+      "recordedBy": "Enregistré par {{name}}",
+      "difference": "Écart",
+      "reverse": "Annuler cette remise",
+      "reverseReason": "Pourquoi cette annulation ?",
+      "reverseConfirm": "Enregistrer la correction",
+      "reversed": "Annulée",
+      "reversalOf": "Annulation d'une remise précédente",
+      "reverseSuccess": "Annulée. {{amount}} recrédités à l'adhérent."
+    },
+    "express": {
+      "title": "Commande express",
+      "searchPlaceholder": "Nom du produit ou code-barres…",
+      "add": "Ajouter",
+      "remove": "Retirer",
+      "empty": "Aucune ligne pour l'instant.",
+      "overStock": "Seulement {{available}} en stock enregistré — vente maintenue.",
+      "validate": "Encaisser",
+      "success": "Vendu. {{amount}} débités."
+    },
+    "waiting": {
+      "preOrders": "Précommandes à remettre",
+      "inStoreOrders": "Commandes sur stock à remettre",
+      "empty": "Rien en attente.",
+      "from": "Passée à partir du",
+      "to": "Passée jusqu'au",
+      "open": "Ouvrir"
+    },
+    "refusal": {
+      "insufficient_balance": "Il manque {{amount}} sur le solde. Enregistrez un paiement pour continuer.",
+      "order_not_pending": "Cette commande a déjà été remise.",
+      "stale_version": "Cette commande a changé depuis son ouverture — rechargez et réessayez.",
+      "line_not_ready": "{{productName}} n'est pas encore arrivé.",
+      "member_terminated": "L'adhésion de cet adhérent est résiliée.",
+      "nothing_handed_over": "Rien à remettre — toutes les lignes sont à zéro.",
+      "product_not_sellable": "Ce produit ne peut pas être vendu à la table.",
+      "already_reversed": "Cette remise a déjà été annulée.",
+      "cannot_reverse_reversal": "Une annulation ne peut pas être annulée."
+    }
+  },
+  "wallet": {
+    "title": "Compte",
+    "balance": "Solde",
+    "history": "Mouvements",
+    "empty": "Aucun mouvement pour l'instant.",
+    "recordPayment": "Enregistrer un paiement",
+    "amount": "Montant",
+    "method": "Payé par",
+    "note": "Note",
+    "noteHint": "Numéro de chèque, par exemple",
+    "submit": "Enregistrer",
+    "submitting": "Enregistrement…",
+    "success": "{{amount}} ajoutés au solde.",
+    "reason": {
+      "handover_charge": "Remise",
+      "payment_received": "Paiement reçu",
+      "handover_reversal": "Remise annulée"
+    },
+    "method_": {
+      "cash": "Espèces",
+      "cheque": "Chèque",
+      "transfer": "Virement"
+    },
+    "columns": {
+      "date": "Date",
+      "reason": "Motif",
+      "amount": "Montant",
+      "recordedBy": "Enregistré par"
+    }
   }
 }

@@ -18,6 +18,13 @@ export default [
     route('account', 'features/account/components/account-page.tsx'),
     route('cart', 'features/cart/components/cart-page.tsx'),
   ]),
+  layout('features/common/components/distribution-layout.tsx', [
+    route('distribution', 'features/distribution/components/distribution-home-page.tsx'),
+    route(
+      'distribution/members/:memberId',
+      'features/distribution/components/distribution-member-page.tsx',
+    ),
+  ]),
   layout('features/common/components/back-office-layout.tsx', [
     route('admin/members', 'features/admin-members/components/members-list-page.tsx'),
     route('admin/members/:memberId', 'features/admin-members/components/member-detail-page.tsx'),

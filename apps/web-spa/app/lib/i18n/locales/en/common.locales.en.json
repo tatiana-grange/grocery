@@ -521,5 +521,123 @@
     "cancel": "Cancel",
     "conflict": "This changed since you opened it — reload and try again",
     "retry": "Try again"
+  },
+  "distribution": {
+    "title": "Distribution",
+    "subtitle": "Find a member, hand over their orders, or sell from the shelf.",
+    "nav": {
+      "distribution": "Distribution",
+      "backToShop": "Back to shop"
+    },
+    "accessDenied": "You need the distributor role to staff a distribution.",
+    "search": {
+      "label": "Find a member",
+      "placeholder": "Name or membership number…",
+      "empty": "No member matches that.",
+      "outstanding_one": "{{count}} order waiting",
+      "outstanding_other": "{{count}} orders waiting",
+      "nothingOutstanding": "Nothing waiting"
+    },
+    "member": {
+      "balance": "Balance",
+      "aboutToCharge": "About to charge",
+      "shortfall": "Short by {{amount}}",
+      "nothingToCollect": "Nothing to collect.",
+      "startExpress": "Express order",
+      "statusWarning": "This member is {{status}}.",
+      "terminatedBlocked": "A terminated member cannot be handed goods."
+    },
+    "order": {
+      "preOrder": "Pre-order",
+      "inStore": "In-store",
+      "placedAt": "Placed {{date}}",
+      "notReady": "Not ready",
+      "ready": "Ready",
+      "total": "Total"
+    },
+    "notReadyReason": {
+      "awaiting_reception": "Waiting on the supplier delivery"
+    },
+    "line": {
+      "ordered": "Ordered",
+      "available": "On the shelf",
+      "handedOver": "Handing over",
+      "unitPrice": "Unit price",
+      "lineTotal": "Line total",
+      "negativeStock": "Recorded stock is negative — a count is due."
+    },
+    "handover": {
+      "validate": "Validate handover",
+      "validating": "Validating…",
+      "success": "Handed over. {{amount}} charged.",
+      "receipt": "Receipt",
+      "recordedBy": "Recorded by {{name}}",
+      "difference": "Difference",
+      "reverse": "Reverse this handover",
+      "reverseReason": "Why is this being reversed?",
+      "reverseConfirm": "Record the correction",
+      "reversed": "Reversed",
+      "reversalOf": "Reversal of an earlier handover",
+      "reverseSuccess": "Reversed. The member was credited {{amount}}."
+    },
+    "express": {
+      "title": "Express order",
+      "searchPlaceholder": "Product name or barcode…",
+      "add": "Add",
+      "remove": "Remove",
+      "empty": "No line yet.",
+      "overStock": "Only {{available}} recorded in stock — selling anyway.",
+      "validate": "Take payment",
+      "success": "Sold. {{amount}} charged."
+    },
+    "waiting": {
+      "preOrders": "Pre-orders to hand over",
+      "inStoreOrders": "In-store orders to hand over",
+      "empty": "Nothing waiting.",
+      "from": "Placed from",
+      "to": "Placed to",
+      "open": "Open"
+    },
+    "refusal": {
+      "insufficient_balance": "Balance is short by {{amount}}. Record a payment to continue.",
+      "order_not_pending": "This order has already been handed over.",
+      "stale_version": "This order changed since you opened it — reload and try again.",
+      "line_not_ready": "{{productName}} has not arrived yet.",
+      "member_terminated": "This member's membership is terminated.",
+      "nothing_handed_over": "Nothing to hand over — every line is zero.",
+      "product_not_sellable": "That product cannot be sold at the table.",
+      "already_reversed": "This handover has already been reversed.",
+      "cannot_reverse_reversal": "A reversal cannot itself be reversed."
+    }
+  },
+  "wallet": {
+    "title": "Account",
+    "balance": "Balance",
+    "history": "Movements",
+    "empty": "No movement yet.",
+    "recordPayment": "Record a payment",
+    "amount": "Amount",
+    "method": "Paid by",
+    "note": "Note",
+    "noteHint": "Cheque number, for instance",
+    "submit": "Record it",
+    "submitting": "Recording…",
+    "success": "{{amount}} added to the balance.",
+    "reason": {
+      "handover_charge": "Handover",
+      "payment_received": "Payment received",
+      "handover_reversal": "Handover reversed"
+    },
+    "method_": {
+      "cash": "Cash",
+      "cheque": "Cheque",
+      "transfer": "Bank transfer"
+    },
+    "columns": {
+      "date": "Date",
+      "reason": "Reason",
+      "amount": "Amount",
+      "recordedBy": "Recorded by"
+    }
   }
 }

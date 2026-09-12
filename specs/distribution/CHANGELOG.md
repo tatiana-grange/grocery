@@ -130,6 +130,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   inventory.service.ts, inventory.service.spec.ts, both modules, app.module.ts,
   Migration20260912142034.ts
 
+## [2026-09-12 00:00] - /speckit.implement
+
+### Changed
+
+- Completed Phase 2: Foundational
+- Tasks completed: T024–T028 (the phase as a whole: T005–T028)
+- Regenerated the typed client against the changed contracts; added the `distribution` and
+  `wallet` i18n namespaces in English and French; added a `/distribution` route group behind
+  its own distributor-or-admin layout; seeded a `distributor` account and four members
+  parked in the states the table has to handle
+- Verified: API type-check clean, SPA type-check clean, 172 API tests pass
+- **Author**: AI (Claude)
+- **Files**: packages/openapi-generator/client/*, common.locales.{en,fr}.json,
+  distribution-layout.tsx, routes.ts, distribution-home-page.tsx,
+  distribution-member-page.tsx, e2e.fixtures.ts, e2e.seeder.ts, web-spa-e2e env.ts /
+  fixtures.ts / auth.setup.ts
+
 ---
 
 <!--
