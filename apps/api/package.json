@@ -17,7 +17,7 @@
     "db:migrate:down": "npx mikro-orm migration:down",
     "db:migrate:fresh": "npx mikro-orm migration:fresh",
     "db:migrate:seed": "npx mikro-orm migration:fresh --seed",
-    "db:fresh": "npx mikro-orm schema:fresh --run",
+    "db:fresh": "npx mikro-orm schema:fresh --run --seed SearchNormalizationSeeder",
     "db:fresh:seed": "npx mikro-orm schema:fresh --run --seed",
     "db:sync": "npx mikro-orm schema:update --run",
     "db:seed:monepi": "npx mikro-orm seeder:run --class=MonepiProductsSeeder",

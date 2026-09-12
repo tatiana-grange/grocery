@@ -18,6 +18,15 @@ This command will drop the database and re-create it based on your entity files.
 pnpm --filter=api db:fresh
 ```
 
+Because it builds from the entity files, it never replays the migrations — anything a migration
+creates that is not entity metadata would be missing. The accent-insensitive `normalize_search`
+function is the one such thing today, so `db:fresh` runs `SearchNormalizationSeeder` to create
+it; without that, every list endpoint with a search box would fail.
+
+Those two PostgreSQL extensions, `unaccent` and `pg_trgm`, have to be installable on the
+database. The application role can usually do that locally; on a managed database an
+administrator may have to run `create extension` once, and the migration says so if it cannot.
+
 If you want also want to seed the database with data, you can use the following command:
 
 ```bash

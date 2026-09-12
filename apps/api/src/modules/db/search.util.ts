@@ -2,6 +2,29 @@ import type { EntityManager, FilterQuery } from '@mikro-orm/core'
 import { raw } from '@mikro-orm/core'
 
 /**
+ * Installs one of the two extensions search depends on, and says something useful when it
+ * cannot.
+ *
+ * Creating an extension needs privileges the application's role often does not have on a
+ * managed Postgres. Installing one that is already there needs none, so this only reaches for
+ * `create extension` when the extension is genuinely missing — a database whose extensions were
+ * installed by an administrator goes straight through. When it is missing *and* out of reach,
+ * a bare "permission denied" in the middle of a deploy is replaced by the command an
+ * administrator has to run.
+ */
+function installExtension(name: string): string {
+  return `do $$
+    begin
+      if not exists (select 1 from pg_extension where extname = '${name}') then
+        create extension "${name}";
+      end if;
+    exception when insufficient_privilege then
+      raise exception 'The "${name}" extension is required for accent-insensitive search, is not installed, and this database role may not create it. Ask an administrator to run: create extension "${name}";';
+    end
+  $$;`
+}
+
+/**
  * Every search box in the app compares text through `normalize_search`: it lower-cases the value
  * and strips its diacritics, so "biere" finds "BIÈRE" and "Bière" finds "biere".
  *
@@ -18,8 +41,8 @@ import { raw } from '@mikro-orm/core'
  * has to create it by hand — see `applySearchNormalization`.
  */
 export const SEARCH_NORMALIZATION_DDL: readonly string[] = [
-  `create extension if not exists "unaccent";`,
-  `create extension if not exists "pg_trgm";`,
+  installExtension('unaccent'),
+  installExtension('pg_trgm'),
   `create or replace function normalize_search(value text) returns text
      language sql immutable parallel safe
      as $$ select lower(public.unaccent('public.unaccent'::regdictionary, coalesce(value, ''))) $$;`,

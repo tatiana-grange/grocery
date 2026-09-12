@@ -79,6 +79,10 @@ Reset your db
 pnpm db:fresh # Drop the database and re-create from your entity files
 ```
 
+A schema built this way skips the migrations, so it would be missing the `normalize_search`
+function the search boxes call. `db:fresh` therefore also runs `SearchNormalizationSeeder`,
+which creates that function and nothing else.
+
 Reset + seed
 
 ```bash
