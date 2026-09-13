@@ -161,6 +161,53 @@ export type SetProductPrice = {
 };
 
 /**
+ * RecordPaymentInput
+ *
+ * Money the member has actually handed over. Entered by a human after the fact — the system does not reconcile against a bank feed.
+ */
+export type RecordPaymentInput = {
+    amountEur: number;
+    paymentMethod: PaymentMethod;
+    note?: string;
+};
+
+/**
+ * RecordHandoverInput
+ *
+ * What was actually handed over. Lines left out stay outstanding for a later distribution.
+ */
+export type RecordHandoverInput = {
+    version: number;
+    lines: Array<{
+        orderLineId: string;
+        handedQuantity: number;
+    }>;
+    note?: string;
+};
+
+/**
+ * CreateExpressOrderInput
+ *
+ * Built at the table and sent once. Nothing is persisted before this call (FR-016).
+ */
+export type CreateExpressOrderInput = {
+    lines: Array<{
+        productId: string;
+        quantity: number;
+    }>;
+    note?: string;
+};
+
+/**
+ * ReverseHandoverInput
+ *
+ * The reason for the correction, kept with the reversing entry (FR-029).
+ */
+export type ReverseHandoverInput = {
+    note: string;
+};
+
+/**
  * CreateMember
  *
  * An administrator creates a member directly. The person receives no password — they use "forgot password" to set one.
@@ -401,9 +448,9 @@ export type StockMovement = {
     /**
      * StockMovementReason
      *
-     * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+     * reception adds stock, distribution removes it, distribution_reversal puts back what a reversed handover took. A later inventory increment adds adjustment and count_correction to this same field.
      */
-    reason: 'reception';
+    reason: 'reception' | 'distribution' | 'distribution_reversal';
     receptionLineId?: string | null;
     createdAt: string;
 };
@@ -411,14 +458,18 @@ export type StockMovement = {
 /**
  * StockMovementReason
  *
- * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ * reception adds stock, distribution removes it, distribution_reversal puts back what a reversed handover took. A later inventory increment adds adjustment and count_correction to this same field.
  */
-export const StockMovementReason = { RECEPTION: 'reception' } as const;
+export const StockMovementReason = {
+    RECEPTION: 'reception',
+    DISTRIBUTION: 'distribution',
+    DISTRIBUTION_REVERSAL: 'distribution_reversal'
+} as const;
 
 /**
  * StockMovementReason
  *
- * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ * reception adds stock, distribution removes it, distribution_reversal puts back what a reversed handover took. A later inventory increment adds adjustment and count_correction to this same field.
  */
 export type StockMovementReason = typeof StockMovementReason[keyof typeof StockMovementReason];
 
@@ -807,6 +858,340 @@ export type ShopProductDetail = {
 };
 
 /**
+ * Wallet
+ *
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export type Wallet = {
+    memberId: string;
+    balanceEur: number;
+    entries: WalletEntryList;
+};
+
+/**
+ * WalletEntryList
+ *
+ * A paginated page of a member’s account movements, newest first
+ */
+export type WalletEntryList = {
+    data: Array<{
+        id: string;
+        amountEur: number;
+        /**
+         * WalletEntryReason
+         *
+         * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+         */
+        reason: 'handover_charge' | 'payment_received' | 'handover_reversal';
+        paymentMethod?: 'cash' | 'cheque' | 'transfer' | null;
+        handoverId?: string | null;
+        recordedBy?: string | null;
+        note?: string | null;
+        createdAt: string;
+    }>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * WalletEntry
+ *
+ * One movement on a member account. Written once, never edited or deleted.
+ */
+export type WalletEntry = {
+    id: string;
+    amountEur: number;
+    reason: WalletEntryReason;
+    paymentMethod?: 'cash' | 'cheque' | 'transfer' | null;
+    handoverId?: string | null;
+    recordedBy?: string | null;
+    note?: string | null;
+    createdAt: string;
+};
+
+/**
+ * WalletEntryReason
+ *
+ * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ */
+export const WalletEntryReason = {
+    HANDOVER_CHARGE: 'handover_charge',
+    PAYMENT_RECEIVED: 'payment_received',
+    HANDOVER_REVERSAL: 'handover_reversal'
+} as const;
+
+/**
+ * WalletEntryReason
+ *
+ * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ */
+export type WalletEntryReason = typeof WalletEntryReason[keyof typeof WalletEntryReason];
+
+/**
+ * DistributionMemberList
+ */
+export type DistributionMemberList = {
+    data: Array<DistributionMemberSummary>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * DistributionMemberSummary
+ *
+ * One member as the distribution table sees them in a search result
+ */
+export type DistributionMemberSummary = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    /**
+     * MemberStatus
+     *
+     * Lifecycle status of a cooperative member
+     */
+    status: 'pending' | 'active' | 'rejected' | 'terminated';
+    balanceEur: number;
+    outstandingOrderCount: number;
+};
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export const MemberStatus = {
+    PENDING: 'pending',
+    ACTIVE: 'active',
+    REJECTED: 'rejected',
+    TERMINATED: 'terminated'
+} as const;
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export type MemberStatus = typeof MemberStatus[keyof typeof MemberStatus];
+
+/**
+ * DistributionMemberScreen
+ *
+ * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
+ */
+export type DistributionMemberScreen = {
+    id: string;
+    membershipNumber: string;
+    name: string;
+    status: MemberStatus;
+    balanceEur: number;
+    outstandingOrderCount: number;
+    orders: Array<DistributionOrder>;
+};
+
+/**
+ * DistributionOrder
+ */
+export type DistributionOrder = {
+    id: string;
+    /**
+     * OrderingModeChoice
+     *
+     * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+     */
+    orderingMode: 'pre_order' | 'in_store';
+    placedAt: string;
+    totalEur: number;
+    isReady: boolean;
+    hasHandableLine: boolean;
+    version: number;
+    lines: Array<{
+        orderLineId: string;
+        productId: string;
+        productName: string;
+        /**
+         * ProductSaleMode
+         *
+         * "unit" is sold per piece, "weight" is priced per kilogram
+         */
+        saleMode: 'unit' | 'weight';
+        selectionUnit?: 'g' | 'kg' | null;
+        quantityStepGrams?: number | null;
+        orderedQuantity: number;
+        availableQuantity: number;
+        unitPriceEur: number;
+        lineTotalEur: number;
+        isReady: boolean;
+        notReadyReason?: 'awaiting_reception' | null;
+        isHandedOver: boolean;
+    }>;
+};
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export const OrderingModeChoice = { PRE_ORDER: 'pre_order', IN_STORE: 'in_store' } as const;
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export type OrderingModeChoice = typeof OrderingModeChoice[keyof typeof OrderingModeChoice];
+
+/**
+ * DistributionLine
+ */
+export type DistributionLine = {
+    orderLineId: string;
+    productId: string;
+    productName: string;
+    saleMode: ProductSaleMode;
+    selectionUnit?: 'g' | 'kg' | null;
+    quantityStepGrams?: number | null;
+    orderedQuantity: number;
+    availableQuantity: number;
+    unitPriceEur: number;
+    lineTotalEur: number;
+    isReady: boolean;
+    notReadyReason?: 'awaiting_reception' | null;
+    isHandedOver: boolean;
+};
+
+/**
+ * Handover
+ *
+ * A record of goods physically given to a member at a point in time
+ */
+export type Handover = {
+    id: string;
+    orderId: string;
+    memberId: string;
+    kind: HandoverKind;
+    totalEur: number;
+    reversesHandoverId?: string | null;
+    isReversed: boolean;
+    recordedBy?: string | null;
+    note?: string | null;
+    createdAt: string;
+    lines: Array<HandoverLine>;
+    balanceAfterEur: number;
+};
+
+/**
+ * HandoverKind
+ *
+ * handover is goods going out; reversal is the row that undoes one. A reversal never edits the handover it undoes — it points at it.
+ */
+export const HandoverKind = { HANDOVER: 'handover', REVERSAL: 'reversal' } as const;
+
+/**
+ * HandoverKind
+ *
+ * handover is goods going out; reversal is the row that undoes one. A reversal never edits the handover it undoes — it points at it.
+ */
+export type HandoverKind = typeof HandoverKind[keyof typeof HandoverKind];
+
+/**
+ * HandoverLine
+ *
+ * One product actually given, written once
+ */
+export type HandoverLine = {
+    id: string;
+    orderLineId: string;
+    productName: string;
+    orderedQuantity: number;
+    handedQuantity: number;
+    differenceQuantity: number;
+    unitPriceEur: number;
+    lineTotalEur: number;
+};
+
+/**
+ * DistributionProductList
+ */
+export type DistributionProductList = {
+    data: Array<DistributionProduct>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * DistributionProduct
+ *
+ * A product a staffer can sell at the table, with its price and current stock
+ */
+export type DistributionProduct = {
+    id: string;
+    name: string;
+    barcode?: string | null;
+    /**
+     * ProductSaleMode
+     *
+     * "unit" is sold per piece, "weight" is priced per kilogram
+     */
+    saleMode: 'unit' | 'weight';
+    selectionUnit?: 'g' | 'kg' | null;
+    quantityStepGrams?: number | null;
+    unitPriceEur: number;
+    quantityOnHand: number;
+};
+
+/**
+ * WaitingOrderList
+ *
+ * Orders still to hand over. A fully handed-over order leaves this list.
+ */
+export type WaitingOrderList = {
+    data: Array<WaitingOrder>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * WaitingOrder
+ *
+ * One order still waiting to be handed over
+ */
+export type WaitingOrder = {
+    orderId: string;
+    member: {
+        id: string;
+        membershipNumber: string;
+        name: string;
+    };
+    /**
+     * OrderingModeChoice
+     *
+     * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+     */
+    orderingMode: 'pre_order' | 'in_store';
+    placedAt: string;
+    totalEur: number;
+    lineCount: number;
+    isReady: boolean;
+};
+
+/**
  * MembersList
  *
  * A paginated list of members
@@ -838,7 +1223,7 @@ export type MemberListItem = {
      * Lifecycle status of a cooperative member
      */
     status: 'pending' | 'active' | 'rejected' | 'terminated';
-    roles: Array<'member' | 'admin'>;
+    roles: Array<'member' | 'distributor' | 'admin'>;
     /**
      * MembershipFeeState
      *
@@ -849,35 +1234,20 @@ export type MemberListItem = {
 };
 
 /**
- * MemberStatus
+ * UserRole
  *
- * Lifecycle status of a cooperative member
+ * Access role. "admin" is a superset of "member". "distributor" opens the distribution table and nothing else; an admin reaches it without holding the role.
  */
-export const MemberStatus = {
-    PENDING: 'pending',
-    ACTIVE: 'active',
-    REJECTED: 'rejected',
-    TERMINATED: 'terminated'
+export const UserRole = {
+    MEMBER: 'member',
+    DISTRIBUTOR: 'distributor',
+    ADMIN: 'admin'
 } as const;
 
 /**
- * MemberStatus
- *
- * Lifecycle status of a cooperative member
- */
-export type MemberStatus = typeof MemberStatus[keyof typeof MemberStatus];
-
-/**
  * UserRole
  *
- * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
- */
-export const UserRole = { MEMBER: 'member', ADMIN: 'admin' } as const;
-
-/**
- * UserRole
- *
- * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ * Access role. "admin" is a superset of "member". "distributor" opens the distribution table and nothing else; an admin reaches it without holding the role.
  */
 export type UserRole = typeof UserRole[keyof typeof UserRole];
 
@@ -1119,20 +1489,6 @@ export type CartLine = {
 };
 
 /**
- * OrderingModeChoice
- *
- * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
- */
-export const OrderingModeChoice = { PRE_ORDER: 'pre_order', IN_STORE: 'in_store' } as const;
-
-/**
- * OrderingModeChoice
- *
- * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
- */
-export type OrderingModeChoice = typeof OrderingModeChoice[keyof typeof OrderingModeChoice];
-
-/**
  * CheckoutResult
  *
  * One order per ordering type present in the cart. droppedLines lists products removed from checkout because they became unorderable (archived, or no longer offering the cart line's ordering mode) since they were added.
@@ -1159,9 +1515,9 @@ export type OrderDetail = {
     /**
      * OrderStatus
      *
-     * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+     * pending is the starting value. handed_over is set once every line has been handed over or zeroed at the distribution table, and returns to pending if that handover is reversed.
      */
-    status: 'pending' | 'cancelled';
+    status: 'pending' | 'cancelled' | 'handed_over';
     totalEur: number;
     placedAt: string;
     cancelledAt?: string | null;
@@ -1178,14 +1534,18 @@ export type OrderDetail = {
 /**
  * OrderStatus
  *
- * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ * pending is the starting value. handed_over is set once every line has been handed over or zeroed at the distribution table, and returns to pending if that handover is reversed.
  */
-export const OrderStatus = { PENDING: 'pending', CANCELLED: 'cancelled' } as const;
+export const OrderStatus = {
+    PENDING: 'pending',
+    CANCELLED: 'cancelled',
+    HANDED_OVER: 'handed_over'
+} as const;
 
 /**
  * OrderStatus
  *
- * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ * pending is the starting value. handed_over is set once every line has been handed over or zeroed at the distribution table, and returns to pending if that handover is reversed.
  */
 export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
 
@@ -1433,6 +1793,24 @@ export type FilterQueryStringSchema = string;
  */
 export type SortingQueryStringSchema = string;
 
+/**
+ * PaymentMethod
+ *
+ * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ */
+export const PaymentMethod = {
+    CASH: 'cash',
+    CHEQUE: 'cheque',
+    TRANSFER: 'transfer'
+} as const;
+
+/**
+ * PaymentMethod
+ *
+ * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ */
+export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
+
 export type AdminMembersControllerListFilterItem = {
     property: 'status' | 'feeState' | 'role' | 'q';
     rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
@@ -1502,6 +1880,30 @@ export type AdminPurchasingControllerListFilterItem = {
 
 export type AdminPurchasingControllerListFilterArray = Array<AdminPurchasingControllerListFilterItem>;
 
+export type DistributionControllerSearchMembersFilterItem = {
+    property: 'search';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type DistributionControllerSearchMembersFilterArray = Array<DistributionControllerSearchMembersFilterItem>;
+
+export type DistributionControllerListSellableProductsFilterItem = {
+    property: 'search' | 'categoryId';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type DistributionControllerListSellableProductsFilterArray = Array<DistributionControllerListSellableProductsFilterItem>;
+
+export type DistributionControllerListWaitingFilterItem = {
+    property: 'orderingMode' | 'readyOnly' | 'placedFrom' | 'placedTo';
+    rule: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'nlike' | 'in' | 'nin' | 'isnull' | 'isnotnull';
+    value?: string;
+};
+
+export type DistributionControllerListWaitingFilterArray = Array<DistributionControllerListWaitingFilterItem>;
+
 export type AppControllerGetHelloData = {
     body?: never;
     path?: never;
@@ -1565,7 +1967,7 @@ export type AdminMembersControllerCreateData = {
             city?: string | null;
             phone?: string | null;
         };
-        roles: Array<'member' | 'admin'>;
+        roles: Array<'member' | 'distributor' | 'admin'>;
         status: 'pending' | 'active';
     };
     path?: never;
@@ -1751,7 +2153,7 @@ export type AdminMembersControllerSetRolesData = {
      * Replace a member’s access roles. Every member keeps "member"; adding "admin" grants the back office.
      */
     body: {
-        roles: Array<'member' | 'admin'>;
+        roles: Array<'member' | 'distributor' | 'admin'>;
         version: number;
     };
     path: {
@@ -3001,3 +3403,309 @@ export type AdminPurchasingControllerRecordReceptionResponses = {
 };
 
 export type AdminPurchasingControllerRecordReceptionResponse = AdminPurchasingControllerRecordReceptionResponses[keyof AdminPurchasingControllerRecordReceptionResponses];
+
+export type StaffWalletControllerGetWalletData = {
+    body?: never;
+    path: {
+        memberId: string;
+    };
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/wallet/members/{memberId}';
+};
+
+export type StaffWalletControllerGetWalletResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     */
+    200: Wallet;
+};
+
+export type StaffWalletControllerGetWalletResponse = StaffWalletControllerGetWalletResponses[keyof StaffWalletControllerGetWalletResponses];
+
+export type StaffWalletControllerRecordPaymentData = {
+    /**
+     * RecordPaymentInput
+     *
+     * Money the member has actually handed over. Entered by a human after the fact — the system does not reconcile against a bank feed.
+     */
+    body: {
+        amountEur: number;
+        /**
+         * PaymentMethod
+         *
+         * How money reached the cooperative by hand. "online" is reserved for lot 5.
+         */
+        paymentMethod: 'cash' | 'cheque' | 'transfer';
+        note?: string;
+    };
+    path: {
+        memberId: string;
+    };
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/wallet/members/{memberId}/payments';
+};
+
+export type StaffWalletControllerRecordPaymentResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     */
+    200: Wallet;
+};
+
+export type StaffWalletControllerRecordPaymentResponse = StaffWalletControllerRecordPaymentResponses[keyof StaffWalletControllerRecordPaymentResponses];
+
+export type MemberWalletControllerGetOwnWalletData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/me/wallet';
+};
+
+export type MemberWalletControllerGetOwnWalletResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     */
+    200: Wallet;
+};
+
+export type MemberWalletControllerGetOwnWalletResponse = MemberWalletControllerGetOwnWalletResponses[keyof MemberWalletControllerGetOwnWalletResponses];
+
+export type DistributionControllerSearchMembersData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: search
+         */
+        filter?: DistributionControllerSearchMembersFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/distribution/members';
+};
+
+export type DistributionControllerSearchMembersResponses = {
+    /**
+     * Successful response
+     */
+    200: DistributionMemberList;
+};
+
+export type DistributionControllerSearchMembersResponse = DistributionControllerSearchMembersResponses[keyof DistributionControllerSearchMembersResponses];
+
+export type DistributionControllerMemberScreenData = {
+    body?: never;
+    path: {
+        memberId: string;
+    };
+    query?: never;
+    url: '/api/distribution/members/{memberId}';
+};
+
+export type DistributionControllerMemberScreenResponses = {
+    /**
+     * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
+     */
+    200: DistributionMemberScreen;
+};
+
+export type DistributionControllerMemberScreenResponse = DistributionControllerMemberScreenResponses[keyof DistributionControllerMemberScreenResponses];
+
+export type DistributionControllerRecordHandoverData = {
+    /**
+     * RecordHandoverInput
+     *
+     * What was actually handed over. Lines left out stay outstanding for a later distribution.
+     */
+    body: {
+        version: number;
+        lines: Array<{
+            orderLineId: string;
+            handedQuantity: number;
+        }>;
+        note?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/api/distribution/orders/{orderId}/handovers';
+};
+
+export type DistributionControllerRecordHandoverResponses = {
+    /**
+     * A record of goods physically given to a member at a point in time
+     */
+    200: Handover;
+};
+
+export type DistributionControllerRecordHandoverResponse = DistributionControllerRecordHandoverResponses[keyof DistributionControllerRecordHandoverResponses];
+
+export type DistributionControllerListSellableProductsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: search, categoryId
+         */
+        filter?: DistributionControllerListSellableProductsFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/distribution/products';
+};
+
+export type DistributionControllerListSellableProductsResponses = {
+    /**
+     * Successful response
+     */
+    200: DistributionProductList;
+};
+
+export type DistributionControllerListSellableProductsResponse = DistributionControllerListSellableProductsResponses[keyof DistributionControllerListSellableProductsResponses];
+
+export type DistributionControllerCreateExpressOrderData = {
+    /**
+     * CreateExpressOrderInput
+     *
+     * Built at the table and sent once. Nothing is persisted before this call (FR-016).
+     */
+    body: {
+        lines: Array<{
+            productId: string;
+            quantity: number;
+        }>;
+        note?: string;
+    };
+    path: {
+        memberId: string;
+    };
+    query?: never;
+    url: '/api/distribution/members/{memberId}/express-orders';
+};
+
+export type DistributionControllerCreateExpressOrderResponses = {
+    /**
+     * A record of goods physically given to a member at a point in time
+     */
+    200: Handover;
+};
+
+export type DistributionControllerCreateExpressOrderResponse = DistributionControllerCreateExpressOrderResponses[keyof DistributionControllerCreateExpressOrderResponses];
+
+export type DistributionControllerListWaitingData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Filtering query string, in the format of "property:rule[:value];property:rule[:value];..."
+         * <br> Available rules: eq, neq, gt, gte, lt, lte, like, nlike, in, nin, isnull, isnotnull
+         * <br> Available properties: orderingMode, readyOnly, placedFrom, placedTo
+         */
+        filter?: DistributionControllerListWaitingFilterArray;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/distribution/waiting';
+};
+
+export type DistributionControllerListWaitingResponses = {
+    /**
+     * Orders still to hand over. A fully handed-over order leaves this list.
+     */
+    200: WaitingOrderList;
+};
+
+export type DistributionControllerListWaitingResponse = DistributionControllerListWaitingResponses[keyof DistributionControllerListWaitingResponses];
+
+export type DistributionControllerGetHandoverData = {
+    body?: never;
+    path: {
+        handoverId: string;
+    };
+    query?: never;
+    url: '/api/distribution/handovers/{handoverId}';
+};
+
+export type DistributionControllerGetHandoverResponses = {
+    /**
+     * A record of goods physically given to a member at a point in time
+     */
+    200: Handover;
+};
+
+export type DistributionControllerGetHandoverResponse = DistributionControllerGetHandoverResponses[keyof DistributionControllerGetHandoverResponses];
+
+export type DistributionControllerReverseHandoverData = {
+    /**
+     * ReverseHandoverInput
+     *
+     * The reason for the correction, kept with the reversing entry (FR-029).
+     */
+    body: {
+        note: string;
+    };
+    path: {
+        handoverId: string;
+    };
+    query?: never;
+    url: '/api/distribution/handovers/{handoverId}/reversal';
+};
+
+export type DistributionControllerReverseHandoverResponses = {
+    /**
+     * A record of goods physically given to a member at a point in time
+     */
+    200: Handover;
+};
+
+export type DistributionControllerReverseHandoverResponse = DistributionControllerReverseHandoverResponses[keyof DistributionControllerReverseHandoverResponses];

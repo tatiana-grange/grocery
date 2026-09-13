@@ -22,6 +22,6 @@ export const test = base.extend<E2eFixtures>({
 })
 
 /** Raccourci pour les specs authentifiées : `test.use(withRole('admin'))`. */
-export function withRole(role: 'admin' | 'member' | 'pending') {
+export function withRole(role: 'admin' | 'member' | 'pending' | 'distributor') {
   return { storageState: storageStatePath(role) }
 }

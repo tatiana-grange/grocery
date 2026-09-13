@@ -110,6 +110,42 @@ export const zSetProductPrice = z.object({
 });
 
 /**
+ * RecordHandoverInput
+ *
+ * What was actually handed over. Lines left out stay outstanding for a later distribution.
+ */
+export const zRecordHandoverInput = z.object({
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    lines: z.array(z.object({
+        orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        handedQuantity: z.number().gte(0)
+    })).min(1),
+    note: z.optional(z.string().max(500))
+});
+
+/**
+ * CreateExpressOrderInput
+ *
+ * Built at the table and sent once. Nothing is persisted before this call (FR-016).
+ */
+export const zCreateExpressOrderInput = z.object({
+    lines: z.array(z.object({
+        productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        quantity: z.number().gt(0)
+    })).min(1),
+    note: z.optional(z.string().max(500))
+});
+
+/**
+ * ReverseHandoverInput
+ *
+ * The reason for the correction, kept with the reversing entry (FR-029).
+ */
+export const zReverseHandoverInput = z.object({
+    note: z.string().min(1).max(500)
+});
+
+/**
  * MemberValidation
  *
  * Validate a pending member (moves them to active) or reject them with a reason
@@ -252,7 +288,7 @@ export const zStockSummary = z.object({
         name: z.string(),
         saleMode: z.enum(['unit', 'weight'])
     }),
-    quantityOnHand: z.number().gte(0),
+    quantityOnHand: z.number(),
     costPriceEur: z.optional(z.union([
         z.number().gte(0),
         z.null()
@@ -288,7 +324,11 @@ export const zStockMovement = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     quantity: z.number(),
     unitCostEur: z.number().gte(0),
-    reason: z.enum(['reception']),
+    reason: z.enum([
+        'reception',
+        'distribution',
+        'distribution_reversal'
+    ]),
     receptionLineId: z.optional(z.union([
         z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         z.null()
@@ -305,7 +345,7 @@ export const zStockDetail = z.object({
         name: z.string(),
         saleMode: zProductSaleMode
     }),
-    quantityOnHand: z.number().gte(0),
+    quantityOnHand: z.number(),
     costPriceEur: z.optional(z.union([
         z.number().gte(0),
         z.null()
@@ -316,9 +356,13 @@ export const zStockDetail = z.object({
 /**
  * StockMovementReason
  *
- * reception is the only value in lot 3; a later inventory increment adds distribution, adjustment, and count_correction to this same field.
+ * reception adds stock, distribution removes it, distribution_reversal puts back what a reversed handover took. A later inventory increment adds adjustment and count_correction to this same field.
  */
-export const zStockMovementReason = z.enum(['reception']);
+export const zStockMovementReason = z.enum([
+    'reception',
+    'distribution',
+    'distribution_reversal'
+]);
 
 /**
  * SupplierType
@@ -918,6 +962,370 @@ export const zShopProductDetail = z.object({
 });
 
 /**
+ * WalletEntryList
+ *
+ * A paginated page of a member’s account movements, newest first
+ */
+export const zWalletEntryList = z.object({
+    data: z.array(z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        amountEur: z.number(),
+        reason: z.enum([
+            'handover_charge',
+            'payment_received',
+            'handover_reversal'
+        ]),
+        paymentMethod: z.optional(z.union([
+            z.enum([
+                'cash',
+                'cheque',
+                'transfer'
+            ]),
+            z.null()
+        ])),
+        handoverId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        recordedBy: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        note: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        createdAt: z.string()
+    })),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * Wallet
+ *
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export const zWallet = z.object({
+    memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    balanceEur: z.number(),
+    entries: zWalletEntryList
+});
+
+/**
+ * WalletEntryReason
+ *
+ * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ */
+export const zWalletEntryReason = z.enum([
+    'handover_charge',
+    'payment_received',
+    'handover_reversal'
+]);
+
+/**
+ * WalletEntry
+ *
+ * One movement on a member account. Written once, never edited or deleted.
+ */
+export const zWalletEntry = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    amountEur: z.number(),
+    reason: zWalletEntryReason,
+    paymentMethod: z.optional(z.union([
+        z.enum([
+            'cash',
+            'cheque',
+            'transfer'
+        ]),
+        z.null()
+    ])),
+    handoverId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    recordedBy: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    note: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    createdAt: z.string()
+});
+
+/**
+ * DistributionMemberSummary
+ *
+ * One member as the distribution table sees them in a search result
+ */
+export const zDistributionMemberSummary = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    status: z.enum([
+        'pending',
+        'active',
+        'rejected',
+        'terminated'
+    ]),
+    balanceEur: z.number(),
+    outstandingOrderCount: z.int().gte(0).lte(9007199254740991)
+});
+
+/**
+ * DistributionMemberList
+ */
+export const zDistributionMemberList = z.object({
+    data: z.array(zDistributionMemberSummary),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * MemberStatus
+ *
+ * Lifecycle status of a cooperative member
+ */
+export const zMemberStatus = z.enum([
+    'pending',
+    'active',
+    'rejected',
+    'terminated'
+]);
+
+/**
+ * DistributionOrder
+ */
+export const zDistributionOrder = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderingMode: z.enum(['pre_order', 'in_store']),
+    placedAt: z.string(),
+    totalEur: z.number().gte(0),
+    isReady: z.boolean(),
+    hasHandableLine: z.boolean(),
+    version: z.int().gte(-9007199254740991).lte(9007199254740991),
+    lines: z.array(z.object({
+        orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        productName: z.string(),
+        saleMode: z.enum(['unit', 'weight']),
+        selectionUnit: z.optional(z.union([
+            z.enum(['g', 'kg']),
+            z.null()
+        ])),
+        quantityStepGrams: z.optional(z.union([
+            z.int().gte(-9007199254740991).lte(9007199254740991),
+            z.null()
+        ])),
+        orderedQuantity: z.number(),
+        availableQuantity: z.number(),
+        unitPriceEur: z.number().gte(0),
+        lineTotalEur: z.number().gte(0),
+        isReady: z.boolean(),
+        notReadyReason: z.optional(z.union([
+            z.enum(['awaiting_reception']),
+            z.null()
+        ])),
+        isHandedOver: z.boolean()
+    }))
+});
+
+/**
+ * DistributionMemberScreen
+ *
+ * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
+ */
+export const zDistributionMemberScreen = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    membershipNumber: z.string(),
+    name: z.string(),
+    status: zMemberStatus,
+    balanceEur: z.number(),
+    outstandingOrderCount: z.int().gte(0).lte(9007199254740991),
+    orders: z.array(zDistributionOrder)
+});
+
+/**
+ * OrderingModeChoice
+ *
+ * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
+ */
+export const zOrderingModeChoice = z.enum(['pre_order', 'in_store']);
+
+/**
+ * AddCartLine
+ *
+ * quantity is a piece count (integer) for a unit-sale product, or kilograms (up to 3 decimals) for a by-weight product
+ */
+export const zAddCartLine = z.object({
+    productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderingMode: zOrderingModeChoice,
+    quantity: z.number().gt(0)
+});
+
+/**
+ * DistributionLine
+ */
+export const zDistributionLine = z.object({
+    orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productName: z.string(),
+    saleMode: zProductSaleMode,
+    selectionUnit: z.optional(z.union([
+        z.enum(['g', 'kg']),
+        z.null()
+    ])),
+    quantityStepGrams: z.optional(z.union([
+        z.int().gte(-9007199254740991).lte(9007199254740991),
+        z.null()
+    ])),
+    orderedQuantity: z.number(),
+    availableQuantity: z.number(),
+    unitPriceEur: z.number().gte(0),
+    lineTotalEur: z.number().gte(0),
+    isReady: z.boolean(),
+    notReadyReason: z.optional(z.union([
+        z.enum(['awaiting_reception']),
+        z.null()
+    ])),
+    isHandedOver: z.boolean()
+});
+
+/**
+ * HandoverKind
+ *
+ * handover is goods going out; reversal is the row that undoes one. A reversal never edits the handover it undoes — it points at it.
+ */
+export const zHandoverKind = z.enum(['handover', 'reversal']);
+
+/**
+ * HandoverLine
+ *
+ * One product actually given, written once
+ */
+export const zHandoverLine = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    productName: z.string(),
+    orderedQuantity: z.number(),
+    handedQuantity: z.number(),
+    differenceQuantity: z.number(),
+    unitPriceEur: z.number().gte(0),
+    lineTotalEur: z.number()
+});
+
+/**
+ * Handover
+ *
+ * A record of goods physically given to a member at a point in time
+ */
+export const zHandover = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    orderId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    kind: zHandoverKind,
+    totalEur: z.number(),
+    reversesHandoverId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    isReversed: z.boolean(),
+    recordedBy: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    note: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    createdAt: z.string(),
+    lines: z.array(zHandoverLine),
+    balanceAfterEur: z.number()
+});
+
+/**
+ * DistributionProduct
+ *
+ * A product a staffer can sell at the table, with its price and current stock
+ */
+export const zDistributionProduct = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    name: z.string(),
+    barcode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    saleMode: z.enum(['unit', 'weight']),
+    selectionUnit: z.optional(z.union([
+        z.enum(['g', 'kg']),
+        z.null()
+    ])),
+    quantityStepGrams: z.optional(z.union([
+        z.int().gte(-9007199254740991).lte(9007199254740991),
+        z.null()
+    ])),
+    unitPriceEur: z.number().gte(0),
+    quantityOnHand: z.number()
+});
+
+/**
+ * DistributionProductList
+ */
+export const zDistributionProductList = z.object({
+    data: z.array(zDistributionProduct),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * WaitingOrder
+ *
+ * One order still waiting to be handed over
+ */
+export const zWaitingOrder = z.object({
+    orderId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    member: z.object({
+        id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        membershipNumber: z.string(),
+        name: z.string()
+    }),
+    orderingMode: z.enum(['pre_order', 'in_store']),
+    placedAt: z.string(),
+    totalEur: z.number().gte(0),
+    lineCount: z.int().gt(0).lte(9007199254740991),
+    isReady: z.boolean()
+});
+
+/**
+ * WaitingOrderList
+ *
+ * Orders still to hand over. A fully handed-over order leaves this list.
+ */
+export const zWaitingOrderList = z.object({
+    data: z.array(zWaitingOrder),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
  * MemberListItem
  *
  * A member as shown in the back-office list
@@ -940,7 +1348,11 @@ export const zMemberListItem = z.object({
         'rejected',
         'terminated'
     ]),
-    roles: z.array(z.enum(['member', 'admin'])),
+    roles: z.array(z.enum([
+        'member',
+        'distributor',
+        'admin'
+    ])),
     feeState: z.enum([
         'unpaid',
         'partly_paid',
@@ -965,23 +1377,15 @@ export const zMembersList = z.object({
 });
 
 /**
- * MemberStatus
- *
- * Lifecycle status of a cooperative member
- */
-export const zMemberStatus = z.enum([
-    'pending',
-    'active',
-    'rejected',
-    'terminated'
-]);
-
-/**
  * UserRole
  *
- * Access role. "admin" is a superset of "member". "grocer" is added in lot 4.
+ * Access role. "admin" is a superset of "member". "distributor" opens the distribution table and nothing else; an admin reaches it without holding the role.
  */
-export const zUserRole = z.enum(['member', 'admin']);
+export const zUserRole = z.enum([
+    'member',
+    'distributor',
+    'admin'
+]);
 
 /**
  * CreateMember
@@ -1287,30 +1691,16 @@ export const zCart = z.object({
 });
 
 /**
- * OrderingModeChoice
- *
- * One concrete ordering type — never "both". Types a cart line and an order. A product that supports "both" is resolved to one of these when the member adds it to the cart.
- */
-export const zOrderingModeChoice = z.enum(['pre_order', 'in_store']);
-
-/**
- * AddCartLine
- *
- * quantity is a piece count (integer) for a unit-sale product, or kilograms (up to 3 decimals) for a by-weight product
- */
-export const zAddCartLine = z.object({
-    productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
-    orderingMode: zOrderingModeChoice,
-    quantity: z.number().gt(0)
-});
-
-/**
  * OrderDetail
  */
 export const zOrderDetail = z.object({
     id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
     orderingMode: z.enum(['pre_order', 'in_store']),
-    status: z.enum(['pending', 'cancelled']),
+    status: z.enum([
+        'pending',
+        'cancelled',
+        'handed_over'
+    ]),
     totalEur: z.number().gte(0),
     placedAt: z.string(),
     cancelledAt: z.optional(z.union([
@@ -1330,9 +1720,13 @@ export const zOrderDetail = z.object({
 /**
  * OrderStatus
  *
- * pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field
+ * pending is the starting value. handed_over is set once every line has been handed over or zeroed at the distribution table, and returns to pending if that handover is reversed.
  */
-export const zOrderStatus = z.enum(['pending', 'cancelled']);
+export const zOrderStatus = z.enum([
+    'pending',
+    'cancelled',
+    'handed_over'
+]);
 
 /**
  * OrderLine
@@ -1572,6 +1966,28 @@ export const zFilterQueryStringSchema = z.string();
  */
 export const zSortingQueryStringSchema = z.string();
 
+/**
+ * PaymentMethod
+ *
+ * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ */
+export const zPaymentMethod = z.enum([
+    'cash',
+    'cheque',
+    'transfer'
+]);
+
+/**
+ * RecordPaymentInput
+ *
+ * Money the member has actually handed over. Entered by a human after the fact — the system does not reconcile against a bank feed.
+ */
+export const zRecordPaymentInput = z.object({
+    amountEur: z.number().gt(0),
+    paymentMethod: zPaymentMethod,
+    note: z.optional(z.string().max(500))
+});
+
 export const zAdminMembersControllerListFilterItem = z.object({
     property: z.union([
         z.literal('status'),
@@ -1751,6 +2167,77 @@ export const zAdminPurchasingControllerListFilterItem = z.object({
 
 export const zAdminPurchasingControllerListFilterArray = z.array(zAdminPurchasingControllerListFilterItem);
 
+export const zDistributionControllerSearchMembersFilterItem = z.object({
+    property: z.literal('search'),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zDistributionControllerSearchMembersFilterArray = z.array(zDistributionControllerSearchMembersFilterItem);
+
+export const zDistributionControllerListSellableProductsFilterItem = z.object({
+    property: z.union([
+        z.literal('search'),
+        z.literal('categoryId')
+    ]),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zDistributionControllerListSellableProductsFilterArray = z.array(zDistributionControllerListSellableProductsFilterItem);
+
+export const zDistributionControllerListWaitingFilterItem = z.object({
+    property: z.union([
+        z.literal('orderingMode'),
+        z.literal('readyOnly'),
+        z.literal('placedFrom'),
+        z.literal('placedTo')
+    ]),
+    rule: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'like',
+        'nlike',
+        'in',
+        'nin',
+        'isnull',
+        'isnotnull'
+    ]),
+    value: z.optional(z.string())
+});
+
+export const zDistributionControllerListWaitingFilterArray = z.array(zDistributionControllerListWaitingFilterItem);
+
 export const zAppControllerGetHelloData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -1806,7 +2293,11 @@ export const zAdminMembersControllerCreateData = z.object({
                 z.null()
             ]))
         })),
-        roles: z.array(z.enum(['member', 'admin'])).min(1).default(['member']),
+        roles: z.array(z.enum([
+            'member',
+            'distributor',
+            'admin'
+        ])).min(1).default(['member']),
         status: z.enum(['pending', 'active'])
     }),
     path: z.optional(z.never()),
@@ -1947,7 +2438,11 @@ export const zAdminMembersControllerRecordFeePaymentResponse = zFeeSummary;
 
 export const zAdminMembersControllerSetRolesData = z.object({
     body: z.object({
-        roles: z.array(z.enum(['member', 'admin'])).min(1),
+        roles: z.array(z.enum([
+            'member',
+            'distributor',
+            'admin'
+        ])).min(1),
         version: z.int().gte(-9007199254740991).lte(9007199254740991)
     }),
     path: z.object({
@@ -2872,3 +3367,182 @@ export const zAdminPurchasingControllerRecordReceptionData = z.object({
  * Successful response
  */
 export const zAdminPurchasingControllerRecordReceptionResponse = zReception;
+
+export const zStaffWalletControllerGetWalletData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export const zStaffWalletControllerGetWalletResponse = zWallet;
+
+export const zStaffWalletControllerRecordPaymentData = z.object({
+    body: z.object({
+        amountEur: z.number().gt(0),
+        paymentMethod: z.enum([
+            'cash',
+            'cheque',
+            'transfer'
+        ]),
+        note: z.optional(z.string().max(500))
+    }),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export const zStaffWalletControllerRecordPaymentResponse = zWallet;
+
+export const zMemberWalletControllerGetOwnWalletData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0.
+ */
+export const zMemberWalletControllerGetOwnWalletResponse = zWallet;
+
+export const zDistributionControllerSearchMembersData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zDistributionControllerSearchMembersFilterArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * Successful response
+ */
+export const zDistributionControllerSearchMembersResponse = zDistributionMemberList;
+
+export const zDistributionControllerMemberScreenData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * One member’s outstanding orders, balance and status — the whole table screen in one call. A member with nothing outstanding returns an empty order list, not a 404.
+ */
+export const zDistributionControllerMemberScreenResponse = zDistributionMemberScreen;
+
+export const zDistributionControllerRecordHandoverData = z.object({
+    body: z.object({
+        version: z.int().gte(-9007199254740991).lte(9007199254740991),
+        lines: z.array(z.object({
+            orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            handedQuantity: z.number().gte(0)
+        })).min(1),
+        note: z.optional(z.string().max(500))
+    }),
+    path: z.object({
+        orderId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A record of goods physically given to a member at a point in time
+ */
+export const zDistributionControllerRecordHandoverResponse = zHandover;
+
+export const zDistributionControllerListSellableProductsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zDistributionControllerListSellableProductsFilterArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * Successful response
+ */
+export const zDistributionControllerListSellableProductsResponse = zDistributionProductList;
+
+export const zDistributionControllerCreateExpressOrderData = z.object({
+    body: z.object({
+        lines: z.array(z.object({
+            productId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            quantity: z.number().gt(0)
+        })).min(1),
+        note: z.optional(z.string().max(500))
+    }),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A record of goods physically given to a member at a point in time
+ */
+export const zDistributionControllerCreateExpressOrderResponse = zHandover;
+
+export const zDistributionControllerListWaitingData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        filter: z.optional(zDistributionControllerListWaitingFilterArray),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * Orders still to hand over. A fully handed-over order leaves this list.
+ */
+export const zDistributionControllerListWaitingResponse = zWaitingOrderList;
+
+export const zDistributionControllerGetHandoverData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        handoverId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A record of goods physically given to a member at a point in time
+ */
+export const zDistributionControllerGetHandoverResponse = zHandover;
+
+export const zDistributionControllerReverseHandoverData = z.object({
+    body: z.object({
+        note: z.string().min(1).max(500)
+    }),
+    path: z.object({
+        handoverId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A record of goods physically given to a member at a point in time
+ */
+export const zDistributionControllerReverseHandoverResponse = zHandover;

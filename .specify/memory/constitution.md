@@ -1,8 +1,20 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.1.0 → 1.2.0
-Last amended: 2026-09-11
+Version change: 1.2.0 → 1.3.0
+Last amended: 2026-09-12
+
+Rationale (1.3.0): Renamed the distribution-staffing role from `grocer` to `distributor` in
+Principle V. The set of roles, their number, and what each one may do are all unchanged —
+only the identifier changes, chosen by the maintainer as the word the cooperative actually
+uses for the person at the distribution table. MINOR rather than PATCH: implementers must
+now write a different value, which is more than a wording fix; MINOR rather than MAJOR: no
+principle is removed and none is redefined, and no shipped code used the old name (lots 1–3
+only reserved it in comments). Lot 4 (`specs/distribution/`) is planned against the new name
+from the start. Follow-up: three code comments still say `grocer` —
+`apps/api/src/modules/auth/auth.config.ts`, `auth.decorator.ts`, and
+`members/contracts/member.contract.ts` — and are corrected when lot 4 adds the role, because
+the third feeds the OpenAPI description and editing it requires regenerating the client.
 
 Rationale (1.2.0): Two clarifications to the Development Workflow section, both resolving a
 contradiction between this file, `CONTRIBUTING.md` and the `.claude/` guidance. First,
@@ -39,7 +51,7 @@ Sections:
     in 1.2.0: stacked branches and agent autonomy)
   - Governance
 
-Templates status:
+Templates status (rechecked at 1.3.0 — no template names a role):
   ✅ .specify/templates/plan-template.md — "Constitution Check" gate is generic; no edit required
   ✅ .specify/templates/spec-template.md — no constitution references; no edit required
   ✅ .specify/templates/tasks-template.md — no constitution references; no edit required
@@ -143,7 +155,7 @@ the build small.
 
 - Out of scope: multi-site hosting, the cooperative directory, group orders between
   cooperatives, the announcements module, the services module, the BAR module.
-- Roles are `member`, `grocer`, `admin`, handled by the Better Auth admin plugin. The
+- Roles are `member`, `distributor`, `admin`, handled by the Better Auth admin plugin. The
   Better Auth organizations plugin is not used.
 - Adding any out-of-scope capability is a separate, explicitly approved piece of work and
   requires a constitution amendment.
@@ -229,4 +241,4 @@ conventions, and tests where the feature requires them.
   violation is recorded in the feature's `plan.md` Complexity Tracking table, with the
   simpler alternative that was rejected and why.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-09-11
+**Version**: 1.3.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-09-12
