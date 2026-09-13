@@ -73,6 +73,23 @@ export function isOrderFullySettled(
   return allOrderLineIds.every((id) => alreadySettledLineIds.has(id) || settledNowLineIds.has(id))
 }
 
+/**
+ * The first order line id sent twice in the same handover body, or `null` when every line is
+ * distinct.
+ *
+ * A body is a statement of what physically left the table, and a line leaves it once. Two
+ * entries for the same line would each be priced, charged and issued, so the member would pay
+ * twice for one bag of apples.
+ */
+export function findDuplicateLineId(orderLineIds: string[]): string | null {
+  const seen = new Set<string>()
+  for (const id of orderLineIds) {
+    if (seen.has(id)) return id
+    seen.add(id)
+  }
+  return null
+}
+
 /** The two fields that decide whether a product can be sold at the table. */
 export interface SellabilityInput {
   archivedAt?: Date | null

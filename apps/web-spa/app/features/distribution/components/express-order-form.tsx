@@ -75,6 +75,8 @@ export default function ExpressOrderForm() {
       setRecordedHandoverId(handover.id)
       toast.success(t('distribution.express.success', { amount: eur(handover.totalEur) }))
       void queryClient.invalidateQueries({ queryKey: ['distribution'] })
+      // The sale just charged the member, so any wallet view of them is now behind.
+      void queryClient.invalidateQueries({ queryKey: ['wallet'] })
     },
     onError: (error: unknown) => setRefusal((error as RefusalBody | undefined) ?? {}),
   })

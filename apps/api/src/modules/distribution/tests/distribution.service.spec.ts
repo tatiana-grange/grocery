@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   balanceCovers,
+  findDuplicateLineId,
   handoverTotalCents,
   isOrderFullySettled,
   isSellableAtTable,
@@ -115,6 +116,24 @@ describe('isOrderFullySettled', () => {
 
   it('counts a line settled by an earlier, un-reversed handover', () => {
     expect(isOrderFullySettled(['a', 'b'], new Set(['a']), new Set(['b']))).toBe(true)
+  })
+})
+
+describe('findDuplicateLineId', () => {
+  it('passes a body whose lines are all distinct', () => {
+    expect(findDuplicateLineId(['a', 'b', 'c'])).toBeNull()
+  })
+
+  it('passes an empty body', () => {
+    expect(findDuplicateLineId([])).toBeNull()
+  })
+
+  it('catches the same line sent twice — it would be charged twice', () => {
+    expect(findDuplicateLineId(['a', 'b', 'a'])).toBe('a')
+  })
+
+  it('reports the first line that repeats', () => {
+    expect(findDuplicateLineId(['a', 'b', 'b', 'a'])).toBe('b')
   })
 })
 

@@ -1011,6 +1011,7 @@ export type DistributionOrder = {
     placedAt: string;
     totalEur: number;
     isReady: boolean;
+    hasHandableLine: boolean;
     version: number;
     lines: Array<{
         orderLineId: string;
@@ -1030,6 +1031,7 @@ export type DistributionOrder = {
         lineTotalEur: number;
         isReady: boolean;
         notReadyReason?: 'awaiting_reception' | null;
+        isHandedOver: boolean;
     }>;
 };
 
@@ -1063,6 +1065,7 @@ export type DistributionLine = {
     lineTotalEur: number;
     isReady: boolean;
     notReadyReason?: 'awaiting_reception' | null;
+    isHandedOver: boolean;
 };
 
 /**

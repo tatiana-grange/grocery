@@ -45,11 +45,12 @@ export function RecordPaymentForm({
           amount: t('wallet.eur', { value: (Number(amount) || 0).toFixed(2) }),
         }),
       )
-      // The response *is* the updated wallet, so seed the cache rather than refetching it.
+      // The response *is* this member's updated wallet, so seed their cache entry rather than
+      // refetching it. Only theirs: `['wallet', 'me']` is the signed-in staffer's own account,
+      // and a payment taken for someone else says nothing about it.
       // The distribution screen still has to reload: its balance travels in a different
       // payload, and a refused handover is about to be validated against it.
       queryClient.setQueryData(['wallet', 'staff', memberId], wallet)
-      queryClient.setQueryData(['wallet', 'me'], wallet)
       void queryClient.invalidateQueries({ queryKey: ['distribution'] })
       onRecorded(wallet)
     },

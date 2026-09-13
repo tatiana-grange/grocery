@@ -564,6 +564,7 @@
       "ordered": "Ordered",
       "available": "On the shelf",
       "handedOver": "Handing over",
+      "alreadyHandedOver": "Already handed over",
       "unitPrice": "Unit price",
       "lineTotal": "Line total",
       "negativeStock": "Recorded stock is negative — a count is due."
@@ -605,6 +606,8 @@
       "order_not_pending": "This order has already been handed over.",
       "stale_version": "This order changed since you opened it — reload and try again.",
       "line_not_ready": "{{productName}} has not arrived yet.",
+      "line_already_handed_over": "{{productName}} was already handed over.",
+      "duplicate_line": "The same line was sent twice — reload and try again.",
       "member_terminated": "This member's membership is terminated.",
       "nothing_handed_over": "Nothing to hand over — every line is zero.",
       "product_not_sellable": "That product cannot be sold at the table.",

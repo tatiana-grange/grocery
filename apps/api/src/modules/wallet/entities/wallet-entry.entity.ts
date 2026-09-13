@@ -52,8 +52,12 @@ export class WalletEntry {
   @ManyToOne(() => User, { fieldName: 'recordedByUserId', nullable: true })
   recordedByUser?: Rel<User>
 
-  /** Free text: the reason given for a reversal (FR-029), or a cheque number. */
-  @Property({ nullable: true })
+  /**
+   * Free text: the reason given for a reversal (FR-029), or a cheque number. Sized to the 500
+   * characters the contracts accept, so a long reason is stored rather than rejected by the
+   * database.
+   */
+  @Property({ length: 500, nullable: true })
   note?: string
 
   @Property()

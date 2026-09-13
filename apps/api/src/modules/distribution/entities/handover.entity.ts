@@ -59,8 +59,8 @@ export class Handover {
   @ManyToOne(() => User, { fieldName: 'recordedByUserId' })
   recordedByUser!: Rel<User>
 
-  /** The reason given for a reversal. */
-  @Property({ nullable: true })
+  /** The reason given for a reversal. Sized to the 500 characters the contract accepts. */
+  @Property({ length: 500, nullable: true })
   note?: string
 
   @OneToMany(() => HandoverLine, (line) => line.handover)

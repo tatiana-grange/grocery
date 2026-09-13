@@ -67,6 +67,7 @@ export class DistributionMapper {
     line: OrderLine,
     orderingMode: Order['orderingMode'],
     availableQuantity: number,
+    isHandedOver: boolean,
   ): DistributionLineContract {
     const { isReady, notReadyReason } = lineReadiness(orderingMode, line.fulfilledAt)
     return {
@@ -83,21 +84,35 @@ export class DistributionMapper {
       lineTotalEur: centsToEur(line.lineTotalAmountCents),
       isReady,
       notReadyReason,
+      isHandedOver,
     }
   }
 
-  toOrder(order: Order, stockByProduct: Map<string, number>): DistributionOrderContract {
+  toOrder(
+    order: Order,
+    stockByProduct: Map<string, number>,
+    settledOrderLineIds: Set<string>,
+  ): DistributionOrderContract {
     const lines = order.lines
       .getItems()
       .map((line) =>
-        this.toLine(line, order.orderingMode, stockByProduct.get(line.product.id) ?? 0),
+        this.toLine(
+          line,
+          order.orderingMode,
+          stockByProduct.get(line.product.id) ?? 0,
+          settledOrderLineIds.has(line.id),
+        ),
       )
+    // Both figures ignore the lines already handed over: they are on screen for the record,
+    // not for this handover, so they must not make the order look unready or handable.
+    const stillToHand = lines.filter((line) => !line.isHandedOver)
     return {
       id: order.id,
       orderingMode: order.orderingMode,
       placedAt: order.placedAt,
       totalEur: centsToEur(order.totalAmountCents),
-      isReady: lines.every((line) => line.isReady),
+      isReady: stillToHand.every((line) => line.isReady),
+      hasHandableLine: stillToHand.some((line) => line.isReady),
       version: order.version,
       lines,
     }
@@ -106,7 +121,9 @@ export class DistributionMapper {
   toMemberScreen(screen: MemberScreen): DistributionMemberScreenContract {
     return {
       ...this.toMemberSummary(screen.member, screen.balanceCents, screen.orders.length),
-      orders: screen.orders.map((order) => this.toOrder(order, screen.stockByProduct)),
+      orders: screen.orders.map((order) =>
+        this.toOrder(order, screen.stockByProduct, screen.settledOrderLineIds),
+      ),
     }
   }
 

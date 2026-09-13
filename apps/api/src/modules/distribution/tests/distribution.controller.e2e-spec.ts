@@ -117,6 +117,36 @@ describe('distributionController (e2e)', () => {
     return order
   }
 
+  /** A two-line order, so the partial-handover cases have something to leave outstanding. */
+  async function addTwoLineOrder(
+    member: Member,
+    orderingMode: 'pre_order' | 'in_store',
+    entries: { product: Product; quantity: number; fulfilled?: boolean }[],
+  ) {
+    const order = new Order()
+    order.member = member
+    order.orderingMode = orderingMode
+    order.status = 'pending'
+    order.placedAt = new Date()
+    let totalAmountCents = 0
+    const lines = entries.map((entry) => {
+      const line = new OrderLine()
+      line.order = order
+      line.product = entry.product
+      line.productNameSnapshot = entry.product.name
+      line.quantity = String(entry.quantity)
+      line.unitPriceAmountCents = 300
+      line.lineTotalAmountCents = Math.round(entry.quantity * 300)
+      if (entry.fulfilled) line.fulfilledAt = new Date()
+      totalAmountCents += line.lineTotalAmountCents
+      order.lines.add(line)
+      return line
+    })
+    order.totalAmountCents = totalAmountCents
+    await em.persist([order, ...lines]).flush()
+    return { order, lines }
+  }
+
   async function credit(member: Member, amountCents: number) {
     const entry = new WalletEntry()
     entry.member = member
@@ -229,6 +259,33 @@ describe('distributionController (e2e)', () => {
 
       const res = await request.withSession(distributor).get(`/distribution/members/${member.id}`)
       expect(res.body.orders[0].lines[0].availableQuantity).toBe(0)
+    })
+
+    it('flags a settled line, and keeps the order handable for what is left', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const early = await makeProduct('Early apples')
+      const late = await makeProduct('Late pears')
+      await addStock(early, 10)
+      await addStock(late, 10)
+      const { order, lines } = await addTwoLineOrder(member, 'in_store', [
+        { product: early, quantity: 2 },
+        { product: late, quantity: 2 },
+      ])
+      await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({ version: order.version, lines: [{ orderLineId: lines[0].id, handedQuantity: 2 }] })
+
+      const res = await request.withSession(distributor).get(`/distribution/members/${member.id}`)
+      expect(res.status).toBe(200)
+      const screenOrder = res.body.orders[0]
+      const byId = Object.fromEntries(
+        screenOrder.lines.map((line: { orderLineId: string }) => [line.orderLineId, line]),
+      )
+      expect(byId[lines[0].id].isHandedOver).toBe(true)
+      expect(byId[lines[1].id].isHandedOver).toBe(false)
+      expect(screenOrder.hasHandableLine).toBe(true)
     })
 
     it('404s an unknown member', async () => {
@@ -548,6 +605,172 @@ describe('distributionController (e2e)', () => {
       expect(reloaded.status).toBe('pending')
     })
 
+    it('hands the rest over in a second pass, charging each line once (FR-008)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const early = await makeProduct('Early apples', 'pre_order')
+      const late = await makeProduct('Late pears', 'pre_order')
+      await addStock(early, 10)
+      await addStock(late, 10)
+      // Only the first line's goods have arrived.
+      const { order, lines } = await addTwoLineOrder(member, 'pre_order', [
+        { product: early, quantity: 2, fulfilled: true },
+        { product: late, quantity: 2 },
+      ])
+
+      const first = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({ version: order.version, lines: [{ orderLineId: lines[0].id, handedQuantity: 2 }] })
+      expect(first.status).toBe(201)
+      expect(first.body.totalEur).toBe(6)
+
+      // The delivery arrives, and the member comes back for the rest.
+      em.clear()
+      const reloaded = await em.findOneOrFail(Order, { id: order.id }, { populate: ['lines'] })
+      expect(reloaded.status).toBe('pending')
+      const remaining = reloaded.lines.getItems().find((line) => line.id === lines[1].id)!
+      remaining.fulfilledAt = new Date()
+      await em.flush()
+
+      const second = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: reloaded.version,
+          lines: [{ orderLineId: lines[1].id, handedQuantity: 2 }],
+        })
+      expect(second.status).toBe(201)
+      expect(second.body.totalEur).toBe(6)
+
+      em.clear()
+      expect((await em.findOneOrFail(Order, { id: order.id })).status).toBe('handed_over')
+      const charges = await em.find(WalletEntry, { member: member.id, reason: 'handover_charge' })
+      expect(charges.map((entry) => entry.amountCents)).toEqual([-600, -600])
+    })
+
+    it('refuses a line an earlier handover already settled, and charges nothing', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const early = await makeProduct('Early apples')
+      const late = await makeProduct('Late pears')
+      await addStock(early, 10)
+      await addStock(late, 10)
+      const { order, lines } = await addTwoLineOrder(member, 'in_store', [
+        { product: early, quantity: 2 },
+        { product: late, quantity: 2 },
+      ])
+      const body = {
+        version: order.version,
+        lines: [{ orderLineId: lines[0].id, handedQuantity: 2 }],
+      }
+
+      expect(
+        (
+          await request
+            .withSession(distributor)
+            .post(`/distribution/orders/${order.id}/handovers`)
+            .send(body)
+        ).status,
+      ).toBe(201)
+
+      // The order is still pending — its second line is outstanding — so the same request
+      // reaches the line guard rather than the status guard.
+      const replay = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send(body)
+      expect(replay.status).toBe(409)
+      expect(replay.body.code).toBe('line_already_handed_over')
+
+      em.clear()
+      expect(await em.count(WalletEntry, { member: member.id, reason: 'handover_charge' })).toBe(1)
+      const movements = await em.find(StockMovement, { product: early.id })
+      expect(movements.reduce((sum, m) => sum + Number(m.quantity), 0)).toBe(8)
+    })
+
+    it('lets a reversed line be handed over again', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const early = await makeProduct('Early apples')
+      const late = await makeProduct('Late pears')
+      await addStock(early, 10)
+      await addStock(late, 10)
+      const { order, lines } = await addTwoLineOrder(member, 'in_store', [
+        { product: early, quantity: 2 },
+        { product: late, quantity: 2 },
+      ])
+      const body = {
+        version: order.version,
+        lines: [{ orderLineId: lines[0].id, handedQuantity: 2 }],
+      }
+
+      const first = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send(body)
+      await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${first.body.id}/reversal`)
+        .send({ note: 'Wrong bag' })
+
+      em.clear()
+      const reloaded = await em.findOneOrFail(Order, { id: order.id })
+      const again = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: reloaded.version,
+          lines: [{ orderLineId: lines[0].id, handedQuantity: 2 }],
+        })
+      expect(again.status).toBe(201)
+    })
+
+    it('refuses the same line sent twice in one body', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 2 })
+      const orderLineId = order.lines.getItems()[0].id
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [
+            { orderLineId, handedQuantity: 2 },
+            { orderLineId, handedQuantity: 2 },
+          ],
+        })
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('duplicate_line')
+
+      em.clear()
+      expect(await em.count(Handover, { order: order.id })).toBe(0)
+    })
+
+    it('keeps a note longer than the old column width (FR-029)', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 2 })
+      const note = 'x'.repeat(500)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 2 }],
+          note,
+        })
+      expect(res.status).toBe(201)
+      expect(res.body.note).toHaveLength(500)
+    })
+
     it('refuses a plain member (FR-035)', async () => {
       const member = await makeMember('Fanny Funded')
       const product = await makeProduct('Apples')
@@ -699,6 +922,65 @@ describe('distributionController (e2e)', () => {
       expect(movements).toHaveLength(1) // only the opening stock
     })
 
+    it('keeps two lines for the same product distinct', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Honey')
+      await addStock(product, 10)
+
+      // Two separate jars rung up one after the other, priced at 3 € each.
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({
+          lines: [
+            { productId: product.id, quantity: 1 },
+            { productId: product.id, quantity: 2 },
+          ],
+        })
+      expect(res.status).toBe(201)
+      expect(res.body.totalEur).toBe(9)
+
+      em.clear()
+      // Each handover line points at its own order line, so neither looks un-handed.
+      const order = await em.findOneOrFail(Order, { member: member.id }, { populate: ['lines'] })
+      const orderLineIds = order.lines.getItems().map((line) => line.id)
+      expect(orderLineIds).toHaveLength(2)
+      expect(
+        new Set(res.body.lines.map((line: { orderLineId: string }) => line.orderLineId)).size,
+      ).toBe(2)
+      expect(res.body.lines.map((line: { handedQuantity: number }) => line.handedQuantity)).toEqual(
+        [1, 2],
+      )
+    })
+
+    it('cancels the order when the sale is reversed, rather than re-queueing it', async () => {
+      const member = await makeMember('Fanny Funded')
+      await credit(member, 6000)
+      const product = await makeProduct('Honey')
+      await addStock(product, 10)
+
+      const sale = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [{ productId: product.id, quantity: 2 }] })
+      expect(sale.status).toBe(201)
+
+      const reversal = await request
+        .withSession(distributor)
+        .post(`/distribution/handovers/${sale.body.id}/reversal`)
+        .send({ note: 'Rung up on the wrong member' })
+      expect(reversal.status).toBe(201)
+
+      em.clear()
+      const order = await em.findOneOrFail(Order, { member: member.id })
+      expect(order.status).toBe('cancelled')
+      expect(order.cancelledAt).toBeInstanceOf(Date)
+      // And it is gone from the waiting list, not parked there for ever.
+      const waiting = await request.withSession(distributor).get('/distribution/waiting')
+      expect(waiting.body.data).toHaveLength(0)
+    })
+
     it('rejects an empty line list before it reaches the service (FR-019)', async () => {
       const member = await makeMember('Fanny Funded')
       const res = await request
@@ -773,6 +1055,25 @@ describe('distributionController (e2e)', () => {
 
       const after = await request.withSession(distributor).get('/distribution/waiting')
       expect(after.body.data).toHaveLength(0)
+    })
+
+    it('pages the ready-only list from the database, not after the fact', async () => {
+      const member = await makeMember('Fanny Funded')
+      const product = await makeProduct('Leeks', 'pre_order')
+      // Two orders still awaiting their delivery, then one that arrived.
+      await addOrder(member, product, 'pre_order')
+      await addOrder(member, product, 'pre_order')
+      await addOrder(member, product, 'pre_order', { fulfilled: true })
+
+      const res = await request
+        .withSession(distributor)
+        .get('/distribution/waiting?filter=readyOnly:eq:true&pageSize=2&offset=0')
+      expect(res.status).toBe(200)
+      // The one ready order comes back on the first page, and the count is of ready orders.
+      expect(res.body.data).toHaveLength(1)
+      expect(res.body.data[0].isReady).toBe(true)
+      expect(res.body.meta.itemCount).toBe(1)
+      expect(res.body.meta.hasMore).toBe(false)
     })
 
     it('filters by the date the order was placed (FR-033)', async () => {

@@ -16,7 +16,9 @@ import { Handover } from './entities/handover.entity'
 import { HandoverLine } from './entities/handover-line.entity'
 import {
   balanceCovers,
+  findDuplicateLineId,
   handoverTotalCents,
+  isOrderFullySettled,
   isSellableAtTable,
   lineReadiness,
   lineTotalCents,
@@ -57,6 +59,8 @@ export interface MemberScreen {
   orders: Order[]
   /** Current stock on hand per product id — the "available" figure beside each line. */
   stockByProduct: Map<string, number>
+  /** Lines an earlier, un-reversed handover already covered — shown, never handed again. */
+  settledOrderLineIds: Set<string>
 }
 
 @Injectable()
@@ -130,6 +134,10 @@ export class DistributionService {
       balanceCents: await this.wallet.getBalanceCents(this.em, member.id),
       orders,
       stockByProduct,
+      settledOrderLineIds: await this.settledOrderLineIds(
+        this.em,
+        orders.map((order) => order.id),
+      ),
     }
   }
 
@@ -143,13 +151,16 @@ export class DistributionService {
    *    40 € and each charge 30 €. The lock is on the member, so two staffers serving
    *    different people never wait on each other, and one member is only ever at one table.
    *    Same pattern `PurchasingService.recordReception` uses on the supplier order.
-   * 2. Refuse a stale `version` or an order that is no longer pending — this is what stops
-   *    a second charge for the same order (SC-003).
-   * 3. Refuse a line whose goods have not arrived (FR-003), and a terminated member (FR-005).
-   * 4. Price every line at the order's snapshot price, never today's.
-   * 5. Read the balance *before* writing anything, and refuse with the shortfall.
-   * 6. Write the handover, the stock movements, and the one wallet entry.
-   * 7. Flip the order to `handed_over` only once every line is settled.
+   * 2. Refuse a stale `version` or an order that is no longer pending.
+   * 3. Refuse a line an un-reversed handover already settled. This is what stops a second
+   *    charge for the same goods (SC-003): a partial handover leaves the order `pending` and
+   *    its row untouched, so neither the status nor the version can carry that guarantee on
+   *    their own — only the handover lines already written against the order can.
+   * 4. Refuse a line whose goods have not arrived (FR-003), and a terminated member (FR-005).
+   * 5. Price every line at the order's snapshot price, never today's.
+   * 6. Read the balance *before* writing anything, and refuse with the shortfall.
+   * 7. Write the handover, the stock movements, and the one wallet entry.
+   * 8. Flip the order to `handed_over` only once every line is settled.
    */
   async recordHandover(
     orderId: string,
@@ -180,12 +191,28 @@ export class DistributionService {
         throw this.refuse('member_terminated', 'This member’s membership is terminated')
       }
 
+      const duplicateLineId = findDuplicateLineId(input.lines.map((line) => line.orderLineId))
+      if (duplicateLineId) {
+        throw this.refuse(
+          'duplicate_line',
+          'The same line was sent twice in one handover — send each line once',
+        )
+      }
+
       const linesById = new Map(order.lines.getItems().map((line) => [line.id, line]))
+      const alreadySettled = await this.settledOrderLineIds(em, [order.id])
       const priced: PricedHandoverLine[] = []
       for (const entry of input.lines) {
         const orderLine = linesById.get(entry.orderLineId)
         if (!orderLine) {
           throw new NotFoundException(`Line ${entry.orderLineId} is not on this order`)
+        }
+        if (alreadySettled.has(orderLine.id)) {
+          throw this.refuse(
+            'line_already_handed_over',
+            `${orderLine.productNameSnapshot} was already handed over`,
+            { productName: orderLine.productNameSnapshot },
+          )
         }
         const { isReady } = lineReadiness(order.orderingMode, orderLine.fulfilledAt)
         if (!isReady) {
@@ -259,11 +286,11 @@ export class DistributionService {
         recordedByUserId,
       })
 
-      const settledNow = new Set(priced.map((line) => line.orderLineId))
-      const alreadySettled = await this.settledOrderLineIds(em, order.id)
-      const allSettled = order.lines
-        .getItems()
-        .every((line) => settledNow.has(line.id) || alreadySettled.has(line.id))
+      const allSettled = isOrderFullySettled(
+        order.lines.getItems().map((line) => line.id),
+        alreadySettled,
+        new Set(priced.map((line) => line.orderLineId)),
+      )
       if (allSettled) order.status = 'handed_over'
 
       await em.flush()
@@ -293,6 +320,15 @@ export class DistributionService {
   ): Promise<{ items: WaitingOrderRow[]; total: number }> {
     const where: FilterQuery<Order> = { status: 'pending' }
     if (filters.orderingMode) Object.assign(where, { orderingMode: filters.orderingMode })
+    // Asked of the database rather than filtered afterwards: filtering the page in memory
+    // would drop rows the limit had already granted, leaving short pages and a `total` that
+    // counted the ones it just removed. An in-store order is ready by definition; a pre-order
+    // is ready once no line of it is still waiting on a delivery.
+    if (filters.readyOnly) {
+      Object.assign(where, {
+        $or: [{ orderingMode: 'in_store' }, { lines: { $none: { fulfilledAt: null } } }],
+      })
+    }
     if (filters.placedFrom || filters.placedTo) {
       const placedAt: Record<string, Date> = {}
       if (filters.placedFrom) placedAt.$gte = new Date(filters.placedFrom)
@@ -309,16 +345,13 @@ export class DistributionService {
       populate: ['member', 'member.user', 'lines'],
     })
 
-    const rows = orders.map((order) => ({
+    const items = orders.map((order) => ({
       order,
       isReady: order.lines
         .getItems()
         .every((line) => lineReadiness(order.orderingMode, line.fulfilledAt).isReady),
     }))
-    return {
-      items: filters.readyOnly ? rows.filter((row) => row.isReady) : rows,
-      total,
-    }
+    return { items, total }
   }
 
   /**
@@ -398,10 +431,13 @@ export class DistributionService {
       order.orderingMode = 'in_store'
       order.status = 'pending'
       order.placedAt = new Date()
+      order.isExpress = true
       em.persist(order)
 
       const priced: PricedHandoverLine[] = []
-      const orderLines = new Map<string, OrderLine>()
+      // Parallel to `priced`. Keyed by position, not by product: the order lines have no id
+      // until the flush below, and two lines for the same product are two distinct lines.
+      const orderLines: OrderLine[] = []
       let orderTotalCents = 0
       for (const entry of input.lines) {
         const product = productsById.get(entry.productId)
@@ -426,9 +462,9 @@ export class DistributionService {
         em.persist(orderLine)
 
         orderTotalCents += lineTotalAmountCents
-        orderLines.set(entry.productId, orderLine)
+        orderLines.push(orderLine)
         priced.push({
-          orderLineId: entry.productId,
+          orderLineId: String(orderLines.length - 1),
           handedQuantity: entry.quantity,
           unitPriceAmountCents,
           lineTotalAmountCents,
@@ -460,8 +496,8 @@ export class DistributionService {
       handover.note = input.note
       em.persist(handover)
 
-      for (const line of priced) {
-        const orderLine = orderLines.get(line.orderLineId)!
+      for (const [index, line] of priced.entries()) {
+        const orderLine = orderLines[index]
         const handoverLine = new HandoverLine()
         handoverLine.handover = handover
         handoverLine.orderLine = orderLine
@@ -587,7 +623,17 @@ export class DistributionService {
 
       // The order can be handed over again (FR-030). `Order` is mutable, so moving its status
       // back is an ordinary edit, not a ledger write.
-      original.order.status = 'pending'
+      //
+      // An express order is the exception: it was created to carry this sale and nothing else,
+      // so there is nothing left for the member to collect. Returning it to `pending` would
+      // park it in the waiting list and in the member's outstanding count for ever, with no
+      // way out but charging them again. Undoing the sale therefore cancels the order.
+      if (original.order.isExpress) {
+        original.order.status = 'cancelled'
+        original.order.cancelledAt = new Date()
+      } else {
+        original.order.status = 'pending'
+      }
 
       await em.flush()
       await em.populate(reversal, ['recordedByUser', 'lines', 'lines.orderLine'])
@@ -624,18 +670,21 @@ export class DistributionService {
   }
 
   /**
-   * Order lines already covered by a handover that has not itself been reversed. Derived
-   * rather than stored, so a reversal needs no column to un-set (data-model.md).
+   * Order lines already covered by a handover that has not itself been reversed, across the
+   * orders given. Derived rather than stored, so a reversal needs no column to un-set
+   * (data-model.md).
    */
-  private async settledOrderLineIds(em: EntityManager, orderId: string): Promise<Set<string>> {
+  private async settledOrderLineIds(em: EntityManager, orderIds: string[]): Promise<Set<string>> {
+    if (orderIds.length === 0) return new Set()
+    const placeholders = orderIds.map(() => '?').join(', ')
     const rows: { orderLineId: string }[] = await em.getConnection().execute(
       `select hl."orderLineId"
          from "handoverLine" hl
          join "handover" h on h.id = hl."handoverId"
-        where h."orderId" = ?
+        where h."orderId" in (${placeholders})
           and h.kind = 'handover'
           and not exists (select 1 from "handover" r where r."reversesHandoverId" = h.id)`,
-      [orderId],
+      orderIds,
       'all',
       em.getTransactionContext(),
     )

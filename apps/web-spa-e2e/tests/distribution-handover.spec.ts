@@ -12,10 +12,7 @@ test.beforeEach(async ({ resetDb }) => {
 async function openMember(page: Page, name: string) {
   await page.goto('/distribution')
   await page.getByTestId('distribution-member-search').fill(name)
-  await page
-    .locator('[data-testid^="distribution-member-row-"]')
-    .filter({ hasText: name })
-    .click()
+  await page.locator('[data-testid^="distribution-member-row-"]').filter({ hasText: name }).click()
   await expect(page.getByTestId('page-distribution-member')).toBeVisible()
 }
 
@@ -31,12 +28,8 @@ test.describe('remise d’une commande', () => {
     // The seeded pre-order: 4 apples @ 3 € and 0.5 kg of cheese @ 20 €/kg = 22 €.
     const order = page.locator('[data-testid^="distribution-order-"]').first()
     // Hand over 3 apples instead of 4, and weigh the cheese at 0.6 kg.
-    await line(page, E2E_DISTRIBUTION.readyProductName)
-      .getByTestId('handover-line-quantity')
-      .fill('3')
-    await line(page, E2E_DISTRIBUTION.weightProductName)
-      .getByTestId('handover-line-quantity')
-      .fill('0.6')
+    await line(page, E2E_DISTRIBUTION.readyProductName).getByTestId('handover-qty').fill('3')
+    await line(page, E2E_DISTRIBUTION.weightProductName).getByTestId('handover-qty').fill('0.6')
 
     // 3 × 3 € + 0.6 × 20 € = 21 €, at the prices recorded when the order was placed.
     await expect(order.getByTestId('handover-total')).toContainText('21')
@@ -58,12 +51,8 @@ test.describe('remise d’une commande', () => {
     await openMember(page, E2E_DISTRIBUTION.funded.name)
     const order = page.locator('[data-testid^="distribution-order-"]').first()
 
-    await line(page, E2E_DISTRIBUTION.readyProductName)
-      .getByTestId('handover-line-quantity')
-      .fill('0')
-    await line(page, E2E_DISTRIBUTION.weightProductName)
-      .getByTestId('handover-line-quantity')
-      .fill('0.5')
+    await line(page, E2E_DISTRIBUTION.readyProductName).getByTestId('handover-qty').fill('0')
+    await line(page, E2E_DISTRIBUTION.weightProductName).getByTestId('handover-qty').fill('0.5')
     // Only the cheese: 0.5 × 20 € = 10 €.
     await expect(order.getByTestId('handover-total')).toContainText('10')
     await order.getByTestId('handover-submit').click()
@@ -106,5 +95,28 @@ test.describe('remise d’une commande', () => {
     await openMember(page, E2E_DISTRIBUTION.awaiting.name)
     const order = page.locator('[data-testid^="distribution-order-"]').first()
     await expect(order.getByTestId('handover-submit')).toBeDisabled()
+  })
+
+  test('remet la ligne livrée et laisse le reste en attente (FR-008)', async ({ page }) => {
+    await openMember(page, E2E_DISTRIBUTION.partial.name)
+    const order = page.locator('[data-testid^="distribution-order-"]').first()
+
+    // Half the delivery is in, so the order is handable even though it is not fully ready.
+    await expect(order.getByTestId('handover-submit')).toBeEnabled()
+    // Only the delivered line counts: 2 apples × 3 € = 6 €. The leeks are not on the total.
+    await expect(order.getByTestId('handover-total')).toContainText('6')
+    await expect(order.getByTestId('handover-excluded')).toHaveCount(1)
+
+    await order.getByTestId('handover-submit').click()
+    await expect(page.getByTestId('handover-receipt')).toBeVisible()
+
+    // The order is still outstanding, and neither line can be handed over now: one is
+    // already given, the other is still waiting on its delivery.
+    await openMember(page, E2E_DISTRIBUTION.partial.name)
+    const reopened = page.locator('[data-testid^="distribution-order-"]').first()
+    await expect(reopened.getByTestId('handover-excluded')).toHaveCount(2)
+    await expect(reopened.getByTestId('handover-submit')).toBeDisabled()
+    // 60 € − 6 € = 54 €, charged once.
+    await expect(page.getByTestId('distribution-member-balance')).toContainText('54')
   })
 })

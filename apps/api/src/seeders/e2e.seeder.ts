@@ -359,7 +359,7 @@ export class E2eSeeder extends Seeder {
     const seedOrder = (
       member: Member,
       orderingMode: 'pre_order' | 'in_store',
-      lines: { product: Product; quantity: number; unitPriceCents: number }[],
+      lines: { product: Product; quantity: number; unitPriceCents: number; fulfilled?: boolean }[],
       options: { fulfilled?: boolean } = {},
     ): Order => {
       const order = new Order()
@@ -377,7 +377,10 @@ export class E2eSeeder extends Seeder {
         line.unitPriceAmountCents = entry.unitPriceCents
         line.lineTotalAmountCents = Math.round(entry.quantity * entry.unitPriceCents)
         // A pre-order is only ready once lot 3 marked it fulfilled; an in-store line always is.
-        if (orderingMode === 'pre_order' && options.fulfilled) line.fulfilledAt = new Date()
+        // Per line, so one order can hold a delivered line beside one still waiting.
+        if (orderingMode === 'pre_order' && (entry.fulfilled ?? options.fulfilled)) {
+          line.fulfilledAt = new Date()
+        }
         totalAmountCents += line.lineTotalAmountCents
         order.lines.add(line)
         em.persist(line)
@@ -440,6 +443,29 @@ export class E2eSeeder extends Seeder {
       status: 'active',
     })
     seedOrder(anna, 'pre_order', [{ product: awaitingProduct, quantity: 3, unitPriceCents: 200 }])
+
+    const { member: paula } = await createMemberData(em, {
+      user: {
+        name: E2E_DISTRIBUTION.partial.name,
+        email: E2E_DISTRIBUTION.partial.email,
+        emailVerified: true,
+      },
+      password: E2E_PASSWORD,
+      roles: ['member'],
+      status: 'active',
+    })
+    const paulaOpening = new WalletEntry()
+    paulaOpening.member = paula
+    paulaOpening.amountCents = E2E_DISTRIBUTION.partial.balanceEur * 100
+    paulaOpening.currency = 'EUR'
+    paulaOpening.reason = 'payment_received'
+    paulaOpening.paymentMethod = 'transfer'
+    em.persist(paulaOpening)
+    // Half the delivery is in: the apples arrived, the leeks did not.
+    seedOrder(paula, 'pre_order', [
+      { product: readyProduct, quantity: 2, unitPriceCents: 300, fulfilled: true },
+      { product: awaitingProduct, quantity: 3, unitPriceCents: 200 },
+    ])
 
     const { member: elio } = await createMemberData(em, {
       user: {

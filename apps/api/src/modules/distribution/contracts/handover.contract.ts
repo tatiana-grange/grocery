@@ -111,6 +111,8 @@ export const HANDOVER_REFUSAL_CODES = [
   'order_not_pending',
   'stale_version',
   'line_not_ready',
+  'line_already_handed_over',
+  'duplicate_line',
   'member_terminated',
   'nothing_handed_over',
   'product_not_sellable',

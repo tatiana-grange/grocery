@@ -564,6 +564,7 @@
       "ordered": "Commandé",
       "available": "En rayon",
       "handedOver": "Remis",
+      "alreadyHandedOver": "Déjà remis",
       "unitPrice": "Prix unitaire",
       "lineTotal": "Total ligne",
       "negativeStock": "Le stock enregistré est négatif — un inventaire s'impose."
@@ -605,6 +606,8 @@
       "order_not_pending": "Cette commande a déjà été remise.",
       "stale_version": "Cette commande a changé depuis son ouverture — rechargez et réessayez.",
       "line_not_ready": "{{productName}} n'est pas encore arrivé.",
+      "line_already_handed_over": "{{productName}} a déjà été remis.",
+      "duplicate_line": "La même ligne a été envoyée deux fois — rechargez et réessayez.",
       "member_terminated": "L'adhésion de cet adhérent est résiliée.",
       "nothing_handed_over": "Rien à remettre — toutes les lignes sont à zéro.",
       "product_not_sellable": "Ce produit ne peut pas être vendu à la table.",

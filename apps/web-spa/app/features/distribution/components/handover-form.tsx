@@ -4,7 +4,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import type { DistributionOrder } from '@grocery/openapi-generator/client/types.gen'
+import type {
+  DistributionLine,
+  DistributionOrder,
+} from '@grocery/openapi-generator/client/types.gen'
 import { recordHandover } from '@/features/distribution/utils/distribution-queries'
 
 interface HandoverFormProps {
@@ -24,10 +27,20 @@ interface RefusalBody {
   productName?: string
 }
 
+/** A line this handover can cover: its goods are here, and nobody has handed it over yet. */
+function isHandable(line: DistributionLine): boolean {
+  return line.isReady && !line.isHandedOver
+}
+
 /**
  * The line-by-line handover. Every quantity starts at what was ordered, because that is what
  * usually leaves the table; staff correct the ones that differ — a weighed product, a
  * declined item, a short delivery.
+ *
+ * Only the handable lines are sent. An order whose goods arrive in two deliveries is handed
+ * over in two passes (FR-008): the first takes the lines that are here, the order stays
+ * outstanding for the rest, and a line already given is shown but never sent again — a line
+ * is charged once, and the server refuses a second attempt.
  *
  * The total is recomputed here at the order's snapshot prices so it matches what the server
  * will charge, and the member sees the figure before anyone commits to it.
@@ -35,16 +48,19 @@ interface RefusalBody {
 export function HandoverForm({ order, onRecorded, onInsufficientBalance }: HandoverFormProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const [quantities, setQuantities] = useState<Record<string, string>>(() =>
-    Object.fromEntries(order.lines.map((line) => [line.orderLineId, String(line.orderedQuantity)])),
-  )
+  // Only what staff typed. A line whose default still stands is not in here, so a line that
+  // becomes handable after a reload starts at its ordered quantity rather than at zero.
+  const [editedQuantities, setEditedQuantities] = useState<Record<string, string>>({})
   const [refusal, setRefusal] = useState<RefusalBody | null>(null)
 
+  const handableLines = order.lines.filter(isHandable)
   const eur = (value: number) => t('distribution.eur', { value: value.toFixed(2) })
-  const quantityOf = (orderLineId: string) => Number(quantities[orderLineId] ?? 0) || 0
+  const inputValue = (line: DistributionLine) =>
+    editedQuantities[line.orderLineId] ?? String(line.orderedQuantity)
+  const quantityOf = (line: DistributionLine) => Number(inputValue(line)) || 0
 
-  const totalEur = order.lines.reduce(
-    (sum, line) => sum + quantityOf(line.orderLineId) * line.unitPriceEur,
+  const totalEur = handableLines.reduce(
+    (sum, line) => sum + quantityOf(line) * line.unitPriceEur,
     0,
   )
 
@@ -52,15 +68,19 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
     mutationFn: async () =>
       recordHandover(order.id, {
         version: order.version,
-        lines: order.lines.map((line) => ({
+        lines: handableLines.map((line) => ({
           orderLineId: line.orderLineId,
-          handedQuantity: quantityOf(line.orderLineId),
+          handedQuantity: quantityOf(line),
         })),
       }),
     onSuccess: (handover) => {
       setRefusal(null)
+      setEditedQuantities({})
       toast.success(t('distribution.handover.success', { amount: eur(handover.totalEur) }))
       void queryClient.invalidateQueries({ queryKey: ['distribution'] })
+      // The charge just moved the balance, and the wallet panel on this page reads it from
+      // its own query.
+      void queryClient.invalidateQueries({ queryKey: ['wallet'] })
       onRecorded(handover.id)
     },
     onError: (error: unknown) => {
@@ -83,26 +103,34 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
             <span className="text-sm text-muted-foreground">
               {t('distribution.line.ordered')} {line.orderedQuantity}
             </span>
-            <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">{t('distribution.line.handedOver')}</span>
-              <Input
-                className="w-28 text-base tabular-nums"
-                data-testid="handover-line-quantity"
-                type="number"
-                min={0}
-                step={line.saleMode === 'weight' ? 0.001 : 1}
-                value={quantities[line.orderLineId] ?? ''}
-                onChange={(event) =>
-                  setQuantities((current) => ({
-                    ...current,
-                    [line.orderLineId]: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <span className="tabular-nums">
-              {eur(quantityOf(line.orderLineId) * line.unitPriceEur)}
-            </span>
+            {isHandable(line) ? (
+              <>
+                <label className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">{t('distribution.line.handedOver')}</span>
+                  <Input
+                    className="w-28 text-base tabular-nums"
+                    data-testid="handover-qty"
+                    type="number"
+                    min={0}
+                    step={line.saleMode === 'weight' ? 0.001 : 1}
+                    value={inputValue(line)}
+                    onChange={(event) =>
+                      setEditedQuantities((current) => ({
+                        ...current,
+                        [line.orderLineId]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <span className="tabular-nums">{eur(quantityOf(line) * line.unitPriceEur)}</span>
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground" data-testid="handover-excluded">
+                {line.isHandedOver
+                  ? t('distribution.line.alreadyHandedOver')
+                  : t(`distribution.notReadyReason.${line.notReadyReason}`)}
+              </span>
+            )}
           </li>
         ))}
       </ul>
@@ -117,7 +145,7 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
         <Button
           className="ml-auto"
           data-testid="handover-submit"
-          disabled={!order.isReady || mutation.isPending}
+          disabled={!order.hasHandableLine || mutation.isPending}
           onClick={() => mutation.mutate()}
         >
           {mutation.isPending

@@ -1112,6 +1112,7 @@ export const zDistributionOrder = z.object({
     placedAt: z.string(),
     totalEur: z.number().gte(0),
     isReady: z.boolean(),
+    hasHandableLine: z.boolean(),
     version: z.int().gte(-9007199254740991).lte(9007199254740991),
     lines: z.array(z.object({
         orderLineId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
@@ -1134,7 +1135,8 @@ export const zDistributionOrder = z.object({
         notReadyReason: z.optional(z.union([
             z.enum(['awaiting_reception']),
             z.null()
-        ]))
+        ])),
+        isHandedOver: z.boolean()
     }))
 });
 
@@ -1195,7 +1197,8 @@ export const zDistributionLine = z.object({
     notReadyReason: z.optional(z.union([
         z.enum(['awaiting_reception']),
         z.null()
-    ]))
+    ])),
+    isHandedOver: z.boolean()
 });
 
 /**

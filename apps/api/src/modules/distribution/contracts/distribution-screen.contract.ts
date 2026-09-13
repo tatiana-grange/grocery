@@ -57,6 +57,12 @@ export const distributionLineSchema = z
     lineTotalEur: z.number().nonnegative(),
     isReady: z.boolean(),
     notReadyReason: notReadyReasonCodeSchema.nullish(),
+    /**
+     * Already covered by an earlier handover that has not been reversed. The order stays
+     * pending until every line is settled (FR-008), so a partly handed-over order comes back
+     * with its settled lines flagged — they are shown, never handed over a second time.
+     */
+    isHandedOver: z.boolean(),
   })
   .meta({ title: 'DistributionLine' })
 export type DistributionLine = z.infer<typeof distributionLineSchema>
@@ -67,8 +73,10 @@ export const distributionOrderSchema = z
     orderingMode: orderingModeChoiceSchema,
     placedAt: z.date(),
     totalEur: z.number().nonnegative(),
-    /** Every line ready — a pre-order line needs its goods to have arrived (FR-003). */
+    /** Every line still to hand is ready — a pre-order line needs its goods (FR-003). */
     isReady: z.boolean(),
+    /** At least one line can be handed over now. What the validate button keys off. */
+    hasHandableLine: z.boolean(),
     /** Sent back on validate so a concurrent handover is refused (FR-011). */
     version: z.number().int(),
     lines: z.array(distributionLineSchema),

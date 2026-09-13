@@ -49,7 +49,7 @@ export const E2E_PURCHASING = {
 } as const
 
 /**
- * Lot 4 distribution fixtures: a dedicated supplier, products already in stock, and four
+ * Lot 4 distribution fixtures: a dedicated supplier, products already in stock, and five
  * members each parked in one of the states the table has to handle. Isolated from the lot 2
  * and lot 3 fixtures so the distribution specs never collide with cart, checkout, catalog,
  * or aggregation.
@@ -71,6 +71,11 @@ export const E2E_DISTRIBUTION = {
   broke: { email: 'broke@e2e.local', name: 'Bruno Broke' },
   /** Holds a pre-order whose goods have not arrived. */
   awaiting: { email: 'awaiting@e2e.local', name: 'Anna Awaiting' },
+  /**
+   * Funded, holding one pre-order half delivered: one line received, one still waiting. The
+   * partial handover of FR-008 needs an order that is neither fully ready nor fully blocked.
+   */
+  partial: { email: 'partial@e2e.local', name: 'Paula Partial', balanceEur: 60 },
   /** Terminated, holding an order — the handover must be refused (FR-005). */
   ended: { email: 'ended@e2e.local', name: 'Elio Ended' },
 } as const
