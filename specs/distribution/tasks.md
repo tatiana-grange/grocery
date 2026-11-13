@@ -547,11 +547,19 @@ member-administration actions.
   touched** — never `pnpm fmt` repo-wide, which rewrites dozens of unrelated files
 - [X] T083 Run `pnpm --filter=api test` and confirm every new unit and controller e2e spec
   passes alongside the existing ones
-- [ ] T084 Walk `specs/distribution/quickstart.md` end to end against a freshly seeded local
-  stack. **Left open deliberately**: this needs `db:fresh:seed`, which wipes the maintainer's
-  local database, so it was not run unprompted. Its contents were verified instead — every
-  spec file and seed fixture it names exists — and all seven user-story walkthroughs are
-  covered by the Playwright specs against a real API and SPA
+- [X] T084 Walk `specs/distribution/quickstart.md` end to end against a freshly seeded local
+  stack. Run on the disposable E2E stack (`docker-compose.e2e.yml`, `E2eSeeder`) rather than
+  `db:fresh:seed`, so no developer database was wiped. The Playwright specs cover the
+  screen-level walkthroughs; the steps they do not reach were checked against the live API:
+  the handover total keeps the checkout price after the current price changes (21 € charged,
+  42 € at the new price); stock falls by exactly the handed quantities with the weighted
+  average cost unchanged; a reversal returns balance, stock and cost price to exactly their
+  prior values, keeps both ledger entries, and leaves the order handable again; a member is
+  refused another member's wallet; and granting then removing `distributor` opens then
+  closes `/distribution` for that member. All 31 checks passed. The migrations were also run
+  from an empty database: they apply cleanly, the three new tables carry their indexes,
+  `stockMovement.handoverLineId` is a nullable added column, and nothing touches
+  `order.status`, `stockMovement.reason` or the roles
 - [X] T085 Run the full `pnpm e2e` suite and confirm every existing Playwright test still
   passes alongside the seven new specs. A failing test blocks the feature and needs a human to
   decide whether to update the test or fix the behaviour — never edit or delete an existing
