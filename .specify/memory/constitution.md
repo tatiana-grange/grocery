@@ -1,8 +1,20 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.2.0 → 1.3.0
-Last amended: 2026-09-12
+Version change: 1.3.0 → 1.4.0
+Last amended: 2026-11-13
+
+Rationale (1.4.0): Spec Kit moved from the project's customized commands to the 1.2.4 skills
+(`/speckit-specify` and so on), on the same model as the maintainer's other projects. The
+customized commands carried rules the stock skills drop, so they move here and into
+`.specify/templates/overrides/`, which an upgrade never overwrites: the E2E rule (one
+Playwright test per story, the full suite as a gate, never edit an existing test to make it
+pass) and one commit per user story (replacing one commit per phase). The per-feature
+`CHANGELOG.md` is dropped — commits and the PR description already carry that history. New
+spec folders are numbered (`specs/NNN-feature-name/`), Spec Kit's default. The bug triage
+extension and an automatic code review after implementation are added. MINOR: workflow
+guidance materially changed, no principle removed or redefined. Branch creation stays with
+`CONTRIBUTING.md` and the `git-workflow` skill; Spec Kit no longer creates branches.
 
 Rationale (1.3.0): Renamed the distribution-staffing role from `grocer` to `distributor` in
 Principle V. The set of roles, their number, and what each one may do are all unchanged —
@@ -48,14 +60,14 @@ Principles defined:
 Sections:
   - Technology Constraints (tightened in 1.2.0: migrations are mandatory)
   - Development Workflow and Quality Gates (expanded in 1.1.0: branch flow;
-    in 1.2.0: stacked branches and agent autonomy)
+    in 1.2.0: stacked branches and agent autonomy; in 1.4.0: Spec Kit skills, E2E rule,
+    one commit per user story)
   - Governance
 
-Templates status (rechecked at 1.3.0 — no template names a role):
-  ✅ .specify/templates/plan-template.md — "Constitution Check" gate is generic; no edit required
-  ✅ .specify/templates/spec-template.md — no constitution references; no edit required
-  ✅ .specify/templates/tasks-template.md — no constitution references; no edit required
-  ✅ .specify/templates/checklist-template.md — no constitution references; no edit required
+Templates status (rechecked at 1.4.0):
+  ✅ .specify/templates/*.md — stock Spec Kit 1.2.4, never edited by hand
+  ✅ .specify/templates/overrides/plan-template.md — adds the E2E suite line to Technical Context
+  ✅ .specify/templates/overrides/tasks-template.md — adds the E2E tasks and one commit per story
 
 Follow-up TODOs: none.
 -->
@@ -195,8 +207,18 @@ credit notes, and a distribution screen that must be fast and tolerant of a flak
 
 ## Development Workflow and Quality Gates
 
-- Feature work uses the Spec-Driven flow: `/speckit.specify` → `/speckit.plan` →
-  `/speckit.tasks` → `/speckit.implement`, with specs under `specs/<feature-name>/`.
+- Feature work uses the Spec-Driven flow: `/speckit-specify` → `/speckit-plan` →
+  `/speckit-tasks` → `/speckit-implement`, then the `grocery-feature-review` code review that
+  the `after_implement` hook starts. New specs live under `specs/NNN-feature-name/`; the
+  folders of lots 1–4 keep their unnumbered names. Bugs go through `/speckit-bug-assess` →
+  `/speckit-bug-fix` → `/speckit-bug-test`.
+- One commit per user story: each story phase of `tasks.md` ends with a commit task, made
+  once `pnpm lint`, `pnpm typecheck` and `pnpm test` are green. The rules live in
+  `.specify/templates/overrides/tasks-template.md`.
+- End-to-end tests: every user story ships with a Playwright test of its primary flow
+  (`apps/web-spa-e2e`), and a feature is valid only when the full `pnpm e2e` suite passes.
+  No task may edit, skip or delete an existing E2E test to make it pass: when one fails, a
+  human decides whether the test or the code is wrong.
 - Project documentation lives in `apps/documentation/`, never in a side `docs/` folder.
 - Commits and pull requests follow `CONTRIBUTING.md`: Conventional Commits with the
   gitmoji of their type after the colon, valid type/scope/emoji from `commitlint.config.ts`, squash merge where the PR title and description
@@ -241,4 +263,4 @@ conventions, and tests where the feature requires them.
   violation is recorded in the feature's `plan.md` Complexity Tracking table, with the
   simpler alternative that was rejected and why.
 
-**Version**: 1.3.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-09-12
+**Version**: 1.4.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-11-13

@@ -14,6 +14,5 @@ reads the same rules. `CLAUDE.md` covers:
 - the stack and the database rules (schema changes go through MikroORM migrations).
 
 Do not add project instructions here — half the tools would never see them. Put them in
-`CLAUDE.md`. If a tool appends generated sections to this file (Spec-Kit's
-`update-agent-context.sh` does that for some agents), move them to `CLAUDE.md` and leave
-this file a pointer.
+`CLAUDE.md`. If a tool appends generated sections to this file, move them to `CLAUDE.md`
+and leave this file a pointer.

@@ -38,6 +38,23 @@ Commit on your own, share only when asked.
 
 Full detail: `CONTRIBUTING.md` and `.claude/skills/git-workflow/SKILL.md`.
 
+## Spec Kit
+
+Feature work goes through Spec Kit 1.2.4, installed as skills:
+`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`. The
+`after_implement` hook (`.specify/extensions.yml`) then starts `grocery-feature-review`. Run
+it without asking: it only reports, and fixes nothing until I pick the points. For a bug, use
+`/speckit-bug-assess` → `/speckit-bug-fix` → `/speckit-bug-test` (reports in
+`.specify/bugs/<slug>/`). Run no other Spec Kit hook without my explicit go-ahead.
+
+- Spec Kit does not create branches. Before `/speckit-specify`, branch as the git rules
+  above say (off `staging`, `type/feature-name`).
+- New spec folders are numbered: `specs/NNN-feature-name/`.
+- `.claude/skills/speckit-*`, `.specify/scripts/`, `.specify/templates/*.md` and
+  `.specify/extensions/` are installed by Spec Kit: do not edit them by hand. Project rules go
+  in `.specify/templates/overrides/` (E2E tests, one commit per user story), which Spec Kit
+  reads first and never overwrites, and in the constitution.
+
 ## Active Technologies
 - TypeScript 5.x on Node.js 24.13.0, pnpm 10.28.2 workspace + NestJS, MikroORM (PostgreSQL), Zod, `@lonestone/nzoth/server` (feat/foundation)
 - PostgreSQL via MikroORM. Schema changes go through MikroORM migrations (`pnpm --filter=api db:migrate:create`, then review the generated SQL). `pnpm --filter=api db:fresh:seed` is for local resets only, never against a shared or production database.
