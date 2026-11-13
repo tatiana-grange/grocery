@@ -115,7 +115,10 @@ export class MembersMapper {
   ): MembersList {
     return {
       data: members.map((member) =>
-        this.toMemberListItem(member, feeStateByMemberId.get(member.id) ?? MEMBERSHIP_FEE_STATES[0]),
+        this.toMemberListItem(
+          member,
+          feeStateByMemberId.get(member.id) ?? MEMBERSHIP_FEE_STATES[0],
+        ),
       ),
       meta: {
         itemCount: total,

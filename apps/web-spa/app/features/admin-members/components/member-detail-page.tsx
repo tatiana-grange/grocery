@@ -57,7 +57,7 @@ export default function MemberDetailPage() {
   const onError = () => toast.error(t('adminMembers.toasts.error'))
 
   const roleMutation = useMutation({
-    mutationFn: (roles: ('member' | 'admin')[]) =>
+    mutationFn: (roles: ('member' | 'distributor' | 'admin')[]) =>
       setMemberRoles(memberId, { roles, version: member!.version }),
     onSuccess: () => {
       toast.success(t('adminMembers.roleUpdated'))
@@ -86,6 +86,20 @@ export default function MemberDetailPage() {
 
   const isPending = member.status === 'pending'
   const isAdmin = member.roles.includes('admin')
+  const isDistributor = member.roles.includes('distributor')
+
+  /**
+   * Roles are replaced wholesale, so each toggle has to preserve the other one. `member` is
+   * always kept — every role list starts there.
+   */
+  const rolesWith = (role: 'distributor' | 'admin', held: boolean) => {
+    const next = new Set<'member' | 'distributor' | 'admin'>(['member'])
+    if (isDistributor) next.add('distributor')
+    if (isAdmin) next.add('admin')
+    if (held) next.delete(role)
+    else next.add(role)
+    return [...next]
+  }
 
   return (
     <div className="space-y-6" data-testid="page-member-detail">
@@ -111,7 +125,10 @@ export default function MemberDetailPage() {
       </div>
 
       <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
-        <Field label={t('adminMembers.columns.identifier')} value={member.identifiers.email ?? member.identifiers.phoneNumber ?? '—'} />
+        <Field
+          label={t('adminMembers.columns.identifier')}
+          value={member.identifiers.email ?? member.identifiers.phoneNumber ?? '—'}
+        />
         <Field
           label={t('members.account.identifierConfirmed')}
           value={
@@ -120,7 +137,10 @@ export default function MemberDetailPage() {
               : '—'
           }
         />
-        <Field label={t('adminMembers.columns.fee')} value={t(`members.feeState.${member.fee.state}`)} />
+        <Field
+          label={t('adminMembers.columns.fee')}
+          value={t(`members.feeState.${member.fee.state}`)}
+        />
         <Field
           label={t('adminMembers.roles')}
           value={member.roles.join(', ')}
@@ -190,14 +210,28 @@ export default function MemberDetailPage() {
             size="sm"
             data-testid="member-toggle-admin"
             disabled={roleMutation.isPending}
-            onClick={() => roleMutation.mutate(isAdmin ? ['member'] : ['member', 'admin'])}
+            onClick={() => roleMutation.mutate(rolesWith('admin', isAdmin))}
           >
             {isAdmin ? t('adminMembers.removeAdmin') : t('adminMembers.makeAdmin')}
           </Button>
 
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="member-toggle-distributor"
+            disabled={roleMutation.isPending}
+            onClick={() => roleMutation.mutate(rolesWith('distributor', isDistributor))}
+          >
+            {isDistributor
+              ? t('adminMembers.removeDistributor')
+              : t('adminMembers.makeDistributor')}
+          </Button>
+
           <Dialog>
             <DialogTrigger
-              render={<Button variant="destructive" size="sm" data-testid="member-terminate-open" />}
+              render={
+                <Button variant="destructive" size="sm" data-testid="member-terminate-open" />
+              }
             >
               {t('adminMembers.terminate')}
             </DialogTrigger>
@@ -212,7 +246,9 @@ export default function MemberDetailPage() {
                 placeholder={t('adminMembers.terminateDialog.reasonPlaceholder')}
               />
               <DialogFooter>
-                <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
+                <DialogClose render={<Button variant="outline" />}>
+                  {t('common.cancel')}
+                </DialogClose>
                 <DialogClose
                   render={<Button variant="destructive" data-testid="member-terminate-confirm" />}
                   disabled={!terminateReason.trim()}

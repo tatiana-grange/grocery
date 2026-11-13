@@ -1,5 +1,12 @@
 import type { Rel } from '@mikro-orm/core'
-import { Entity, Index, ManyToOne, PrimaryKey, Property, Unique } from '@mikro-orm/decorators/legacy'
+import {
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryKey,
+  Property,
+  Unique,
+} from '@mikro-orm/decorators/legacy'
 import type { OrderingModeChoice } from '../contracts/order.contract'
 import { Product } from '../../catalog/entities/product.entity'
 import { Cart } from './cart.entity'

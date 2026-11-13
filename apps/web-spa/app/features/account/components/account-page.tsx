@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { WalletPanel } from '@/features/wallet/components/wallet-panel'
 import { MemberQr } from '@/features/account/components/member-qr'
 import { PasswordChangeForm } from '@/features/account/components/password-change-form'
 import { handleMutationError, isForbidden } from '@/features/common/lib/api-error'
@@ -33,7 +34,13 @@ export default function AccountPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: account, isLoading, isFetching, error, refetch } = useQuery({
+  const {
+    data: account,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery({
     ...myAccountQueryOptions(),
     // A 403 is a real answer ("your membership is not active") — don't retry it. Anything
     // else (network blip, 500) is transient, so give it a couple of tries.
@@ -58,9 +65,7 @@ export default function AccountPage() {
     if (account && populatedFor.current !== account.id) {
       populatedFor.current = account.id
       setName(account.name)
-      setProfile(
-        Object.fromEntries(FIELDS.map((field) => [field, account.profile[field] ?? ''])),
-      )
+      setProfile(Object.fromEntries(FIELDS.map((field) => [field, account.profile[field] ?? ''])))
     }
   }, [account])
 
@@ -68,9 +73,7 @@ export default function AccountPage() {
     mutationFn: () =>
       updateMyProfile({
         name: name.trim() || undefined,
-        ...Object.fromEntries(
-          Object.entries(profile).map(([key, value]) => [key, value || null]),
-        ),
+        ...Object.fromEntries(Object.entries(profile).map(([key, value]) => [key, value || null])),
         version: account!.version,
       }),
     onSuccess: () => {
@@ -140,6 +143,8 @@ export default function AccountPage() {
           </span>
         </div>
       </div>
+
+      <WalletPanel />
 
       <div className="grid gap-8 sm:grid-cols-[1fr_auto]">
         <section className="space-y-4">

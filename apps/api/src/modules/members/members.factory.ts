@@ -13,9 +13,7 @@ export interface CreateMemberOptions {
   status?: MemberStatus
   roles?: UserRole[]
   expectedFeeCents?: number
-  profile?: Partial<
-    Pick<Member, 'addressLine1' | 'addressLine2' | 'postalCode' | 'city' | 'phone'>
-  >
+  profile?: Partial<Pick<Member, 'addressLine1' | 'addressLine2' | 'postalCode' | 'city' | 'phone'>>
 }
 
 export interface MemberWithUser {

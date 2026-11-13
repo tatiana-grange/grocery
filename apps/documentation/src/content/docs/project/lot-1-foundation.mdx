@@ -19,7 +19,7 @@ Full spec, plan, and task list live in `specs/foundation/`.
 ### `apps/api/src/modules/auth` (extended)
 
 The Better Auth `admin` and `phoneNumber` plugins are wired in. Roles are `member` and
-`admin` (`admin` is a strict superset; `grocer` is added in lot 4). `SmsService` logs the
+`admin` (`admin` is a strict superset; `distributor` is added in lot 4). `SmsService` logs the
 one-time code to the console in development. `AuthGuard` enforces `@AdminOnly()` / `@Roles()`
 and a `@MemberScoped()` mode that requires a confirmed identifier and an active membership.
 

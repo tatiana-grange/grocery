@@ -20,11 +20,13 @@ export const cartLineInvalidReasonCodeSchema = z.enum(CART_LINE_INVALID_REASON_C
 })
 export type CartLineInvalidReasonCode = z.infer<typeof cartLineInvalidReasonCodeSchema>
 
-export const ORDER_STATUSES = ['pending', 'cancelled'] as const
+export const ORDER_STATUSES = ['pending', 'cancelled', 'handed_over'] as const
 export const orderStatusSchema = z.enum(ORDER_STATUSES).meta({
   title: 'OrderStatus',
   description:
-    'pending is the only starting value in lot 2; later lots add processing/fulfilment values to this same field',
+    'pending is the starting value. handed_over is set once every line has been handed ' +
+    'over or zeroed at the distribution table, and returns to pending if that handover is ' +
+    'reversed.',
 })
 export type OrderStatus = z.infer<typeof orderStatusSchema>
 

@@ -104,7 +104,7 @@ export const createMember = async (input: { name: string; email?: string; phoneN
 
 export const setMemberRoles = async (
   id: string,
-  body: { roles: ('member' | 'admin')[]; version: number },
+  body: { roles: ('member' | 'distributor' | 'admin')[]; version: number },
 ) => unwrap(await adminMembersControllerSetRoles({ path: { id }, body }))
 
 export const terminateMember = async (id: string, body: { reason: string; version: number }) =>

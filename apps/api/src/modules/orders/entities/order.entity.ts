@@ -44,6 +44,15 @@ export class Order {
   @Property({ nullable: true })
   cancelledAt?: Date
 
+  /**
+   * Built at the distribution table and handed over in the same breath (FR-017), rather than
+   * placed by the member and collected later. An in-store order can be either, so the flag is
+   * the only way to tell them apart — and reversing an express sale has to cancel the order
+   * instead of returning it to the waiting list, where nobody would ever come to collect it.
+   */
+  @Property()
+  isExpress: boolean = false
+
   @OneToMany(() => OrderLine, (line) => line.order)
   lines = new Collection<OrderLine>(this)
 

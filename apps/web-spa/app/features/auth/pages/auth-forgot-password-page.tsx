@@ -5,10 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
-import {
-  normalizePhone,
-  type IdentifierMode,
-} from '@/features/auth/lib/identifier'
+import { normalizePhone, type IdentifierMode } from '@/features/auth/lib/identifier'
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
 import {
@@ -96,16 +93,12 @@ export default function AuthForgotPasswordPage() {
 
       {step === 'emailSent' && (
         <div className="space-y-3 text-center" data-testid="auth-forgot-sent">
-          <p className="text-sm text-muted-foreground">
-            {t('auth.forgotPassword.emailSent')}
-          </p>
+          <p className="text-sm text-muted-foreground">{t('auth.forgotPassword.emailSent')}</p>
           <Button
             variant="ghost"
             className="w-full"
             disabled={request.isPending}
-            onClick={() =>
-              request.mutate({ mode: 'email', identifier: lastIdentifier })
-            }
+            onClick={() => request.mutate({ mode: 'email', identifier: lastIdentifier })}
           >
             {t('auth.register.resendEmail')}
           </Button>

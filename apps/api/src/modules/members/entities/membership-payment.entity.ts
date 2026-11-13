@@ -1,7 +1,4 @@
-import type {
-  MembershipPaymentKind,
-  MembershipPaymentMethod,
-} from '../contracts/member.contract'
+import type { MembershipPaymentKind, MembershipPaymentMethod } from '../contracts/member.contract'
 import type { Rel } from '@mikro-orm/core'
 import { Entity, Index, ManyToOne, PrimaryKey, Property } from '@mikro-orm/decorators/legacy'
 import { User } from '../../auth/auth.entity'

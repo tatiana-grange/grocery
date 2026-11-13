@@ -1,0 +1,96 @@
+---
+title: Lot 4 — Distribution (table screen, express order, wallet debit)
+description: What the distribution and wallet modules deliver, and how they are shaped
+---
+
+Delivery lot 4 from the [architecture plan](/grocery/project/architecture-plan).
+Full spec, plan, and task list live in `specs/distribution/`.
+
+## What it delivers
+
+- **Distribution screen** — staff find a member by name or membership number and see, in one
+  call, their status, their balance, and every order not yet handed over, each line showing
+  what was ordered against what is currently on the shelf. A pre-order line is only handable
+  once lot 3 marked it `fulfilledAt`.
+- **Handover** — staff correct each line to what actually leaves the table, then validate.
+  The order is marked handed over, stock drops, and the member is charged, in one
+  transaction. A line set to zero is recorded as offered and declined.
+- **Express order** — a member who did not pre-order buys on the spot. Products are found by
+  name or barcode; one call creates a real `Order` and hands it over.
+- **Member account** — an append-only ledger. Members read their own balance and movements;
+  staff read it at the table and record cash, cheques, and bank transfers.
+- **Waiting lists** — pre-orders and in-store orders still to hand over, filtered by date.
+- **Reversal** — a mistaken handover is undone by a second, reversing handover. The original
+  is never written to.
+- **`distributor` role** — opens the table and nothing else.
+
+## Backend modules
+
+### `apps/api/src/modules/wallet`
+
+`WalletEntry` — the append-only ledger a member's balance is summed from (constitution
+principle II). One signed `amountCents`: negative charges, positive credits. The balance is
+`SUM(amountCents)`, summed by the database and never cached on `Member`. `WalletService`
+exports `charge` / `credit` taking the caller's `EntityManager`, so they join the handover
+transaction — the same shape `InventoryService.recordReceipt` already had.
+
+Two controllers in one file: `StaffWalletController` at `wallet` (`@StaffOnly()`) and
+`MemberWalletController` at `me/wallet` (`@MemberScoped()`). The member-facing route takes no
+member id at all, which makes "a member cannot read another's account" structural.
+
+### `apps/api/src/modules/distribution`
+
+`Handover` + `HandoverLine`, write-once on the lot 3 `Reception` precedent: `createdAt` only,
+never edited. `reversesHandover` is a **forward** self-link on the reversing row, so "has this
+been reversed?" is `EXISTS(reversesHandover = :id)` and the original stays untouched.
+
+Every write runs in one `em.transactional` with a **pessimistic lock on the member row**.
+That is what makes "the balance never goes negative" hold when two tills validate at once:
+the check is a read then a write, and without serialising, both would see the same balance.
+Two staffers serving different members never wait on each other.
+
+Order settlement is derived by query — a line counts as settled when an un-reversed handover
+covers it, zero included — rather than tracked in a column a reversal would have to un-set.
+
+Endpoints: `GET /distribution/members*`, `POST /distribution/orders/:id/handovers`,
+`GET /distribution/products`, `POST /distribution/members/:id/express-orders`,
+`GET /distribution/waiting`, `GET|POST /distribution/handovers/:id(/reversal)`.
+
+### `apps/api/src/modules/inventory` (extended)
+
+`StockMovement.quantity` becomes genuinely signed. An outbound movement is valued at the
+product's **current weighted average**, which leaves that average unchanged:
+
+```
+(N − q·N/Q) / (Q − q) = N/Q
+```
+
+So `buildStockLevel` needed no edit and both derivations still sum the same rows. A reversal
+puts stock back at the *original* row's unit cost, so the average lands exactly where it was.
+`stockSummarySchema.quantityOnHand` stops being `nonnegative()`: stock is allowed below zero,
+because at the table the shelf is the source of truth and refusing a real sale over a stale
+number is the worse failure.
+
+### `apps/api/src/modules/auth` / `members` (extended)
+
+`USER_ROLES` gains `distributor`, and `StaffOnly()` is `@Roles('distributor', 'admin')` — an
+admin passes without holding the role. `ADMIN_USER_ROLES` stays `['admin']`, so a distributor
+gains none of the Better Auth admin plugin's powers.
+
+## Frontend
+
+`apps/web-spa/app/features/` — `distribution` (home with member search and the two waiting
+lists, the member screen, the handover form, the express order, the receipt with its reversal
+action) and `wallet` (the balance panel, the payment form). Routes live under `/distribution`
+behind their own `distribution-layout.tsx`, gated on distributor-or-admin. The back office
+keeps its `isAdmin` gate untouched and gains a link across.
+
+## Not in lot 4
+
+Online top-up and payment providers (lot 5), participation planning (lot 6), accounting
+exports (lot 7), inventory counts and manual adjustments, printed or emailed receipts,
+offline operation, and collection by proxy.
+
+**Known gap**: nothing lets staff correct a mistyped payment. The spec carries no requirement
+for it; closing it is a fourth `walletEntryReason` and one endpoint, mirroring the handover
+reversal. See `specs/distribution/research.md` §12.

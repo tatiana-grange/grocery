@@ -38,10 +38,12 @@ export const membershipPaymentMethodSchema = z.enum(MEMBERSHIP_PAYMENT_METHODS).
 })
 export type MembershipPaymentMethod = z.infer<typeof membershipPaymentMethodSchema>
 
-export const USER_ROLES = ['member', 'admin'] as const
+export const USER_ROLES = ['member', 'distributor', 'admin'] as const
 export const userRoleSchema = z.enum(USER_ROLES).meta({
   title: 'UserRole',
-  description: 'Access role. "admin" is a superset of "member". "grocer" is added in lot 4.',
+  description:
+    'Access role. "admin" is a superset of "member". "distributor" opens the distribution ' +
+    'table and nothing else; an admin reaches it without holding the role.',
 })
 export type UserRole = z.infer<typeof userRoleSchema>
 
@@ -68,7 +70,10 @@ export const memberIdentifiersSchema = z
     phoneNumber: z.string().nullish(),
     phoneNumberVerified: z.boolean(),
   })
-  .meta({ title: 'MemberIdentifiers', description: 'The email and/or phone the account signs in with' })
+  .meta({
+    title: 'MemberIdentifiers',
+    description: 'The email and/or phone the account signs in with',
+  })
 
 export type MemberIdentifiers = z.infer<typeof memberIdentifiersSchema>
 
@@ -78,7 +83,10 @@ export const feeSummarySchema = z
     paidAmountCents: z.number().int(),
     state: membershipFeeStateSchema,
   })
-  .meta({ title: 'FeeSummary', description: 'Membership-fee expectation, total paid, and derived state' })
+  .meta({
+    title: 'FeeSummary',
+    description: 'Membership-fee expectation, total paid, and derived state',
+  })
 
 export type FeeSummary = z.infer<typeof feeSummarySchema>
 
@@ -120,7 +128,10 @@ export const memberPaymentSchema = z
     recordedByName: z.string(),
     createdAt: z.date(),
   })
-  .meta({ title: 'MemberPayment', description: 'One recorded membership-fee payment or adjustment' })
+  .meta({
+    title: 'MemberPayment',
+    description: 'One recorded membership-fee payment or adjustment',
+  })
 
 export const memberDetailSchema = memberSelfSchema
   .extend({
@@ -196,13 +207,11 @@ export const createMemberSchema = z
 
 export type CreateMemberInput = z.infer<typeof createMemberSchema>
 
-export const membershipIntakeSchema = z
-  .object({ open: z.boolean() })
-  .meta({
-    title: 'MembershipIntake',
-    description: 'Whether self-registration is currently accepted',
-    examples: [{ open: true }],
-  })
+export const membershipIntakeSchema = z.object({ open: z.boolean() }).meta({
+  title: 'MembershipIntake',
+  description: 'Whether self-registration is currently accepted',
+  examples: [{ open: true }],
+})
 
 export type MembershipIntakeInput = z.infer<typeof membershipIntakeSchema>
 
@@ -241,7 +250,10 @@ export type SetFeeInput = z.infer<typeof setFeeSchema>
 export const recordFeePaymentSchema = z
   .object({
     kind: membershipPaymentKindSchema.default('payment'),
-    amountCents: z.number().int().refine((value) => value !== 0, 'amount must be non-zero'),
+    amountCents: z
+      .number()
+      .int()
+      .refine((value) => value !== 0, 'amount must be non-zero'),
     method: membershipPaymentMethodSchema,
     paidAt: z.coerce.date(),
     note: z.string().nullish(),

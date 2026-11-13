@@ -6,10 +6,14 @@ import { admin, openAPI, phoneNumber } from 'better-auth/plugins'
 import { mikroOrmAdapter } from './auth-db.adapter'
 
 /**
- * Access roles in lot 1. `admin` is a strict superset of `member`.
- * `grocer` is added in lot 4 (distribution).
+ * Access roles. `admin` is a strict superset of `member`. `distributor` sits between the
+ * two: it opens the lot 4 distribution table and nothing else.
+ *
+ * `distributor` is deliberately absent from `ADMIN_USER_ROLES` — that array is what the
+ * Better Auth admin plugin treats as privileged, so listing it there would hand every
+ * volunteer at the table user banning and impersonation.
  */
-export const USER_ROLES = ['member', 'admin'] as const
+export const USER_ROLES = ['member', 'distributor', 'admin'] as const
 export type UserRole = (typeof USER_ROLES)[number]
 export const DEFAULT_USER_ROLE: UserRole = 'member'
 export const ADMIN_USER_ROLES: UserRole[] = ['admin']

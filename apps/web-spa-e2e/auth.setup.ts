@@ -10,7 +10,7 @@ import { E2E, E2E_PASSWORD, E2E_USERS, storageStatePath } from './env'
 test('authenticate seeded users', async () => {
   await mkdir(E2E.storageStateDir, { recursive: true })
 
-  for (const role of ['admin', 'member', 'pending'] as const) {
+  for (const role of ['admin', 'member', 'pending', 'distributor'] as const) {
     const email = E2E_USERS[role]
     const context = await request.newContext({ baseURL: E2E.apiUrl })
 

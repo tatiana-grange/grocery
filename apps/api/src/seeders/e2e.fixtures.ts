@@ -19,6 +19,8 @@ export const E2E_USERS = {
   resign: { email: 'resign@e2e.local', name: 'Rosa Resign' },
   /** Active member the password-change journey signs in as (that flow rotates the session). */
   pwtest: { email: 'pwtest@e2e.local', name: 'Percy Password' },
+  /** Lot 4: holds `member,distributor` — runs a distribution, reaches no admin screen. */
+  distributor: { email: 'distributor@e2e.local', name: 'Dina Distributor' },
 } as const
 
 export type E2eUserKey = keyof typeof E2E_USERS
@@ -44,6 +46,38 @@ export const E2E_PURCHASING = {
   weightProductName: 'Fromage précommande E2E',
   /** archived before aggregation runs — exercises the "skipped, and why" path (FR-003). */
   archivedProductName: 'Conserves précommande E2E (archivé)',
+} as const
+
+/**
+ * Lot 4 distribution fixtures: a dedicated supplier, products already in stock, and five
+ * members each parked in one of the states the table has to handle. Isolated from the lot 2
+ * and lot 3 fixtures so the distribution specs never collide with cart, checkout, catalog,
+ * or aggregation.
+ */
+export const E2E_DISTRIBUTION = {
+  supplierName: 'Fournisseur Distribution E2E',
+  /** Unit-sold, pre-ordered by the funded member, already received — the happy path. */
+  readyProductName: 'Pommes distribution E2E',
+  /** By-weight and in stock, so the scale input and FR-012 get exercised. */
+  weightProductName: 'Comté distribution E2E',
+  /** In stock with a barcode — what the express spec scans. */
+  expressProductName: 'Miel distribution E2E',
+  expressBarcode: '3761111111118',
+  /** Pre-ordered and never received — the "not ready" path. */
+  awaitingProductName: 'Poireaux distribution E2E',
+  /** Active, funded, holding a ready pre-order and an in-store order. */
+  funded: { email: 'funded@e2e.local', name: 'Fanny Funded', balanceEur: 60 },
+  /** Active with a zero balance and a ready order — the refusal then pay-then-retry path. */
+  broke: { email: 'broke@e2e.local', name: 'Bruno Broke' },
+  /** Holds a pre-order whose goods have not arrived. */
+  awaiting: { email: 'awaiting@e2e.local', name: 'Anna Awaiting' },
+  /**
+   * Funded, holding one pre-order half delivered: one line received, one still waiting. The
+   * partial handover of FR-008 needs an order that is neither fully ready nor fully blocked.
+   */
+  partial: { email: 'partial@e2e.local', name: 'Paula Partial', balanceEur: 60 },
+  /** Terminated, holding an order — the handover must be refused (FR-005). */
+  ended: { email: 'ended@e2e.local', name: 'Elio Ended' },
 } as const
 
 /** First names for the extra members that fill the paginated list (page size is 20). */

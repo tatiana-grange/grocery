@@ -6,6 +6,7 @@ import { E2E_USERS as E2E_USER_RECORDS, type E2eUserKey } from '../api/src/seede
 // Re-exported straight from the API's shared fixture file — the single source of truth for
 // the E2E accounts, password and search names (`apps/api/src/seeders/e2e.fixtures.ts`).
 export {
+  E2E_DISTRIBUTION,
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
   E2E_SEARCH_MEMBER_NAME,
@@ -14,7 +15,7 @@ export {
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(here, '../..')
 
-type Role = 'admin' | 'member' | 'pending'
+type Role = 'admin' | 'member' | 'pending' | 'distributor'
 
 /** Chemin de la session sauvegardée pour un rôle seedé (écrite par `auth.setup.ts`). */
 export function storageStatePath(role: Role): string {

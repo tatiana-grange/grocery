@@ -47,6 +47,7 @@
 - [index.mdx](./src/content/docs/project/index.mdx) - What this project is and where the planning notes live
 - [lot-1-foundation.mdx](./src/content/docs/project/lot-1-foundation.mdx) - What the members and catalog modules deliver, and how they are shaped
 - [lot-3-purchasing.mdx](./src/content/docs/project/lot-3-purchasing.mdx) - What the purchasing and inventory modules deliver, and how they are shaped
+- [lot-4-distribution.mdx](./src/content/docs/project/lot-4-distribution.mdx) - What the distribution and wallet modules deliver, and how they are shaped
 - [monepi-features.mdx](./src/content/docs/project/monepi-features.mdx) - Every feature found on the MonÉpi wiki, grouped by area
 
 ## References
