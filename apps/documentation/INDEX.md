@@ -55,6 +55,7 @@
 - [0_documentation.mdx](./src/content/docs/references/0_documentation.mdx) - Documentation explanation
 - [1_release_and_versionning.mdx](./src/content/docs/references/1_release_and_versionning.mdx) - How a project versions itself, and how environments consume what the pipeline builds
 - [backend.mdx](./src/content/docs/references/backend.mdx) - Guidelines for the backend of the Grocery project.
+- [constitution.mdx](./src/content/docs/references/constitution.mdx) - The non-negotiable principles, stack constraints, data rules and quality gates of the Grocery project
 - [frontend.mdx](./src/content/docs/references/frontend.mdx) - Guidelines for the front-end of the Grocery project.
 - [general.mdx](./src/content/docs/references/general.mdx) - Common guidelines for development on the project
 

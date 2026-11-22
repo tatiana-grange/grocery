@@ -1,7 +1,7 @@
 GIT WORKFLOW REMINDER (project: grocery)
 
 You are about to run a git/gh command that writes history. Follow the project's git
-workflow before you continue. Full detail: `.claude/skills/git-workflow/SKILL.md` and
+workflow before you continue. Full detail: `.agents/skills/git-workflow/SKILL.md` and
 `CONTRIBUTING.md` (read `CONTRIBUTING.md` now if you have not this session).
 
 Key rules:
@@ -22,8 +22,9 @@ Key rules:
   The project constitution forbids it.
 - Never run `pnpm fmt` across the whole repo (it rewrites dozens of unrelated files).
   Format only the files you changed.
-- Commit the `specs/` directory. Spec-Kit artifacts (`specs/<feature>/spec.md`, `plan.md`,
-  `tasks.md`, …) are tracked on this project and ride along on the feature PR.
+- Commit the task's `project-management/` files (its spec and work document). They are
+  tracked on this project and ride along on the feature PR. `specs/` is an archive of the
+  first four lots: do not add to it.
 - Never commit `.env` files or secrets of any kind.
 - Never write `BREAKING-CHANGE:` in a commit or PR unless a major release is intended.
 - **Commit on your own; never share on your own.** Committing on a feature branch needs no

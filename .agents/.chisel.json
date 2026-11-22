@@ -1,0 +1,94 @@
+{
+  "intentions": {
+    "0.2.0/journal-is-journal-md": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.2.0/merge-and-publish-section": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.2.0/one-tracker-section": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.2.0/seven-statuses": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.2.0/workflow-replaces-formulas": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.2.4/no-write-through-links": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.2.4/update-writes-only-what-it-installed": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.3.0/crewmate-cleans-up": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.3.0/manifest-records-intentions": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.3.0/typist-by-default": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.4.0/crewmate-becomes-mason": {
+      "date": "2026-11-22",
+      "result": "applied"
+    },
+    "0.4.0/typist-ticks-what-ran": {
+      "date": "2026-11-22",
+      "result": "applied"
+    }
+  },
+  "managed": {
+    ".agents/discipline.md": "45aee6e8a34844e26e517536e9c8f6399fc5b87a3d5ed73f345b89e5ed3ed0d6",
+    ".agents/methodology.md": "f841305f9749013bf3871e40e9e438027c1bdd44731fc9a5969dafa82378310b",
+    ".agents/reference.md": "c9e802c432594f23808f3b8915a3d10ed4f885f30d0a6e410e72b0dc26895ee6",
+    ".agents/skills/chisel-beads/SKILL.md": "9d820ac9dfb8d73194944cc20738cc24896e75b2367028ac0168122a243606e2",
+    ".agents/skills/chisel-setup/PLACEMENT.md": "0b3713f99260e0260b1fc9b188b72a6a3b9b3d56e211673aff286278eeabbc60",
+    ".agents/skills/chisel-setup/SKILL.md": "1c41aeb33297ecd0c5166adec2cccbbe0d2f9a6ebddf54130f8da4b969bc9343",
+    ".agents/skills/chisel-update/SKILL.md": "9192f561a5c97dd8f71d08eac26991c3dc7bb027b7d33c44f8d9f4f5c5af1241",
+    ".agents/skills/code-review/SKILL.md": "b4b6ce41b45566b46a3d12c94f40dcf97e36890b5682827885168d6337bc1b64",
+    ".agents/skills/codebase-audit/SKILL.md": "052249e7ae5238b867f857ebd61ebe39bbce5f5b4bca88af84ab33922df4496b",
+    ".agents/skills/codebase-design/DEEPENING.md": "125e6b77413ad2bc7cf7a772bc74336d580a50f9e797db2178ed133d62333d06",
+    ".agents/skills/codebase-design/DESIGN-IT-TWICE.md": "a79a1e05be8f15bf9f176f7aebd28b5af8a3fd39ea3f5ea8039362d41b8e928f",
+    ".agents/skills/codebase-design/SKILL.md": "569763f48ea0096c03b1dd7628246a65f56d865cfc82ba5be88a1a2022c7d5a4",
+    ".agents/skills/diagnosing-bugs/SKILL.md": "d3c32e8d8e5172307a821eabe310393b6c1084833fff40dbd2a1dfda937f8c78",
+    ".agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh": "b2932630950e5210075bcd6f850e5accf30c101c5367b29eac3a29b4dd8084c8",
+    ".agents/skills/domain-modeling/ADR-FORMAT.md": "f1f36cd3f8d3b6474ddd5855da4e233bfc4ae1a1c5024909ccf11871819a41b2",
+    ".agents/skills/domain-modeling/CONTEXT-FORMAT.md": "b8cc318f2a4285b530e908b6bc43901c3c5cd11100362636bbc4216639bef597",
+    ".agents/skills/domain-modeling/SKILL.md": "50ece2b2fe750cc64a9e7b89ae6ba086f0194c915435e17cfe91a3b249c3819c",
+    ".agents/skills/grilling/SKILL.md": "2626a1a64d349ae7f672342048b0eb658f6f8a904aace025eae670a93367bc06",
+    ".agents/skills/handoff/SKILL.md": "3d4cbef912114e8b5bb0af2d6e4884ce2a1d33b25e303d2a67e61f269ccd45d5",
+    ".agents/skills/improve-codebase-architecture/HTML-REPORT.md": "0b0936104158abeef7246ff6cbabefa4dc055f17589f2833f2d93001421910a1",
+    ".agents/skills/improve-codebase-architecture/SKILL.md": "b843cfec678ca6307c15c2a1938970191dd347d9ac3615162fcb94adc64a11ba",
+    ".agents/skills/prototype/LOGIC.md": "cf372862bccd3db7f18ea57abd76d6c32e6adf65b9e7f46c73d433e107567a5c",
+    ".agents/skills/prototype/SKILL.md": "66a94c75160aad6893fd839853f3ac2323b9a894f8d9f10a3e31298d535303e4",
+    ".agents/skills/prototype/UI.md": "e2ca04434be54acdee2f5df582ef8038fadf582bbcc99be0d2e27737ff8ed096",
+    ".agents/skills/research/SKILL.md": "acaa312f75b63b5fe75bb037009ee3734a167c9e85c80a07fd184cf7dd59367d",
+    ".agents/skills/retro/SKILL.md": "613188a0710fac789c5c0628e89108246fb57e2edf7aca8b5c09a41f1fdf48d3",
+    ".agents/skills/slice-task/SKILL.md": "8333c8f8e620e1508e5016f401bb5d3dec4bb6361978683cbac1c36498153d60",
+    ".agents/skills/tdd/SKILL.md": "5ec380ce79d1eb59080ceaaa518a1c4af3f74b907a1affe798a7a69749567022",
+    ".agents/skills/tdd/mocking.md": "3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef",
+    ".agents/skills/tdd/tests.md": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a",
+    ".agents/skills/wayfinder/SKILL.md": "da1c7e02a895656c25084908bdf2a9c290e845df9ff1b53851391adce0dad69f",
+    ".agents/skills/writing-great-skills/GLOSSARY.md": "cccd684c73fb7a06f523497b0121765f92d2b33d6ef9c51602294849233451d6",
+    ".agents/skills/writing-great-skills/SKILL.md": "575073bf7832b45b4a303fa910fce96e3f1aacc133b331db1429b4c63c7660e7",
+    ".agents/user.md.tpl": "f9bab4c0d63fc950045d54456d4fdfa9c421e201a61c36e4924e3b9be1aa9c7d",
+    ".agents/workflow.md": "b9fe35bd70fc6148be8dac0cbcc03180b4ba95890f590a1e46d52c8caeaab960",
+    "AGENTS.md#block": "c70d95d4d4b9864fb66830061f1af620f1e7dc595ceca4e1bcfbe7c650225a53",
+    "project-management/000-template.spec.md": "3bd121c59c09088e8d26adf8944422e3162e19ca9d642e08910cad08ec973f22",
+    "project-management/000-template.work.md": "c3d17b3cbb1430eb89fb79afbbd185c4540945d6ad159e81ef269c035cd35053",
+    "scripts/task-id.sh": "29ce0347d9af14b0db2c96c8980ed9287e44762ac31265ea511be1485d89f71f"
+  },
+  "version": "0.4.0"
+}
