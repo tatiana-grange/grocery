@@ -39,6 +39,10 @@ export default defineConfig({
           environment: 'node',
           include: ['../**/*.spec.ts'],
           setupFiles: [resolve(__dirname, './src/test/setup/test.setup.ts')],
+          // Several unit specs (wallet, distribution) open a real database in `beforeEach`:
+          // `createTestOrm` creates a fresh database and rebuilds the whole schema. Under load
+          // that passes 10s, the default.
+          hookTimeout: 60000,
         },
       },
       {
