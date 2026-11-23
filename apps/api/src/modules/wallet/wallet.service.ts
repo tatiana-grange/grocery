@@ -4,7 +4,8 @@ import {
   QueryOrder,
   UniqueConstraintViolationException,
 } from '@mikro-orm/core'
-import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { refusal } from '../../common/refusal'
 import { User } from '../auth/auth.entity'
 import { Handover } from '../distribution/entities/handover.entity'
 import { Member } from '../members/entities/member.entity'
@@ -161,13 +162,16 @@ export class WalletService {
         const original = await tem.findOne(WalletEntry, { id: entryId, member: memberId })
         if (!original) throw new NotFoundException('Entry not found')
         if (original.reason !== 'payment_received') {
-          throw this.refuse(
-            'not_a_manual_payment',
+          throw refusal(
+            'not_a_manual_payment' satisfies PaymentCorrectionRefusal,
             'Only a payment recorded by staff can be corrected',
           )
         }
         if (await tem.count(WalletEntry, { correctsEntry: original.id })) {
-          throw this.refuse('already_corrected', 'This payment was already corrected')
+          throw refusal(
+            'already_corrected' satisfies PaymentCorrectionRefusal,
+            'This payment was already corrected',
+          )
         }
         const entry = this.charge(tem, {
           memberId,
@@ -183,7 +187,10 @@ export class WalletService {
       })
     } catch (error) {
       if (error instanceof UniqueConstraintViolationException) {
-        throw this.refuse('already_corrected', 'This payment was already corrected')
+        throw refusal(
+          'already_corrected' satisfies PaymentCorrectionRefusal,
+          'This payment was already corrected',
+        )
       }
       throw error
     }
@@ -213,13 +220,11 @@ export class WalletService {
       if (!member) throw new NotFoundException('Member not found')
       const balanceCents = await this.getBalanceCents(tem, memberId)
       if (balanceCents <= 0 || input.amountCents > balanceCents) {
-        throw new ConflictException({
-          statusCode: HttpStatus.CONFLICT,
-          message: 'A refund cannot be larger than the balance',
-          code: 'refund_exceeds_balance' satisfies RefundRefusal,
-          balanceEur: balanceCents / 100,
-          amountEur: input.amountCents / 100,
-        })
+        throw refusal(
+          'refund_exceeds_balance' satisfies RefundRefusal,
+          'A refund cannot be larger than the balance',
+          { balanceEur: balanceCents / 100, amountEur: input.amountCents / 100 },
+        )
       }
       const entry = this.charge(tem, {
         memberId,
@@ -273,10 +278,5 @@ export class WalletService {
     const member = await this.em.findOne(Member, { user: userId }, { populate: ['user'] })
     if (!member) throw new NotFoundException('Member not found')
     return member
-  }
-
-  /** Same refusal shape as the distribution module, so the client reads the code the same way. */
-  private refuse(code: PaymentCorrectionRefusal, message: string) {
-    return new ConflictException({ statusCode: HttpStatus.CONFLICT, message, code })
   }
 }

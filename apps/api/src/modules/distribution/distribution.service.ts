@@ -1,6 +1,7 @@
 import type { FilterQuery } from '@mikro-orm/core'
 import { EntityManager, LockMode, QueryOrder } from '@mikro-orm/core'
-import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { refusal } from '../../common/refusal'
 import { centsToEur, currentPrice } from '../catalog/catalog.util'
 import { Product } from '../catalog/entities/product.entity'
 import { StockMovement } from '../inventory/entities/stock-movement.entity'
@@ -181,21 +182,21 @@ export class DistributionService {
       await em.findOne(Member, { id: order.member.id }, { lockMode: LockMode.PESSIMISTIC_WRITE })
 
       if (order.status !== 'pending') {
-        throw this.refuse('order_not_pending', `This order is ${order.status}, not pending`)
+        throw refusal('order_not_pending', `This order is ${order.status}, not pending`)
       }
       if (order.version !== input.version) {
-        throw this.refuse(
+        throw refusal(
           'stale_version',
           'This order changed since you opened it — reload and try again',
         )
       }
       if (order.member.status === 'terminated') {
-        throw this.refuse('member_terminated', 'This member’s membership is terminated')
+        throw refusal('member_terminated', 'This member’s membership is terminated')
       }
 
       const duplicateLineId = findDuplicateLineId(input.lines.map((line) => line.orderLineId))
       if (duplicateLineId) {
-        throw this.refuse(
+        throw refusal(
           'duplicate_line',
           'The same line was sent twice in one handover — send each line once',
         )
@@ -210,7 +211,7 @@ export class DistributionService {
           throw new NotFoundException(`Line ${entry.orderLineId} is not on this order`)
         }
         if (alreadySettled.has(orderLine.id)) {
-          throw this.refuse(
+          throw refusal(
             'line_already_handed_over',
             `${orderLine.productNameSnapshot} was already handed over`,
             { productName: orderLine.productNameSnapshot },
@@ -218,11 +219,9 @@ export class DistributionService {
         }
         const { isReady } = lineReadiness(order.orderingMode, orderLine.fulfilledAt)
         if (!isReady) {
-          throw this.refuse(
-            'line_not_ready',
-            `${orderLine.productNameSnapshot} has not arrived yet`,
-            { productName: orderLine.productNameSnapshot },
-          )
+          throw refusal('line_not_ready', `${orderLine.productNameSnapshot} has not arrived yet`, {
+            productName: orderLine.productNameSnapshot,
+          })
         }
         priced.push({
           orderLineId: orderLine.id,
@@ -236,7 +235,7 @@ export class DistributionService {
       }
 
       if (priced.every((line) => line.handedQuantity === 0)) {
-        throw this.refuse('nothing_handed_over', 'Every line is zero — nothing to hand over')
+        throw refusal('nothing_handed_over', 'Every line is zero — nothing to hand over')
       }
 
       const totalCents = handoverTotalCents(priced)
@@ -411,7 +410,7 @@ export class DistributionService {
       )
       if (!member) throw new NotFoundException('Member not found')
       if (member.status === 'terminated') {
-        throw this.refuse('member_terminated', 'This member’s membership is terminated')
+        throw refusal('member_terminated', 'This member’s membership is terminated')
       }
 
       const products = await em.find(
@@ -438,7 +437,7 @@ export class DistributionService {
         const product = productsById.get(entry.productId)
         if (!product) throw new NotFoundException(`Product ${entry.productId} not found`)
         if (!isSellableAtTable(product)) {
-          throw this.refuse('product_not_sellable', `${product.name} cannot be sold at the table`, {
+          throw refusal('product_not_sellable', `${product.name} cannot be sold at the table`, {
             productName: product.name,
           })
         }
@@ -468,7 +467,7 @@ export class DistributionService {
       order.totalAmountCents = orderTotalCents
 
       if (priced.every((line) => line.handedQuantity === 0)) {
-        throw this.refuse('nothing_handed_over', 'Every line is zero — nothing to sell')
+        throw refusal('nothing_handed_over', 'Every line is zero — nothing to sell')
       }
 
       const totalCents = handoverTotalCents(priced)
@@ -547,7 +546,7 @@ export class DistributionService {
       )
       if (!original) throw new NotFoundException('Handover not found')
       if (original.kind === 'reversal') {
-        throw this.refuse('cannot_reverse_reversal', 'A reversal cannot itself be reversed')
+        throw refusal('cannot_reverse_reversal', 'A reversal cannot itself be reversed')
       }
 
       // Lock the member for the same reason a handover does: the balance is about to move.
@@ -555,7 +554,7 @@ export class DistributionService {
 
       const existing = await em.count(Handover, { reversesHandover: original.id })
       if (existing > 0) {
-        throw this.refuse('already_reversed', 'This handover has already been reversed')
+        throw refusal('already_reversed', 'This handover has already been reversed')
       }
 
       const reversal = new Handover()
@@ -677,19 +676,5 @@ export class DistributionService {
       em.getTransactionContext(),
     )
     return new Set(rows.map((row) => row.orderLineId))
-  }
-
-  /**
-   * A refusal the generated client can branch on. `statusCode` is set explicitly because
-   * passing an object body to `ConflictException` replaces Nest's default shape, and the
-   * client's `isConflict` helper keys off that field (same reason as lot 3's aggregation).
-   */
-  private refuse(code: string, message: string, extra: Record<string, unknown> = {}) {
-    return new ConflictException({
-      statusCode: HttpStatus.CONFLICT,
-      message,
-      code,
-      ...extra,
-    })
   }
 }

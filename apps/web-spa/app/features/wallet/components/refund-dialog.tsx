@@ -14,7 +14,7 @@ import { Textarea } from '@grocery/ui/components/primitives/textarea'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { apiErrorCode } from '@/features/common/lib/api-error'
+import { refusalMessage } from '@/features/common/lib/api-error'
 import { recordRefund, staffWalletQueryOptions } from '@/features/wallet/utils/wallet-queries'
 
 const REFUND_METHODS: ManualPaymentMethod[] = ['cash', 'cheque', 'transfer']
@@ -54,9 +54,11 @@ export function RefundDialog({ memberId, balanceEur, onClose }: RefundDialogProp
     },
     onError: (error) => {
       toast.error(
-        apiErrorCode(error) === 'refund_exceeds_balance'
-          ? t('wallet.refund.error.refund_exceeds_balance', { balance: eur(balanceEur) })
-          : t('error.default'),
+        refusalMessage(error, {
+          refund_exceeds_balance: t('wallet.refund.error.refund_exceeds_balance', {
+            balance: eur(balanceEur),
+          }),
+        }) ?? t('error.default'),
       )
     },
   })

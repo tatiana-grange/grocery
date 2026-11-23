@@ -32,6 +32,18 @@ export function apiErrorCode(error: unknown): string | undefined {
   return typeof code === 'string' ? code : undefined
 }
 
+/**
+ * The message for a refusal the screen knows how to explain: pass one message per `code`. Returns
+ * `undefined` for any other error, so the caller falls back to its own handling.
+ */
+export function refusalMessage(
+  error: unknown,
+  messages: Record<string, string>,
+): string | undefined {
+  const code = apiErrorCode(error)
+  return code === undefined ? undefined : messages[code]
+}
+
 export function apiErrorMessage(error: unknown, fallback: string): string {
   const candidate = error as ApiErrorLike | undefined
   return candidate?.message ?? fallback

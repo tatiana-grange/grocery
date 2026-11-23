@@ -1,6 +1,7 @@
 import type { FilterQuery } from '@mikro-orm/core'
 import { EntityManager, LockMode, QueryOrder } from '@mikro-orm/core'
-import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import { conflict } from '../../common/refusal'
 import { eurToCents } from '../catalog/catalog.util'
 import { Supplier } from '../catalog/entities/supplier.entity'
 import { InventoryService } from '../inventory/inventory.service'
@@ -70,14 +71,7 @@ export class PurchasingService {
       }
 
       if (orderable.length === 0) {
-        // Include `statusCode` explicitly: passing an object body to `ConflictException`
-        // replaces Nest's default `{ statusCode, message, error }`, and the generated client's
-        // `isConflict` helper keys off `statusCode` / `status`.
-        throw new ConflictException({
-          statusCode: HttpStatus.CONFLICT,
-          message: 'Nothing pending to aggregate for this supplier',
-          skippedLines,
-        })
+        throw conflict('Nothing pending to aggregate for this supplier', { skippedLines })
       }
 
       const byProduct = new Map<string, OrderLine[]>()

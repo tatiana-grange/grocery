@@ -1,5 +1,6 @@
 import type { EntityManager } from '@mikro-orm/core'
-import { ConflictException, HttpStatus, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { refusal } from '../../common/refusal'
 import { centsToEur } from '../catalog/catalog.util'
 import type { PurchaseRefusal } from './contracts/wallet.contract'
 import { WalletService } from './wallet.service'
@@ -40,11 +41,15 @@ export class PurchaseGuard {
   ): Promise<number> {
     const balanceCents = await this.wallet.getBalanceCents(em, memberId)
     if (isBlocked(balanceCents) || !balanceCovers(totalCents, balanceCents)) {
-      throw this.refuse('insufficient_balance', 'This member’s balance does not cover it', {
-        shortfallEur: centsToEur(totalCents - balanceCents),
-        balanceEur: centsToEur(balanceCents),
-        totalEur: centsToEur(totalCents),
-      })
+      throw refusal(
+        'insufficient_balance' satisfies PurchaseRefusal,
+        'This member’s balance does not cover it',
+        {
+          shortfallEur: centsToEur(totalCents - balanceCents),
+          balanceEur: centsToEur(balanceCents),
+          totalEur: centsToEur(totalCents),
+        },
+      )
     }
     return balanceCents
   }
@@ -53,17 +58,13 @@ export class PurchaseGuard {
   async assertOnlinePurchase(em: EntityManager, memberId: string): Promise<void> {
     const balanceCents = await this.wallet.getBalanceCents(em, memberId)
     if (isBlocked(balanceCents)) {
-      throw this.refuse('negative_balance', 'This account has a negative balance', {
-        balanceEur: centsToEur(balanceCents),
-      })
+      throw refusal(
+        'negative_balance' satisfies PurchaseRefusal,
+        'This account has a negative balance',
+        {
+          balanceEur: centsToEur(balanceCents),
+        },
+      )
     }
-  }
-
-  private refuse(
-    code: PurchaseRefusal,
-    message: string,
-    extra: Record<string, unknown>,
-  ): ConflictException {
-    return new ConflictException({ statusCode: HttpStatus.CONFLICT, message, code, ...extra })
   }
 }

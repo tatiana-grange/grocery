@@ -29,7 +29,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import type { CartLine } from '@grocery/openapi-generator/client/types.gen'
-import { apiErrorCode, handleMutationError } from '@/features/common/lib/api-error'
+import { handleMutationError, refusalMessage } from '@/features/common/lib/api-error'
 import { AddToCartControl } from '@/features/cart/components/add-to-cart-control'
 import { CheckoutConfirmation } from '@/features/cart/components/checkout-confirmation'
 import { useCartLineActions } from '@/features/cart/hooks/use-cart-line-actions'
@@ -214,8 +214,9 @@ export default function CartPage() {
     },
     onError: (error) => {
       // The page may have been loaded before a correction took the balance below zero.
-      if (apiErrorCode(error) === 'negative_balance') {
-        toast.error(t('wallet.negative.member'))
+      const refused = refusalMessage(error, { negative_balance: t('wallet.negative.member') })
+      if (refused) {
+        toast.error(refused)
         void queryClient.invalidateQueries({ queryKey: ['wallet'] })
         return
       }

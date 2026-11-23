@@ -13,7 +13,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@grocery/ui/components/primitives/sonner'
-import { apiErrorCode } from '@/features/common/lib/api-error'
+import { refusalMessage } from '@/features/common/lib/api-error'
 import { correctPayment, staffWalletQueryOptions } from '@/features/wallet/utils/wallet-queries'
 
 interface CorrectPaymentDialogProps {
@@ -46,11 +46,11 @@ export function CorrectPaymentDialog({ memberId, entry, onClose }: CorrectPaymen
       onClose()
     },
     onError: (error) => {
-      const code = apiErrorCode(error)
       toast.error(
-        code === 'already_corrected' || code === 'not_a_manual_payment'
-          ? t(`wallet.correct.error.${code}`)
-          : t('error.default'),
+        refusalMessage(error, {
+          already_corrected: t('wallet.correct.error.already_corrected'),
+          not_a_manual_payment: t('wallet.correct.error.not_a_manual_payment'),
+        }) ?? t('error.default'),
       )
     },
   })
