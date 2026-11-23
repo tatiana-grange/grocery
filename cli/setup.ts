@@ -339,7 +339,7 @@ async function promptDatabaseConfig(): Promise<EnvConfig['database']> {
       password: existingVars.DATABASE_PASSWORD || 'postgres',
       name: existingVars.DATABASE_NAME || 'lonestone_test',
       host: existingVars.DATABASE_HOST || 'localhost',
-      port: Number.parseInt(existingVars.DATABASE_PORT || '5111', 10),
+      port: Number.parseInt(existingVars.DATABASE_PORT || '5112', 10),
     }
   }
 
@@ -376,10 +376,10 @@ async function promptDatabaseConfig(): Promise<EnvConfig['database']> {
   const portStr = missingVars.includes('DATABASE_PORT')
     ? await prompt(
         'Database port',
-        existingVars.DATABASE_PORT || exampleVars.DATABASE_PORT || '5111',
+        existingVars.DATABASE_PORT || exampleVars.DATABASE_PORT || '5112',
       )
-    : existingVars.DATABASE_PORT || '5111'
-  const port = Number.parseInt(portStr, 10) || 5111
+    : existingVars.DATABASE_PORT || '5112'
+  const port = Number.parseInt(portStr, 10) || 5112
 
   return { user, password, name, host, port }
 }
