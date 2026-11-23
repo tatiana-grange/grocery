@@ -38,7 +38,7 @@ export const E2E = {
   apiUrl: required('API_BASE_URL'),
   webUrl: required('CLIENTS_WEB_APP_URL'),
   webPort: new URL(required('CLIENTS_WEB_APP_URL')).port || '5273',
-  maildevUrl: process.env.MAILDEV_URL ?? env.MAILDEV_URL ?? 'http://localhost:1090',
+  maildevUrl: process.env.MAILDEV_URL ?? env.MAILDEV_URL ?? 'http://localhost:1093',
   /** Passé aux process `webServer` de Playwright ; l'API complète depuis apps/api/.env.example. */
   processEnv: { ...env },
   storageStateDir: resolve(here, '.auth'),

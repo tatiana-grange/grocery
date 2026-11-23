@@ -31,7 +31,7 @@ jobs:
         run: pnpm --filter @grocery/web-spa-e2e exec playwright install --with-deps chromium
 
       # `pnpm e2e` starts the disposable infra (docker-compose.e2e.yml: Postgres :5434,
-      # maildev :1090/:1035), recreates + seeds the DB, boots the API + SPA via Playwright's
+      # maildev :1093/:1043), recreates + seeds the DB, boots the API + SPA via Playwright's
       # webServer (reuseExistingServer is false when CI=true) and runs the specs.
       - name: 🎭 Run e2e
         run: pnpm e2e

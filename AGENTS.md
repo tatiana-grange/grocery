@@ -40,6 +40,29 @@ Commit on your own, share only when asked.
 
 Full detail: `CONTRIBUTING.md` and `.agents/skills/git-workflow/SKILL.md`.
 
+## Working with chisel in this repo
+
+These rules came out of the first task run with chisel (lot 5, slice 01). They sit here, outside
+the chisel block, because `chisel update` rewrites the block and the files chisel installs.
+
+- **Generated migrations.** After `pnpm --filter=api db:migrate:create`, read the SQL before
+  anything else. MikroORM adds `drop index` lines for the search indexes and rewrites some auth
+  foreign keys. Remove every line that is not part of your change, and write in the worklog what
+  you removed. The Typist's brief says so, and the Mason checks it at the review.
+- **A "final" status needs a reason.** When a plan makes a state final (`failed`, `paid`, and so
+  on), the work document says why it is final and lists every input that can reach it. The Mason
+  and the `code-review` reviewers check that list. A state reachable from an input nobody listed
+  is a defect.
+- **The plan names the first failing test.** For each step, the plan says which seams get a
+  failing test first. The Typist shows the test red before making it green. A step with no red
+  test is reported, not ticked.
+- **Who writes the corrections.** The Architect writes the "Corrections at the reading" section of
+  the work document, signs it, and dates it. The Mason rereads the file before editing it, because
+  `oxfmt` may have reformatted it.
+- **Running the E2E suite.** The disposable stack binds Postgres on 5434 and the mail container on
+  1093 and 1043. Before `pnpm e2e`, run `docker ps` and look for another project on those ports.
+  If one is there, say so; never stop another project's container.
+
 <!-- chisel:begin -->
 <!--
   chisel managed block. Everything between the `chisel:begin` and

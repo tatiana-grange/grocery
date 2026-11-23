@@ -23,5 +23,5 @@ services:
     image: maildev/maildev:2.2.1
     container_name: grocery-e2e-maildev
     ports:
-      - '1090:1080'
-      - '1035:1025'
+      - '1093:1080'
+      - '1043:1025'

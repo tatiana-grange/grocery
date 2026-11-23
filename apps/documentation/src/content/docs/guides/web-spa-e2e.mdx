@@ -30,7 +30,7 @@ Add `E2E_VERBOSE=1` to see the API / SPA server logs.
 
 | Piece                                                | Role                                                                                                                                                             |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docker-compose.e2e.yml`                             | Postgres (`:5434`) + maildev (`:1090` / `:1035`), project `grocery-e2e`, no volumes                                                                              |
+| `docker-compose.e2e.yml`                             | Postgres (`:5434`) + maildev (`:1093` / `:1043`), project `grocery-e2e`, no volumes                                                                              |
 | `.env.e2e`                                           | committed, no secrets — dedicated ports so a running `pnpm dev` does not collide                                                                                 |
 | `global-setup.ts` → `scripts/reset-db.ts`            | `mikro-orm schema:fresh --run --seed E2eSeeder`                                                                                                                  |
 | `e2e.fixtures.ts` (`apps/api/src/seeders/`)          | the accounts, password and search names — one import-free file, imported by both `E2eSeeder` and `apps/web-spa-e2e/env.ts`                                       |
