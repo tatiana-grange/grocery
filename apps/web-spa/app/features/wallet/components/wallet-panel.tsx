@@ -1,6 +1,7 @@
 import { Badge } from '@grocery/ui/components/primitives/badge'
+import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
-import type { Wallet } from '@grocery/openapi-generator/client/types.gen'
+import type { Wallet, WalletEntry } from '@grocery/openapi-generator/client/types.gen'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ownWalletQueryOptions } from '@/features/wallet/utils/wallet-queries'
@@ -8,13 +9,18 @@ import { ownWalletQueryOptions } from '@/features/wallet/utils/wallet-queries'
 interface WalletPanelProps {
   /** Pass a wallet to render it directly; omit it to load the caller's own. */
   wallet?: Wallet
+  /**
+   * Staff only: shows a "Corriger" button on every payment that can still be corrected. The
+   * member's own pages never pass it.
+   */
+  onCorrect?: (entry: WalletEntry) => void
 }
 
 /**
  * A balance and the movements behind it. The balance is never a stored number — it is the sum
  * of the rows listed underneath it, which is exactly why both are shown together.
  */
-export function WalletPanel({ wallet }: WalletPanelProps) {
+export function WalletPanel({ wallet, onCorrect }: WalletPanelProps) {
   const { t } = useTranslation()
   const { data, isLoading } = useQuery({ ...ownWalletQueryOptions(), enabled: !wallet })
   const shown = wallet ?? data
@@ -30,7 +36,10 @@ export function WalletPanel({ wallet }: WalletPanelProps) {
       <div className="flex items-baseline gap-3">
         <h2 className="font-semibold">{t('wallet.title')}</h2>
         <span className="ml-auto text-sm text-muted-foreground">{t('wallet.balance')}</span>
-        <span className="text-2xl font-semibold tabular-nums" data-testid="wallet-balance">
+        <span
+          className={`text-2xl font-semibold tabular-nums ${shown.balanceEur < 0 ? 'text-destructive' : ''}`}
+          data-testid="wallet-balance"
+        >
           {eur(shown.balanceEur)}
         </span>
       </div>
@@ -55,12 +64,27 @@ export function WalletPanel({ wallet }: WalletPanelProps) {
                     {t(`wallet.method_.${entry.paymentMethod}`)}
                   </span>
                 ) : null}
+                {entry.correctedByEntryId ? (
+                  <Badge variant="outline" data-testid="wallet-corrected-badge">
+                    {t('wallet.correct.badge')}
+                  </Badge>
+                ) : null}
                 {entry.note ? <span className="text-muted-foreground">{entry.note}</span> : null}
                 <span
                   className={`ml-auto tabular-nums ${entry.amountEur < 0 ? 'text-destructive' : ''}`}
                 >
                   {eur(entry.amountEur)}
                 </span>
+                {onCorrect && entry.reason === 'payment_received' && !entry.correctedByEntryId ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    data-testid="wallet-correct-open"
+                    onClick={() => onCorrect(entry)}
+                  >
+                    {t('wallet.correct.open')}
+                  </Button>
+                ) : null}
               </li>
             ))}
           </ul>

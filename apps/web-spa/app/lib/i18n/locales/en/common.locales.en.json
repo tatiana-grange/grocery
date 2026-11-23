@@ -633,12 +633,16 @@
     "reason": {
       "handover_charge": "Handover",
       "payment_received": "Payment received",
-      "handover_reversal": "Handover reversed"
+      "handover_reversal": "Handover reversed",
+      "online_topup": "Online top-up",
+      "payment_correction": "Payment correction",
+      "refund": "Refund"
     },
     "method_": {
       "cash": "Cash",
       "cheque": "Cheque",
-      "transfer": "Bank transfer"
+      "transfer": "Bank transfer",
+      "online": "Online"
     },
     "columns": {
       "date": "Date",
@@ -646,6 +650,70 @@
       "amount": "Amount",
       "recordedBy": "Recorded by"
     },
-    "eur": "€{{value}}"
+    "correct": {
+      "open": "Correct",
+      "title": "Correct this payment",
+      "description": "A correction line is added to the account. The original payment stays in the history.",
+      "payment": "Payment of {{date}}: {{amount}} ({{method}})",
+      "reason": "Reason for the correction",
+      "reasonHint": "The member will be able to read this reason.",
+      "confirm": "Confirm the correction",
+      "cancel": "Cancel",
+      "badge": "Corrected",
+      "success": "Payment corrected.",
+      "error": {
+        "already_corrected": "This payment was already corrected.",
+        "not_a_manual_payment": "Only a payment entered by staff can be corrected."
+      }
+    },
+    "refund": {
+      "open": "Refund",
+      "title": "Refund the member",
+      "description": "Record the money you gave back to the member. The application sends nothing: you give the money back by hand.",
+      "balance": "Current balance and largest refund: {{balance}}.",
+      "amount": "Amount given back",
+      "method": "Given back by",
+      "reason": "Reason for the refund",
+      "reasonHint": "The member will be able to read this reason.",
+      "confirm": "Record the refund",
+      "cancel": "Cancel",
+      "success": "Refund recorded.",
+      "disabledNoBalance": "The balance is zero or negative: there is nothing to refund.",
+      "tooLarge": "The amount is above the balance.",
+      "error": {
+        "refund_exceeds_balance": "The amount is above the member's balance ({{balance}})."
+      }
+    },
+    "negative": {
+      "staff": "Negative balance: no handover or express order until the account is topped up.",
+      "member": "Your balance is negative. Top up your account or contact the cooperative to be able to order."
+    },
+    "eur": "€{{value}}",
+    "topup": {
+      "title": "Top up my account",
+      "amount": "Amount",
+      "quick": "€{{value}}",
+      "bounds": "From €{{min}} to €{{max}}",
+      "submit": "Pay with HelloAsso",
+      "submitting": "Redirecting…",
+      "note": "Payment is handled by HelloAsso. A voluntary contribution may be offered: it is not added to your balance.",
+      "error": {
+        "amount_too_low": "The minimum amount is €{{min}}.",
+        "amount_too_high": "The maximum amount is €{{max}}.",
+        "amount_invalid": "Enter an amount with at most two decimals.",
+        "member_not_active": "Only active members can top up.",
+        "payments_disabled": "Online payment is not available.",
+        "provider_unavailable": "The payment service is not answering. Try again in a moment."
+      },
+      "return": {
+        "checking": "We are checking your payment…",
+        "credited": "Your account was credited {{amount}}.",
+        "balance": "New balance",
+        "failed": "The payment did not go through. Nothing was added to your balance.",
+        "expired": "The payment request expired.",
+        "retry": "Start again",
+        "checkAgain": "Check again"
+      }
+    }
   }
 }

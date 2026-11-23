@@ -1,6 +1,7 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
 import { InventoryModule } from '../inventory/inventory.module'
+import { WalletModule } from '../wallet/wallet.module'
 import { CartController } from './cart.controller'
 import { CartService } from './cart.service'
 import { CartLine } from './entities/cart-line.entity'
@@ -12,7 +13,12 @@ import { OrdersService } from './orders.service'
 
 @Module({
   // The cart splits each line by what is on the shelf, which lives in the inventory ledger.
-  imports: [MikroOrmModule.forFeature([Cart, CartLine, Order, OrderLine]), InventoryModule],
+  // The wallet gives the purchase guard that refuses a member whose balance is below zero.
+  imports: [
+    MikroOrmModule.forFeature([Cart, CartLine, Order, OrderLine]),
+    InventoryModule,
+    WalletModule,
+  ],
   controllers: [CartController],
   providers: [CartService, OrdersService, OrdersMapper],
   exports: [CartService, OrdersService],

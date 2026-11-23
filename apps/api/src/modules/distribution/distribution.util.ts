@@ -47,16 +47,6 @@ export function handoverTotalCents(lines: PricedHandoverLine[]): number {
 }
 
 /**
- * Whether the balance covers the handover (FR-027).
- *
- * The comparison is deliberately `<=`: a total that exactly equals the balance is allowed.
- * Spending your last euro is not an overdraft.
- */
-export function balanceCovers(totalCents: number, balanceCents: number): boolean {
-  return totalCents <= balanceCents
-}
-
-/**
  * Whether every line of the order is now settled, and the order can flip to `handed_over`
  * (FR-013).
  *

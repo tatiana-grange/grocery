@@ -7,13 +7,17 @@ import {
 } from '@nestjs/common'
 import { Product } from '../catalog/entities/product.entity'
 import { Member } from '../members/entities/member.entity'
+import { PurchaseGuard } from '../wallet/purchase-guard'
 import type { AddCartLineInput, UpdateCartLineInput } from './contracts/cart.contract'
 import { CartLine } from './entities/cart-line.entity'
 import { Cart } from './entities/cart.entity'
 
 @Injectable()
 export class CartService {
-  constructor(private readonly em: EntityManager) {}
+  constructor(
+    private readonly em: EntityManager,
+    private readonly guard: PurchaseGuard,
+  ) {}
 
   async getOrCreateCart(userId: string): Promise<Cart> {
     const member = await this.requireMember(userId)
@@ -26,6 +30,7 @@ export class CartService {
    */
   async addLine(userId: string, input: AddCartLineInput): Promise<Cart> {
     const member = await this.requireMember(userId)
+    await this.guard.assertOnlinePurchase(this.em, member.id)
     const product = await this.em.findOne(
       Product,
       { id: input.productId, archivedAt: null },
@@ -81,6 +86,7 @@ export class CartService {
 
   async updateLine(userId: string, lineId: string, input: UpdateCartLineInput): Promise<Cart> {
     const member = await this.requireMember(userId)
+    await this.guard.assertOnlinePurchase(this.em, member.id)
     const cart = await this.loadCartWithLines(member)
     const line = cart.lines.getItems().find((item) => item.id === lineId)
     if (!line) throw new NotFoundException('Cart line not found')

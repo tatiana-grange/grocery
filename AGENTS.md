@@ -62,6 +62,17 @@ the chisel block, because `chisel update` rewrites the block and the files chise
 - **Running the E2E suite.** The disposable stack binds Postgres on 5434 and the mail container on
   1093 and 1043. Before `pnpm e2e`, run `docker ps` and look for another project on those ports.
   If one is there, say so; never stop another project's container.
+- **Long gate commands.** `pnpm lint`, `pnpm test` and `pnpm e2e` run past the shell's 120-second
+  limit. Run them in the background and write the full output to a log file. Read the log, never a
+  filtered copy: a filtered run once lost the failure messages of flaky wallet tests.
+- **Formatting.** `oxfmt` fails with "Expected at least one target file" on a long list of paths.
+  Run it per folder.
+- **Docs front matter.** A colon in a `description` breaks `astro build`. Quote any description
+  that holds one, and run the documentation build when you add a page.
+- **Forms.** `frontend.mdx` asks for react-hook-form. A small dialog with one or two fields may use
+  `useState`, as the wallet dialogs do. Anything with validation across fields uses react-hook-form.
+- **Known flaky tests.** Wallet and distribution tests sometimes fail in a full `pnpm test` run and
+  pass alone. Rerun once and say so in the report. Do not hide it, and do not edit the test.
 
 <!-- chisel:begin -->
 <!--

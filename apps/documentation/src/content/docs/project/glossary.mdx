@@ -1,0 +1,27 @@
+---
+title: Glossary
+description: The domain words of the Grocery project, one sentence each
+---
+
+Words the project uses with one precise meaning. Add a word here when a task introduces one.
+
+## Wallet
+
+- **Account** — a member's money held by the cooperative. Its balance is always the sum of its
+  movements and is never stored.
+- **Movement** — one row of the ledger. Written once, never edited or deleted. A mistake is
+  fixed by writing another row.
+- **Online top-up** — a member adds money to their account by paying through HelloAsso. The
+  account is credited only after the application has asked HelloAsso for the result.
+- **Manual payment** — cash, cheque or transfer received by the cooperative and typed in by a
+  staff member.
+- **Payment correction** — a new movement that reverses a manual payment typed wrongly. The
+  original stays in the history.
+- **Refund** — a negative movement that records money an admin gave back to a member by hand.
+  Admin only, never larger than the balance, with a method and a reason. It is only recorded; the
+  application never sends the money. There is no undo.
+- **Underpaid top-up** — an online top-up where the payer paid less than they asked for. Nothing
+  is credited, the top-up stays pending, and the admins get one e-mail.
+- **Negative balance** — an account below zero, possible after a payment correction. The member
+  cannot buy until they top up or a new payment brings the sum back to zero or above. Exactly
+  zero is not blocked.

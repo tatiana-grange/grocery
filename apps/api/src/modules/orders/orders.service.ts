@@ -2,6 +2,7 @@ import { EntityManager } from '@mikro-orm/core'
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { currentPrice } from '../catalog/catalog.util'
 import { Member } from '../members/entities/member.entity'
+import { PurchaseGuard } from '../wallet/purchase-guard'
 import type { CartLineInvalidReasonCode } from './cart-line-validity.util'
 import { checkLineValidity } from './cart-line-validity.util'
 import type { OrderingModeChoice } from './contracts/order.contract'
@@ -22,7 +23,10 @@ export interface CheckoutResult {
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly em: EntityManager) {}
+  constructor(
+    private readonly em: EntityManager,
+    private readonly guard: PurchaseGuard,
+  ) {}
 
   /**
    * Reads the cart's lines, drops any that became unorderable since they were added, groups
@@ -34,6 +38,9 @@ export class OrdersService {
     return this.em.transactional(async (em) => {
       const member = await em.findOne(Member, { user: userId })
       if (!member) throw new NotFoundException('Member not found')
+      // Checkout charges nothing, so it takes no lock: the counter checks the balance again,
+      // under the member lock, when the goods are handed over.
+      await this.guard.assertOnlinePurchase(em, member.id)
 
       const cart = await em.findOne(
         Cart,

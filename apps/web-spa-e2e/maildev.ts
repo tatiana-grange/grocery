@@ -41,6 +41,20 @@ async function pollLatestMessage(
 }
 
 /**
+ * Attend le premier mail pour `email`, puis renvoie tous ceux reçus, du plus récent au plus
+ * ancien. Les specs qui vérifient « un seul mail » s'en servent après `clearMailbox`.
+ */
+export async function readMessagesTo(email: string): Promise<MaildevMessage[]> {
+  await pollLatestMessage(email)
+  const messages = await fetchMessages()
+  return messages
+    .filter((message) =>
+      message.to.some((recipient) => recipient.address.toLowerCase() === email.toLowerCase()),
+    )
+    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+}
+
+/**
  * Attend le mail de réinitialisation de mot de passe et renvoie son token.
  * `AuthModule` envoie un lien `${CLIENTS_WEB_APP_URL}/reset-password?token=<token>`.
  */

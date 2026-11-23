@@ -1,7 +1,7 @@
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { handleMutationError } from '@/features/common/lib/api-error'
+import { apiErrorCode, handleMutationError } from '@/features/common/lib/api-error'
 
 /**
  * A write against the cart: adding, updating, or removing a line. Every one of them refetches
@@ -27,6 +27,11 @@ export function useCartMutation<TVariables = void>(
     },
     onError: (error) => {
       refetchCart()
+      // The page may have been loaded before a correction took the balance below zero.
+      if (apiErrorCode(error) === 'negative_balance') {
+        toast.error(t('wallet.negative.member'))
+        return
+      }
       handleMutationError(error, toast.error, {
         conflict: messages.conflict ?? t('common.conflict'),
         fallback: t('cart.toasts.error'),

@@ -246,7 +246,8 @@
           "constraintName": "account_userId_foreign",
           "localTableName": "public.account",
           "referencedColumnNames": ["id"],
-          "referencedTableName": "public.user"
+          "referencedTableName": "public.user",
+          "updateRule": "cascade"
         }
       },
       "comment": null
@@ -3906,7 +3907,8 @@
           "constraintName": "session_userId_foreign",
           "localTableName": "public.session",
           "referencedColumnNames": ["id"],
-          "referencedTableName": "public.user"
+          "referencedTableName": "public.user",
+          "updateRule": "cascade"
         }
       },
       "comment": null
@@ -4823,6 +4825,342 @@
       "comment": null
     },
     {
+      "name": "topup",
+      "schema": "public",
+      "columns": {
+        "amountCents": {
+          "name": "amountCents",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "currency": {
+          "name": "currency",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'EUR'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "gen_random_uuid()",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "lastCheckedAt": {
+          "name": "lastCheckedAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "memberId": {
+          "name": "memberId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "paidAt": {
+          "name": "paidAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "providerPaymentId": {
+          "name": "providerPaymentId",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": true,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "providerRequestId": {
+          "name": "providerRequestId",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": true,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "redirectUrl": {
+          "name": "redirectUrl",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "text"
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": "'pending'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "underpaidNotifiedAt": {
+          "name": "underpaidNotifiedAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "walletEntryId": {
+          "name": "walletEntryId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": true,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": ["memberId"],
+          "composite": false,
+          "constraint": false,
+          "keyName": "topup_memberId_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"topup_memberId_index\" ON public.topup USING btree (\"memberId\")"
+        },
+        {
+          "columnNames": ["id"],
+          "composite": false,
+          "constraint": true,
+          "keyName": "topup_pkey",
+          "primary": true,
+          "unique": true
+        },
+        {
+          "columnNames": ["providerPaymentId"],
+          "composite": false,
+          "constraint": true,
+          "keyName": "topup_providerPaymentId_unique",
+          "primary": false,
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"topup_providerPaymentId_unique\" ON public.topup USING btree (\"providerPaymentId\")"
+        },
+        {
+          "columnNames": ["providerRequestId"],
+          "composite": false,
+          "constraint": true,
+          "keyName": "topup_providerRequestId_unique",
+          "primary": false,
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"topup_providerRequestId_unique\" ON public.topup USING btree (\"providerRequestId\")"
+        },
+        {
+          "columnNames": ["status", "createdAt"],
+          "composite": true,
+          "constraint": false,
+          "keyName": "topup_status_createdAt_index",
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX \"topup_status_createdAt_index\" ON public.topup USING btree (status, \"createdAt\")"
+        },
+        {
+          "columnNames": ["walletEntryId"],
+          "composite": false,
+          "constraint": true,
+          "keyName": "topup_walletEntryId_unique",
+          "primary": false,
+          "unique": true,
+          "expression": "CREATE UNIQUE INDEX \"topup_walletEntryId_unique\" ON public.topup USING btree (\"walletEntryId\")"
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "topup_memberId_foreign": {
+          "columnNames": ["memberId"],
+          "constraintName": "topup_memberId_foreign",
+          "localTableName": "public.topup",
+          "referencedColumnNames": ["id"],
+          "referencedTableName": "public.member"
+        },
+        "topup_walletEntryId_foreign": {
+          "columnNames": ["walletEntryId"],
+          "constraintName": "topup_walletEntryId_foreign",
+          "localTableName": "public.topup",
+          "referencedColumnNames": ["id"],
+          "referencedTableName": "public.walletEntry",
+          "deleteRule": "set null"
+        }
+      },
+      "comment": null
+    },
+    {
       "name": "user",
       "schema": "public",
       "columns": {
@@ -5405,9 +5743,51 @@
           "collation": null,
           "enumItems": [],
           "mappedType": "uuid"
+        },
+        "providerPaymentId": {
+          "name": "providerPaymentId",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": true,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "correctsEntryId": {
+          "name": "correctsEntryId",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": true,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
         }
       },
       "indexes": [
+        {
+          "columnNames": ["correctsEntryId"],
+          "composite": false,
+          "constraint": true,
+          "keyName": "walletEntry_correctsEntryId_unique",
+          "primary": false,
+          "unique": true
+        },
         {
           "columnNames": ["handoverId"],
           "composite": false,
@@ -5433,11 +5813,27 @@
           "keyName": "walletEntry_pkey",
           "primary": true,
           "unique": true
+        },
+        {
+          "columnNames": ["providerPaymentId"],
+          "composite": false,
+          "constraint": true,
+          "keyName": "walletEntry_providerPaymentId_unique",
+          "primary": false,
+          "unique": true
         }
       ],
       "checks": [],
       "triggers": [],
       "foreignKeys": {
+        "walletEntry_correctsEntryId_foreign": {
+          "columnNames": ["correctsEntryId"],
+          "constraintName": "walletEntry_correctsEntryId_foreign",
+          "localTableName": "public.walletEntry",
+          "referencedColumnNames": ["id"],
+          "referencedTableName": "public.walletEntry",
+          "deleteRule": "set null"
+        },
         "walletEntry_handoverId_foreign": {
           "columnNames": ["handoverId"],
           "constraintName": "walletEntry_handoverId_foreign",

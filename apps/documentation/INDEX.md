@@ -43,11 +43,14 @@
 
 ## Project
 
+- [0001-helloasso-and-recorded-refunds.mdx](./src/content/docs/project/decisions/0001-helloasso-and-recorded-refunds.mdx) - Why online top-ups go through HelloAsso and why a refund is recorded, not sent to the card
 - [architecture-plan.mdx](./src/content/docs/project/architecture-plan.mdx) - How the MonÉpi features map onto this stack — modules, entities, delivery lots, risks
+- [glossary.mdx](./src/content/docs/project/glossary.mdx) - The domain words of the Grocery project, one sentence each
 - [index.mdx](./src/content/docs/project/index.mdx) - What this project is and where the planning notes live
 - [lot-1-foundation.mdx](./src/content/docs/project/lot-1-foundation.mdx) - What the members and catalog modules deliver, and how they are shaped
 - [lot-3-purchasing.mdx](./src/content/docs/project/lot-3-purchasing.mdx) - What the purchasing and inventory modules deliver, and how they are shaped
 - [lot-4-distribution.mdx](./src/content/docs/project/lot-4-distribution.mdx) - What the distribution and wallet modules deliver, and how they are shaped
+- [lot-5-wallet.mdx](./src/content/docs/project/lot-5-wallet.mdx) - What lot 5 adds to the member account: online top-up through HelloAsso, payment correction and recorded refund
 - [monepi-features.mdx](./src/content/docs/project/monepi-features.mdx) - Every feature found on the MonÉpi wiki, grouped by area
 
 ## References

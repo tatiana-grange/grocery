@@ -1,5 +1,12 @@
 import type { Rel } from '@mikro-orm/core'
-import { Entity, Index, ManyToOne, PrimaryKey, Property } from '@mikro-orm/decorators/legacy'
+import {
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryKey,
+  Property,
+  Unique,
+} from '@mikro-orm/decorators/legacy'
 import type { PaymentMethod, WalletEntryReason } from '../contracts/wallet.contract'
 import { User } from '../../auth/auth.entity'
 import { Handover } from '../../distribution/entities/handover.entity'
@@ -36,7 +43,11 @@ export class WalletEntry {
   @Property()
   reason!: WalletEntryReason
 
-  /** Set only on `payment_received`; null on both handover reasons. */
+  /**
+   * Set on `payment_received`, `online_topup`, `payment_correction` (a correction carries the
+   * method of the payment it reverses) and `refund` (how the money was given back); null on both
+   * handover reasons.
+   */
   @Property({ nullable: true })
   paymentMethod?: PaymentMethod
 
@@ -53,12 +64,28 @@ export class WalletEntry {
   recordedByUser?: Rel<User>
 
   /**
-   * Free text: the reason given for a reversal (FR-029), or a cheque number. Sized to the 500
-   * characters the contracts accept, so a long reason is stored rather than rejected by the
-   * database.
+   * Free text: the reason given for a reversal (FR-029), for a payment correction or for a refund,
+   * or a cheque number. Sized to the 500 characters the contracts accept, so a long reason is
+   * stored rather than rejected by the database.
    */
   @Property({ length: 500, nullable: true })
   note?: string
+
+  /**
+   * The provider's payment id, set only on `online_topup`. Unique, so one provider payment can
+   * never write two entries, whatever the code path. Many nulls are fine in a unique column.
+   */
+  @Property({ nullable: true })
+  @Unique()
+  providerPaymentId?: string
+
+  /**
+   * Set only on a `payment_correction` row: the `payment_received` row it reverses. Unique, so a
+   * payment is corrected at most once, whatever the code path.
+   */
+  @ManyToOne(() => WalletEntry, { fieldName: 'correctsEntryId', nullable: true })
+  @Unique()
+  correctsEntry?: Rel<WalletEntry>
 
   @Property()
   createdAt: Date = new Date()

@@ -157,6 +157,17 @@ describe('distributionController (e2e)', () => {
     await em.persist(entry).flush()
   }
 
+  /** Puts a member below zero, as a payment correction would. */
+  async function owe(member: Member, amountCents: number) {
+    const entry = new WalletEntry()
+    entry.member = member
+    entry.amountCents = -amountCents
+    entry.currency = 'EUR'
+    entry.reason = 'payment_correction'
+    entry.paymentMethod = 'cash'
+    await em.persist(entry).flush()
+  }
+
   describe('GET /distribution/members', () => {
     it('finds a member by name', async () => {
       const member = await makeMember('Fanny Funded')
@@ -440,6 +451,34 @@ describe('distributionController (e2e)', () => {
       const movements = await em.find(StockMovement, { product: product.id })
       expect(movements).toHaveLength(1) // only the opening stock
       expect(await em.count(WalletEntry, { member: member.id })).toBe(0)
+    })
+
+    it('refuses a member below zero with insufficient_balance, and writes nothing', async () => {
+      const member = await makeMember('Dora Debt')
+      const product = await makeProduct('Apples')
+      await addStock(product, 10)
+      const order = await addOrder(member, product, 'in_store', { quantity: 1 })
+      await owe(member, 500)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/orders/${order.id}/handovers`)
+        .send({
+          version: order.version,
+          lines: [{ orderLineId: order.lines.getItems()[0].id, handedQuantity: 1 }],
+        })
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('insufficient_balance')
+      expect(res.body.balanceEur).toBe(-5)
+      expect(res.body.shortfallEur).toBe(8)
+
+      em.clear()
+      const reloaded = await em.findOneOrFail(Order, { id: order.id })
+      expect(reloaded.status).toBe('pending')
+      expect(await em.count(Handover, { member: member.id })).toBe(0)
+      expect(await em.find(StockMovement, { product: product.id })).toHaveLength(1)
+      expect(await em.count(WalletEntry, { member: member.id })).toBe(1) // only the debt
     })
 
     it('allows a handover that spends the balance down to exactly zero', async () => {
@@ -920,6 +959,27 @@ describe('distributionController (e2e)', () => {
       expect(await em.count(Order, { member: member.id })).toBe(0)
       const movements = await em.find(StockMovement, { product: product.id })
       expect(movements).toHaveLength(1) // only the opening stock
+    })
+
+    it('refuses an express order for a member below zero, and writes nothing', async () => {
+      const member = await makeMember('Dora Debt')
+      const product = await makeProduct('Honey')
+      await addStock(product, 10)
+      await owe(member, 500)
+
+      const res = await request
+        .withSession(distributor)
+        .post(`/distribution/members/${member.id}/express-orders`)
+        .send({ lines: [{ productId: product.id, quantity: 1 }] })
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('insufficient_balance')
+
+      em.clear()
+      expect(await em.count(Order, { member: member.id })).toBe(0)
+      expect(await em.count(Handover, { member: member.id })).toBe(0)
+      expect(await em.find(StockMovement, { product: product.id })).toHaveLength(1)
+      expect(await em.count(WalletEntry, { member: member.id })).toBe(1) // only the debt
     })
 
     it('keeps two lines for the same product distinct', async () => {

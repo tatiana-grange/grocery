@@ -16,6 +16,9 @@ import { CatalogModule } from '../../catalog/catalog.module'
 import { StockMovement } from '../../inventory/entities/stock-movement.entity'
 import { Member } from '../../members/entities/member.entity'
 import { createMemberData } from '../../members/members.factory'
+import { WalletEntry } from '../../wallet/entities/wallet-entry.entity'
+import { Cart } from '../entities/cart.entity'
+import { Order } from '../entities/order.entity'
 import { OrdersModule } from '../orders.module'
 
 describe('ordersController (e2e)', () => {
@@ -377,6 +380,126 @@ describe('ordersController (e2e)', () => {
       expect(res.body.lines).toHaveLength(1)
       expect(res.body.lines[0].isValid).toBe(false)
       expect(res.body.lines[0].invalidReasonCode).toBe('ordering_mode_unavailable')
+    })
+  })
+
+  describe('a member whose balance is below zero', () => {
+    async function makeShopper() {
+      const { user, member: shopper } = await createMemberData(em, {
+        roles: ['member'],
+        status: 'active',
+      })
+      return { shopper, session: createSessionFromUser(user) }
+    }
+
+    async function writeEntry(
+      shopper: Member,
+      amountCents: number,
+      reason: WalletEntry['reason'] = 'payment_received',
+    ) {
+      const entry = new WalletEntry()
+      entry.member = shopper
+      entry.amountCents = amountCents
+      entry.reason = reason
+      entry.paymentMethod = 'cash'
+      await em.persist(entry).flush()
+    }
+
+    /** One line in the cart, then the member is put below zero by a correction. */
+    async function cartThenDebt() {
+      const { shopper, session } = await makeShopper()
+      const product = await makeProduct({ orderingMode: 'both' })
+      const added = await request
+        .withSession(session)
+        .post('/cart/lines')
+        .send({ productId: product.id, orderingMode: 'in_store', quantity: 1 })
+      await writeEntry(shopper, -500, 'payment_correction')
+      return { shopper, session, product, lineId: added.body.lines[0].id as string }
+    }
+
+    it('refuses checkout with negative_balance when the member balance is below zero', async () => {
+      const { shopper, session } = await cartThenDebt()
+
+      const res = await request.withSession(session).post('/cart/checkout')
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('negative_balance')
+      expect(res.body.balanceEur).toBe(-5)
+      em.clear()
+      expect(await em.count(Order, { member: shopper.id })).toBe(0)
+      const cart = await em.findOneOrFail(Cart, { member: shopper.id }, { populate: ['lines'] })
+      expect(cart.lines).toHaveLength(1)
+    })
+
+    it('refuses adding a line, and writes nothing', async () => {
+      const { shopper, session, product } = await cartThenDebt()
+
+      const res = await request
+        .withSession(session)
+        .post('/cart/lines')
+        .send({ productId: product.id, orderingMode: 'pre_order', quantity: 1 })
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('negative_balance')
+      em.clear()
+      const cart = await em.findOneOrFail(Cart, { member: shopper.id }, { populate: ['lines'] })
+      expect(cart.lines).toHaveLength(1)
+    })
+
+    it('refuses updating a line, and leaves the quantity', async () => {
+      const { session, lineId } = await cartThenDebt()
+
+      const res = await request
+        .withSession(session)
+        .put(`/cart/lines/${lineId}`)
+        .send({ quantity: 4 })
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('negative_balance')
+      const cart = await request.withSession(session).get('/cart')
+      expect(cart.body.lines[0].quantity).toBe(1)
+    })
+
+    it('still lets the member read the cart and remove a line', async () => {
+      const { session, lineId } = await cartThenDebt()
+
+      const read = await request.withSession(session).get('/cart')
+      const removed = await request.withSession(session).del(`/cart/lines/${lineId}`)
+
+      expect(read.status).toBe(200)
+      expect(read.body.lines).toHaveLength(1)
+      expect(removed.status).toBe(200)
+      expect(removed.body.lines).toHaveLength(0)
+    })
+
+    it('does not block a balance of exactly zero', async () => {
+      const { shopper, session } = await makeShopper()
+      await writeEntry(shopper, 1000)
+      await writeEntry(shopper, -1000, 'payment_correction')
+      const product = await makeProduct()
+
+      const added = await request
+        .withSession(session)
+        .post('/cart/lines')
+        .send({ productId: product.id, orderingMode: 'in_store', quantity: 1 })
+      const checkout = await request.withSession(session).post('/cart/checkout')
+
+      expect(added.status).toBe(201)
+      expect(checkout.status).toBe(201)
+    })
+
+    it('lets the same member add and check out again once a top-up lifts the balance', async () => {
+      const { shopper, session, product } = await cartThenDebt()
+      await writeEntry(shopper, 2000, 'online_topup')
+
+      const added = await request
+        .withSession(session)
+        .post('/cart/lines')
+        .send({ productId: product.id, orderingMode: 'pre_order', quantity: 1 })
+      const checkout = await request.withSession(session).post('/cart/checkout')
+
+      expect(added.status).toBe(201)
+      expect(checkout.status).toBe(201)
     })
   })
 })

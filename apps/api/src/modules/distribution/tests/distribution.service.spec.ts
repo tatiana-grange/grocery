@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { balanceCovers } from '../../wallet/purchase-guard'
 import {
-  balanceCovers,
   findDuplicateLineId,
   handoverTotalCents,
   isOrderFullySettled,
@@ -78,25 +78,6 @@ describe('handoverTotalCents', () => {
 
   it('is zero for a handover where everything was declined', () => {
     expect(handoverTotalCents([line(0, 300), line(0, 2000)])).toBe(0)
-  })
-})
-
-describe('balanceCovers', () => {
-  it('allows a handover the balance covers', () => {
-    expect(balanceCovers(2100, 6000)).toBe(true)
-  })
-
-  it('allows spending the balance down to exactly zero — that is not an overdraft', () => {
-    expect(balanceCovers(6000, 6000)).toBe(true)
-  })
-
-  it('refuses a handover one cent over the balance (FR-027, SC-010)', () => {
-    expect(balanceCovers(6001, 6000)).toBe(false)
-  })
-
-  it('refuses anything at all on an empty account', () => {
-    expect(balanceCovers(1, 0)).toBe(false)
-    expect(balanceCovers(0, 0)).toBe(true)
   })
 })
 

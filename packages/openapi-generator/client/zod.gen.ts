@@ -110,6 +110,15 @@ export const zSetProductPrice = z.object({
 });
 
 /**
+ * CorrectPaymentInput
+ *
+ * Why a recorded payment is being corrected. The reason is kept on the correction row and the member can read it in their history.
+ */
+export const zCorrectPaymentInput = z.object({
+    reason: z.string().min(1).max(500)
+});
+
+/**
  * RecordHandoverInput
  *
  * What was actually handed over. Lines left out stay outstanding for a later distribution.
@@ -277,6 +286,37 @@ export const zRecordReception = z.object({
         receivedQuantity: z.number().gte(0),
         unitCostEur: z.number().gte(0)
     })).min(1)
+});
+
+/**
+ * StartTopupInput
+ *
+ * The amount the member wants to add to their account, in euros. At most two decimals, between the bounds given by the options route.
+ */
+export const zStartTopupInput = z.object({
+    amountEur: z.number().gt(0)
+});
+
+/**
+ * TestSettlePayment
+ *
+ * Decides the outcome of a payment request held by the fake provider
+ */
+export const zTestSettlePayment = z.object({
+    providerRequestId: z.optional(z.string()),
+    result: z.union([
+        z.object({
+            status: z.literal('pending')
+        }),
+        z.object({
+            status: z.literal('failed')
+        }),
+        z.object({
+            status: z.literal('paid'),
+            providerPaymentId: z.string(),
+            paidAmountCents: z.int().gte(-9007199254740991).lte(9007199254740991)
+        })
+    ])
 });
 
 /**
@@ -973,13 +1013,17 @@ export const zWalletEntryList = z.object({
         reason: z.enum([
             'handover_charge',
             'payment_received',
-            'handover_reversal'
+            'handover_reversal',
+            'online_topup',
+            'payment_correction',
+            'refund'
         ]),
         paymentMethod: z.optional(z.union([
             z.enum([
                 'cash',
                 'cheque',
-                'transfer'
+                'transfer',
+                'online'
             ]),
             z.null()
         ])),
@@ -995,6 +1039,18 @@ export const zWalletEntryList = z.object({
             z.string(),
             z.null()
         ])),
+        providerPaymentId: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        correctsEntryId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
+        correctedByEntryId: z.optional(z.union([
+            z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+            z.null()
+        ])),
         createdAt: z.string()
     })),
     meta: z.object({
@@ -1008,7 +1064,7 @@ export const zWalletEntryList = z.object({
 /**
  * Wallet
  *
- * A member’s balance and the movements behind it. A member with no movements reads 0.
+ * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
  */
 export const zWallet = z.object({
     memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
@@ -1019,12 +1075,15 @@ export const zWallet = z.object({
 /**
  * WalletEntryReason
  *
- * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ * Why the money moved. handover_charge, payment_correction and refund are negative; the others are positive. online_topup is money paid through the online payment provider. payment_correction reverses a payment staff recorded by mistake. refund is money given back to the member by hand and only recorded here.
  */
 export const zWalletEntryReason = z.enum([
     'handover_charge',
     'payment_received',
-    'handover_reversal'
+    'handover_reversal',
+    'online_topup',
+    'payment_correction',
+    'refund'
 ]);
 
 /**
@@ -1040,7 +1099,8 @@ export const zWalletEntry = z.object({
         z.enum([
             'cash',
             'cheque',
-            'transfer'
+            'transfer',
+            'online'
         ]),
         z.null()
     ])),
@@ -1054,6 +1114,18 @@ export const zWalletEntry = z.object({
     ])),
     note: z.optional(z.union([
         z.string(),
+        z.null()
+    ])),
+    providerPaymentId: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    correctsEntryId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ])),
+    correctedByEntryId: z.optional(z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         z.null()
     ])),
     createdAt: z.string()
@@ -1930,6 +2002,66 @@ export const zSupplierOrderExport = z.object({
 });
 
 /**
+ * TopupOptions
+ *
+ * Whether online top-up is available, and the amounts the form offers. `enabled` is false when no payment provider is configured.
+ */
+export const zTopupOptions = z.object({
+    enabled: z.boolean(),
+    minAmountEur: z.number(),
+    maxAmountEur: z.number(),
+    quickAmountsEur: z.array(z.number())
+});
+
+/**
+ * TopupStatus
+ *
+ * pending: waiting for the payment result. paid: credited to the account. failed: the payment did not go through. expired: the payment request ran out.
+ */
+export const zTopupStatus = z.enum([
+    'pending',
+    'paid',
+    'failed',
+    'expired'
+]);
+
+/**
+ * Topup
+ *
+ * One online top-up of the member account, from the request to its outcome.
+ */
+export const zTopup = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    amountEur: z.number(),
+    status: zTopupStatus,
+    redirectUrl: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    expiresAt: z.string(),
+    paidAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * NotificationAck
+ *
+ * Answer to a provider notification. Sent once our pass over recent top-ups is done.
+ */
+export const zNotificationAck = z.object({
+    received: z.literal(true)
+});
+
+/**
+ * TestPaymentsOk
+ */
+export const zTestPaymentsOk = z.object({
+    ok: z.literal(true)
+});
+
+/**
  * TestSeedResetResponse
  *
  * Result of truncating the E2E database and re-running the E2E seeder
@@ -1967,11 +2099,11 @@ export const zFilterQueryStringSchema = z.string();
 export const zSortingQueryStringSchema = z.string();
 
 /**
- * PaymentMethod
+ * ManualPaymentMethod
  *
- * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ * How money reached the cooperative by hand.
  */
-export const zPaymentMethod = z.enum([
+export const zManualPaymentMethod = z.enum([
     'cash',
     'cheque',
     'transfer'
@@ -1984,8 +2116,19 @@ export const zPaymentMethod = z.enum([
  */
 export const zRecordPaymentInput = z.object({
     amountEur: z.number().gt(0),
-    paymentMethod: zPaymentMethod,
+    paymentMethod: zManualPaymentMethod,
     note: z.optional(z.string().max(500))
+});
+
+/**
+ * RefundInput
+ *
+ * Money the cooperative gave back to a member by hand. Only recorded: nothing is sent to the payment provider. The reason is kept on the entry and the member can read it.
+ */
+export const zRefundInput = z.object({
+    amountEur: z.number().gt(0),
+    paymentMethod: zManualPaymentMethod,
+    reason: z.string().min(1).max(500)
 });
 
 export const zAdminMembersControllerListFilterItem = z.object({
@@ -3265,6 +3408,103 @@ export const zCartControllerCheckoutData = z.object({
  */
 export const zCartControllerCheckoutResponse = zCheckoutResult;
 
+export const zStaffWalletControllerGetWalletData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+ */
+export const zStaffWalletControllerGetWalletResponse = zWallet;
+
+export const zStaffWalletControllerRecordPaymentData = z.object({
+    body: z.object({
+        amountEur: z.number().gt(0),
+        paymentMethod: z.enum([
+            'cash',
+            'cheque',
+            'transfer'
+        ]),
+        note: z.optional(z.string().max(500))
+    }),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+ */
+export const zStaffWalletControllerRecordPaymentResponse = zWallet;
+
+export const zStaffWalletControllerCorrectPaymentData = z.object({
+    body: z.object({
+        reason: z.string().min(1).max(500)
+    }),
+    path: z.object({
+        entryId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        memberId: z.string()
+    }),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+ */
+export const zStaffWalletControllerCorrectPaymentResponse = zWallet;
+
+export const zStaffWalletControllerRecordRefundData = z.object({
+    body: z.object({
+        amountEur: z.number().gt(0),
+        paymentMethod: z.enum([
+            'cash',
+            'cheque',
+            'transfer'
+        ]),
+        reason: z.string().min(1).max(500)
+    }),
+    path: z.object({
+        memberId: z.string()
+    }),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+ */
+export const zStaffWalletControllerRecordRefundResponse = zWallet;
+
+export const zMemberWalletControllerGetOwnWalletData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(20)
+    })
+});
+
+/**
+ * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+ */
+export const zMemberWalletControllerGetOwnWalletResponse = zWallet;
+
 export const zAdminSupplierPurchasingControllerAggregateData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -3368,59 +3608,66 @@ export const zAdminPurchasingControllerRecordReceptionData = z.object({
  */
 export const zAdminPurchasingControllerRecordReceptionResponse = zReception;
 
-export const zStaffWalletControllerGetWalletData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        memberId: z.string()
-    }),
-    query: z.object({
-        offset: z.int().gte(0).lte(9007199254740991).default(0),
-        pageSize: z.int().gte(1).lte(100).default(20)
-    })
-});
-
-/**
- * A member’s balance and the movements behind it. A member with no movements reads 0.
- */
-export const zStaffWalletControllerGetWalletResponse = zWallet;
-
-export const zStaffWalletControllerRecordPaymentData = z.object({
-    body: z.object({
-        amountEur: z.number().gt(0),
-        paymentMethod: z.enum([
-            'cash',
-            'cheque',
-            'transfer'
-        ]),
-        note: z.optional(z.string().max(500))
-    }),
-    path: z.object({
-        memberId: z.string()
-    }),
-    query: z.object({
-        offset: z.int().gte(0).lte(9007199254740991).default(0),
-        pageSize: z.int().gte(1).lte(100).default(20)
-    })
-});
-
-/**
- * A member’s balance and the movements behind it. A member with no movements reads 0.
- */
-export const zStaffWalletControllerRecordPaymentResponse = zWallet;
-
-export const zMemberWalletControllerGetOwnWalletData = z.object({
+export const zMemberTopupControllerGetOptionsData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
-    query: z.object({
-        offset: z.int().gte(0).lte(9007199254740991).default(0),
-        pageSize: z.int().gte(1).lte(100).default(20)
-    })
+    query: z.optional(z.never())
 });
 
 /**
- * A member’s balance and the movements behind it. A member with no movements reads 0.
+ * Whether online top-up is available, and the amounts the form offers. `enabled` is false when no payment provider is configured.
  */
-export const zMemberWalletControllerGetOwnWalletResponse = zWallet;
+export const zMemberTopupControllerGetOptionsResponse = zTopupOptions;
+
+export const zMemberTopupControllerStartData = z.object({
+    body: z.object({
+        amountEur: z.number().gt(0)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * One online top-up of the member account, from the request to its outcome.
+ */
+export const zMemberTopupControllerStartResponse = zTopup;
+
+export const zMemberTopupControllerGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        topupId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * One online top-up of the member account, from the request to its outcome.
+ */
+export const zMemberTopupControllerGetResponse = zTopup;
+
+export const zMemberTopupControllerVerifyData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        topupId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * One online top-up of the member account, from the request to its outcome.
+ */
+export const zMemberTopupControllerVerifyResponse = zTopup;
+
+export const zPaymentNotificationControllerHelloassoData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Answer to a provider notification. Sent once our pass over recent top-ups is done.
+ */
+export const zPaymentNotificationControllerHelloassoResponse = zNotificationAck;
 
 export const zDistributionControllerSearchMembersData = z.object({
     body: z.optional(z.never()),

@@ -45,8 +45,9 @@ never edited. `reversesHandover` is a **forward** self-link on the reversing row
 been reversed?" is `EXISTS(reversesHandover = :id)` and the original stays untouched.
 
 Every write runs in one `em.transactional` with a **pessimistic lock on the member row**.
-That is what makes "the balance never goes negative" hold when two tills validate at once:
+That is what keeps a handover from overdrawing an account when two tills validate at once:
 the check is a read then a write, and without serialising, both would see the same balance.
+Only a payment correction can take a balance below zero (see lot 5), and it is not a handover.
 Two staffers serving different members never wait on each other.
 
 Order settlement is derived by query — a line counts as settled when an un-reversed handover
@@ -66,7 +67,7 @@ product's **current weighted average**, which leaves that average unchanged:
 ```
 
 So `buildStockLevel` needed no edit and both derivations still sum the same rows. A reversal
-puts stock back at the *original* row's unit cost, so the average lands exactly where it was.
+puts stock back at the _original_ row's unit cost, so the average lands exactly where it was.
 `stockSummarySchema.quantityOnHand` stops being `nonnegative()`: stock is allowed below zero,
 because at the table the shelf is the source of truth and refusing a real sale over a stale
 number is the worse failure.

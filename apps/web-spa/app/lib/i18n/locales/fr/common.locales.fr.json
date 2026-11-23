@@ -633,12 +633,16 @@
     "reason": {
       "handover_charge": "Remise",
       "payment_received": "Paiement reçu",
-      "handover_reversal": "Remise annulée"
+      "handover_reversal": "Remise annulée",
+      "online_topup": "Recharge en ligne",
+      "payment_correction": "Correction de paiement",
+      "refund": "Remboursement"
     },
     "method_": {
       "cash": "Espèces",
       "cheque": "Chèque",
-      "transfer": "Virement"
+      "transfer": "Virement",
+      "online": "En ligne"
     },
     "columns": {
       "date": "Date",
@@ -646,6 +650,70 @@
       "amount": "Montant",
       "recordedBy": "Enregistré par"
     },
-    "eur": "€{{value}}"
+    "correct": {
+      "open": "Corriger",
+      "title": "Corriger ce paiement",
+      "description": "Une ligne de correction est ajoutée au compte. Le paiement d'origine reste dans l'historique.",
+      "payment": "Paiement du {{date}} : {{amount}} ({{method}})",
+      "reason": "Raison de la correction",
+      "reasonHint": "L'adhérent pourra lire cette raison.",
+      "confirm": "Confirmer la correction",
+      "cancel": "Annuler",
+      "badge": "Corrigé",
+      "success": "Paiement corrigé.",
+      "error": {
+        "already_corrected": "Ce paiement a déjà été corrigé.",
+        "not_a_manual_payment": "Seul un paiement saisi par le personnel peut être corrigé."
+      }
+    },
+    "refund": {
+      "open": "Rembourser",
+      "title": "Rembourser l'adhérent",
+      "description": "Enregistrez l'argent que vous avez rendu à l'adhérent. Rien n'est envoyé par l'application : vous rendez l'argent à la main.",
+      "balance": "Solde actuel et remboursement maximal : {{balance}}.",
+      "amount": "Montant rendu",
+      "method": "Rendu par",
+      "reason": "Raison du remboursement",
+      "reasonHint": "L'adhérent pourra lire cette raison.",
+      "confirm": "Enregistrer le remboursement",
+      "cancel": "Annuler",
+      "success": "Remboursement enregistré.",
+      "disabledNoBalance": "Le solde est à zéro ou négatif : il n'y a rien à rembourser.",
+      "tooLarge": "Le montant dépasse le solde.",
+      "error": {
+        "refund_exceeds_balance": "Le montant dépasse le solde de l'adhérent ({{balance}})."
+      }
+    },
+    "negative": {
+      "staff": "Solde négatif : aucune remise ni commande express tant que le compte n'est pas rechargé.",
+      "member": "Votre solde est négatif. Rechargez votre compte ou contactez la coopérative pour pouvoir commander."
+    },
+    "eur": "€{{value}}",
+    "topup": {
+      "title": "Recharger mon compte",
+      "amount": "Montant",
+      "quick": "{{value}} €",
+      "bounds": "De {{min}} € à {{max}} €",
+      "submit": "Payer avec HelloAsso",
+      "submitting": "Redirection…",
+      "note": "Le paiement est géré par HelloAsso. Une contribution volontaire peut vous être proposée : elle n'est pas ajoutée à votre solde.",
+      "error": {
+        "amount_too_low": "Le montant minimum est de {{min}} €.",
+        "amount_too_high": "Le montant maximum est de {{max}} €.",
+        "amount_invalid": "Saisissez un montant avec au plus deux décimales.",
+        "member_not_active": "Seuls les adhérents actifs peuvent recharger.",
+        "payments_disabled": "Le paiement en ligne n'est pas disponible.",
+        "provider_unavailable": "Le service de paiement ne répond pas. Réessayez dans un instant."
+      },
+      "return": {
+        "checking": "Nous vérifions votre paiement…",
+        "credited": "Votre compte a été crédité de {{amount}}.",
+        "balance": "Nouveau solde",
+        "failed": "Le paiement n'a pas abouti. Rien n'a été ajouté à votre solde.",
+        "expired": "La demande de paiement a expiré.",
+        "retry": "Recommencer",
+        "checkAgain": "Vérifier à nouveau"
+      }
+    }
   }
 }

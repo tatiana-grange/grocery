@@ -1,0 +1,167 @@
+---
+title: Lot 5 — Wallet (online top-up, correction, refund)
+description: "What lot 5 adds to the member account: online top-up through HelloAsso, payment correction and recorded refund"
+---
+
+Delivery lot 5 from the [architecture plan](/grocery/project/architecture-plan). The tasks of
+this lot live in `project-management/archive/20261123-1014-lot-5-wallet/`. All three
+are built: the online top-up, the payment correction and the refund.
+
+The choice of HelloAsso, and of refunds that are only recorded, is in
+[ADR 0001](/grocery/project/decisions/0001-helloasso-and-recorded-refunds).
+
+## Online top-up
+
+An active member opens the account page, taps a quick amount (10, 20 or 50 euros) or types one
+between 5 and 200 euros, and is sent to HelloAsso to pay. On return, the page says the payment
+is being checked, then that the account was credited, or that it failed or expired. Nothing is
+credited until the application has asked HelloAsso for the result.
+
+- The member is credited the amount they asked for. A voluntary contribution added at HelloAsso
+  is never added to the balance.
+- A payment that is reported twice, or by both the notification and the return page, writes one
+  ledger entry. The credit and the "paid" state are written together under a row lock, and a
+  unique provider payment id is the safety net behind it.
+- A HelloAsso notification is only a nudge. The route reads nothing from it. It asks HelloAsso
+  about the newest unfinished top-ups, at most 20 per call, each at most once every 5 seconds.
+- An abandoned, failed or expired payment writes no entry. The member can start again.
+- A member with a negative balance may top up. Only active members may.
+
+### A top-up paid short
+
+Sometimes the payer pays less than the amount they asked for. Nothing is credited and the
+top-up stays `pending`. Admins are told by one e-mail, so someone can follow it up with the
+payer and in the HelloAsso back office.
+
+- The mail goes to the admins only, not to the payer. It names the member, the amount asked,
+  the amount paid and the top-up id.
+- It is sent once per top-up. The top-up carries a time stamp, `underpaidNotifiedAt`, set in the
+  same locked step that checks the payment. A later check reads the stamp and sends nothing,
+  whether it comes from the return page or from a HelloAsso notification.
+- The stamp is set before the mail is sent. If the send fails, it is logged with the top-up id
+  and is not retried. If the process dies in between, the mail is lost.
+- If the payer later pays the right amount, the top-up is credited normally and no second mail
+  goes out.
+
+### Where the code is
+
+- `apps/api/src/modules/payments/`: the `Topup` record, the payment provider seam, the fake
+  provider (tests and E2E), the HelloAsso provider, and the routes `me/topups/*` and
+  `payments/notifications/helloasso`.
+- `apps/api/src/modules/wallet/`: the ledger gets the reason `online_topup`, the method `online`
+  and a provider payment id on the entry.
+- `apps/web-spa/app/features/wallet/`: the top-up form on the account page and the return page.
+
+## Payment correction and negative balance
+
+A payment that staff typed in by mistake can be corrected. On the distribution screen, staff
+open the member, find the payment in the history, press "Corriger", give a reason and confirm.
+Any distributor or admin may do it. A member never can.
+
+- A correction is one new ledger row with the reason `payment_correction`. Its amount is the
+  original amount with the sign flipped. It points at the original through `correctsEntryId`.
+  The original row is never touched, so the history shows both.
+- Only a payment typed by staff (cash, cheque or transfer) can be corrected, and only once. A
+  top-up, a handover, a handover reversal or a correction is refused with `not_a_manual_payment`.
+  A second correction is refused with `already_corrected`. A unique index on `correctsEntryId`
+  backs that rule when two staff members click at the same moment.
+- There is no "undo a correction". If staff correct by mistake, they record the payment again.
+- The reason is kept on the correction row, and the member can read it in their own history,
+  like every other note.
+- The correction never checks the balance. It can leave the member below zero.
+
+### Negative balance
+
+A balance is still the sum of the member's rows. Nothing about "blocked" is stored: a member is
+blocked exactly while the sum is below zero. A balance of exactly zero is not blocked. A top-up
+or a new payment that brings the sum back to zero or above lifts the block with no other action.
+
+While the balance is below zero:
+
+- The counter refuses a handover or an express order with `insufficient_balance`. The shortfall
+  includes what the account owes.
+- The online shop refuses adding a line, changing a line and checkout with `negative_balance`.
+  Reading the cart and removing a line still work. The member sees one sentence on the cart page
+  and on the account page, the checkout button is disabled, and the top-up form stays open.
+- Online top-up is never blocked.
+
+One purchase guard in `apps/api/src/modules/wallet/purchase-guard.ts` is the only code that
+refuses a purchase for a balance reason. The counter and the online shop both call it.
+
+### E-mails
+
+When a correction leaves the balance below zero, one mail goes to the member and one to each
+admin. The member mail says there is a problem on the account and that purchases are paused. It
+gives no amount and does not say a correction happened. The admin mail names the member, the
+membership number and the balance. The mails go out after the correction has committed. If a
+mail fails, the failure is logged and the correction stays. A member or admin with no real
+e-mail address (a phone-only account) gets no mail, only a log line.
+
+### Old lot 4 files
+
+The archived lot 4 files under `specs/distribution/` still say the balance is never negative.
+That was true when they were written. They are kept as history and were not edited. The rule
+above replaces them.
+
+### Where the code is
+
+- `apps/api/src/modules/wallet/`: `correctPayment` in the wallet service, the route
+  `POST wallet/members/:memberId/entries/:entryId/correction`, the payment correction service,
+  the member notice service and the purchase guard.
+- `apps/api/src/modules/orders/`: the cart and checkout call the guard.
+- `apps/api/src/modules/distribution/`: both counter paths call the guard.
+- `apps/web-spa/app/features/wallet/`: the correction dialog, the history panel and the notice
+  for a blocked member.
+
+### Where the code is, refund and underpaid notice
+
+- `apps/api/src/modules/wallet/`: `refund` in the wallet service, the route
+  `POST wallet/members/:memberId/refunds` (admin only), and `notifyUnderpaidTopup` in the member
+  notice service.
+- `apps/api/src/modules/payments/`: the underpaid stamp and the mail call in `verify`.
+- `apps/web-spa/app/features/wallet/components/refund-dialog.tsx` and the button on the
+  distribution member page.
+
+## Refund
+
+An admin records money that was given back to a member, by cash, cheque or transfer. On the
+distribution screen, the admin opens the member and presses "Rembourser", gives the amount, the
+method and a reason, and confirms. The member's balance goes down by that amount.
+
+Nothing is sent to HelloAsso. The admin gives the money back by hand and writes it down. The
+reason is in [ADR 0001](/grocery/project/decisions/0001-helloasso-and-recorded-refunds).
+
+- Only an admin can record a refund. A distributor and a member are refused. The button is not
+  shown to a distributor.
+- A refund is one new ledger row with the reason `refund`. It is negative and carries the method,
+  the reason as its note and the admin who recorded it. No row is edited.
+- The reason is required. The member reads it in their history, like every other note.
+- A refund is never larger than the balance. A balance of zero or below refuses every refund. The
+  refusal is `refund_exceeds_balance`, and the answer carries the balance and the amount.
+- The check and the write share one transaction under a lock on the member, so two refunds at the
+  same moment cannot both pass. A payment correction takes no such lock and may land just after
+  the check. That is allowed: a correction can take a balance below zero.
+- A member who left may be refunded. The refund does not look at the member status.
+- There is no undo of a refund, and a refund cannot be corrected. If a refund was recorded by
+  mistake, an admin records the money again as a payment and says why in the note.
+
+## Settings
+
+All optional. Without them the app starts, the top-up button is hidden and the routes answer
+with the code `payments_disabled`.
+
+| Variable                      | Meaning                                                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `PAYMENT_PROVIDER`            | `helloasso` or `fake`. `fake` is ignored in production.                                                               |
+| `HELLOASSO_CLIENT_ID`         | OAuth2 client id                                                                                                      |
+| `HELLOASSO_CLIENT_SECRET`     | OAuth2 client secret                                                                                                  |
+| `HELLOASSO_ORGANIZATION_SLUG` | the association's slug on HelloAsso                                                                                   |
+| `HELLOASSO_API_URL`           | base URL ending in `/v5`. Defaults to the sandbox, so production must name `https://api.helloasso.com/v5` on purpose. |
+
+HelloAsso accepts only https return addresses, so `CLIENTS_WEB_APP_URL` must be https in a real
+run. Notifications are signed only for HelloAsso partner accounts, which is one more reason the
+application never trusts a notification and always asks for the result.
+
+## Not done yet
+
+- A run against the real HelloAsso sandbox. The field names come from the documentation only.

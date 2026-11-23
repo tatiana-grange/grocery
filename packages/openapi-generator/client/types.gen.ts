@@ -167,8 +167,28 @@ export type SetProductPrice = {
  */
 export type RecordPaymentInput = {
     amountEur: number;
-    paymentMethod: PaymentMethod;
+    paymentMethod: ManualPaymentMethod;
     note?: string;
+};
+
+/**
+ * CorrectPaymentInput
+ *
+ * Why a recorded payment is being corrected. The reason is kept on the correction row and the member can read it in their history.
+ */
+export type CorrectPaymentInput = {
+    reason: string;
+};
+
+/**
+ * RefundInput
+ *
+ * Money the cooperative gave back to a member by hand. Only recorded: nothing is sent to the payment provider. The reason is kept on the entry and the member can read it.
+ */
+export type RefundInput = {
+    amountEur: number;
+    paymentMethod: ManualPaymentMethod;
+    reason: string;
 };
 
 /**
@@ -375,6 +395,33 @@ export type RecordReception = {
         receivedQuantity: number;
         unitCostEur: number;
     }>;
+};
+
+/**
+ * StartTopupInput
+ *
+ * The amount the member wants to add to their account, in euros. At most two decimals, between the bounds given by the options route.
+ */
+export type StartTopupInput = {
+    amountEur: number;
+};
+
+/**
+ * TestSettlePayment
+ *
+ * Decides the outcome of a payment request held by the fake provider
+ */
+export type TestSettlePayment = {
+    providerRequestId?: string;
+    result: {
+        status: 'pending';
+    } | {
+        status: 'failed';
+    } | {
+        status: 'paid';
+        providerPaymentId: string;
+        paidAmountCents: number;
+    };
 };
 
 /**
@@ -860,7 +907,7 @@ export type ShopProductDetail = {
 /**
  * Wallet
  *
- * A member’s balance and the movements behind it. A member with no movements reads 0.
+ * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
  */
 export type Wallet = {
     memberId: string;
@@ -880,13 +927,16 @@ export type WalletEntryList = {
         /**
          * WalletEntryReason
          *
-         * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+         * Why the money moved. handover_charge, payment_correction and refund are negative; the others are positive. online_topup is money paid through the online payment provider. payment_correction reverses a payment staff recorded by mistake. refund is money given back to the member by hand and only recorded here.
          */
-        reason: 'handover_charge' | 'payment_received' | 'handover_reversal';
-        paymentMethod?: 'cash' | 'cheque' | 'transfer' | null;
+        reason: 'handover_charge' | 'payment_received' | 'handover_reversal' | 'online_topup' | 'payment_correction' | 'refund';
+        paymentMethod?: 'cash' | 'cheque' | 'transfer' | 'online' | null;
         handoverId?: string | null;
         recordedBy?: string | null;
         note?: string | null;
+        providerPaymentId?: string | null;
+        correctsEntryId?: string | null;
+        correctedByEntryId?: string | null;
         createdAt: string;
     }>;
     meta: {
@@ -906,28 +956,34 @@ export type WalletEntry = {
     id: string;
     amountEur: number;
     reason: WalletEntryReason;
-    paymentMethod?: 'cash' | 'cheque' | 'transfer' | null;
+    paymentMethod?: 'cash' | 'cheque' | 'transfer' | 'online' | null;
     handoverId?: string | null;
     recordedBy?: string | null;
     note?: string | null;
+    providerPaymentId?: string | null;
+    correctsEntryId?: string | null;
+    correctedByEntryId?: string | null;
     createdAt: string;
 };
 
 /**
  * WalletEntryReason
  *
- * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ * Why the money moved. handover_charge, payment_correction and refund are negative; the others are positive. online_topup is money paid through the online payment provider. payment_correction reverses a payment staff recorded by mistake. refund is money given back to the member by hand and only recorded here.
  */
 export const WalletEntryReason = {
     HANDOVER_CHARGE: 'handover_charge',
     PAYMENT_RECEIVED: 'payment_received',
-    HANDOVER_REVERSAL: 'handover_reversal'
+    HANDOVER_REVERSAL: 'handover_reversal',
+    ONLINE_TOPUP: 'online_topup',
+    PAYMENT_CORRECTION: 'payment_correction',
+    REFUND: 'refund'
 } as const;
 
 /**
  * WalletEntryReason
  *
- * Why the money moved. handover_charge is negative; the other two are positive. Lot 5 adds online_topup to this same field.
+ * Why the money moved. handover_charge, payment_correction and refund are negative; the others are positive. online_topup is money paid through the online payment provider. payment_correction reverses a payment staff recorded by mistake. refund is money given back to the member by hand and only recorded here.
  */
 export type WalletEntryReason = typeof WalletEntryReason[keyof typeof WalletEntryReason];
 
@@ -1751,6 +1807,67 @@ export type SupplierOrderExport = {
 };
 
 /**
+ * TopupOptions
+ *
+ * Whether online top-up is available, and the amounts the form offers. `enabled` is false when no payment provider is configured.
+ */
+export type TopupOptions = {
+    enabled: boolean;
+    minAmountEur: number;
+    maxAmountEur: number;
+    quickAmountsEur: Array<number>;
+};
+
+/**
+ * Topup
+ *
+ * One online top-up of the member account, from the request to its outcome.
+ */
+export type Topup = {
+    id: string;
+    amountEur: number;
+    status: TopupStatus;
+    redirectUrl?: string | null;
+    expiresAt: string;
+    paidAt?: string | null;
+};
+
+/**
+ * TopupStatus
+ *
+ * pending: waiting for the payment result. paid: credited to the account. failed: the payment did not go through. expired: the payment request ran out.
+ */
+export const TopupStatus = {
+    PENDING: 'pending',
+    PAID: 'paid',
+    FAILED: 'failed',
+    EXPIRED: 'expired'
+} as const;
+
+/**
+ * TopupStatus
+ *
+ * pending: waiting for the payment result. paid: credited to the account. failed: the payment did not go through. expired: the payment request ran out.
+ */
+export type TopupStatus = typeof TopupStatus[keyof typeof TopupStatus];
+
+/**
+ * NotificationAck
+ *
+ * Answer to a provider notification. Sent once our pass over recent top-ups is done.
+ */
+export type NotificationAck = {
+    received: true;
+};
+
+/**
+ * TestPaymentsOk
+ */
+export type TestPaymentsOk = {
+    ok: true;
+};
+
+/**
  * TestSeedResetResponse
  *
  * Result of truncating the E2E database and re-running the E2E seeder
@@ -1794,22 +1911,22 @@ export type FilterQueryStringSchema = string;
 export type SortingQueryStringSchema = string;
 
 /**
- * PaymentMethod
+ * ManualPaymentMethod
  *
- * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ * How money reached the cooperative by hand.
  */
-export const PaymentMethod = {
+export const ManualPaymentMethod = {
     CASH: 'cash',
     CHEQUE: 'cheque',
     TRANSFER: 'transfer'
 } as const;
 
 /**
- * PaymentMethod
+ * ManualPaymentMethod
  *
- * How money reached the cooperative by hand. "online" is reserved for lot 5.
+ * How money reached the cooperative by hand.
  */
-export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
+export type ManualPaymentMethod = typeof ManualPaymentMethod[keyof typeof ManualPaymentMethod];
 
 export type AdminMembersControllerListFilterItem = {
     property: 'status' | 'feeState' | 'role' | 'q';
@@ -3240,6 +3357,175 @@ export type CartControllerCheckoutResponses = {
 
 export type CartControllerCheckoutResponse = CartControllerCheckoutResponses[keyof CartControllerCheckoutResponses];
 
+export type StaffWalletControllerGetWalletData = {
+    body?: never;
+    path: {
+        memberId: string;
+    };
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/wallet/members/{memberId}';
+};
+
+export type StaffWalletControllerGetWalletResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+     */
+    200: Wallet;
+};
+
+export type StaffWalletControllerGetWalletResponse = StaffWalletControllerGetWalletResponses[keyof StaffWalletControllerGetWalletResponses];
+
+export type StaffWalletControllerRecordPaymentData = {
+    /**
+     * RecordPaymentInput
+     *
+     * Money the member has actually handed over. Entered by a human after the fact — the system does not reconcile against a bank feed.
+     */
+    body: {
+        amountEur: number;
+        /**
+         * ManualPaymentMethod
+         *
+         * How money reached the cooperative by hand.
+         */
+        paymentMethod: 'cash' | 'cheque' | 'transfer';
+        note?: string;
+    };
+    path: {
+        memberId: string;
+    };
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/wallet/members/{memberId}/payments';
+};
+
+export type StaffWalletControllerRecordPaymentResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+     */
+    200: Wallet;
+};
+
+export type StaffWalletControllerRecordPaymentResponse = StaffWalletControllerRecordPaymentResponses[keyof StaffWalletControllerRecordPaymentResponses];
+
+export type StaffWalletControllerCorrectPaymentData = {
+    /**
+     * CorrectPaymentInput
+     *
+     * Why a recorded payment is being corrected. The reason is kept on the correction row and the member can read it in their history.
+     */
+    body: {
+        reason: string;
+    };
+    path: {
+        entryId: string;
+        memberId: string;
+    };
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/wallet/members/{memberId}/entries/{entryId}/correction';
+};
+
+export type StaffWalletControllerCorrectPaymentResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+     */
+    200: Wallet;
+};
+
+export type StaffWalletControllerCorrectPaymentResponse = StaffWalletControllerCorrectPaymentResponses[keyof StaffWalletControllerCorrectPaymentResponses];
+
+export type StaffWalletControllerRecordRefundData = {
+    /**
+     * RefundInput
+     *
+     * Money the cooperative gave back to a member by hand. Only recorded: nothing is sent to the payment provider. The reason is kept on the entry and the member can read it.
+     */
+    body: {
+        amountEur: number;
+        /**
+         * ManualPaymentMethod
+         *
+         * How money reached the cooperative by hand.
+         */
+        paymentMethod: 'cash' | 'cheque' | 'transfer';
+        reason: string;
+    };
+    path: {
+        memberId: string;
+    };
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/wallet/members/{memberId}/refunds';
+};
+
+export type StaffWalletControllerRecordRefundResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+     */
+    200: Wallet;
+};
+
+export type StaffWalletControllerRecordRefundResponse = StaffWalletControllerRecordRefundResponses[keyof StaffWalletControllerRecordRefundResponses];
+
+export type MemberWalletControllerGetOwnWalletData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/me/wallet';
+};
+
+export type MemberWalletControllerGetOwnWalletResponses = {
+    /**
+     * A member’s balance and the movements behind it. A member with no movements reads 0. The balance is negative when a payment correction took back money already spent.
+     */
+    200: Wallet;
+};
+
+export type MemberWalletControllerGetOwnWalletResponse = MemberWalletControllerGetOwnWalletResponses[keyof MemberWalletControllerGetOwnWalletResponses];
+
 export type AdminSupplierPurchasingControllerAggregateData = {
     body?: never;
     path: {
@@ -3404,98 +3690,96 @@ export type AdminPurchasingControllerRecordReceptionResponses = {
 
 export type AdminPurchasingControllerRecordReceptionResponse = AdminPurchasingControllerRecordReceptionResponses[keyof AdminPurchasingControllerRecordReceptionResponses];
 
-export type StaffWalletControllerGetWalletData = {
+export type MemberTopupControllerGetOptionsData = {
     body?: never;
-    path: {
-        memberId: string;
-    };
-    query: {
-        /**
-         * Starting position of the query
-         */
-        offset: number;
-        /**
-         * Number of items to return
-         */
-        pageSize: number;
-    };
-    url: '/api/wallet/members/{memberId}';
+    path?: never;
+    query?: never;
+    url: '/api/me/topups/options';
 };
 
-export type StaffWalletControllerGetWalletResponses = {
+export type MemberTopupControllerGetOptionsResponses = {
     /**
-     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     * Whether online top-up is available, and the amounts the form offers. `enabled` is false when no payment provider is configured.
      */
-    200: Wallet;
+    200: TopupOptions;
 };
 
-export type StaffWalletControllerGetWalletResponse = StaffWalletControllerGetWalletResponses[keyof StaffWalletControllerGetWalletResponses];
+export type MemberTopupControllerGetOptionsResponse = MemberTopupControllerGetOptionsResponses[keyof MemberTopupControllerGetOptionsResponses];
 
-export type StaffWalletControllerRecordPaymentData = {
+export type MemberTopupControllerStartData = {
     /**
-     * RecordPaymentInput
+     * StartTopupInput
      *
-     * Money the member has actually handed over. Entered by a human after the fact — the system does not reconcile against a bank feed.
+     * The amount the member wants to add to their account, in euros. At most two decimals, between the bounds given by the options route.
      */
     body: {
         amountEur: number;
-        /**
-         * PaymentMethod
-         *
-         * How money reached the cooperative by hand. "online" is reserved for lot 5.
-         */
-        paymentMethod: 'cash' | 'cheque' | 'transfer';
-        note?: string;
     };
-    path: {
-        memberId: string;
-    };
-    query: {
-        /**
-         * Starting position of the query
-         */
-        offset: number;
-        /**
-         * Number of items to return
-         */
-        pageSize: number;
-    };
-    url: '/api/wallet/members/{memberId}/payments';
+    path?: never;
+    query?: never;
+    url: '/api/me/topups';
 };
 
-export type StaffWalletControllerRecordPaymentResponses = {
+export type MemberTopupControllerStartResponses = {
     /**
-     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     * One online top-up of the member account, from the request to its outcome.
      */
-    200: Wallet;
+    200: Topup;
 };
 
-export type StaffWalletControllerRecordPaymentResponse = StaffWalletControllerRecordPaymentResponses[keyof StaffWalletControllerRecordPaymentResponses];
+export type MemberTopupControllerStartResponse = MemberTopupControllerStartResponses[keyof MemberTopupControllerStartResponses];
 
-export type MemberWalletControllerGetOwnWalletData = {
+export type MemberTopupControllerGetData = {
+    body?: never;
+    path: {
+        topupId: string;
+    };
+    query?: never;
+    url: '/api/me/topups/{topupId}';
+};
+
+export type MemberTopupControllerGetResponses = {
+    /**
+     * One online top-up of the member account, from the request to its outcome.
+     */
+    200: Topup;
+};
+
+export type MemberTopupControllerGetResponse = MemberTopupControllerGetResponses[keyof MemberTopupControllerGetResponses];
+
+export type MemberTopupControllerVerifyData = {
+    body?: never;
+    path: {
+        topupId: string;
+    };
+    query?: never;
+    url: '/api/me/topups/{topupId}/verification';
+};
+
+export type MemberTopupControllerVerifyResponses = {
+    /**
+     * One online top-up of the member account, from the request to its outcome.
+     */
+    200: Topup;
+};
+
+export type MemberTopupControllerVerifyResponse = MemberTopupControllerVerifyResponses[keyof MemberTopupControllerVerifyResponses];
+
+export type PaymentNotificationControllerHelloassoData = {
     body?: never;
     path?: never;
-    query: {
-        /**
-         * Starting position of the query
-         */
-        offset: number;
-        /**
-         * Number of items to return
-         */
-        pageSize: number;
-    };
-    url: '/api/me/wallet';
+    query?: never;
+    url: '/api/payments/notifications/helloasso';
 };
 
-export type MemberWalletControllerGetOwnWalletResponses = {
+export type PaymentNotificationControllerHelloassoResponses = {
     /**
-     * A member’s balance and the movements behind it. A member with no movements reads 0.
+     * Answer to a provider notification. Sent once our pass over recent top-ups is done.
      */
-    200: Wallet;
+    200: NotificationAck;
 };
 
-export type MemberWalletControllerGetOwnWalletResponse = MemberWalletControllerGetOwnWalletResponses[keyof MemberWalletControllerGetOwnWalletResponses];
+export type PaymentNotificationControllerHelloassoResponse = PaymentNotificationControllerHelloassoResponses[keyof PaymentNotificationControllerHelloassoResponses];
 
 export type DistributionControllerSearchMembersData = {
     body?: never;

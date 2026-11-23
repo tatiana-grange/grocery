@@ -25,7 +25,7 @@ export const distributionMemberSummarySchema = z
     membershipNumber: z.string(),
     name: z.string(),
     status: memberStatusSchema,
-    /** Always the sum of the member's wallet entries; never negative (SC-010). */
+    /** Always the sum of the member's wallet entries; negative after a payment correction. */
     balanceEur: z.number(),
     outstandingOrderCount: z.number().int().nonnegative(),
   })

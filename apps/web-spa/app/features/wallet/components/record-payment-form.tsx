@@ -1,13 +1,13 @@
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
-import type { PaymentMethod, Wallet } from '@grocery/openapi-generator/client/types.gen'
+import type { ManualPaymentMethod, Wallet } from '@grocery/openapi-generator/client/types.gen'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { recordPayment } from '@/features/wallet/utils/wallet-queries'
 
-const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'cheque', 'transfer']
+const PAYMENT_METHODS: ManualPaymentMethod[] = ['cash', 'cheque', 'transfer']
 
 interface RecordPaymentFormProps {
   memberId: string
@@ -29,7 +29,7 @@ export function RecordPaymentForm({
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [amount, setAmount] = useState(suggestedAmountEur ? suggestedAmountEur.toFixed(2) : '')
-  const [method, setMethod] = useState<PaymentMethod>('cash')
+  const [method, setMethod] = useState<ManualPaymentMethod>('cash')
   const [note, setNote] = useState('')
 
   const mutation = useMutation({

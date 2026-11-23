@@ -26,6 +26,12 @@ export function isNotFound(error: unknown): boolean {
   return candidate?.statusCode === 404 || candidate?.status === 404
 }
 
+/** The machine-readable `code` of an API refusal (for example `amount_too_low`), when it has one. */
+export function apiErrorCode(error: unknown): string | undefined {
+  const code = (error as { code?: unknown } | undefined)?.code
+  return typeof code === 'string' ? code : undefined
+}
+
 export function apiErrorMessage(error: unknown, fallback: string): string {
   const candidate = error as ApiErrorLike | undefined
   return candidate?.message ?? fallback

@@ -1,3 +1,4 @@
+import type { WalletEntry } from '@grocery/openapi-generator/client/types.gen'
 import { PageTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
@@ -10,6 +11,9 @@ import { Link, useParams } from 'react-router'
 import { HandoverForm } from '@/features/distribution/components/handover-form'
 import { InsufficientBalanceDialog } from '@/features/distribution/components/insufficient-balance-dialog'
 import { distributionMemberScreenQueryOptions } from '@/features/distribution/utils/distribution-queries'
+import { useRoles } from '@/features/common/hooks/use-session'
+import { CorrectPaymentDialog } from '@/features/wallet/components/correct-payment-dialog'
+import { RefundDialog } from '@/features/wallet/components/refund-dialog'
 import { WalletPanel } from '@/features/wallet/components/wallet-panel'
 import { staffWalletQueryOptions } from '@/features/wallet/utils/wallet-queries'
 
@@ -25,6 +29,9 @@ export default function DistributionMemberPage() {
   const [recordedHandoverId, setRecordedHandoverId] = useState<string | null>(null)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [shortfallEur, setShortfallEur] = useState<number | undefined>(undefined)
+  const [correcting, setCorrecting] = useState<WalletEntry | null>(null)
+  const [refundOpen, setRefundOpen] = useState(false)
+  const { isAdmin } = useRoles()
   const { data: wallet } = useQuery(staffWalletQueryOptions(memberId))
 
   if (isLoading || !data) {
@@ -43,13 +50,23 @@ export default function DistributionMemberPage() {
         <div className="text-right">
           <p className="text-sm text-muted-foreground">{t('distribution.member.balance')}</p>
           <p
-            className="text-2xl font-semibold tabular-nums"
+            className={`text-2xl font-semibold tabular-nums ${data.balanceEur < 0 ? 'text-destructive' : ''}`}
             data-testid="distribution-member-balance"
           >
             {eur(data.balanceEur)}
           </p>
         </div>
       </div>
+
+      {data.balanceEur < 0 ? (
+        <div
+          className="flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm"
+          data-testid="distribution-member-negative-notice"
+        >
+          <AlertTriangle className="size-4 shrink-0" />
+          <span>{t('wallet.negative.staff')}</span>
+        </div>
+      ) : null}
 
       {data.status !== 'active' ? (
         <div
@@ -175,6 +192,17 @@ export default function DistributionMemberPage() {
         >
           {t('wallet.recordPayment')}
         </Button>
+        {isAdmin ? (
+          <Button
+            variant="outline"
+            data-testid="wallet-refund-open"
+            disabled={data.balanceEur <= 0}
+            title={data.balanceEur <= 0 ? t('wallet.refund.disabledNoBalance') : undefined}
+            onClick={() => setRefundOpen(true)}
+          >
+            {t('wallet.refund.open')}
+          </Button>
+        ) : null}
       </div>
 
       {paymentOpen ? (
@@ -192,7 +220,23 @@ export default function DistributionMemberPage() {
         />
       ) : null}
 
-      <WalletPanel wallet={wallet} />
+      <WalletPanel wallet={wallet} onCorrect={setCorrecting} />
+
+      {refundOpen ? (
+        <RefundDialog
+          memberId={memberId}
+          balanceEur={data.balanceEur}
+          onClose={() => setRefundOpen(false)}
+        />
+      ) : null}
+
+      {correcting ? (
+        <CorrectPaymentDialog
+          memberId={memberId}
+          entry={correcting}
+          onClose={() => setCorrecting(null)}
+        />
+      ) : null}
     </div>
   )
 }

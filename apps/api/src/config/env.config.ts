@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import dotenvx from '@dotenvx/dotenvx'
 import { z } from 'zod'
+import { HELLOASSO_SANDBOX_API_URL, resolvePaymentsConfig } from './payments.config'
 
 // Load environment variables
 const nodeEnv = process.env.NODE_ENV || 'development'
@@ -28,6 +29,9 @@ function getVersion() {
     return 'Unknown version'
   }
 }
+
+/** An empty string in a `.env` file counts as unset. */
+const emptyAsUnset = (value: unknown) => (value === '' ? undefined : value)
 
 export const configValidationSchema = z.object({
   // Environment
@@ -70,6 +74,14 @@ export const configValidationSchema = z.object({
 
   // Members
   MEMBERSHIP_FEE_DEFAULT_CENTS: z.coerce.number().int().nonnegative().default(0),
+
+  // Online payments. All optional: without them the app starts and online top-up is off.
+  PAYMENT_PROVIDER: z.preprocess(emptyAsUnset, z.enum(['helloasso', 'fake']).optional()),
+  HELLOASSO_CLIENT_ID: z.preprocess(emptyAsUnset, z.string().optional()),
+  HELLOASSO_CLIENT_SECRET: z.preprocess(emptyAsUnset, z.string().optional()),
+  HELLOASSO_ORGANIZATION_SLUG: z.preprocess(emptyAsUnset, z.string().optional()),
+  // Sandbox by default, so a production deploy must name the production URL on purpose.
+  HELLOASSO_API_URL: z.preprocess(emptyAsUnset, z.string().default(HELLOASSO_SANDBOX_API_URL)),
 
   // Sentry
   SENTRY_DSN: z.string().optional(),
@@ -125,6 +137,7 @@ export const config = {
       url: configParsed.data.CLIENTS_WEB_APP_URL,
     },
   },
+  payments: resolvePaymentsConfig(configParsed.data),
   sentry: {
     dsn: configParsed.data.SENTRY_DSN,
   },

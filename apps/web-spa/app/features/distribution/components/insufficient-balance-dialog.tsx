@@ -12,8 +12,9 @@ interface InsufficientBalanceDialogProps {
 /**
  * What the table does when a handover costs more than the balance: show how much is short,
  * take the payment, and let staff validate the same handover again without rebuilding it
- * (FR-028, SC-011). The balance can never go negative, so this is the only way forward
- * besides handing over less.
+ * (FR-028, SC-011). A balance below zero (after a payment correction) lands here too: the
+ * shortfall then includes the debt, and taking payment is the way forward besides handing
+ * over less.
  */
 export function InsufficientBalanceDialog({
   memberId,

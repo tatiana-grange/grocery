@@ -29,13 +29,15 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import type { CartLine } from '@grocery/openapi-generator/client/types.gen'
-import { handleMutationError } from '@/features/common/lib/api-error'
+import { apiErrorCode, handleMutationError } from '@/features/common/lib/api-error'
 import { AddToCartControl } from '@/features/cart/components/add-to-cart-control'
 import { CheckoutConfirmation } from '@/features/cart/components/checkout-confirmation'
 import { useCartLineActions } from '@/features/cart/hooks/use-cart-line-actions'
 import { type CartLinePickup, splitCartByPickup } from '@/features/cart/utils/cart-pickup'
 import { cartQueryOptions, checkout, type CheckoutResult } from '@/features/cart/utils/cart-queries'
 import { formatQuantity, selectionUnitLabel } from '@/features/cart/utils/cart-quantity'
+import { NegativeBalanceNotice } from '@/features/wallet/components/negative-balance-notice'
+import { ownWalletQueryOptions } from '@/features/wallet/utils/wallet-queries'
 
 /** A quantity in the line's own unit: a plain count, or a weight that names its unit. */
 function quantityLabel(product: CartLine['product'], quantity: number, t: TFunction) {
@@ -200,7 +202,9 @@ export default function CartPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { data: cart, isLoading, isFetching, error, refetch } = useQuery(cartQueryOptions())
+  const { data: wallet } = useQuery(ownWalletQueryOptions())
   const [confirmation, setConfirmation] = useState<CheckoutResult | null>(null)
+  const isBlocked = (wallet?.balanceEur ?? 0) < 0
 
   const checkoutMutation = useMutation({
     mutationFn: checkout,
@@ -208,11 +212,18 @@ export default function CartPage() {
       setConfirmation(result)
       void queryClient.invalidateQueries({ queryKey: ['cart'] })
     },
-    onError: (error) =>
+    onError: (error) => {
+      // The page may have been loaded before a correction took the balance below zero.
+      if (apiErrorCode(error) === 'negative_balance') {
+        toast.error(t('wallet.negative.member'))
+        void queryClient.invalidateQueries({ queryKey: ['wallet'] })
+        return
+      }
       handleMutationError(error, toast.error, {
         conflict: t('cart.checkout.emptyError'),
         fallback: t('cart.toasts.error'),
-      }),
+      })
+    },
   })
 
   if (confirmation) {
@@ -261,6 +272,7 @@ export default function CartPage() {
     <div className="space-y-6" data-testid="page-cart">
       <BackToShopButton />
       <PageTitle>{t('cart.title')}</PageTitle>
+      <NegativeBalanceNotice />
 
       {cart.lines.length === 0 ? (
         <div data-testid="cart-empty">
@@ -310,7 +322,7 @@ export default function CartPage() {
             </span>
             <Button
               data-testid="cart-checkout"
-              disabled={checkoutMutation.isPending}
+              disabled={checkoutMutation.isPending || isBlocked}
               onClick={() => checkoutMutation.mutate()}
             >
               {t('cart.checkout.action')}

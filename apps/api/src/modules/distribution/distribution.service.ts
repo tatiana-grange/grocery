@@ -9,13 +9,13 @@ import { buildSearchFilter } from '../db/search.util'
 import { InventoryService } from '../inventory/inventory.service'
 import { Member } from '../members/entities/member.entity'
 import { Order } from '../orders/entities/order.entity'
+import { PurchaseGuard } from '../wallet/purchase-guard'
 import { WalletService } from '../wallet/wallet.service'
 import { OrderLine } from '../orders/entities/order-line.entity'
 import type { CreateExpressOrderInput, RecordHandoverInput } from './contracts/handover.contract'
 import { Handover } from './entities/handover.entity'
 import { HandoverLine } from './entities/handover-line.entity'
 import {
-  balanceCovers,
   findDuplicateLineId,
   handoverTotalCents,
   isOrderFullySettled,
@@ -69,6 +69,7 @@ export class DistributionService {
     private readonly em: EntityManager,
     private readonly wallet: WalletService,
     private readonly inventory: InventoryService,
+    private readonly guard: PurchaseGuard,
   ) {}
 
   /** Members matching a name or membership number, with what each has waiting (FR-001). */
@@ -158,7 +159,8 @@ export class DistributionService {
    *    their own — only the handover lines already written against the order can.
    * 4. Refuse a line whose goods have not arrived (FR-003), and a terminated member (FR-005).
    * 5. Price every line at the order's snapshot price, never today's.
-   * 6. Read the balance *before* writing anything, and refuse with the shortfall.
+   * 6. Ask the purchase guard, *before* writing anything: it reads the balance and refuses with
+   *    the shortfall when the balance is below zero or does not cover the total.
    * 7. Write the handover, the stock movements, and the one wallet entry.
    * 8. Flip the order to `handed_over` only once every line is settled.
    */
@@ -238,14 +240,7 @@ export class DistributionService {
       }
 
       const totalCents = handoverTotalCents(priced)
-      const balanceCents = await this.wallet.getBalanceCents(em, order.member.id)
-      if (!balanceCovers(totalCents, balanceCents)) {
-        throw this.refuse('insufficient_balance', 'This member’s balance does not cover it', {
-          shortfallEur: centsToEur(totalCents - balanceCents),
-          balanceEur: centsToEur(balanceCents),
-          totalEur: centsToEur(totalCents),
-        })
-      }
+      const balanceCents = await this.guard.assertCounterPurchase(em, order.member.id, totalCents)
 
       const handover = new Handover()
       handover.order = order
@@ -477,14 +472,7 @@ export class DistributionService {
       }
 
       const totalCents = handoverTotalCents(priced)
-      const balanceCents = await this.wallet.getBalanceCents(em, member.id)
-      if (!balanceCovers(totalCents, balanceCents)) {
-        throw this.refuse('insufficient_balance', 'This member’s balance does not cover it', {
-          shortfallEur: centsToEur(totalCents - balanceCents),
-          balanceEur: centsToEur(balanceCents),
-          totalEur: centsToEur(totalCents),
-        })
-      }
+      const balanceCents = await this.guard.assertCounterPurchase(em, member.id, totalCents)
 
       const handover = new Handover()
       handover.order = order

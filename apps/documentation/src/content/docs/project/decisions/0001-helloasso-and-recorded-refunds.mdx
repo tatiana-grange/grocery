@@ -1,0 +1,39 @@
+---
+title: 'ADR 0001 — HelloAsso for online top-up, refunds only recorded'
+description: Why online top-ups go through HelloAsso and why a refund is recorded, not sent to the card
+---
+
+**Status:** accepted, 2026-11-23.
+
+## Decision
+
+Members top up their account online through HelloAsso. The application credits a member only
+after it has asked HelloAsso for the result of the payment. A refund is only recorded in the
+ledger. The application never asks HelloAsso to refund a card.
+
+## Why
+
+HelloAsso takes no commission on payments: it lives on voluntary contributions from the payer.
+That suits a cooperative where most top-ups are small. It has a sandbox, so the integration can
+be tested without real money.
+
+Its refund endpoint is not reliable for partial refunds. The API reference lists an amount
+field, while HelloAsso's own rights page says a partial refund is not possible. A member who
+topped up 50 € and spent 20 € could not get 30 € back on their card. Recording the refund and
+letting staff give the money back by hand works in every case.
+
+## Considered options
+
+- **Stripe.** No legal status needed and a good test mode, and the API already reads a raw
+  Stripe webhook body in `main.ts`. Rejected because of its per-payment fee on small top-ups.
+- **A provider-neutral build with only a fake provider.** Rejected because nothing could be
+  used in real life until a provider was chosen.
+- **Refunds through HelloAsso.** Rejected for the reason above.
+
+## Consequences
+
+- HelloAsso requires the cooperative to be a verified association on their platform.
+- The payer can add a voluntary contribution. The application credits the requested amount,
+  never the total paid.
+- Changing provider later means a new implementation of the payment provider seam. The ledger
+  does not change.

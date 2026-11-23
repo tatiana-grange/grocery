@@ -3,6 +3,32 @@
 Project history, newest first. Written by hand, one dated entry per
 task — never generated.
 
+## 2026-11-23
+
+- Lot 5, slice 03, refund, and the close of lot 5: built and reviewed on `feat/online-topup`. An
+  admin can record money given back to a member. It is one negative ledger row, checked under a
+  lock so it never goes beyond the balance, and nothing is sent to HelloAsso. The admins now get
+  one e-mail when a top-up is paid short, once per top-up. The Typist coded it in four steps and
+  the full suites are green (512 API tests, 123 browser tests). The two reviewers found nothing
+  blocking. Open: some wallet tests fail now and then under load in a full run (seen in slices 02
+  and 03, cause not found), and the human check against the real HelloAsso sandbox. The lot is
+  closed: its spec and all slice documents are archived together in `project-management/archive/`.
+- Lot 5, slice 02, payment correction and negative balance: built and reviewed on
+  `feat/online-topup`. Staff can correct a payment typed by hand. The correction is a new
+  reversing row, allowed once per payment, and it may leave the balance below zero. One purchase
+  guard now refuses at the counter, for express orders, and in the online cart and checkout. A
+  negative balance e-mails every admin and the member once. The Typist coded it in seven green
+  commits with the full end-to-end suite. The review asked for typed refusal codes, now fixed.
+  Left alone on purpose: the archived lot 4 files under `specs/` still say the balance is never
+  negative. The underpaid top-up notice moved to slice 03.
+- Lot 5, slice 01, online top-up through HelloAsso: built and reviewed on `feat/online-topup`.
+  Members top up from the account page and are credited once HelloAsso confirms the payment.
+  The Typist coded the plan, the HelloAsso facts came from a research file, and a two-reviewer
+  review caught two real faults (an unknown payment state ended as a final failure, and a down
+  provider was never throttled), both fixed. Open: the human check against the real HelloAsso
+  sandbox, and two questions for the Architect (a refused card retried in the same checkout, and
+  an underpaid payment that stays pending). Slices 02 and 03 are still to do.
+
 ## 2026-11-22
 
 - chisel init: installed the dev-workflow socle.

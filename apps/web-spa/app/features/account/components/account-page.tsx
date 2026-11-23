@@ -17,6 +17,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { NegativeBalanceNotice } from '@/features/wallet/components/negative-balance-notice'
+import { TopupForm } from '@/features/wallet/components/topup-form'
 import { WalletPanel } from '@/features/wallet/components/wallet-panel'
 import { MemberQr } from '@/features/account/components/member-qr'
 import { PasswordChangeForm } from '@/features/account/components/password-change-form'
@@ -145,6 +147,8 @@ export default function AccountPage() {
       </div>
 
       <WalletPanel />
+      <NegativeBalanceNotice />
+      <TopupForm />
 
       <div className="grid gap-8 sm:grid-cols-[1fr_auto]">
         <section className="space-y-4">
