@@ -728,7 +728,7 @@ Ports 5434, 1093 and 1043 were free before the run, and the e2e stack was stoppe
 - [x] Step 7. Regenerated client, member screens, member browser test.
 - [x] Step 8. Admin screens, admin browser test, nav smoke routes, E2E seed slots.
 - [x] Step 9, documentation part: page, glossary, plan, pointer, constitution, index, docs build.
-- [ ] Step 9, gates and close.
+- [x] Step 9, gates and close.
 
 ## Notes & Snippets
 
@@ -743,4 +743,25 @@ Ports 5434, 1093 and 1043 were free before the run, and the e2e stack was stoppe
 
 ## Diff-Review Findings
 
-(none yet)
+Two fresh reviewers (Standards and Spec) read the diff since the spec commit. Mason, 2026-11-24.
+
+Standards axis:
+
+- **Mapper read sign-ups without `isInitialized()`.** Fixed (`4024c00`).
+- **`slotInputSchema` not derived from the GET schema.** Fixed (`cca373e`). The generated schema is identical, so the client is unchanged.
+- **Page `meta` written by hand three times in the controller.** Fixed (`4024c00`): the mapper builds it.
+- **Names: parameters `p`, functions without a verb.** Fixed (`e322790`).
+- **Same 200 places and 120 label limits copied in the web form.** Answered: the generated client does not export them, so there is no single place to import from. Left as is.
+- **Contract text hard-codes "7 days" and "200".** Answered: it is documentation text. Left as is.
+- **Day and times text repeated in three components; paired `invalidateQueries` repeated.** Answered: small, no behaviour risk. Left for a later tidy-up.
+- **`ParticipationService.now()`, optional clock parameter, `Clock` and `RemovalFacts` as type aliases.** Answered: the clock parameter is the seam the plan chose for fixed-clock tests. Left as is.
+- **Admin routes re-read the slot after sign-up.** Answered: the returned slot has no member and user loaded, which the detail view needs.
+- **Server refusal messages and the frontend per-code map.** Answered: the server text is a fallback; the screen owns the words.
+
+Spec axis:
+
+- **suite-green was not proven.** Fixed: all five gates were run after the last fix, all green (see the last worklog lines).
+- **A cancelled slot can still be edited (label, places).** Answered, not changed: the plan did not refuse it and the spec's final state is about being un-cancelled, which no route does. Raised to the Architect as a question.
+- **"Coming" sign-ups use the end time, the slot list uses the start time.** Answered: deliberate (plan, section 2). A slot in progress stays in the list of the person on it.
+- **7 days are 168 hours, one hour off across a daylight saving change.** Answered: the spec says "7 days from the start time"; kept as 168 hours.
+- **Delete route and the leave-from-cancelled rule are beyond the spec text.** Answered: both are rulings of the Architect.

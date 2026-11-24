@@ -3,6 +3,18 @@
 Project history, newest first. Written by hand, one dated entry per
 task — never generated.
 
+## 2026-11-24
+
+- Lot 6, participation planning: built and reviewed on `feat/participation-planning`. Admins create,
+  edit, cancel and delete time slots with a number of places. Members sign up while places are
+  left, and leave until 7 days before the start. Admins can sign up or remove anyone until the slot
+  ends. A member cannot hold two overlapping slots. The last place and the no-overlap rule hold
+  under row locks on the member and the slot, proven by two service tests that fail without the
+  lock (the HTTP test app has a pool of one connection, so it cannot prove a lock). The Typists
+  coded it in nine steps, test first. The review found four standards points (mapper check,
+  schema derivation, hand-written page meta, names), all fixed. All five gates are green (601 API
+  tests, 132 browser tests). Open: a cancelled slot can still have its label and places edited.
+
 ## 2026-11-23
 
 - Lot 5, slice 03, refund, and the close of lot 5: built and reviewed on `feat/online-topup`. An

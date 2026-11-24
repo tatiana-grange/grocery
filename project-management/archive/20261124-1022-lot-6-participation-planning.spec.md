@@ -1,6 +1,6 @@
 # Lot 6 — Participation planning
 
-**Status:** in-progress
+**Status:** done
 
 ---
 
@@ -40,25 +40,25 @@ no distribution.
 
 ## Acceptance Criteria
 
-- [ ] **admin-manages-slots** — an admin can create, edit and cancel a slot; a member cannot.
-- [ ] **member-signs-up-while-places-left** — a member signs up to a coming slot; the sign-up
+- [x] **admin-manages-slots** — an admin can create, edit and cancel a slot; a member cannot.
+- [x] **member-signs-up-while-places-left** — a member signs up to a coming slot; the sign-up
       is refused when the slot is full, already started, or cancelled.
-- [ ] **no-double-booking-of-places** — two sign-ups arriving at the same moment for the last
+- [x] **no-double-booking-of-places** — two sign-ups arriving at the same moment for the last
       place never both succeed.
-- [ ] **one-sign-up-per-member-per-slot** — signing up twice for the same slot is refused.
-- [ ] **no-overlapping-slots-for-a-member** — a member cannot hold two slots whose times
+- [x] **one-sign-up-per-member-per-slot** — signing up twice for the same slot is refused.
+- [x] **no-overlapping-slots-for-a-member** — a member cannot hold two slots whose times
       overlap.
-- [ ] **member-leaves-until-seven-days-before** — a member removes their own sign-up only
+- [x] **member-leaves-until-seven-days-before** — a member removes their own sign-up only
       when the slot starts in 7 days or more; after that the refusal says why.
-- [ ] **admin-overrides-the-deadline** — an admin can sign up or remove any member at any
+- [x] **admin-overrides-the-deadline** — an admin can sign up or remove any member at any
       time before the slot ends, a full slot still refuses a new sign-up.
-- [ ] **cancel-not-delete-when-booked** — a slot with sign-ups cannot be deleted; it can only
+- [x] **cancel-not-delete-when-booked** — a slot with sign-ups cannot be deleted; it can only
       be cancelled, and a cancelled slot shows no places and accepts no sign-up.
-- [ ] **places-cannot-drop-below-sign-ups** — an admin cannot set the number of places lower
+- [x] **places-cannot-drop-below-sign-ups** — an admin cannot set the number of places lower
       than the sign-ups already there.
-- [ ] **screens-for-both-roles** — the member sees slots and their own sign-ups in the SPA;
+- [x] **screens-for-both-roles** — the member sees slots and their own sign-ups in the SPA;
       the admin manages slots and sign-ups in the SPA. Covered by the browser suite.
-- [ ] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` and
+- [x] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` and
       `pnpm e2e` all pass.
 
 ## Seams
@@ -108,9 +108,9 @@ and it is reached only by an admin cancelling it.
 
 ## Deliverables
 
-- [ ] The `participation` API module, its migration and tests.
-- [ ] The member and admin screens, and the regenerated client.
-- [ ] A documentation page for lot 6 and the updated documentation index.
+- [x] The `participation` API module, its migration and tests.
+- [x] The member and admin screens, and the regenerated client.
+- [x] A documentation page for lot 6 and the updated documentation index.
 
 ## References
 
