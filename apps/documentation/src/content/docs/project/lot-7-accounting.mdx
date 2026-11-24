@@ -1,0 +1,114 @@
+---
+title: Lot 7 — Accounting and exports
+description: 'What lot 7 adds: association expenses, a profit-and-loss account for a chosen period, and five CSV exports for the accountant'
+---
+
+Delivery lot 7 from the [architecture plan](/grocery/project/architecture-plan), the last one.
+The task files of this lot live in `project-management/archive/20261124-1558-lot-7-accounting-and-exports.*`.
+
+The treasurer and the board want to know whether the grocery makes or loses money. The
+accountant wants the raw figures. Everything in this lot is for admins only.
+
+## What the lot gives
+
+- **Association expenses.** An admin records what the cooperative pays outside its purchases:
+  rent, insurance, utilities, equipment, bank fees, other. Each expense has a day, an amount, a
+  category, a label and how it was paid (cash, cheque, transfer, card).
+- **A profit-and-loss account** for a period the admin chooses. It opens on the current calendar
+  year.
+- **Five CSV files** for the same period: wallet movements, sales, purchases, membership fee
+  payments and association expenses.
+
+An admin opens **Accounting** in the back office. The first page shows the profit-and-loss
+account and the five download buttons. A link leads to the expenses page, where expenses are
+recorded and cancelled.
+
+## The profit-and-loss account
+
+| Line                   | What it adds up                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| Sales                  | The line totals of every handover in the period. A reversed handover counts as a negative line.     |
+| Cost of goods sold     | The cost written on the stock movements of those handovers. Deliveries from suppliers do not count. |
+| Gross margin           | Sales minus cost of goods sold.                                                                     |
+| Membership fees        | Fee payments and fee adjustments paid in the period.                                                |
+| Expenses, per category | Association expenses dated in the period, cancellations included.                                   |
+| Result                 | Sales plus fees, minus cost of goods sold, minus expenses.                                          |
+
+Why cost of goods sold and not purchases: what was bought this month may be sold next month. The
+cost of what was actually sold says whether selling makes money.
+
+Why every sale is there: the distribution table records every sale as a handover, express sales
+included. The online shop charges nothing at checkout; an online order is paid when it is handed
+over.
+
+**Wallet money is not on the account.** A top-up, a payment received, a payment correction or a
+refund is the members' money, held by the cooperative. It appears only in the wallet movements
+export.
+
+**A product sold before any delivery costs 0.** Its stock movement has no average cost to use
+(lot 4 rule), so its cost of goods sold is 0 and the margin looks higher than it is.
+
+No VAT: the app records no VAT rate, so every figure is as charged.
+
+## The period
+
+A period is a start day and an end day, both included. The days are read in the cooperative's
+time zone, Europe/Paris, so a day starts at midnight Paris time in summer and in winter. A start
+after the end is refused.
+
+Each record falls in the period by its own date:
+
+- a sale and its cost of goods: the time of the handover. Its lines and stock movements are
+  written a few milliseconds later, and using their own times could split one sale across two
+  periods near midnight.
+- a membership fee payment: the day it was paid.
+- an expense: its day.
+- a wallet movement: the time it was written.
+- a purchase: the time the delivery was received.
+
+## Expenses are never edited or deleted
+
+The expense ledger is append-only, like the wallet. A mistake is fixed by **cancelling** the
+expense: the admin gives a reason, and the app writes a second row with the opposite amount that
+names the expense it cancels.
+
+- The cancellation is dated the day it was made, in Paris time. A profit-and-loss account already
+  given for a past period never changes afterwards.
+- An expense can be cancelled once. A cancellation cannot itself be cancelled. Cancelling is
+  final: an admin who cancelled by mistake records the expense again.
+- A refused cancellation answers 409 with a code: `already_cancelled` or
+  `cannot_cancel_cancellation`.
+
+## The CSV files
+
+- Comma between values, a decimal point, a header row, UTF-8, ISO dates.
+- Amounts in euros with two decimals. The API and the database keep cents.
+- A value is quoted when it holds a comma, a quote or a line break. A quote inside is doubled.
+- **Formula guard.** A text value that starts with `=`, `+`, `-`, `@`, a tab or a carriage return
+  gets a single quote in front, so a spreadsheet shows it instead of running it as a formula.
+  Amounts are numbers and are never changed.
+- Every row has a `date` column, the Paris day that put it in the period. Rows with a time also
+  have a `recordedAt` column, the exact instant in UTC.
+- The sales file has the cost of goods of each line. Its totals match the account's sales and
+  cost of goods sold. The fee and expense files match their lines on the account too.
+- The file name says what and when: `grocery-sales-2026-01-01-2026-12-31.csv`.
+
+This is standard CSV. A French spreadsheet set to semicolons and decimal commas needs the import
+dialog.
+
+## Not in lot 7
+
+- VAT, a balance sheet, a stock valuation, a bank reconciliation, the French FEC file.
+- A breakdown by product category or by month.
+- Editable expense categories, receipts attached to an expense, recurring expenses.
+- A French-Excel CSV flavour (semicolons, decimal comma).
+
+## Where the code is
+
+- `apps/api/src/modules/accounting/`: the `Expense` record, the period reader
+  (`period.util.ts`), the CSV writer (`csv.util.ts`), the shared period filters and cost formula
+  (`accounting.queries.ts`), the expense, profit-and-loss and export services, the admin
+  controllers (`admin/expenses/*`, `admin/accounting/*`) and their tests.
+- `apps/web-spa/app/features/admin-accounting/`: the profit-and-loss page, the expenses page and
+  their dialogs.
+- `apps/web-spa-e2e/tests/accounting.spec.ts`: the browser tests.
