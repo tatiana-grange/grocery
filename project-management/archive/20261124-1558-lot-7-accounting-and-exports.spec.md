@@ -143,6 +143,11 @@ is append-only.
   (Architect, 2026-11-24).
 - To check while planning: that every sale goes through a handover (express orders
   included). If some sale does not, report it before coding.
+- The `expense` table has `createdAt` and no `updatedAt`, a recorded deviation from the
+  constitution's "Data rules": an append-only row is never updated, so an update time would only
+  ever equal the creation time. `WalletEntry` and `StockMovement` make the same choice. The
+  simpler alternative, an `updatedAt` column that never changes, was rejected as noise
+  (Architect, 2026-11-24, after the feature review).
 
 ## Testing Strategy
 

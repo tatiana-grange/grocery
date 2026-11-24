@@ -621,6 +621,10 @@ Written and signed by the Architect, 2026-11-24.
 
 No other change. Go ahead with step 1.
 
+5. **After the feature review (2026-11-24):** the note on the profit-and-loss screen that says
+   wallet money is not on it is approved. It states a spec decision ("wallet money off the
+   P&L") where the reader needs it.
+
 ## Worklog
 
 - 2026-11-24 — Mason. Read the reading list, the spec, the lot 6 work document, the wallet,
