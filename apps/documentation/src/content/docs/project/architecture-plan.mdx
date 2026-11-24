@@ -24,24 +24,24 @@ is a good match for this kind of management app.
 
 ## NestJS modules (single location)
 
-| Module         | Responsibility                                                                                                                |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `members`      | Members, statuses, membership fee (fixed and variable), termination                                                           |
-| `catalog`      | Suppliers, products, categories, prices, units (including sale by weight)                                                     |
-| `orders`       | Cart, pre-order (producer) versus in-store order (stock)                                                                      |
-| `purchasing`   | Aggregate pre-orders into a supplier order, reception, discrepancies                                                          |
-| `inventory`    | Stock, weighted average cost price, inventory counts, adjustments                                                             |
-| `distribution` | Distribution screen: find member, adjust quantities, validate, express order                                                  |
-| `wallet`       | Movement ledger: top-ups, debits, refunds, credit notes — append only                                                         |
-| `planning`     | Participation slots, sign-ups, hour balance                                                                                   |
-| `payments`     | Online top-up through HelloAsso behind a provider seam (a fake one for tests). A notification only prompts a check; see lot 5 |
-| `accounting`   | CSV exports, profit-and-loss account                                                                                          |
+| Module          | Responsibility                                                                                                                |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `members`       | Members, statuses, membership fee (fixed and variable), termination                                                           |
+| `catalog`       | Suppliers, products, categories, prices, units (including sale by weight)                                                     |
+| `orders`        | Cart, pre-order (producer) versus in-store order (stock)                                                                      |
+| `purchasing`    | Aggregate pre-orders into a supplier order, reception, discrepancies                                                          |
+| `inventory`     | Stock, weighted average cost price, inventory counts, adjustments                                                             |
+| `distribution`  | Distribution screen: find member, adjust quantities, validate, express order                                                  |
+| `wallet`        | Movement ledger: top-ups, debits, refunds, credit notes — append only                                                         |
+| `participation` | Participation slots and sign-ups. Built in lot 6, without the hour balance                                                    |
+| `payments`      | Online top-up through HelloAsso behind a provider seam (a fake one for tests). A notification only prompts a check; see lot 5 |
+| `accounting`    | CSV exports, profit-and-loss account                                                                                          |
 
 ## Core entities
 
 `Member`, `Supplier`, `Product`, `ProductPrice`, `Category`, `Order` + `OrderLine`,
 `SupplierOrder` + `SupplierOrderLine`, `Reception` + `ReceptionLine`, `StockMovement`,
-`WalletEntry`, `MembershipPayment`, `ParticipationSlot`, `ParticipationBooking`.
+`WalletEntry`, `MembershipPayment`, `Slot`, `SlotSignup`.
 
 UUID primary keys, `createdAt` / `updatedAt` audit fields (project convention).
 
@@ -58,7 +58,8 @@ of movements, never a stored field you overwrite.
 3. **Purchasing** — aggregate into supplier order, reception, stock, cost price. ~2-3 weeks.
 4. **Distribution** — distribution screen, express order, wallet debit. ~2-3 weeks.
 5. **Wallet and online top-up** — ledger, top-ups, payment provider. ~2 weeks.
-6. **Participation planning**. ~1-2 weeks.
+6. **Participation planning** — slots, sign-ups, leave notice. Built: see the
+   [lot 6 page](/grocery/project/lot-6-participation). ~1-2 weeks.
 7. **Accounting and exports**. ~1-2 weeks.
 
 Lots 1 to 4 already form a complete cycle: order, buy, receive, distribute, pay.

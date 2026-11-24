@@ -1,0 +1,81 @@
+---
+title: Lot 6 — Participation planning
+description: 'What lot 6 adds: slots the cooperative needs people for, sign-ups with places, a 7-day leave notice and admin overrides'
+---
+
+Delivery lot 6 from the [architecture plan](/grocery/project/architecture-plan). The task files
+of this lot live in `project-management/tasks/20261124-1022-lot-6-participation-planning.*`.
+
+This lot is planning only. It says who will be there and when. It does not count hours.
+
+## What the lot gives
+
+An admin creates **slots**: a day, a start time, an end time, a role (for example "Run the
+distribution") and a number of places. Members see the coming slots, sign up while places are
+left, and leave again. An admin can sign up or remove any member.
+
+- A member opens **Participation** in the top bar. The page shows "My coming sign-ups" and
+  "Coming slots".
+- An admin opens **Participation** in the back office. The list shows each slot with its
+  sign-ups and its places. Each slot has its own page.
+
+## The rules
+
+- **Places.** A slot has 1 to 200 places. A sign-up takes one. A full slot refuses new sign-ups,
+  even from an admin. Two members who sign up for the last place at the same moment cannot both
+  get it.
+- **One sign-up per slot.** A member cannot sign up twice for the same slot.
+- **No overlap.** A member cannot hold two slots whose times overlap. Two slots that only touch
+  (one ends at 10:00, the next starts at 10:00) do not overlap. A cancelled slot does not block.
+- **Started or ended.** A member cannot sign up for a slot that has started. An admin can, until
+  the slot ends. Nobody can sign up for an ended or a cancelled slot.
+- **Leaving.** A member can leave a slot that starts in 7 days or more. After that the screen
+  disables the button and says until when leaving was possible. Exactly 7 days before is still
+  allowed. An admin can remove any member at any time before the slot ends.
+- **Cancelling, not deleting.** A slot with sign-ups cannot be deleted. The admin cancels it.
+  Cancelling is final: a cancelled slot never comes back, and an admin who cancelled by mistake
+  makes a new slot. A cancelled slot shows no places and takes no sign-up. The members who were on
+  it still see it in their list, marked "Cancelled", and may remove it from their list at any time
+  before it ends, with no 7-day notice. A slot with no sign-up can be deleted.
+- **Editing.** An admin can change the role and the number of places before the slot ends. The
+  places can never go below the number of sign-ups. The day and the times can change only while
+  nobody is signed up, because moving a booked slot could break the no-overlap rule for the
+  members on it.
+- **Past slots.** The admin list hides them. A switch shows them.
+
+### Time zone
+
+The API stores and sends exact instants. The browser builds them from the day and the time the
+person types, and shows them back the same way, in the browser's time zone. The project has no
+time zone setting. The cooperative has one location, so the browser's zone is taken to be the
+cooperative's zone. Someone who opens the app from another time zone sees the times in their own
+zone. The "7 days" and "started" checks use the server clock.
+
+### Refusals
+
+A refused action answers 409 with a code. The screen turns each code into one sentence:
+`slot_cancelled`, `slot_ended`, `slot_started`, `slot_full`, `already_signed_up`,
+`overlaps_another_slot`, `too_late_to_leave`, `slot_has_signups`, `places_below_signups`.
+
+An admin account with no member row gets "Member not found" on the member routes. Such an admin
+uses the admin screens.
+
+## Not in lot 6
+
+- Hour balances, hour debt per period, and the age-70 exemption.
+- Recording who showed up or who did not.
+- E-mails or any other notification.
+- Repeating slots: an admin creates each slot by hand.
+- Linking a slot to a distribution, a supplier collection or any other event.
+- Transferring hours between members.
+- A slot that crosses midnight in the form. The API accepts one, the form does not build one.
+
+## Where the code is
+
+- `apps/api/src/modules/participation/`: the `Slot` and `SlotSignup` records, the pure sign-up
+  rules in `participation.util.ts`, the service with its two row locks (the member, then the
+  slot), the two controllers (`admin/slots/*` and `me/slots/*`, `me/signups`) and their tests.
+- `apps/web-spa/app/features/participation/`: the member page.
+- `apps/web-spa/app/features/admin-participation/`: the slot list, the slot page and the slot form.
+- `apps/web-spa-e2e/tests/participation-member.spec.ts` and `participation-admin.spec.ts`: the
+  browser tests.

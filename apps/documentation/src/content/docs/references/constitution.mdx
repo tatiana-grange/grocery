@@ -61,7 +61,7 @@ Backend features are NestJS modules with a fixed shape: `feature.module.ts`,
 - Controllers map entities to contracts through a mapper. Services return entities.
 - Mappers handle collections through `getItems()` after checking `isInitialized()`.
 - The planned module set for a single location is: `members`, `catalog`, `orders`,
-  `purchasing`, `inventory`, `distribution`, `wallet`, `planning`, `payments`,
+  `purchasing`, `inventory`, `distribution`, `wallet`, `participation`, `payments`,
   `accounting`. A feature that does not fit one of these needs a constitution amendment or
   an explicit decision recorded in the task's spec or in an ADR.
 - Frontend code is organised by feature under `features/<name>/` with `components/`,
@@ -191,4 +191,4 @@ conventions, and tests where the feature requires them.
   violation is recorded in the task's spec, with the simpler alternative that was rejected
   and why.
 
-**Version**: 1.5.0 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-11-22
+**Version**: 1.5.1 | **Ratified**: 2026-09-01 | **Last Amended**: 2026-11-24

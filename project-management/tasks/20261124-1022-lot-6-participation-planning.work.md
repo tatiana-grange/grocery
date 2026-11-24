@@ -686,6 +686,17 @@ spec, the member spec and `nav-smoke.spec.ts` together (login setup, nav smoke, 
   said both "a slot may cross midnight" and "end after start" in the form; I kept the simple form and report it.
 - The "Participation" entry in the back office is `back-office-nav-slots`. It is not clicked by a test.
 
+**Step 9, documentation part.** No test goes red for a page, so this part has no red run; the check is the
+documentation build. `pnpm --filter @grocery/documentation build`: exit 0, 87 pages, all internal links valid.
+Done: the new page `lot-6-participation.mdx` (description quoted because it holds a colon), a "Participation" section
+in the glossary, the lot 6 line of the architecture plan marked built, the "Not in lot 4" pointer, the project overview
+page (status and link; the plan did not name it, it keeps the status list true), `INDEX.md` through `generate:index`,
+and the constitution (list of planned modules now says `participation`, version 1.5.0 to 1.5.1, last amended
+2026-11-24). Two small things the plan did not name: the module table of the architecture plan now says
+`participation` and notes the hour balance is not built, and its entity list now says `Slot` and `SlotSignup`, the
+real names. `oxfmt` also reformatted `lot-5-wallet.mdx` and `1_release_and_versionning.mdx`; I restored both with
+`git checkout`.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
@@ -696,7 +707,8 @@ spec, the member spec and `nav-smoke.spec.ts` together (login setup, nav smoke, 
 - [x] Step 6. Leave, admin sign-up and removal, my sign-ups.
 - [x] Step 7. Regenerated client, member screens, member browser test.
 - [x] Step 8. Admin screens, admin browser test, nav smoke routes, E2E seed slots.
-- [ ] Step 9. Documentation page, glossary, index, gates, close.
+- [x] Step 9, documentation part: page, glossary, plan, pointer, constitution, index, docs build.
+- [ ] Step 9, gates and close.
 
 ## Notes & Snippets
 
