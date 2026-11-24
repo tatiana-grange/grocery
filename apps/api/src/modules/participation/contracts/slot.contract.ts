@@ -102,12 +102,13 @@ export const mySignupSchema = z
   .meta({ title: 'MySignup', description: 'One of the caller’s own sign-ups.' })
 export type MySignup = z.infer<typeof mySignupSchema>
 
-export const slotInputSchema = z
-  .object({
-    roleLabel: z.string().trim().min(1).max(120),
+export const slotInputSchema = adminSlotSchema
+  .pick({ roleLabel: true, startsAt: true, endsAt: true, places: true })
+  .extend({
+    roleLabel: adminSlotSchema.shape.roleLabel.trim().min(1).max(120),
     startsAt: z.coerce.date(),
     endsAt: z.coerce.date(),
-    places: z.number().int().min(1).max(MAX_PLACES),
+    places: adminSlotSchema.shape.places.min(1).max(MAX_PLACES),
   })
   .refine((slot) => slot.endsAt > slot.startsAt, {
     message: 'The slot must end after it starts',
