@@ -181,7 +181,6 @@ describe('accounting exports (e2e)', () => {
     }
   }
 
-  const euros = (cents: number) => cents / 100
   const sum = (rows: string[][], column: number) =>
     rows.reduce((total, row) => total + Math.round(Number(row[column]) * 100), 0)
 
