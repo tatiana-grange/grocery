@@ -1290,6 +1290,7 @@ describe('distributionController (e2e)', () => {
         .withSession(distributor)
         .post(`/distribution/handovers/${handoverId}/reversal`)
         .send({ note: 'Undo' })
+      expect(reversal.status).toBe(201)
 
       const res = await request
         .withSession(distributor)
