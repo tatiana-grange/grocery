@@ -627,10 +627,19 @@ No other change. Go ahead with step 1.
   distribution, inventory, purchasing and members modules, `@lonestone/nzoth`'s route decorator,
   the generated client configuration and the SPA back office. Verified that every sale goes
   through a handover (section 1). Wrote this plan. No code yet.
+- 2026-11-24 — Typist, step 1 (period reader and CSV writer). Wrote both spec files first, with
+  no implementation. Red run: `pnpm --filter=api exec vitest run --project unit
+src/modules/accounting` failed with `Cannot find module '../period.util'` and `Cannot find
+module '../csv.util'` (2 files failed, no test ran). The first named tests are `reads a summer
+day as starting at 22:00 UTC the day before` and `guards a text value that starts with = so a
+spreadsheet does not run it`. Then wrote `period.util.ts` and `csv.util.ts`: 44 tests pass.
+  Nothing surprising. The period reader finds Paris midnight by trying a 1 hour and a 2 hour
+  shift from UTC midnight and reading the Paris time back. The CSV writer guards every text cell,
+  header included (no header starts with a guarded character).
 
 ## Implementation Checkboxes
 
-- [ ] Step 1 — period reader and CSV writer, test first
+- [x] Step 1 — period reader and CSV writer, test first
 - [ ] Step 2 — record and list expenses, entity, migration (cleaned, worklog entry)
 - [ ] Step 3 — cancel an expense, closed doors of the final state
 - [ ] Step 4 — the P&L route, bounds, reversal, wallet ignored, real distribution path
