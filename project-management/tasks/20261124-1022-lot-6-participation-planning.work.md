@@ -3,7 +3,7 @@
 Created by the Mason at the plan step, 2026-11-24. Spec:
 `project-management/tasks/20261124-1022-lot-6-participation-planning.spec.md`.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect, 2026-11-24 10:26. The five rulings are in "Corrections at the reading".
 
 Read before planning: `AGENTS.md` (with "Working with chisel in this repo"), the four files of
 `.agents/`, and the reading list of `.agents/project.md` (README, documentation index, general,
@@ -540,6 +540,22 @@ its list. That is an addition for new routes, not a change to make a test pass.
 - A slot across midnight: allowed. A slot of zero length: refused.
 - The browser and the server disagree on the time zone: the API only ever sees instants, so they
   cannot disagree.
+
+## Corrections at the reading
+
+Signed: Architect, 2026-11-24 10:26.
+
+- **Module name.** Keep `participation`, as the spec says. Do the small wording change in the
+  constitution's list of planned modules, so both documents agree.
+- **Editing a booked slot.** Keep the plan: label and places may change; date and times only
+  while there are no sign-ups.
+- **Leaving a cancelled slot.** Keep the plan: allowed any time before it ends, no 7-day notice.
+- **Time zone.** Keep the plan: the browser zone is the cooperative's zone. Write this limit in
+  the lot 6 documentation page.
+- **Admin without a member row.** Keep the plan: 404 on the member routes. Admins use the admin
+  screens.
+- **Lock tests in the service spec instead of over HTTP.** Accepted. It departs from the spec's
+  testing line only in how the proof is made, not in what is proven.
 
 ## Worklog
 
