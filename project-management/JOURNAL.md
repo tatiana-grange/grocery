@@ -14,7 +14,9 @@ task — never generated.
   coded it in nine steps, test first. The review found four standards points (mapper check,
   schema derivation, hand-written page meta, names), all fixed. All five gates are green (601 API
   tests, 132 browser tests). Fixed after the close, on the human's word: a cancelled slot can no
-  longer be edited, the API refuses it with `slot_cancelled`.
+  longer be edited, the API refuses it with `slot_cancelled`. A six-check feature review then
+  found 43 small points (missing tests, copied code, names, comments, French wording), all fixed:
+  604 API tests and 135 browser tests green. The report sits beside the spec.
 
 ## 2026-11-23
 
