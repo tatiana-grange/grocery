@@ -48,15 +48,7 @@ export class AdminSlotsController {
       includePast,
       ...pagination,
     })
-    return {
-      data: items.map((slot) => this.mapper.toAdminSlot(slot)),
-      meta: {
-        itemCount: total,
-        pageSize: pagination.pageSize,
-        offset: pagination.offset,
-        hasMore: pagination.offset + pagination.pageSize < total,
-      },
-    }
+    return this.mapper.toAdminSlotList(items, total, pagination)
   }
 
   @TypedRoute.Get(':slotId', adminSlotDetailSchema)
@@ -133,15 +125,7 @@ export class MemberSlotsController {
   ) {
     const member = await this.participation.getMemberForUser(session.user.id)
     const { items, total } = await this.participation.listComingSlots(pagination)
-    return {
-      data: items.map((slot) => this.mapper.toMemberSlot(slot, member.id)),
-      meta: {
-        itemCount: total,
-        pageSize: pagination.pageSize,
-        offset: pagination.offset,
-        hasMore: pagination.offset + pagination.pageSize < total,
-      },
-    }
+    return this.mapper.toMemberSlotList(items, total, pagination, member.id)
   }
 
   @TypedRoute.Post('slots/:slotId/signup', memberSlotSchema)
@@ -177,14 +161,6 @@ export class MemberSlotsController {
     const member = await this.participation.getMemberForUser(session.user.id)
     const { items, total } = await this.participation.listMySignups(member.id, pagination)
     const now = this.participation.now()
-    return {
-      data: items.map((signup) => this.mapper.toMySignup(signup, now)),
-      meta: {
-        itemCount: total,
-        pageSize: pagination.pageSize,
-        offset: pagination.offset,
-        hasMore: pagination.offset + pagination.pageSize < total,
-      },
-    }
+    return this.mapper.toMySignupList(items, total, pagination, now)
   }
 }
