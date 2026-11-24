@@ -398,6 +398,27 @@ export type RecordReception = {
 };
 
 /**
+ * SlotInput
+ *
+ * A slot to create or to replace. The role label is 1 to 120 characters, places are 1 to 200, and the end must be after the start. Cancelling is a separate route.
+ */
+export type SlotInput = {
+    roleLabel: string;
+    startsAt: string;
+    endsAt: string;
+    places: number;
+};
+
+/**
+ * SignUpMemberInput
+ *
+ * The member an admin signs up on a slot.
+ */
+export type SignUpMemberInput = {
+    memberId: string;
+};
+
+/**
  * StartTopupInput
  *
  * The amount the member wants to add to their account, in euros. At most two decimals, between the bounds given by the options route.
@@ -1807,6 +1828,131 @@ export type SupplierOrderExport = {
 };
 
 /**
+ * AdminSlotList
+ *
+ * A paginated page of slots, earliest start first
+ */
+export type AdminSlotList = {
+    data: Array<AdminSlot>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * AdminSlot
+ *
+ * A participation slot as the back office sees it, with its counts.
+ */
+export type AdminSlot = {
+    id: string;
+    roleLabel: string;
+    startsAt: string;
+    endsAt: string;
+    places: number;
+    signedUpCount: number;
+    freePlaces: number;
+    isCancelled: boolean;
+    cancelledAt?: string | null;
+};
+
+/**
+ * AdminSlotDetail
+ *
+ * A slot with the members signed up on it, oldest sign-up first.
+ */
+export type AdminSlotDetail = {
+    id: string;
+    roleLabel: string;
+    startsAt: string;
+    endsAt: string;
+    places: number;
+    signedUpCount: number;
+    freePlaces: number;
+    isCancelled: boolean;
+    cancelledAt?: string | null;
+    signups: Array<SlotSignup>;
+};
+
+/**
+ * SlotSignup
+ *
+ * One member signed up on a slot.
+ */
+export type SlotSignup = {
+    memberId: string;
+    memberName: string;
+    membershipNumber: string;
+    signedUpAt: string;
+};
+
+/**
+ * MemberSlotList
+ *
+ * A paginated page of coming slots, earliest start first
+ */
+export type MemberSlotList = {
+    data: Array<MemberSlot>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * MemberSlot
+ *
+ * A participation slot as a member sees it, with whether they are on it.
+ */
+export type MemberSlot = {
+    id: string;
+    roleLabel: string;
+    startsAt: string;
+    endsAt: string;
+    places: number;
+    signedUpCount: number;
+    freePlaces: number;
+    isCancelled: boolean;
+    cancelledAt?: string | null;
+    isSignedUp: boolean;
+};
+
+/**
+ * MySignupList
+ *
+ * A paginated page of the caller’s coming sign-ups, earliest start first
+ */
+export type MySignupList = {
+    data: Array<MySignup>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * MySignup
+ *
+ * One of the caller’s own sign-ups.
+ */
+export type MySignup = {
+    slotId: string;
+    roleLabel: string;
+    startsAt: string;
+    endsAt: string;
+    isCancelled: boolean;
+    canLeave: boolean;
+    leaveDeadline: string;
+};
+
+/**
  * TopupOptions
  *
  * Whether online top-up is available, and the amounts the form offers. `enabled` is false when no payment provider is configured.
@@ -1927,6 +2073,13 @@ export const ManualPaymentMethod = {
  * How money reached the cooperative by hand.
  */
 export type ManualPaymentMethod = typeof ManualPaymentMethod[keyof typeof ManualPaymentMethod];
+
+/**
+ * IncludePast
+ *
+ * When true, slots that have already ended are listed too. Default false.
+ */
+export type IncludePast = unknown;
 
 export type AdminMembersControllerListFilterItem = {
     property: 'status' | 'feeState' | 'role' | 'q';
@@ -3993,3 +4146,269 @@ export type DistributionControllerReverseHandoverResponses = {
 };
 
 export type DistributionControllerReverseHandoverResponse = DistributionControllerReverseHandoverResponses[keyof DistributionControllerReverseHandoverResponses];
+
+export type AdminSlotsControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * IncludePast
+         *
+         * When true, slots that have already ended are listed too. Default false.
+         */
+        includePast?: unknown;
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/admin/slots';
+};
+
+export type AdminSlotsControllerListResponses = {
+    /**
+     * A paginated page of slots, earliest start first
+     */
+    200: AdminSlotList;
+};
+
+export type AdminSlotsControllerListResponse = AdminSlotsControllerListResponses[keyof AdminSlotsControllerListResponses];
+
+export type AdminSlotsControllerCreateData = {
+    /**
+     * SlotInput
+     *
+     * A slot to create or to replace. The role label is 1 to 120 characters, places are 1 to 200, and the end must be after the start. Cancelling is a separate route.
+     */
+    body: {
+        roleLabel: string;
+        startsAt: string;
+        endsAt: string;
+        places: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/slots';
+};
+
+export type AdminSlotsControllerCreateResponses = {
+    /**
+     * A participation slot as the back office sees it, with its counts.
+     */
+    200: AdminSlot;
+};
+
+export type AdminSlotsControllerCreateResponse = AdminSlotsControllerCreateResponses[keyof AdminSlotsControllerCreateResponses];
+
+export type AdminSlotsControllerRemoveData = {
+    body?: never;
+    path: {
+        slotId: string;
+    };
+    query?: never;
+    url: '/api/admin/slots/{slotId}';
+};
+
+export type AdminSlotsControllerRemoveResponses = {
+    204: void;
+};
+
+export type AdminSlotsControllerRemoveResponse = AdminSlotsControllerRemoveResponses[keyof AdminSlotsControllerRemoveResponses];
+
+export type AdminSlotsControllerDetailData = {
+    body?: never;
+    path: {
+        slotId: string;
+    };
+    query?: never;
+    url: '/api/admin/slots/{slotId}';
+};
+
+export type AdminSlotsControllerDetailResponses = {
+    /**
+     * A slot with the members signed up on it, oldest sign-up first.
+     */
+    200: AdminSlotDetail;
+};
+
+export type AdminSlotsControllerDetailResponse = AdminSlotsControllerDetailResponses[keyof AdminSlotsControllerDetailResponses];
+
+export type AdminSlotsControllerUpdateData = {
+    /**
+     * SlotInput
+     *
+     * A slot to create or to replace. The role label is 1 to 120 characters, places are 1 to 200, and the end must be after the start. Cancelling is a separate route.
+     */
+    body: {
+        roleLabel: string;
+        startsAt: string;
+        endsAt: string;
+        places: number;
+    };
+    path: {
+        slotId: string;
+    };
+    query?: never;
+    url: '/api/admin/slots/{slotId}';
+};
+
+export type AdminSlotsControllerUpdateResponses = {
+    /**
+     * A participation slot as the back office sees it, with its counts.
+     */
+    200: AdminSlot;
+};
+
+export type AdminSlotsControllerUpdateResponse = AdminSlotsControllerUpdateResponses[keyof AdminSlotsControllerUpdateResponses];
+
+export type AdminSlotsControllerCancelData = {
+    body?: never;
+    path: {
+        slotId: string;
+    };
+    query?: never;
+    url: '/api/admin/slots/{slotId}/cancel';
+};
+
+export type AdminSlotsControllerCancelResponses = {
+    /**
+     * A participation slot as the back office sees it, with its counts.
+     */
+    200: AdminSlot;
+};
+
+export type AdminSlotsControllerCancelResponse = AdminSlotsControllerCancelResponses[keyof AdminSlotsControllerCancelResponses];
+
+export type AdminSlotsControllerSignUpMemberData = {
+    /**
+     * SignUpMemberInput
+     *
+     * The member an admin signs up on a slot.
+     */
+    body: {
+        memberId: string;
+    };
+    path: {
+        slotId: string;
+    };
+    query?: never;
+    url: '/api/admin/slots/{slotId}/signups';
+};
+
+export type AdminSlotsControllerSignUpMemberResponses = {
+    /**
+     * A slot with the members signed up on it, oldest sign-up first.
+     */
+    200: AdminSlotDetail;
+};
+
+export type AdminSlotsControllerSignUpMemberResponse = AdminSlotsControllerSignUpMemberResponses[keyof AdminSlotsControllerSignUpMemberResponses];
+
+export type AdminSlotsControllerRemoveMemberData = {
+    body?: never;
+    path: {
+        memberId: string;
+        slotId: string;
+    };
+    query?: never;
+    url: '/api/admin/slots/{slotId}/signups/{memberId}';
+};
+
+export type AdminSlotsControllerRemoveMemberResponses = {
+    /**
+     * A slot with the members signed up on it, oldest sign-up first.
+     */
+    200: AdminSlotDetail;
+};
+
+export type AdminSlotsControllerRemoveMemberResponse = AdminSlotsControllerRemoveMemberResponses[keyof AdminSlotsControllerRemoveMemberResponses];
+
+export type MemberSlotsControllerListComingData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/me/slots';
+};
+
+export type MemberSlotsControllerListComingResponses = {
+    /**
+     * A paginated page of coming slots, earliest start first
+     */
+    200: MemberSlotList;
+};
+
+export type MemberSlotsControllerListComingResponse = MemberSlotsControllerListComingResponses[keyof MemberSlotsControllerListComingResponses];
+
+export type MemberSlotsControllerLeaveData = {
+    body?: never;
+    path: {
+        slotId: string;
+    };
+    query?: never;
+    url: '/api/me/slots/{slotId}/signup';
+};
+
+export type MemberSlotsControllerLeaveResponses = {
+    /**
+     * A participation slot as a member sees it, with whether they are on it.
+     */
+    200: MemberSlot;
+};
+
+export type MemberSlotsControllerLeaveResponse = MemberSlotsControllerLeaveResponses[keyof MemberSlotsControllerLeaveResponses];
+
+export type MemberSlotsControllerSignUpData = {
+    body?: never;
+    path: {
+        slotId: string;
+    };
+    query?: never;
+    url: '/api/me/slots/{slotId}/signup';
+};
+
+export type MemberSlotsControllerSignUpResponses = {
+    /**
+     * A participation slot as a member sees it, with whether they are on it.
+     */
+    200: MemberSlot;
+};
+
+export type MemberSlotsControllerSignUpResponse = MemberSlotsControllerSignUpResponses[keyof MemberSlotsControllerSignUpResponses];
+
+export type MemberSlotsControllerListMineData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+    };
+    url: '/api/me/signups';
+};
+
+export type MemberSlotsControllerListMineResponses = {
+    /**
+     * A paginated page of the caller’s coming sign-ups, earliest start first
+     */
+    200: MySignupList;
+};
+
+export type MemberSlotsControllerListMineResponse = MemberSlotsControllerListMineResponses[keyof MemberSlotsControllerListMineResponses];
