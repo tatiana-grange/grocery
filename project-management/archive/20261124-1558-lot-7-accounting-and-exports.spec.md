@@ -71,7 +71,8 @@ profit-and-loss account, association expenses" and "data exports".
 - [ ] ~~**five-csv-exports** — the five exports each return a CSV file with a header row and
       one row per record in the period, and their totals match the P&L figures for the same
       period.~~
-- [x] **five-csv-exports** (amended 2026-11-24, Architect: wallet movements and purchases are
+- [x] **five-csv-exports** (amended 2026-11-24 by the Architect, confirmed by the human the same day: wallet
+      movements and purchases are
       not on the P&L) — the five exports each return a CSV file with a header row and one row
       per record in the period. The sales, membership fees and expenses totals match the P&L
       figures for the same period; the wallet movements and purchases totals match the rows
@@ -135,7 +136,7 @@ is append-only.
   euros with two decimals.
 - A record belongs to the period by its own date: the handover's creation time (for its lines
   and their stock movements too, so one sale never splits across two periods; corrected by the
-  Architect on 2026-11-24), the reception's date, the fee payment's `paidAt`, the expense's date, the
+  Architect on 2026-11-24, confirmed by the human the same day), the reception's date, the fee payment's `paidAt`, the expense's date, the
   wallet entry's creation time.
 - The expense payment methods are cash, cheque, transfer and card.
 - The P&L screen opens on the current calendar year.
