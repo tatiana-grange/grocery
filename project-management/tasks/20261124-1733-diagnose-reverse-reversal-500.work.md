@@ -3,7 +3,7 @@
 Created by the Mason at the plan step, 2026-11-24. Spec:
 `project-management/tasks/20261124-1733-diagnose-reverse-reversal-500.spec.md`.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect, 2026-11-24, with the corrections below.
 
 ## Program Design
 
@@ -69,6 +69,22 @@ The regression test comes first, red, before any change to the helper.
   fix holds, the "Known flaky tests" paragraph of `AGENTS.md` and the advice to make parallel
   calls sequential are probably out of date. I would propose that through `retro` at the
   close, not change it now.
+
+## Corrections at the reading
+
+Written and signed by the Architect, 2026-11-24.
+
+1. **Stricter test: yes.** Add the check that the first reversal answers 201. The rule in
+   `AGENTS.md`, "Known flaky tests", forbids editing a flaky test to hide a failure; this check
+   does the opposite, it makes a failed first call show as itself. Reported to the human.
+2. **The 500 on an id that is not a UUID: a separate task.** Not fixed here. Write it in the
+   close report as a proposal, with the counts (46 plain string params, 12 UUID checks).
+3. **The "Known flaky tests" note: through `retro` at the close**, once the three full runs are
+   green, with the evidence.
+4. **Teardown.** Check that the test app is closed after each file now that it listens, so no
+   port or handle stays open (`vitest` must not hang).
+
+Go ahead with the regression test.
 
 ## Worklog
 
