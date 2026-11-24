@@ -18,6 +18,7 @@ export default [
     route('account', 'features/account/components/account-page.tsx'),
     route('account/topup/return', 'features/wallet/components/topup-return-page.tsx'),
     route('cart', 'features/cart/components/cart-page.tsx'),
+    route('participation', 'features/participation/components/participation-page.tsx'),
   ]),
   layout('features/common/components/distribution-layout.tsx', [
     route('distribution', 'features/distribution/components/distribution-home-page.tsx'),
@@ -35,6 +36,8 @@ export default [
     ),
   ]),
   layout('features/common/components/back-office-layout.tsx', [
+    route('admin/slots', 'features/admin-participation/components/slots-list-page.tsx'),
+    route('admin/slots/:slotId', 'features/admin-participation/components/slot-detail-page.tsx'),
     route('admin/members', 'features/admin-members/components/members-list-page.tsx'),
     route('admin/members/:memberId', 'features/admin-members/components/member-detail-page.tsx'),
     route('admin/catalog', 'features/catalog/components/catalog-page.tsx'),

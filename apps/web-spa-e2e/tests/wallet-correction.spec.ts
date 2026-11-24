@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { E2E, E2E_DISTRIBUTION, E2E_USERS, storageStatePath } from '../env'
-import { expect, test, withRole } from '../fixtures'
+import { E2E_DISTRIBUTION, E2E_USERS } from '../env'
+import { expect, newRolePage, test, withRole } from '../fixtures'
 import { clearMailbox, readMessagesTo } from '../maildev'
 
 type Page = import('@playwright/test').Page
@@ -137,12 +137,7 @@ test.describe('correction de paiement, côté adhérent', () => {
     page,
     browser,
   }) => {
-    const memberContext = await browser.newContext({
-      baseURL: E2E.webUrl,
-      locale: 'fr-FR',
-      storageState: storageStatePath('member'),
-    })
-    const member = await memberContext.newPage()
+    const { context: memberContext, page: member } = await newRolePage(browser, 'member')
 
     // While the balance is zero the member can still fill a cart.
     await addFromShop(member, 'Pommes Golden')

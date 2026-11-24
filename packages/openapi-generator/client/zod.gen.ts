@@ -289,6 +289,27 @@ export const zRecordReception = z.object({
 });
 
 /**
+ * SlotInput
+ *
+ * A slot to create or to replace. The role label is 1 to 120 characters, places are 1 to 200, and the end must be after the start. Cancelling is a separate route.
+ */
+export const zSlotInput = z.object({
+    roleLabel: z.string().min(1).max(120),
+    startsAt: z.string(),
+    endsAt: z.string(),
+    places: z.int().gte(1).lte(200)
+});
+
+/**
+ * SignUpMemberInput
+ *
+ * The member an admin signs up on a slot.
+ */
+export const zSignUpMemberInput = z.object({
+    memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+});
+
+/**
  * StartTopupInput
  *
  * The amount the member wants to add to their account, in euros. At most two decimals, between the bounds given by the options route.
@@ -2002,6 +2023,140 @@ export const zSupplierOrderExport = z.object({
 });
 
 /**
+ * AdminSlot
+ *
+ * A participation slot as the back office sees it, with its counts.
+ */
+export const zAdminSlot = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    roleLabel: z.string(),
+    startsAt: z.string(),
+    endsAt: z.string(),
+    places: z.int().gte(-9007199254740991).lte(9007199254740991),
+    signedUpCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    freePlaces: z.int().gte(-9007199254740991).lte(9007199254740991),
+    isCancelled: z.boolean(),
+    cancelledAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * AdminSlotList
+ *
+ * A paginated page of slots, earliest start first
+ */
+export const zAdminSlotList = z.object({
+    data: z.array(zAdminSlot),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * SlotSignup
+ *
+ * One member signed up on a slot.
+ */
+export const zSlotSignup = z.object({
+    memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    memberName: z.string(),
+    membershipNumber: z.string(),
+    signedUpAt: z.string()
+});
+
+/**
+ * AdminSlotDetail
+ *
+ * A slot with the members signed up on it, oldest sign-up first.
+ */
+export const zAdminSlotDetail = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    roleLabel: z.string(),
+    startsAt: z.string(),
+    endsAt: z.string(),
+    places: z.int().gte(-9007199254740991).lte(9007199254740991),
+    signedUpCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    freePlaces: z.int().gte(-9007199254740991).lte(9007199254740991),
+    isCancelled: z.boolean(),
+    cancelledAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    signups: z.array(zSlotSignup)
+});
+
+/**
+ * MemberSlot
+ *
+ * A participation slot as a member sees it, with whether they are on it.
+ */
+export const zMemberSlot = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    roleLabel: z.string(),
+    startsAt: z.string(),
+    endsAt: z.string(),
+    places: z.int().gte(-9007199254740991).lte(9007199254740991),
+    signedUpCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+    freePlaces: z.int().gte(-9007199254740991).lte(9007199254740991),
+    isCancelled: z.boolean(),
+    cancelledAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    isSignedUp: z.boolean()
+});
+
+/**
+ * MemberSlotList
+ *
+ * A paginated page of coming slots, earliest start first
+ */
+export const zMemberSlotList = z.object({
+    data: z.array(zMemberSlot),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * MySignup
+ *
+ * One of the caller’s own sign-ups.
+ */
+export const zMySignup = z.object({
+    slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    roleLabel: z.string(),
+    startsAt: z.string(),
+    endsAt: z.string(),
+    isCancelled: z.boolean(),
+    canLeave: z.boolean(),
+    leaveDeadline: z.string()
+});
+
+/**
+ * MySignupList
+ *
+ * A paginated page of the caller’s coming sign-ups, earliest start first
+ */
+export const zMySignupList = z.object({
+    data: z.array(zMySignup),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
  * TopupOptions
  *
  * Whether online top-up is available, and the amounts the form offers. `enabled` is false when no payment provider is configured.
@@ -2079,7 +2234,7 @@ export const zTestSeedResetResponse = z.object({
  */
 export const zPaginationQuerySchema = z.object({
     offset: z.int().gte(0).lte(9007199254740991).default(0),
-    pageSize: z.int().gte(1).lte(100).default(20)
+    pageSize: z.int().gte(1).lte(100).default(50)
 });
 
 /**
@@ -2130,6 +2285,13 @@ export const zRefundInput = z.object({
     paymentMethod: zManualPaymentMethod,
     reason: z.string().min(1).max(500)
 });
+
+/**
+ * IncludePast
+ *
+ * When true, slots that have already ended are listed too. Default false.
+ */
+export const zIncludePast = z.unknown();
 
 export const zAdminMembersControllerListFilterItem = z.object({
     property: z.union([
@@ -3793,3 +3955,171 @@ export const zDistributionControllerReverseHandoverData = z.object({
  * A record of goods physically given to a member at a point in time
  */
 export const zDistributionControllerReverseHandoverResponse = zHandover;
+
+export const zAdminSlotsControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        includePast: z.optional(z.unknown()),
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(50)
+    })
+});
+
+/**
+ * A paginated page of slots, earliest start first
+ */
+export const zAdminSlotsControllerListResponse = zAdminSlotList;
+
+export const zAdminSlotsControllerCreateData = z.object({
+    body: z.object({
+        roleLabel: z.string().min(1).max(120),
+        startsAt: z.string(),
+        endsAt: z.string(),
+        places: z.int().gte(1).lte(200)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * A participation slot as the back office sees it, with its counts.
+ */
+export const zAdminSlotsControllerCreateResponse = zAdminSlot;
+
+export const zAdminSlotsControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAdminSlotsControllerRemoveResponse = z.void();
+
+export const zAdminSlotsControllerDetailData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A slot with the members signed up on it, oldest sign-up first.
+ */
+export const zAdminSlotsControllerDetailResponse = zAdminSlotDetail;
+
+export const zAdminSlotsControllerUpdateData = z.object({
+    body: z.object({
+        roleLabel: z.string().min(1).max(120),
+        startsAt: z.string(),
+        endsAt: z.string(),
+        places: z.int().gte(1).lte(200)
+    }),
+    path: z.object({
+        slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A participation slot as the back office sees it, with its counts.
+ */
+export const zAdminSlotsControllerUpdateResponse = zAdminSlot;
+
+export const zAdminSlotsControllerCancelData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A participation slot as the back office sees it, with its counts.
+ */
+export const zAdminSlotsControllerCancelResponse = zAdminSlot;
+
+export const zAdminSlotsControllerSignUpMemberData = z.object({
+    body: z.object({
+        memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    path: z.object({
+        slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A slot with the members signed up on it, oldest sign-up first.
+ */
+export const zAdminSlotsControllerSignUpMemberResponse = zAdminSlotDetail;
+
+export const zAdminSlotsControllerRemoveMemberData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        memberId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A slot with the members signed up on it, oldest sign-up first.
+ */
+export const zAdminSlotsControllerRemoveMemberResponse = zAdminSlotDetail;
+
+export const zMemberSlotsControllerListComingData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(50)
+    })
+});
+
+/**
+ * A paginated page of coming slots, earliest start first
+ */
+export const zMemberSlotsControllerListComingResponse = zMemberSlotList;
+
+export const zMemberSlotsControllerLeaveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A participation slot as a member sees it, with whether they are on it.
+ */
+export const zMemberSlotsControllerLeaveResponse = zMemberSlot;
+
+export const zMemberSlotsControllerSignUpData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        slotId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * A participation slot as a member sees it, with whether they are on it.
+ */
+export const zMemberSlotsControllerSignUpResponse = zMemberSlot;
+
+export const zMemberSlotsControllerListMineData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(50)
+    })
+});
+
+/**
+ * A paginated page of the caller’s coming sign-ups, earliest start first
+ */
+export const zMemberSlotsControllerListMineResponse = zMySignupList;

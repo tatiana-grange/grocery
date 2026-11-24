@@ -1,5 +1,4 @@
-import { E2E, storageStatePath } from '../env'
-import { expect, test, withRole } from '../fixtures'
+import { expect, newRolePage, test, withRole } from '../fixtures'
 
 type Page = import('@playwright/test').Page
 
@@ -71,12 +70,7 @@ test.describe('remboursement, côté administrateur', () => {
     await expect(page.getByTestId('wallet-refund-open')).toBeDisabled()
 
     // The member sees both refunds with their reasons.
-    const memberContext = await browser.newContext({
-      baseURL: E2E.webUrl,
-      locale: 'fr-FR',
-      storageState: storageStatePath('member'),
-    })
-    const member = await memberContext.newPage()
+    const { context: memberContext, page: member } = await newRolePage(browser, 'member')
     await member.goto('/account')
     const memberHistory = member.getByTestId('wallet-history')
     await expect(memberHistory).toContainText("Départ de l'adhérent")

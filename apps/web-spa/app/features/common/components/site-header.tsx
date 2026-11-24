@@ -1,6 +1,6 @@
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
-import { LogOut, ShieldCheck, ShoppingCart, User } from 'lucide-react'
+import { CalendarDays, LogOut, ShieldCheck, ShoppingCart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { AppSettingsMenu } from '@/features/common/components/app-settings-menu'
@@ -62,6 +62,15 @@ export function SiteHeader() {
         )}
         {sessionData ? (
           <>
+            <Button
+              variant="ghost"
+              size="sm"
+              data-testid="site-nav-participation"
+              render={<Link to="/participation" />}
+            >
+              <CalendarDays className="mr-2 size-4" />
+              {t('participation.nav.participation')}
+            </Button>
             <Button
               variant="ghost"
               size="sm"

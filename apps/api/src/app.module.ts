@@ -16,6 +16,7 @@ import { InventoryModule } from './modules/inventory/inventory.module'
 import { MembersModule } from './modules/members/members.module'
 import { OrdersModule } from './modules/orders/orders.module'
 import { PurchasingModule } from './modules/purchasing/purchasing.module'
+import { ParticipationModule } from './modules/participation/participation.module'
 import { PaymentsModule } from './modules/payments/payments.module'
 import { WalletModule } from './modules/wallet/wallet.module'
 import { TestSeedModule } from './modules/test-seed/test-seed.module'
@@ -109,6 +110,7 @@ interface ExpressResponse extends ServerResponse<IncomingMessage> {
     WalletModule,
     PaymentsModule,
     DistributionModule,
+    ParticipationModule,
     // Test-only fixtures endpoints (`/api/test/seed/*`). Gated on the dedicated `E2E` flag
     // (set only by the Playwright web-spa e2e run), not `NODE_ENV`, so it never mounts during
     // the API's own vitest suites.

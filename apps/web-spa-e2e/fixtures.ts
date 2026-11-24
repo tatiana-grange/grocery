@@ -1,5 +1,5 @@
-import { test as base, expect } from '@playwright/test'
-import { storageStatePath } from './env'
+import { test as base, type Browser, expect } from '@playwright/test'
+import { E2E, storageStatePath } from './env'
 import { resetSeed } from './reset'
 
 export { expect }
@@ -21,7 +21,19 @@ export const test = base.extend<E2eFixtures>({
   },
 })
 
+type Role = 'admin' | 'member' | 'pending' | 'distributor'
+
 /** Raccourci pour les specs authentifiées : `test.use(withRole('admin'))`. */
-export function withRole(role: 'admin' | 'member' | 'pending' | 'distributor') {
+export function withRole(role: Role) {
   return { storageState: storageStatePath(role) }
+}
+
+/** A second browser signed in as another role, beside the spec's own page. Close its context. */
+export async function newRolePage(browser: Browser, role: Role) {
+  const context = await browser.newContext({
+    baseURL: E2E.webUrl,
+    locale: 'fr-FR',
+    storageState: storageStatePath(role),
+  })
+  return { context, page: await context.newPage() }
 }
