@@ -191,7 +191,8 @@ is the "retouch of a few lines" exception in `.agents/workflow.md` (step 5, Code
 - [x] Real test looped 25 times, full API suite run three times, logs read
 - [x] Gates: `pnpm lint`, `pnpm typecheck`, `pnpm test`
 - [x] API testing guide paragraph
-- [ ] `code-review` on the diff since `origin/staging`, findings recorded
+- [x] `code-review` on the diff since `origin/staging`, findings recorded
+- [ ] Reworked regression test and `pnpm test` rerun after the review edits (blocked: Docker)
 - [ ] Close: criteria ticked, documents archived, journal entry, `retro`
 
 ## Notes & Snippets
@@ -247,3 +248,59 @@ Ranked guesses before the harness, and how each ended:
    data that could break the handover schema.
 
 ## Diff-Review Findings
+
+`code-review` on `git diff origin/staging...HEAD`, 2026-11-24, two fresh reviewers. The first
+launch failed on a usage limit; the second ran on the branch at `b5c1b09`.
+
+### Standards
+
+No hard breach. Judgement calls, each with its answer:
+
+1. **Test variable names** (`general.mdx`, Testing: `inputX`, `actualX`, `expectedX`). Fixed:
+   `actualAddress`, `actualBindError`, `actualResponse`.
+2. **Arrange, Act, Assert** (`general.mdx`, Testing; the test README, "Pattern AAA"). Fixed:
+   the three blocks are apart and marked; every assertion sits at the end.
+3. **The test README tree did not list the new spec.** Fixed: added beside
+   `test-app.helper.ts`.
+4. **The reason is written three times** (spec JSDoc, helper comment, guide). Fixed in part:
+   the spec's comment is now one line that points to the guide. The helper comment stays: it
+   guards a line that looks removable, which the reviewer agreed earns its place.
+5. **The spec's Testing Strategy still blames the one-connection pool for `ECONNRESET`.** Not
+   changed: the spec is the Architect's document. Passed on in the close report.
+6. **Test name does not start with a verb.** Fixed: "binds the test app to 127.0.0.1, so no
+   other program can answer for it".
+7. **Smell, mild Mysterious Name: `intruder`.** Fixed: `competingServer`.
+
+Commit `6fd46d9`. Format check, lint and typecheck are clean on the changed files. The
+reworked test has **not been run yet**: see the blocker below.
+
+### Spec
+
+1. **reversal-of-reversal-refused is partial**: the regression test pins the port rule but
+   never asserts a 409, and the real test already passed 25 of 25 before the fix. Answer:
+   agreed on the facts. The stray answer comes about once in 4,500 calls on this machine, so
+   no loop of one test can show the difference in reasonable time. The evidence that the fix
+   works is the harness (4 stray answers and 2 resets in 18,000 calls before, 0 and 0 after)
+   and the full runs: 4 of the 7 full runs before the fix had a stray failure (top-up 404,
+   probe 404, participation with no `data`, wallet `ECONNRESET`), 4 of 4 after the fix were
+   green. Ticked with this note; the Architect may judge it partial.
+2. **failure-reproduced is met through its "or" branch**: the harness reproduces the cause,
+   not the 500 on demand, and the work document says why. No change.
+3. **Not asked for**: the 201 check (approved in the corrections), the guide paragraph, the
+   wider Vitest include (needed for the new spec; no file runs twice). No change.
+4. **Fragility**: a future caller that forgets `context.app` leaves a server listening. The
+   guide says so; nothing enforces it. Answer: left as is. All 11 callers set it, and the
+   teardown run showed 311 of 311 closed. A guard would mean a new hook in the e2e setup; not
+   worth it for this task.
+5. **System design not updated**: the spec says "no change planned before the cause is known",
+   and its Seams name only the reversal route, while the fix changes the shared test setup at
+   the `initializeTestApp` seam. Not changed: the spec is the Architect's. Passed on in the
+   close report.
+
+## Blockers and questions
+
+**Docker does not answer — Mason, 2026-11-24 21:05.** After the review edits, the reworked
+regression test hung before its first test: the global setup starts a Postgres container,
+and `docker ps` and `docker info` gave no answer within 20 and 60 seconds. Restarting OrbStack
+would stop other projects' containers, so I did not. Left to do once Docker answers: run the
+reworked test, then `pnpm test`, then close.

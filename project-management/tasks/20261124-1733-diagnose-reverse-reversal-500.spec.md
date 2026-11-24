@@ -1,6 +1,6 @@
 # Diagnose: reversing a reversal answered 500 once
 
-**Status:** in-progress
+**Status:** blocked — Docker does not answer; one test run and `pnpm test` left before the close (see the work document)
 
 ---
 
