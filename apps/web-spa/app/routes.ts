@@ -61,5 +61,6 @@ export default [
       'admin/inventory/products/:productId',
       'features/admin-inventory/components/stock-detail-page.tsx',
     ),
+    route('admin/accounting/expenses', 'features/admin-accounting/components/expenses-page.tsx'),
   ]),
 ] satisfies RouteConfig

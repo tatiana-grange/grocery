@@ -830,5 +830,75 @@
       "remove": "Remove",
       "removed": "Member removed."
     }
+  },
+  "adminAccounting": {
+    "period": {
+      "from": "From",
+      "to": "To",
+      "thisYear": "This year"
+    },
+    "category": {
+      "rent": "Rent",
+      "insurance": "Insurance",
+      "utilities": "Utilities",
+      "equipment": "Equipment",
+      "bank_fees": "Bank fees",
+      "other": "Other"
+    },
+    "method": {
+      "cash": "Cash",
+      "cheque": "Cheque",
+      "transfer": "Bank transfer",
+      "card": "Card"
+    },
+    "columns": {
+      "day": "Day",
+      "category": "Category",
+      "label": "Label",
+      "method": "Paid by",
+      "amount": "Amount",
+      "recordedBy": "Recorded by"
+    },
+    "expenses": {
+      "title": "Expenses",
+      "subtitle": "What the association spent. A cancelled expense stays in the list, with a second row that reverses it.",
+      "new": "Record an expense",
+      "cancel": "Cancel",
+      "cancelled": "Cancelled",
+      "cancellationOf": "Cancellation:",
+      "empty": "No expenses in this period.",
+      "count_one": "{{count}} row",
+      "count_other": "{{count}} rows",
+      "toProfitAndLoss": "Profit and loss"
+    },
+    "form": {
+      "title": "Record an expense",
+      "description": "The amount is in euros. The expense cannot be edited later, only cancelled.",
+      "date": "Day",
+      "amount": "Amount (€)",
+      "category": "Category",
+      "label": "Label",
+      "method": "Paid by",
+      "submit": "Record",
+      "recorded": "Expense recorded.",
+      "error": {
+        "date": "Pick a day.",
+        "amount": "Enter an amount above 0, with at most two decimals.",
+        "label": "Enter a label of 1 to {{max}} characters."
+      }
+    },
+    "cancel": {
+      "title": "Cancel this expense",
+      "warning": "\"{{label}}\" ({{amount}}) stays in the books and a second row reverses it. This cannot be undone. To fix a mistake, record the expense again.",
+      "reason": "Reason",
+      "reasonHint": "Why is this expense cancelled?",
+      "keep": "Keep it",
+      "confirm": "Cancel the expense",
+      "done": "Expense cancelled.",
+      "error": {
+        "already_cancelled": "This expense was already cancelled.",
+        "cannot_cancel_cancellation": "A cancellation cannot be cancelled."
+      }
+    }
   }
 }

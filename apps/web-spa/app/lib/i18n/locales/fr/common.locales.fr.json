@@ -830,5 +830,75 @@
       "remove": "Retirer",
       "removed": "Adhérent retiré."
     }
+  },
+  "adminAccounting": {
+    "period": {
+      "from": "Du",
+      "to": "Au",
+      "thisYear": "Cette année"
+    },
+    "category": {
+      "rent": "Loyer",
+      "insurance": "Assurance",
+      "utilities": "Énergie et eau",
+      "equipment": "Matériel",
+      "bank_fees": "Frais bancaires",
+      "other": "Autre"
+    },
+    "method": {
+      "cash": "Espèces",
+      "cheque": "Chèque",
+      "transfer": "Virement",
+      "card": "Carte"
+    },
+    "columns": {
+      "day": "Jour",
+      "category": "Catégorie",
+      "label": "Libellé",
+      "method": "Payé par",
+      "amount": "Montant",
+      "recordedBy": "Saisi par"
+    },
+    "expenses": {
+      "title": "Dépenses",
+      "subtitle": "Ce que l'association a dépensé. Une dépense annulée reste dans la liste, avec une seconde ligne qui l'annule.",
+      "new": "Enregistrer une dépense",
+      "cancel": "Annuler",
+      "cancelled": "Annulée",
+      "cancellationOf": "Annulation :",
+      "empty": "Aucune dépense sur cette période.",
+      "count_one": "{{count}} ligne",
+      "count_other": "{{count}} lignes",
+      "toProfitAndLoss": "Compte de résultat"
+    },
+    "form": {
+      "title": "Enregistrer une dépense",
+      "description": "Le montant est en euros. Une dépense ne se modifie pas : on peut seulement l'annuler.",
+      "date": "Jour",
+      "amount": "Montant (€)",
+      "category": "Catégorie",
+      "label": "Libellé",
+      "method": "Payé par",
+      "submit": "Enregistrer",
+      "recorded": "Dépense enregistrée.",
+      "error": {
+        "date": "Choisissez un jour.",
+        "amount": "Saisissez un montant supérieur à 0, avec au plus deux décimales.",
+        "label": "Saisissez un libellé de 1 à {{max}} caractères."
+      }
+    },
+    "cancel": {
+      "title": "Annuler cette dépense",
+      "warning": "« {{label}} » ({{amount}}) reste dans les comptes et une seconde ligne l'annule. C'est définitif. Pour corriger une erreur, enregistrez de nouveau la dépense.",
+      "reason": "Motif",
+      "reasonHint": "Pourquoi cette dépense est-elle annulée ?",
+      "keep": "La garder",
+      "confirm": "Annuler la dépense",
+      "done": "Dépense annulée.",
+      "error": {
+        "already_cancelled": "Cette dépense a déjà été annulée.",
+        "cannot_cancel_cancellation": "Une annulation ne peut pas être annulée."
+      }
+    }
   }
 }

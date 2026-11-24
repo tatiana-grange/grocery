@@ -729,6 +729,28 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
     would hand a `date` column back as a JavaScript Date.
   - Not checked here: the OpenAPI document with the new routes (the client is generated in step
     6, outside my part). `@TypedRoute.Get` with no schema ran as a plain route in the tests.
+- 2026-11-24 — Typist, step 6 (client, expenses screen, browser tests). **Client:** started a
+  throwaway API with `nest start` on port 3099 (not the dev API). It used the E2E settings
+  (database `grocery_e2e` on 5434) with `NODE_ENV=development` and `E2E` unset, because the
+  OpenAPI document is only served when `NODE_ENV` is `development`. Ran `pnpm generate` in
+  `packages/openapi-generator` with `API_URL=http://localhost:3099/api`. The five accounting routes
+  are in `sdk.gen.ts`. The export route is typed `string` in the 200 answer and its content type is
+  `text/csv` in the document, so the client reads it as text; the SPA also passes `parseAs: 'text'`.
+  Committed alone (`b876432`). Stopped the throwaway API by its port listener PID. One thing seen:
+  the OpenAPI document says `200` for `POST admin/expenses`, while the route answers 201 at run
+  time. No effect on the client.
+  **First failing test, red:** wrote `tests/accounting.spec.ts` first. Run
+  `playwright test tests/accounting.spec.ts` (from `apps/web-spa-e2e`): 2 failed, first
+  `l'admin enregistre une dépense et la voit dans la liste` with `expect(getByTestId('page-expenses'))
+  toBeVisible` failing (no such route). Then wrote the screen: 3 passed (the login setup and the
+  two tests, `l'admin annule une dépense avec un motif, elle est marquée annulée` second).
+  Files: `features/admin-accounting/` (`utils/admin-accounting-queries.ts`, `use-period.ts`,
+  `accounting-format.ts`, `expense-form.ts`; `components/period-picker.tsx`, `expenses-page.tsx`,
+  `record-expense-dialog.tsx`, `cancel-expense-dialog.tsx`), the `admin/accounting/expenses` route
+  and the `adminAccounting` keys in both locale files. The plan's helper for euros to cents does
+  not exist as a shared helper (each form writes `Math.round(Number(x) * 100)`), so
+  `accounting-format.ts` holds a small one. The nav entry and the P&L route come with step 7, so
+  no link points at a page that does not exist yet.
 
 ## Implementation Checkboxes
 
@@ -737,7 +759,7 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
 - [x] Step 3 — cancel an expense, closed doors of the final state
 - [x] Step 4 — the P&L route, bounds, reversal, wallet ignored, real distribution path
 - [x] Step 5 — the five CSV exports, totals match the P&L
-- [ ] Step 6 — regenerated client, expenses screen, browser tests
+- [x] Step 6 — regenerated client, expenses screen, browser tests
 - [ ] Step 7 — P&L and exports screen, browser tests, nav-smoke routes
 - [ ] Step 8 — documentation page, glossary, architecture plan, index, documentation build
 - [ ] Gates — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm e2e`
