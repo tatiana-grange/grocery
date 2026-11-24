@@ -608,13 +608,35 @@ already on a full slot is told `already_signed_up`, not `slot_full`. I made both
 or `slot_full`, a duplicate is reported as `already_signed_up`; for cancelled, ended and started slots the slot refusal
 wins. One test pins the full-slot case.
 
+**Step 5.** First failing test (service spec) `refuses a second slot that overlaps one the member holds
+(overlaps_another_slot)`. Red seen first: `AssertionError: promise resolved "Slot {...` (the sign-up went through).
+The member-lock race test was red at the same time: `expected [ fulfilled, fulfilled ] to have a length of 1 but got
+2`. Green after the overlap query and the member lock (member row first, then slot row): 9 tests in
+`participation.service.spec.ts` (overlap: first test, inside and contains, touching allowed, cancelled slot does not
+block, another member's slot does not block, same slot twice is `already_signed_up`; races: last place, two slots,
+five slots).
+
+Lock proofs (the lock removed for a minute, the test run, the lock put back; `PESSIMISTIC_WRITE` appears twice in
+the service again, and the file is the one that was committed):
+
+- Slot lock removed (`lockSlot` reads without a lock): `lets one of two members win the last place and refuses the
+other with slot_full` was red 5 runs out of 5, `expected [ fulfilled, fulfilled ] to have a length of 1 but got 2`.
+  With the lock back: 9 of 9 green, 5 runs out of 5.
+- Member lock removed (the member is read without a lock): first attempt with a cold connection pool was NOT
+  reliable. `never holds two overlapping slots when one member signs up for both at once` failed only 1 run out of 3
+  (opening a new database connection takes longer than a whole sign-up, so the first call finished before the second
+  began). I did two things: a `warmPool()` helper in the spec opens six connections before each race, and I added
+  `holds exactly one of five overlapping slots when one member signs up for all at once`. With the pool warm and the
+  member lock removed, both member-lock tests were red 6 runs out of 6. With the lock back: green.
+  The plan named one member-lock test; there are now two. The extra one is the stronger proof.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
 - [x] Step 2. Tables, migration, admin create and list.
 - [x] Step 3. Admin edit, cancel, delete.
 - [x] Step 4. Member lists coming slots and signs up.
-- [ ] Step 5. Overlap rule and the two locks, with the concurrency tests.
+- [x] Step 5. Overlap rule and the two locks, with the concurrency tests.
 - [ ] Step 6. Leave, admin sign-up and removal, my sign-ups.
 - [ ] Step 7. Regenerated client, member screens, member browser test.
 - [ ] Step 8. Admin screens, admin browser test, nav smoke routes, E2E seed slots.

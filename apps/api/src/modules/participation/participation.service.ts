@@ -164,16 +164,25 @@ export class ParticipationService {
   }
 
   /**
-   * Signs a member up on a slot. The slot row is locked, so two sign-ups for the last place
-   * cannot both pass. `checkSignUp` decides the refusals that need only the slot and the clock.
-   * A member already on the slot is told so even when it is full, because that is the useful
-   * answer. The unique pair of the table backs the one-sign-up rule if two calls race anyway.
-   * Returns the slot with its sign-ups.
+   * Signs a member up on a slot, under two row locks always taken in the same order: the member
+   * row first, then the slot row. The slot lock is what protects the last place from two
+   * sign-ups. The member lock is what protects the no-overlap rule: two sign-ups of one member
+   * for two overlapping slots lock different slots, so only the shared member row makes the
+   * second one see the first. One fixed order rules out a deadlock between two sign-ups.
+   *
+   * `checkSignUp` decides the refusals that need only the slot and the clock. A member already
+   * on the slot is told so even when it is full, because that is the useful answer. The overlap
+   * check comes last. The unique pair of the table backs the one-sign-up rule if two calls race
+   * anyway. Returns the slot with its sign-ups.
    */
   async signUp(p: { slotId: string; memberId: string; actor: Actor }): Promise<Slot> {
     try {
       return await this.em.transactional(async (tem) => {
-        const member = await tem.findOne(Member, { id: p.memberId })
+        const member = await tem.findOne(
+          Member,
+          { id: p.memberId },
+          { lockMode: LockMode.PESSIMISTIC_WRITE },
+        )
         if (!member) throw new NotFoundException('Member not found')
         const slot = await this.lockSlot(tem, p.slotId)
         const signedUpCount = await tem.count(SlotSignup, { slot: slot.id })
@@ -194,6 +203,9 @@ export class ParticipationService {
           throw this.signUpRefusal('already_signed_up')
         }
         if (refused) throw this.signUpRefusal(refused)
+        if (await this.holdsAnOverlappingSlot(tem, member.id, slot)) {
+          throw this.signUpRefusal('overlaps_another_slot')
+        }
 
         const signup = new SlotSignup()
         signup.slot = slot
@@ -209,6 +221,27 @@ export class ParticipationService {
       }
       throw error
     }
+  }
+
+  /**
+   * Whether the member holds a live slot that overlaps this one. The condition is the one of
+   * `rangesOverlap`, written as a filter: slots that merely touch do not overlap, and a
+   * cancelled slot never blocks.
+   */
+  private async holdsAnOverlappingSlot(
+    em: EntityManager,
+    memberId: string,
+    slot: Slot,
+  ): Promise<boolean> {
+    const count = await em.count(SlotSignup, {
+      member: memberId,
+      slot: {
+        cancelledAt: null,
+        startsAt: { $lt: slot.endsAt },
+        endsAt: { $gt: slot.startsAt },
+      },
+    })
+    return count > 0
   }
 
   /** The member row of a signed-in user. An admin who is not a member gets a 404. */
