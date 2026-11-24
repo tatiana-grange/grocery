@@ -17,6 +17,11 @@ task — never generated.
   or answered in the work document. All five gates are green (726 API tests, 140 browser tests);
   one distribution test failed once with a 500 and passed on the rerun. Open for the human: two
   spec lines the Architect amended at the plan reading, and seven retro proposals in the spec.
+  A six-check feature review then found 51 points (missing tests, copied code, return types,
+  comments, French wording, a download revoked too early), all fixed on the human's word. The
+  CSV writer and the download helper are now shared with the purchasing export, whose file stays
+  byte for byte the same. 735 API tests and 143 browser tests green; two known flaky tests passed
+  on the rerun. The report sits beside the spec.
 
 - Lot 6, participation planning: built and reviewed on `feat/participation-planning`. Admins create,
   edit, cancel and delete time slots with a number of places. Members sign up while places are
