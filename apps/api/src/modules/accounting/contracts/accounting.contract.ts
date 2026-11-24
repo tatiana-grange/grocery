@@ -2,6 +2,13 @@ import { z } from 'zod'
 import { expenseCategorySchema } from './expense.contract'
 import { calendarDaySchema } from './period.contract'
 
+export const expensesByCategoryItemSchema = z
+  .object({ category: expenseCategorySchema, amountCents: z.number().int() })
+  .meta({
+    title: 'ExpensesByCategoryItem',
+    description: 'The expenses of one category in the period, in cents.',
+  })
+
 export const profitAndLossSchema = z
   .object({
     from: calendarDaySchema,
@@ -15,9 +22,7 @@ export const profitAndLossSchema = z
     /** Fee payments and adjustments paid in the period. */
     membershipFeesCents: z.number().int(),
     /** All six categories, in the fixed order, with 0 when empty. */
-    expensesByCategory: z.array(
-      z.object({ category: expenseCategorySchema, amountCents: z.number().int() }),
-    ),
+    expensesByCategory: z.array(expensesByCategoryItemSchema),
     expensesTotalCents: z.number().int(),
     /** Sales plus fees minus cost of goods sold minus expenses. */
     resultCents: z.number().int(),

@@ -32,7 +32,9 @@ function writeCell(cell: CsvCell): string {
 }
 
 /** Header first, then one line per row, each ended by CRLF (RFC 4180). */
-export function toCsv(p: { header: string[]; rows: CsvCell[][] }): string {
-  const lines = [p.header, ...p.rows].map((row) => row.map((cell) => writeCell(cell)).join(','))
+export function toCsv(input: { header: string[]; rows: CsvCell[][] }): string {
+  const lines = [input.header, ...input.rows].map((row) =>
+    row.map((cell) => writeCell(cell)).join(','),
+  )
   return lines.map((line) => line + LINE_END).join('')
 }

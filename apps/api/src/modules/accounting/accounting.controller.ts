@@ -12,7 +12,7 @@ import { z } from 'zod'
 import { AdminOnly, Session } from '../auth/auth.decorator'
 import { LoggedInBetterAuthSession } from '../auth/auth.config'
 import { AuthGuard } from '../auth/auth.guard'
-import { AccountingMapper } from './accounting.mapper'
+import { ExpenseMapper } from './expense.mapper'
 import {
   exportNameSchema,
   type ExportName,
@@ -41,7 +41,7 @@ import { ProfitAndLossService } from './profit-and-loss.service'
 export class AdminExpensesController {
   constructor(
     private readonly expenses: ExpensesService,
-    private readonly mapper: AccountingMapper,
+    private readonly mapper: ExpenseMapper,
   ) {}
 
   @TypedRoute.Get('', expenseListSchema)

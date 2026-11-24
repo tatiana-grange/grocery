@@ -54,7 +54,8 @@ export class ProfitAndLossService {
       category,
       amountCents: byCategory.get(category) ?? 0,
     }))
-    const expensesTotalCents = expensesByCategory.reduce((sum, row) => sum + row.amountCents, 0)
+    let expensesTotalCents = 0
+    for (const row of expensesByCategory) expensesTotalCents += row.amountCents
 
     return {
       from: period.from,

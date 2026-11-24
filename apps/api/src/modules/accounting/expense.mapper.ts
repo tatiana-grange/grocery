@@ -4,7 +4,7 @@ import type { ExpenseRow } from './expenses.service'
 
 /** Turns expense rows into the contracts the controllers return. */
 @Injectable()
-export class AccountingMapper {
+export class ExpenseMapper {
   /** The user who recorded the row must be loaded. */
   toExpense({ expense, cancelledByExpenseId }: ExpenseRow): ExpenseDto {
     return {
@@ -24,18 +24,18 @@ export class AccountingMapper {
     }
   }
 
-  toExpenseList(p: {
+  toExpenseList(input: {
     items: ExpenseRow[]
     total: number
     pagination: ExpensePagination
   }): ExpenseList {
     return {
-      data: p.items.map((row) => this.toExpense(row)),
+      data: input.items.map((row) => this.toExpense(row)),
       meta: {
-        itemCount: p.total,
-        pageSize: p.pagination.pageSize,
-        offset: p.pagination.offset,
-        hasMore: p.pagination.offset + p.pagination.pageSize < p.total,
+        itemCount: input.total,
+        pageSize: input.pagination.pageSize,
+        offset: input.pagination.offset,
+        hasMore: input.pagination.offset + input.pagination.pageSize < input.total,
       },
     }
   }

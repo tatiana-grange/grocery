@@ -1,3 +1,5 @@
+import type { PeriodQuery } from './contracts/period.contract'
+
 /** The time zone every period and every "day" of the accounting module is read in. */
 export const COOPERATIVE_TIME_ZONE = 'Europe/Paris'
 
@@ -19,6 +21,11 @@ const parisParts = new Intl.DateTimeFormat('en-CA', {
   second: '2-digit',
 })
 
+/** `YYYY-MM-DD` from the year, month and day parts of a formatted date. */
+function formatDay({ year, month, day }: Record<string, string>): string {
+  return `${year}-${month}-${day}`
+}
+
 function readParisParts(instant: Date): Record<string, string> {
   const parts: Record<string, string> = {}
   for (const part of parisParts.formatToParts(instant)) parts[part.type] = part.value
@@ -38,8 +45,7 @@ export function isCalendarDay(value: string): boolean {
 
 /** The calendar day, in Paris, that an instant falls on. */
 export function toParisDay(instant: Date): string {
-  const { year, month, day } = readParisParts(instant)
-  return `${year}-${month}-${day}`
+  return formatDay(readParisParts(instant))
 }
 
 /**
@@ -53,7 +59,7 @@ export function startOfParisDay(day: string): Date {
   for (const offsetHours of [1, 2]) {
     const candidate = new Date(utcMidnight - offsetHours * 3_600_000)
     const parts = readParisParts(candidate)
-    if (`${parts.year}-${parts.month}-${parts.day}` === day && parts.hour === '00') {
+    if (formatDay(parts) === day && parts.hour === '00') {
       return candidate
     }
   }
@@ -69,9 +75,9 @@ function nextDay(day: string): string {
  * Turns two calendar days, both included, into the two instants that bound the period in Paris:
  * a row belongs to it when `startsAt <= time < endsBefore`.
  */
-export function readPeriod(p: { from: string; to: string }): PeriodBounds {
-  if (p.from > p.to) throw new RangeError('The period starts after it ends')
-  return { startsAt: startOfParisDay(p.from), endsBefore: startOfParisDay(nextDay(p.to)) }
+export function readPeriod(query: PeriodQuery): PeriodBounds {
+  if (query.from > query.to) throw new RangeError('The period starts after it ends')
+  return { startsAt: startOfParisDay(query.from), endsBefore: startOfParisDay(nextDay(query.to)) }
 }
 
 /** What the services read: the two days as written, and the two instants that bound them. */
@@ -80,6 +86,6 @@ export interface Period extends PeriodBounds {
   to: string
 }
 
-export function toPeriod(p: { from: string; to: string }): Period {
-  return { from: p.from, to: p.to, ...readPeriod(p) }
+export function toPeriod(query: PeriodQuery): Period {
+  return { from: query.from, to: query.to, ...readPeriod(query) }
 }

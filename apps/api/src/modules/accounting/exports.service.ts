@@ -15,25 +15,82 @@ import type { ExportName } from './contracts/accounting.contract'
 import { type CsvCell, toCsv } from './csv.util'
 import { type Period, toParisDay } from './period.util'
 
-type Row = Record<string, unknown>
+type Instant = string | Date
 
-/** A quantity from the database (`'1.500'`, `'-2.000'`) as a plain decimal (`1.5`, `-2`). */
-function plainQuantity(value: unknown): number {
-  return Number(value)
+interface WalletMovementRow {
+  id: string
+  createdAt: Instant
+  membershipNumber: string
+  memberName: string
+  reason: string
+  paymentMethod: string | null
+  amountCents: string | number
+  handoverId: string | null
+  note: string | null
+}
+
+interface SaleRow {
+  handoverId: string
+  createdAt: Instant
+  kind: string
+  reversesHandoverId: string | null
+  membershipNumber: string
+  memberName: string
+  product: string
+  handedQuantity: string
+  unitPriceAmountCents: string | number
+  lineTotalAmountCents: string | number
+  costCents: string | number
+}
+
+interface PurchaseRow {
+  receptionId: string
+  receivedAt: Instant
+  supplierOrderId: string
+  supplier: string
+  product: string
+  receivedQuantity: string
+  unitCostAmountCents: string | number
+  lineTotalCents: string | number
+}
+
+interface MembershipFeeRow {
+  id: string
+  paidAt: Instant
+  membershipNumber: string
+  memberName: string
+  kind: string
+  method: string
+  amountCents: string | number
+  note: string | null
+}
+
+interface ExpenseExportRow {
+  id: string
+  day: string
+  kind: string
+  cancelsExpenseId: string | null
+  category: string
+  label: string
+  paymentMethod: string
+  amountCents: string | number
+  reason: string | null
+  recordedBy: string
+  createdAt: Instant
 }
 
 /** Text, or an empty cell when the database holds null. */
-function text(value: unknown): string | null {
-  return value === null || value === undefined ? null : String(value)
+function toTextCell(value: string | null): string | null {
+  return value
 }
 
-function amount(value: unknown): { cents: number } {
+function toAmountCell(value: string | number): { cents: number } {
   return { cents: Number(value) }
 }
 
 /** The Paris day and the UTC instant of a row's time: the two leading columns of most exports. */
-function when(value: unknown): [string, string] {
-  const instant = new Date(value as string | Date)
+function toInstantCells(value: Instant): [string, string] {
+  const instant = new Date(value)
   return [toParisDay(instant), instant.toISOString()]
 }
 
@@ -46,13 +103,13 @@ function when(value: unknown): [string, string] {
 export class ExportsService {
   constructor(private readonly em: EntityManager) {}
 
-  async build(p: {
+  async build(input: {
     exportName: ExportName
     period: Period
   }): Promise<{ fileName: string; csv: string }> {
-    const { header, rows } = await this.read(p.exportName, p.period)
+    const { header, rows } = await this.read(input.exportName, input.period)
     return {
-      fileName: `grocery-${p.exportName}-${p.period.from}-${p.period.to}.csv`,
+      fileName: `grocery-${input.exportName}-${input.period.from}-${input.period.to}.csv`,
       csv: toCsv({ header, rows }),
     }
   }
@@ -72,12 +129,12 @@ export class ExportsService {
     }
   }
 
-  private query(sql: string, params: string[]): Promise<Row[]> {
+  private query<T>(sql: string, params: string[]): Promise<T[]> {
     return this.em.getConnection().execute(sql, params, 'all', this.em.getTransactionContext())
   }
 
   private async walletMovements(period: Period) {
-    const rows = await this.query(
+    const rows = await this.query<WalletMovementRow>(
       `select we."id", we."createdAt", m."membershipNumber", u."name" as "memberName",
               we."reason", we."paymentMethod", we."amountCents", we."handoverId", we."note"
          from "walletEntry" we
@@ -100,22 +157,22 @@ export class ExportsService {
         'handoverId',
         'note',
       ],
-      rows: rows.map((r): CsvCell[] => [
-        ...when(r.createdAt),
-        text(r.id),
-        text(r.membershipNumber),
-        text(r.memberName),
-        text(r.reason),
-        text(r.paymentMethod),
-        amount(r.amountCents),
-        text(r.handoverId),
-        text(r.note),
+      rows: rows.map((row): CsvCell[] => [
+        ...toInstantCells(row.createdAt),
+        toTextCell(row.id),
+        toTextCell(row.membershipNumber),
+        toTextCell(row.memberName),
+        toTextCell(row.reason),
+        toTextCell(row.paymentMethod),
+        toAmountCell(row.amountCents),
+        toTextCell(row.handoverId),
+        toTextCell(row.note),
       ]),
     }
   }
 
   private async sales(period: Period) {
-    const rows = await this.query(
+    const rows = await this.query<SaleRow>(
       `select h."id" as "handoverId", h."createdAt", h."kind", h."reversesHandoverId",
               m."membershipNumber", u."name" as "memberName", ol."productNameSnapshot" as "product",
               hl."handedQuantity", hl."unitPriceAmountCents", hl."lineTotalAmountCents",
@@ -146,24 +203,24 @@ export class ExportsService {
         'lineTotalEur',
         'costOfGoodsEur',
       ],
-      rows: rows.map((r): CsvCell[] => [
-        ...when(r.createdAt),
-        text(r.handoverId),
-        text(r.kind),
-        text(r.reversesHandoverId),
-        text(r.membershipNumber),
-        text(r.memberName),
-        text(r.product),
-        plainQuantity(r.handedQuantity),
-        amount(r.unitPriceAmountCents),
-        amount(r.lineTotalAmountCents),
-        amount(r.costCents),
+      rows: rows.map((row): CsvCell[] => [
+        ...toInstantCells(row.createdAt),
+        toTextCell(row.handoverId),
+        toTextCell(row.kind),
+        toTextCell(row.reversesHandoverId),
+        toTextCell(row.membershipNumber),
+        toTextCell(row.memberName),
+        toTextCell(row.product),
+        Number(row.handedQuantity),
+        toAmountCell(row.unitPriceAmountCents),
+        toAmountCell(row.lineTotalAmountCents),
+        toAmountCell(row.costCents),
       ]),
     }
   }
 
   private async purchases(period: Period) {
-    const rows = await this.query(
+    const rows = await this.query<PurchaseRow>(
       `select r."id" as "receptionId", r."receivedAt", r."supplierOrderId", s."name" as "supplier",
               p."name" as "product", rl."receivedQuantity", rl."unitCostAmountCents",
               round(rl."receivedQuantity" * rl."unitCostAmountCents") as "lineTotalCents"
@@ -189,21 +246,21 @@ export class ExportsService {
         'unitCostEur',
         'lineTotalEur',
       ],
-      rows: rows.map((r): CsvCell[] => [
-        ...when(r.receivedAt),
-        text(r.receptionId),
-        text(r.supplierOrderId),
-        text(r.supplier),
-        text(r.product),
-        plainQuantity(r.receivedQuantity),
-        amount(r.unitCostAmountCents),
-        amount(r.lineTotalCents),
+      rows: rows.map((row): CsvCell[] => [
+        ...toInstantCells(row.receivedAt),
+        toTextCell(row.receptionId),
+        toTextCell(row.supplierOrderId),
+        toTextCell(row.supplier),
+        toTextCell(row.product),
+        Number(row.receivedQuantity),
+        toAmountCell(row.unitCostAmountCents),
+        toAmountCell(row.lineTotalCents),
       ]),
     }
   }
 
   private async membershipFees(period: Period) {
-    const rows = await this.query(
+    const rows = await this.query<MembershipFeeRow>(
       `select mp."id", mp."paidAt", m."membershipNumber", u."name" as "memberName", mp."kind",
               mp."method", mp."amountCents", mp."note"
          from "membershipPayment" mp
@@ -226,22 +283,22 @@ export class ExportsService {
         'amountEur',
         'note',
       ],
-      rows: rows.map((r): CsvCell[] => [
-        ...when(r.paidAt),
-        text(r.id),
-        text(r.membershipNumber),
-        text(r.memberName),
-        text(r.kind),
-        text(r.method),
-        amount(r.amountCents),
-        text(r.note),
+      rows: rows.map((row): CsvCell[] => [
+        ...toInstantCells(row.paidAt),
+        toTextCell(row.id),
+        toTextCell(row.membershipNumber),
+        toTextCell(row.memberName),
+        toTextCell(row.kind),
+        toTextCell(row.method),
+        toAmountCell(row.amountCents),
+        toTextCell(row.note),
       ]),
     }
   }
 
   private async expenses(period: Period) {
     // `to_char` hands the day back as text: a `date` column would come back as a JS Date.
-    const rows = await this.query(
+    const rows = await this.query<ExpenseExportRow>(
       `select e."id", to_char(e."spentOn", 'YYYY-MM-DD') as "day", e."kind", e."cancelsExpenseId",
               e."category", e."label", e."paymentMethod", e."amountCents", e."reason",
               u."name" as "recordedBy", e."createdAt"
@@ -265,18 +322,18 @@ export class ExportsService {
         'recordedBy',
         'recordedAt',
       ],
-      rows: rows.map((r): CsvCell[] => [
-        text(r.day),
-        text(r.id),
-        text(r.kind),
-        text(r.cancelsExpenseId),
-        text(r.category),
-        text(r.label),
-        text(r.paymentMethod),
-        amount(r.amountCents),
-        text(r.reason),
-        text(r.recordedBy),
-        new Date(r.createdAt as string | Date).toISOString(),
+      rows: rows.map((row): CsvCell[] => [
+        toTextCell(row.day),
+        toTextCell(row.id),
+        toTextCell(row.kind),
+        toTextCell(row.cancelsExpenseId),
+        toTextCell(row.category),
+        toTextCell(row.label),
+        toTextCell(row.paymentMethod),
+        toAmountCell(row.amountCents),
+        toTextCell(row.reason),
+        toTextCell(row.recordedBy),
+        new Date(row.createdAt).toISOString(),
       ]),
     }
   }

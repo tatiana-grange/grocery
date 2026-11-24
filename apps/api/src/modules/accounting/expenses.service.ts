@@ -40,18 +40,18 @@ export class ExpensesService {
    * a P&L already given for a past period never changes. This is the only way an expense becomes
    * cancelled, and it is final: the unique index on `cancelsExpenseId` backs the checks below.
    */
-  async cancel(p: {
+  async cancel(input: {
     expenseId: string
     reason: string
     recordedByUserId: string
     now?: Date
   }): Promise<ExpenseRow> {
-    const now = p.now ?? new Date()
+    const now = input.now ?? new Date()
     try {
       return await this.em.transactional(async (tem) => {
         const expense = await tem.findOne(
           Expense,
-          { id: p.expenseId },
+          { id: input.expenseId },
           { populate: ['recordedByUser'] },
         )
         if (!expense) throw new NotFoundException('Expense not found')
@@ -61,7 +61,8 @@ export class ExpensesService {
             'A cancellation cannot itself be cancelled',
           )
         }
-        if (await tem.count(Expense, { cancelsExpense: expense.id })) throw this.alreadyCancelled()
+        if (await tem.count(Expense, { cancelsExpense: expense.id }))
+          throw this.toAlreadyCancelledRefusal()
 
         const cancellation = new Expense()
         cancellation.spentOn = toParisDay(now)
@@ -71,20 +72,21 @@ export class ExpensesService {
         cancellation.paymentMethod = expense.paymentMethod
         cancellation.kind = 'cancellation'
         cancellation.cancelsExpense = expense
-        cancellation.reason = p.reason
-        cancellation.recordedByUser = tem.getReference(User, p.recordedByUserId)
+        cancellation.reason = input.reason
+        cancellation.recordedByUser = tem.getReference(User, input.recordedByUserId)
         cancellation.createdAt = now
         tem.persist(cancellation)
         await tem.flush()
         return { expense, cancelledByExpenseId: cancellation.id }
       })
     } catch (error) {
-      if (error instanceof UniqueConstraintViolationException) throw this.alreadyCancelled()
+      if (error instanceof UniqueConstraintViolationException)
+        throw this.toAlreadyCancelledRefusal()
       throw error
     }
   }
 
-  private alreadyCancelled() {
+  private toAlreadyCancelledRefusal() {
     return refusal(
       'already_cancelled' satisfies ExpenseCancelRefusal,
       'This expense was already cancelled',
@@ -92,17 +94,17 @@ export class ExpensesService {
   }
 
   /** Rows whose day is in the period, newest day first. */
-  async list(p: { period: Period } & ExpensePagination): Promise<{
+  async list(input: { period: Period } & ExpensePagination): Promise<{
     items: ExpenseRow[]
     total: number
   }> {
     const [expenses, total] = await this.em.findAndCount(
       Expense,
-      { spentOn: { $gte: p.period.from, $lte: p.period.to } },
+      { spentOn: { $gte: input.period.from, $lte: input.period.to } },
       {
         orderBy: { spentOn: QueryOrder.DESC, createdAt: QueryOrder.DESC, id: QueryOrder.ASC },
-        limit: p.pageSize,
-        offset: p.offset,
+        limit: input.pageSize,
+        offset: input.offset,
         populate: ['recordedByUser'],
       },
     )

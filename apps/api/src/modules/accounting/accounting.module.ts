@@ -1,7 +1,7 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
 import { AdminAccountingController, AdminExpensesController } from './accounting.controller'
-import { AccountingMapper } from './accounting.mapper'
+import { ExpenseMapper } from './expense.mapper'
 import { Expense } from './entities/expense.entity'
 import { ExpensesService } from './expenses.service'
 import { ExportsService } from './exports.service'
@@ -14,6 +14,6 @@ import { ProfitAndLossService } from './profit-and-loss.service'
 @Module({
   imports: [MikroOrmModule.forFeature([Expense])],
   controllers: [AdminExpensesController, AdminAccountingController],
-  providers: [ExpensesService, ProfitAndLossService, ExportsService, AccountingMapper],
+  providers: [ExpensesService, ProfitAndLossService, ExportsService, ExpenseMapper],
 })
 export class AccountingModule {}
