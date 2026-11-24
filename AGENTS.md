@@ -46,9 +46,13 @@ These rules came out of the first task run with chisel (lot 5, slice 01). They s
 the chisel block, because `chisel update` rewrites the block and the files chisel installs.
 
 - **Generated migrations.** After `pnpm --filter=api db:migrate:create`, read the SQL before
-  anything else. MikroORM adds `drop index` lines for the search indexes and rewrites some auth
-  foreign keys. Remove every line that is not part of your change, and write in the worklog what
-  you removed. The Typist's brief says so, and the Mason checks it at the review.
+  anything else. MikroORM adds a `drop index` and a `create index` line for each of the eight
+  `*_search_idx` search indexes, because a migration creates them by hand and no entity declares
+  them. Declaring them on the entities would break `db:fresh:seed` and the test schema, since
+  `normalize_search` does not exist yet when the schema is built. Remove every line that is not
+  part of your change, and write in the worklog what you removed. The Typist's brief says so,
+  and the Mason checks it at the review. Run `pnpm --filter=api exec mikro-orm schema:update
+  --dump` against a migrated database to see the difference without writing a file.
 - **A "final" status needs a reason.** When a plan makes a state final (`failed`, `paid`, and so
   on), the work document says why it is final and lists every input that can reach it. The Mason
   and the `code-review` reviewers check that list. A state reachable from an input nobody listed
