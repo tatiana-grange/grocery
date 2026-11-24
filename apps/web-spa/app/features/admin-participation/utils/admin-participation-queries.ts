@@ -9,12 +9,20 @@ import {
   adminSlotsControllerUpdate,
 } from '@grocery/openapi-generator/client/sdk.gen'
 import type { SlotInput } from '@grocery/openapi-generator/client/types.gen'
+import type { QueryClient } from '@tanstack/react-query'
+import { PARTICIPATION_QUERY_KEY } from '@/features/participation/utils/participation-queries'
 import { unwrap } from '@/lib/api-client'
 
 export const ADMIN_SLOTS_PAGE_SIZE = 50
 
 /** Every key the back-office slot screens cache starts with this, so one call refreshes them all. */
 export const ADMIN_PARTICIPATION_QUERY_KEY = 'admin-participation'
+
+/** A change to a slot shows on both sides, so both caches are refreshed. */
+export function invalidateParticipation(queryClient: QueryClient): void {
+  void queryClient.invalidateQueries({ queryKey: [ADMIN_PARTICIPATION_QUERY_KEY] })
+  void queryClient.invalidateQueries({ queryKey: [PARTICIPATION_QUERY_KEY] })
+}
 
 export function adminSlotsQueryOptions({
   page,

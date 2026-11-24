@@ -721,10 +721,10 @@
       "participation": "Participation"
     },
     "title": "Participation",
-    "subtitle": "Inscrivez-vous aux créneaux dont la coopérative a besoin. Les horaires sont ceux de votre navigateur.",
+    "subtitle": "Inscrivez-vous aux créneaux dont la coopérative a besoin. Les horaires sont affichés dans le fuseau horaire de votre navigateur.",
     "mine": {
       "title": "Mes inscriptions à venir",
-      "empty": "Vous n'êtes inscrit à aucun créneau."
+      "empty": "Vous n'êtes inscrit·e à aucun créneau."
     },
     "coming": {
       "title": "Créneaux à venir",
@@ -734,11 +734,11 @@
     "placesLeft_other": "{{count}} places restantes",
     "full": "Complet",
     "signUp": "S'inscrire",
-    "signedUp": "Vous êtes inscrit",
-    "signUpDone": "Vous êtes inscrit.",
+    "signedUp": "Vous êtes inscrit·e",
+    "signUpDone": "Vous êtes inscrit·e.",
     "leave": "Se désinscrire",
-    "leaveDone": "Vous êtes désinscrit.",
-    "leaveUntil": "Vous pouvez vous désinscrire jusqu'au {{date}}.",
+    "leaveDone": "Vous êtes désinscrit·e.",
+    "leaveDeadlinePassed": "Désinscription possible jusqu'au {{date}}, ce délai est passé.",
     "cancelled": "Annulé",
     "leaveDialog": {
       "title": "Se désinscrire de ce créneau ?",
@@ -750,8 +750,8 @@
       "slot_ended": "Ce créneau est terminé.",
       "slot_started": "Ce créneau a déjà commencé.",
       "slot_full": "Ce créneau est complet.",
-      "already_signed_up": "Vous êtes déjà inscrit à ce créneau.",
-      "overlaps_another_slot": "Ce créneau chevauche un créneau auquel vous êtes déjà inscrit.",
+      "already_signed_up": "Vous êtes déjà inscrit·e à ce créneau.",
+      "overlaps_another_slot": "Ce créneau chevauche un créneau auquel vous êtes déjà inscrit·e.",
       "too_late_to_leave": "Il est trop tard pour se désinscrire : le créneau commence dans moins de 7 jours.",
       "slot_has_signups": "Ce créneau a des inscrits : la date et les heures ne peuvent plus changer, et il ne peut pas être supprimé.",
       "places_below_signups": "Le nombre de places ne peut pas être inférieur au nombre d'inscrits."
@@ -762,7 +762,7 @@
       "participation": "Participation"
     },
     "title": "Participation",
-    "subtitle": "Les créneaux dont la coopérative a besoin, et les adhérents qui s'y sont inscrits. Les horaires sont ceux de votre navigateur.",
+    "subtitle": "Les créneaux dont la coopérative a besoin, et les adhérents qui s'y sont inscrits. Les horaires sont affichés dans le fuseau horaire de votre navigateur.",
     "showPast": "Afficher les créneaux passés",
     "new": "Nouveau créneau",
     "empty": "Aucun créneau.",
@@ -793,7 +793,7 @@
       "created": "Créneau créé.",
       "updated": "Créneau modifié.",
       "error": {
-        "roleLabel": "Saisissez un rôle de 1 à 120 caractères.",
+        "roleLabel": "Saisissez un rôle de 1 à {{max}} caractères.",
         "date": "Choisissez un jour.",
         "time": "Choisissez une heure.",
         "endBeforeStart": "La fin doit être après le début.",
@@ -802,6 +802,7 @@
     },
     "cancel": {
       "title": "Annuler ce créneau ?",
+      "warning_zero": "Cette action est définitive : un créneau annulé ne revient jamais.",
       "warning_one": "Cette action est définitive : un créneau annulé ne revient jamais. {{count}} inscrit le verra marqué comme annulé.",
       "warning_other": "Cette action est définitive : un créneau annulé ne revient jamais. {{count}} inscrits le verront marqué comme annulé.",
       "keep": "Garder le créneau",

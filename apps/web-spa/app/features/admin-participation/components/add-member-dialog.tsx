@@ -14,11 +14,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { membersListQueryOptions } from '@/features/admin-members/utils/admin-members-queries'
 import {
-  ADMIN_PARTICIPATION_QUERY_KEY,
+  invalidateParticipation,
   signUpMember,
 } from '@/features/admin-participation/utils/admin-participation-queries'
-import { PARTICIPATION_QUERY_KEY } from '@/features/participation/utils/participation-queries'
-import { participationRefusalMessage } from '@/features/participation/utils/participation-refusal'
+import { getParticipationRefusalMessage } from '@/features/participation/utils/participation-refusal'
 import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 
 interface AddMemberDialogProps {
@@ -44,10 +43,9 @@ export function AddMemberDialog({ slot, onClose }: AddMemberDialogProps) {
   const mutation = useMutation({
     mutationFn: (memberId: string) => signUpMember(slot.id, memberId),
     onSuccess: () => toast.success(t('adminParticipation.addMember.done')),
-    onError: (error) => toast.error(participationRefusalMessage(error, t) ?? t('error.default')),
+    onError: (error) => toast.error(getParticipationRefusalMessage(error, t) ?? t('error.default')),
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: [ADMIN_PARTICIPATION_QUERY_KEY] })
-      void queryClient.invalidateQueries({ queryKey: [PARTICIPATION_QUERY_KEY] })
+      invalidateParticipation(queryClient)
       onClose()
     },
   })

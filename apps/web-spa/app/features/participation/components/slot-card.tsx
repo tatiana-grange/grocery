@@ -2,7 +2,7 @@ import type { MemberSlot } from '@grocery/openapi-generator/client/types.gen'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { useTranslation } from 'react-i18next'
-import { formatSlotDay, formatSlotTimes } from '@/features/participation/utils/participation-format'
+import { formatSlotWhen } from '@/features/participation/utils/participation-format'
 
 interface SlotCardProps {
   slot: MemberSlot
@@ -23,8 +23,7 @@ export function SlotCard({ slot, isPending, onSignUp }: SlotCardProps) {
       <div className="min-w-0 flex-1">
         <p className="font-medium">{slot.roleLabel}</p>
         <p className="text-sm text-muted-foreground">
-          {formatSlotDay(slot.startsAt, i18n.language)},{' '}
-          {formatSlotTimes(slot.startsAt, slot.endsAt, i18n.language)}
+          {formatSlotWhen(slot.startsAt, slot.endsAt, i18n.language)}
         </p>
       </div>
       {isFull ? (

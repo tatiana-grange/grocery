@@ -1,11 +1,21 @@
-import { E2E, E2E_PARTICIPATION, storageStatePath } from '../env'
-import { expect, test, withRole } from '../fixtures'
-import { signUpAs, slotIdByLabel } from '../participation'
+import { E2E_PARTICIPATION, E2E_USER_NAMES } from '../env'
+import { expect, newRolePage, test, withRole } from '../fixtures'
+import {
+  createApiContextAs,
+  findMySignup,
+  findSlotCard,
+  findSlotIdByLabel,
+  signUpAs,
+} from '../participation'
 
 type Page = import('@playwright/test').Page
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const MEMBER_FIRST_NAME = 'Milo'
+/**
+ * The first name only: the profile journey renames the seeded member, and the reset keeps the
+ * account tables, so the last name depends on which spec ran first.
+ */
+const MEMBER_FIRST_NAME = E2E_USER_NAMES.member.split(' ')[0]!
 
 function slotRow(page: Page, roleLabel: string) {
   return page.locator('[data-testid^="slot-row-"]').filter({ hasText: roleLabel })
@@ -19,19 +29,26 @@ function localDate(daysAhead: number): string {
   return `${date.getFullYear()}-${month}-${day}`
 }
 
+/** A slot that ended yesterday. Only the API can make one: the form starts from today. */
+async function createPastSlot(roleLabel: string) {
+  const api = await createApiContextAs('admin')
+  const startsAt = new Date(Date.now() - 2 * DAY_MS)
+  const response = await api.post('/api/admin/slots', {
+    data: {
+      roleLabel,
+      startsAt: startsAt.toISOString(),
+      endsAt: new Date(startsAt.getTime() + DAY_MS).toISOString(),
+      places: 2,
+    },
+  })
+  expect(response.ok(), await response.text()).toBeTruthy()
+  await api.dispose()
+}
+
 async function openDetail(page: Page, roleLabel: string) {
   await page.goto('/admin/slots')
   await slotRow(page, roleLabel).getByTestId('row-open').click()
   await expect(page.getByTestId('page-slot-detail')).toBeVisible()
-}
-
-async function memberPage(browser: import('@playwright/test').Browser) {
-  const context = await browser.newContext({
-    baseURL: E2E.webUrl,
-    locale: 'fr-FR',
-    storageState: storageStatePath('member'),
-  })
-  return { context, page: await context.newPage() }
 }
 
 test.describe('participation, côté administrateur', () => {
@@ -61,16 +78,10 @@ test.describe('participation, côté administrateur', () => {
     await expect(row).toBeVisible()
     await expect(row.getByTestId('row-count')).toContainText('0 / 2')
 
-    const member = await memberPage(browser)
+    const member = await newRolePage(browser, 'member')
     await member.page.goto('/participation')
-    await member.page
-      .locator('[data-testid^="slot-card-"]')
-      .filter({ hasText: roleLabel })
-      .getByTestId('slot-signup')
-      .click()
-    await expect(
-      member.page.locator('[data-testid^="my-signup-"]').filter({ hasText: roleLabel }),
-    ).toBeVisible()
+    await findSlotCard(member.page, roleLabel).getByTestId('slot-signup').click()
+    await expect(findMySignup(member.page, roleLabel)).toBeVisible()
     await member.context.close()
 
     await openDetail(page, roleLabel)
@@ -81,7 +92,7 @@ test.describe('participation, côté administrateur', () => {
     page,
   }) => {
     const { roleLabel } = E2E_PARTICIPATION.threeDay
-    await signUpAs('member', await slotIdByLabel(roleLabel))
+    await signUpAs('member', await findSlotIdByLabel(roleLabel))
 
     await openDetail(page, roleLabel)
     const signups = page.getByTestId('slot-detail-signups')
@@ -98,7 +109,7 @@ test.describe('participation, côté administrateur', () => {
     browser,
   }) => {
     const { roleLabel } = E2E_PARTICIPATION.tenDay
-    const slotId = await slotIdByLabel(roleLabel)
+    const slotId = await findSlotIdByLabel(roleLabel)
     await signUpAs('member', slotId)
 
     await openDetail(page, roleLabel)
@@ -109,7 +120,7 @@ test.describe('participation, côté administrateur', () => {
     await page.getByTestId('cancel-slot-confirm').click()
     await expect(page.getByTestId('slot-detail-cancelled')).toBeVisible()
 
-    const member = await memberPage(browser)
+    const member = await newRolePage(browser, 'member')
     await member.page.goto('/participation')
     const mine = member.page.locator(`[data-testid="my-signup-${slotId}"]`)
     await expect(mine).toBeVisible()
@@ -129,9 +140,55 @@ test.describe('participation, côté administrateur', () => {
     await expect(slotRow(page, roleLabel)).toHaveCount(0)
   })
 
+  test("l'admin inscrit un adhérent depuis la fiche du créneau", async ({ page, browser }) => {
+    const { roleLabel } = E2E_PARTICIPATION.twelveDay
+    await openDetail(page, roleLabel)
+
+    await page.getByTestId('slot-detail-add-member').click()
+    await page.getByTestId('add-member-search').fill(MEMBER_FIRST_NAME)
+    await page
+      .locator('[data-testid^="add-member-option-"]')
+      .filter({ hasText: MEMBER_FIRST_NAME })
+      .click()
+
+    await expect(page.getByTestId('slot-detail-signups')).toContainText(MEMBER_FIRST_NAME)
+
+    const member = await newRolePage(browser, 'member')
+    await member.page.goto('/participation')
+    await expect(findMySignup(member.page, roleLabel)).toBeVisible()
+    await member.context.close()
+  })
+
+  test("l'admin modifie le rôle et les places d'un créneau", async ({ page }) => {
+    const { roleLabel } = E2E_PARTICIPATION.twelveDay
+    const renamed = 'Accueil E2E'
+    await openDetail(page, roleLabel)
+
+    await page.getByTestId('slot-detail-edit').click()
+    await page.getByTestId('slot-form-role').fill(renamed)
+    await page.getByTestId('slot-form-places').fill('5')
+    await page.getByTestId('slot-form-submit').click()
+
+    await expect(page.getByTestId('slot-form-dialog')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: renamed })).toBeVisible()
+    await expect(page.getByTestId('slot-detail-count')).toContainText('0 / 5')
+  })
+
+  test("l'admin ne voit les créneaux passés qu'avec le bouton prévu", async ({ page }) => {
+    const pastLabel = 'Créneau passé E2E'
+    await createPastSlot(pastLabel)
+    await page.goto('/admin/slots')
+    await expect(page.getByTestId('page-slots-list')).toBeVisible()
+    await expect(slotRow(page, pastLabel)).toHaveCount(0)
+
+    await page.getByTestId('slots-show-past').click()
+
+    await expect(slotRow(page, pastLabel)).toBeVisible()
+  })
+
   test("l'admin ne peut pas descendre les places sous le nombre d'inscrits", async ({ page }) => {
     const { roleLabel } = E2E_PARTICIPATION.tenDay
-    const slotId = await slotIdByLabel(roleLabel)
+    const slotId = await findSlotIdByLabel(roleLabel)
     await signUpAs('member', slotId)
     await signUpAs('admin', slotId)
 

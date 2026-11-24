@@ -19,6 +19,11 @@ export function formatSlotTimes(startsAt: string, endsAt: string, locale: string
   return `${time.format(new Date(startsAt))} – ${time.format(new Date(endsAt))}`
 }
 
+/** The day and the times together, as a slot is shown in a list. */
+export function formatSlotWhen(startsAt: string, endsAt: string, locale: string): string {
+  return `${formatSlotDay(startsAt, locale)}, ${formatSlotTimes(startsAt, endsAt, locale)}`
+}
+
 export function formatDeadline(deadline: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, { ...DAY_FORMAT, ...TIME_FORMAT }).format(
     new Date(deadline),

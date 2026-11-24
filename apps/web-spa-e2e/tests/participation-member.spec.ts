@@ -1,19 +1,15 @@
 import { E2E_PARTICIPATION } from '../env'
 import { expect, test, withRole } from '../fixtures'
-import { apiAs, signUpAs, slotIdByLabel } from '../participation'
-
-type Page = import('@playwright/test').Page
+import {
+  createApiContextAs,
+  findMySignup,
+  findSlotCard,
+  findSlotIdByLabel,
+  signUpAs,
+} from '../participation'
 
 const HOUR_MS = 60 * 60 * 1000
 const DAY_MS = 24 * HOUR_MS
-
-function slotCard(page: Page, roleLabel: string) {
-  return page.locator('[data-testid^="slot-card-"]').filter({ hasText: roleLabel })
-}
-
-function mySignup(page: Page, roleLabel: string) {
-  return page.locator('[data-testid^="my-signup-"]').filter({ hasText: roleLabel })
-}
 
 test.describe('participation, côté adhérent', () => {
   test.use(withRole('member'))
@@ -29,24 +25,24 @@ test.describe('participation, côté adhérent', () => {
     await page.goto('/participation')
     await expect(page.getByTestId('page-participation')).toBeVisible()
 
-    const card = slotCard(page, roleLabel)
+    const card = findSlotCard(page, roleLabel)
     await expect(card.getByTestId('slot-places')).toContainText('2 places')
     await expect(page.getByTestId('my-signups-empty')).toBeVisible()
 
     await card.getByTestId('slot-signup').click()
 
-    await expect(mySignup(page, roleLabel)).toBeVisible()
+    await expect(findMySignup(page, roleLabel)).toBeVisible()
     await expect(card.getByTestId('slot-places')).toContainText('1 place')
     await expect(card.getByTestId('slot-signup')).toBeDisabled()
     await expect(card.getByTestId('slot-signup')).toContainText('inscrit')
 
     // The slot is ten days out, so leaving is still allowed.
-    const row = mySignup(page, roleLabel)
+    const row = findMySignup(page, roleLabel)
     await expect(row.getByTestId('signup-leave')).toBeEnabled()
     await row.getByTestId('signup-leave').click()
     await page.getByTestId('leave-confirm').click()
 
-    await expect(mySignup(page, roleLabel)).toHaveCount(0)
+    await expect(findMySignup(page, roleLabel)).toHaveCount(0)
     await expect(card.getByTestId('slot-places')).toContainText('2 places')
     await expect(card.getByTestId('slot-signup')).toBeEnabled()
   })
@@ -55,9 +51,9 @@ test.describe('participation, côté adhérent', () => {
     const { roleLabel } = E2E_PARTICIPATION.threeDay
     await page.goto('/participation')
 
-    await slotCard(page, roleLabel).getByTestId('slot-signup').click()
+    await findSlotCard(page, roleLabel).getByTestId('slot-signup').click()
 
-    const row = mySignup(page, roleLabel)
+    const row = findMySignup(page, roleLabel)
     await expect(row).toBeVisible()
     await expect(row.getByTestId('signup-leave')).toBeDisabled()
     await expect(row.getByTestId('signup-deadline')).toContainText("jusqu'au")
@@ -67,7 +63,7 @@ test.describe('participation, côté adhérent', () => {
     page,
   }) => {
     const start = Date.now() + 20 * DAY_MS
-    const api = await apiAs('admin')
+    const api = await createApiContextAs('admin')
     for (const [roleLabel, from, to] of [
       ['Chevauchement A', start, start + 2 * HOUR_MS],
       ['Chevauchement B', start + HOUR_MS, start + 3 * HOUR_MS],
@@ -85,24 +81,24 @@ test.describe('participation, côté adhérent', () => {
     await api.dispose()
 
     await page.goto('/participation')
-    await slotCard(page, 'Chevauchement A').getByTestId('slot-signup').click()
-    await expect(mySignup(page, 'Chevauchement A')).toBeVisible()
+    await findSlotCard(page, 'Chevauchement A').getByTestId('slot-signup').click()
+    await expect(findMySignup(page, 'Chevauchement A')).toBeVisible()
 
-    await slotCard(page, 'Chevauchement B').getByTestId('slot-signup').click()
+    await findSlotCard(page, 'Chevauchement B').getByTestId('slot-signup').click()
     await expect(page.getByText('chevauche').first()).toBeVisible()
-    await expect(mySignup(page, 'Chevauchement B')).toHaveCount(0)
-    await expect(slotCard(page, 'Chevauchement B').getByTestId('slot-signup')).toBeEnabled()
+    await expect(findMySignup(page, 'Chevauchement B')).toHaveCount(0)
+    await expect(findSlotCard(page, 'Chevauchement B').getByTestId('slot-signup')).toBeEnabled()
   })
 
   test('un créneau complet affiche « Complet » et son bouton est désactivé', async ({ page }) => {
     const { roleLabel } = E2E_PARTICIPATION.twelveDay
-    const slotId = await slotIdByLabel(roleLabel)
+    const slotId = await findSlotIdByLabel(roleLabel)
 
     // The admin is a member too: they take the one place.
     await signUpAs('admin', slotId)
 
     await page.goto('/participation')
-    const card = slotCard(page, roleLabel)
+    const card = findSlotCard(page, roleLabel)
     await expect(card.getByTestId('slot-full')).toContainText('Complet')
     await expect(card.getByTestId('slot-signup')).toBeDisabled()
   })

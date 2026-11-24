@@ -31,7 +31,7 @@ test('toutes les routes rendent leur contenu propre', async ({ page }) => {
   const slotsRes = await page.request.get(`${E2E.apiUrl}/api/admin/slots?offset=0&pageSize=1`)
   expect(slotsRes.ok(), await slotsRes.text()).toBeTruthy()
   const slots = (await slotsRes.json()).data as { id: string }[]
-  expect(slots.length, 'la baseline seedée doit contenir au moins un créneau').toBeGreaterThan(0)
+  expect(slots.length, 'the seeded baseline must hold at least one slot').toBeGreaterThan(0)
   const slotId = slots[0].id
 
   const routes: { path: string; testId: string }[] = [

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { LeaveDialog } from '@/features/participation/components/leave-dialog'
 import { MySignupRow } from '@/features/participation/components/my-signup-row'
 import { SlotCard } from '@/features/participation/components/slot-card'
-import { participationRefusalMessage } from '@/features/participation/utils/participation-refusal'
+import { getParticipationRefusalMessage } from '@/features/participation/utils/participation-refusal'
 import {
   comingSlotsQueryOptions,
   mySignupsQueryOptions,
@@ -26,7 +26,7 @@ export default function ParticipationPage() {
   const signUp = useMutation({
     mutationFn: signUpToSlot,
     onSuccess: () => toast.success(t('participation.signUpDone')),
-    onError: (error) => toast.error(participationRefusalMessage(error, t) ?? t('error.default')),
+    onError: (error) => toast.error(getParticipationRefusalMessage(error, t) ?? t('error.default')),
     onSettled: () => queryClient.invalidateQueries({ queryKey: [PARTICIPATION_QUERY_KEY] }),
   })
 

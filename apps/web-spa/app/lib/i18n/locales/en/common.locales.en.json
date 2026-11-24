@@ -723,12 +723,12 @@
     "title": "Participation",
     "subtitle": "Sign up for the slots the cooperative needs people for. Times are shown in your browser's time zone.",
     "mine": {
-      "title": "My coming sign-ups",
+      "title": "My upcoming sign-ups",
       "empty": "You are not signed up for any slot."
     },
     "coming": {
-      "title": "Coming slots",
-      "empty": "No coming slot for now."
+      "title": "Upcoming slots",
+      "empty": "No upcoming slots for now."
     },
     "placesLeft_one": "{{count}} place left",
     "placesLeft_other": "{{count}} places left",
@@ -738,7 +738,7 @@
     "signUpDone": "You are signed up.",
     "leave": "Leave",
     "leaveDone": "You have left the slot.",
-    "leaveUntil": "You can leave until {{date}}.",
+    "leaveDeadlinePassed": "Leaving was possible until {{date}}.",
     "cancelled": "Cancelled",
     "leaveDialog": {
       "title": "Leave this slot?",
@@ -793,7 +793,7 @@
       "created": "Slot created.",
       "updated": "Slot updated.",
       "error": {
-        "roleLabel": "Enter a role of 1 to 120 characters.",
+        "roleLabel": "Enter a role of 1 to {{max}} characters.",
         "date": "Pick a day.",
         "time": "Pick a time.",
         "endBeforeStart": "The end must be after the start.",
@@ -802,6 +802,7 @@
     },
     "cancel": {
       "title": "Cancel this slot?",
+      "warning_zero": "This cannot be undone: a cancelled slot never comes back.",
       "warning_one": "This cannot be undone: a cancelled slot never comes back. {{count}} member signed up will see it marked as cancelled.",
       "warning_other": "This cannot be undone: a cancelled slot never comes back. {{count}} members signed up will see it marked as cancelled.",
       "keep": "Keep the slot",

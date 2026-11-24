@@ -13,13 +13,12 @@ import { CancelSlotDialog } from '@/features/admin-participation/components/canc
 import { DeleteSlotDialog } from '@/features/admin-participation/components/delete-slot-dialog'
 import { SlotFormDialog } from '@/features/admin-participation/components/slot-form-dialog'
 import {
-  ADMIN_PARTICIPATION_QUERY_KEY,
+  invalidateParticipation,
   adminSlotDetailQueryOptions,
   removeMember,
 } from '@/features/admin-participation/utils/admin-participation-queries'
-import { formatSlotDay, formatSlotTimes } from '@/features/participation/utils/participation-format'
-import { PARTICIPATION_QUERY_KEY } from '@/features/participation/utils/participation-queries'
-import { participationRefusalMessage } from '@/features/participation/utils/participation-refusal'
+import { formatSlotWhen } from '@/features/participation/utils/participation-format'
+import { getParticipationRefusalMessage } from '@/features/participation/utils/participation-refusal'
 
 type OpenDialog = 'edit' | 'cancel' | 'delete' | 'add-member' | null
 
@@ -33,11 +32,8 @@ export default function SlotDetailPage() {
   const removal = useMutation({
     mutationFn: (memberId: string) => removeMember(slotId, memberId),
     onSuccess: () => toast.success(t('adminParticipation.detail.removed')),
-    onError: (error) => toast.error(participationRefusalMessage(error, t) ?? t('error.default')),
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: [ADMIN_PARTICIPATION_QUERY_KEY] })
-      void queryClient.invalidateQueries({ queryKey: [PARTICIPATION_QUERY_KEY] })
-    },
+    onError: (error) => toast.error(getParticipationRefusalMessage(error, t) ?? t('error.default')),
+    onSettled: () => invalidateParticipation(queryClient),
   })
 
   if (isLoading || !slot) {
@@ -63,8 +59,7 @@ export default function SlotDetailPage() {
         <div>
           <PageTitle>{slot.roleLabel}</PageTitle>
           <p className="text-sm text-muted-foreground">
-            {formatSlotDay(slot.startsAt, i18n.language)},{' '}
-            {formatSlotTimes(slot.startsAt, slot.endsAt, i18n.language)}
+            {formatSlotWhen(slot.startsAt, slot.endsAt, i18n.language)}
           </p>
           <div className="mt-2 flex items-center gap-3 text-sm">
             <span className="tabular-nums" data-testid="slot-detail-count">

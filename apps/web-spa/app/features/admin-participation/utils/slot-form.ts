@@ -1,9 +1,14 @@
+import { zSlotInput } from '@grocery/openapi-generator/client/zod.gen'
 import type { TFunction } from 'i18next'
 import { z } from 'zod'
 
-/** Kept in step with `MAX_PLACES` in the API's slot contract. */
-export const MAX_PLACES = 200
-const MAX_LABEL_LENGTH = 120
+function requireBound(bound: number | null | undefined, name: string): number {
+  if (bound == null) throw new Error(`The API slot contract has no bound for ${name}`)
+  return bound
+}
+
+export const MAX_PLACES = requireBound(zSlotInput.shape.places.maxValue, 'places')
+export const MAX_LABEL_LENGTH = requireBound(zSlotInput.shape.roleLabel.maxLength, 'roleLabel')
 
 export interface SlotFormValues {
   roleLabel: string
@@ -15,16 +20,20 @@ export interface SlotFormValues {
 
 /**
  * The slot form holds plain text, as the inputs do. The rule across fields (the end is after the
- * start) is checked here, so the form can show it before anything is sent.
+ * start) is checked here, so the form can show it before anything is sent. Locked times are sent
+ * back unchanged, so they are not checked: a booked slot that crosses midnight stays editable.
  */
-export function createSlotFormSchema(t: TFunction) {
+export function createSlotFormSchema(t: TFunction, { timesLocked }: { timesLocked: boolean }) {
   return z
     .object({
       roleLabel: z
         .string()
         .trim()
-        .min(1, t('adminParticipation.form.error.roleLabel'))
-        .max(MAX_LABEL_LENGTH, t('adminParticipation.form.error.roleLabel')),
+        .min(1, t('adminParticipation.form.error.roleLabel', { max: MAX_LABEL_LENGTH }))
+        .max(
+          MAX_LABEL_LENGTH,
+          t('adminParticipation.form.error.roleLabel', { max: MAX_LABEL_LENGTH }),
+        ),
       date: z.string().min(1, t('adminParticipation.form.error.date')),
       startTime: z.string().min(1, t('adminParticipation.form.error.time')),
       endTime: z.string().min(1, t('adminParticipation.form.error.time')),
@@ -36,7 +45,7 @@ export function createSlotFormSchema(t: TFunction) {
           t('adminParticipation.form.error.places', { max: MAX_PLACES }),
         ),
     })
-    .refine((values) => values.endTime > values.startTime, {
+    .refine((values) => timesLocked || values.endTime > values.startTime, {
       path: ['endTime'],
       message: t('adminParticipation.form.error.endBeforeStart'),
     })

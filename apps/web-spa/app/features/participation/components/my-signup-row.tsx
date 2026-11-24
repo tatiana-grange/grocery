@@ -2,11 +2,7 @@ import type { MySignup } from '@grocery/openapi-generator/client/types.gen'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { useTranslation } from 'react-i18next'
-import {
-  formatDeadline,
-  formatSlotDay,
-  formatSlotTimes,
-} from '@/features/participation/utils/participation-format'
+import { formatDeadline, formatSlotWhen } from '@/features/participation/utils/participation-format'
 
 interface MySignupRowProps {
   signup: MySignup
@@ -25,12 +21,11 @@ export function MySignupRow({ signup, onLeave }: MySignupRowProps) {
       <div className="min-w-0 flex-1">
         <p className="font-medium">{signup.roleLabel}</p>
         <p className="text-sm text-muted-foreground">
-          {formatSlotDay(signup.startsAt, i18n.language)},{' '}
-          {formatSlotTimes(signup.startsAt, signup.endsAt, i18n.language)}
+          {formatSlotWhen(signup.startsAt, signup.endsAt, i18n.language)}
         </p>
         {signup.canLeave ? null : (
           <p className="text-sm text-muted-foreground" data-testid="signup-deadline">
-            {t('participation.leaveUntil', {
+            {t('participation.leaveDeadlinePassed', {
               date: formatDeadline(signup.leaveDeadline, i18n.language),
             })}
           </p>

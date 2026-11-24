@@ -52,3 +52,8 @@ export const E2E = {
 export const E2E_USERS = Object.fromEntries(
   Object.entries(E2E_USER_RECORDS).map(([key, record]) => [key, record.email]),
 ) as Record<E2eUserKey, string>
+
+/** The full name of each seeded account, by role, for the screens that show it. */
+export const E2E_USER_NAMES = Object.fromEntries(
+  Object.entries(E2E_USER_RECORDS).map(([key, record]) => [key, record.name]),
+) as Record<E2eUserKey, string>

@@ -24,20 +24,20 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import {
-  ADMIN_PARTICIPATION_QUERY_KEY,
   createSlot,
+  invalidateParticipation,
   updateSlot,
 } from '@/features/admin-participation/utils/admin-participation-queries'
 import {
   createSlotFormSchema,
+  MAX_LABEL_LENGTH,
   MAX_PLACES,
   type SlotFormValues,
   toDateInput,
   toInstant,
   toTimeInput,
 } from '@/features/admin-participation/utils/slot-form'
-import { PARTICIPATION_QUERY_KEY } from '@/features/participation/utils/participation-queries'
-import { participationRefusalMessage } from '@/features/participation/utils/participation-refusal'
+import { getParticipationRefusalMessage } from '@/features/participation/utils/participation-refusal'
 
 interface SlotFormDialogProps {
   /** The slot to edit. Leave it out to create a new one. */
@@ -67,7 +67,7 @@ export function SlotFormDialog({ slot, onClose }: SlotFormDialogProps) {
   const isLocked = slot !== undefined && slot.signedUpCount > 0
 
   const form = useForm<SlotFormValues>({
-    resolver: zodResolver(createSlotFormSchema(t)),
+    resolver: zodResolver(createSlotFormSchema(t, { timesLocked: isLocked })),
     defaultValues: getInitialValues(slot),
   })
 
@@ -85,11 +85,10 @@ export function SlotFormDialog({ slot, onClose }: SlotFormDialogProps) {
       toast.success(
         slot ? t('adminParticipation.form.updated') : t('adminParticipation.form.created'),
       )
-      void queryClient.invalidateQueries({ queryKey: [ADMIN_PARTICIPATION_QUERY_KEY] })
-      void queryClient.invalidateQueries({ queryKey: [PARTICIPATION_QUERY_KEY] })
+      invalidateParticipation(queryClient)
       onClose()
     },
-    onError: (error) => setRefusal(participationRefusalMessage(error, t) ?? t('error.default')),
+    onError: (error) => setRefusal(getParticipationRefusalMessage(error, t) ?? t('error.default')),
   })
 
   return (
@@ -117,7 +116,7 @@ export function SlotFormDialog({ slot, onClose }: SlotFormDialogProps) {
                 <FormItem>
                   <FormLabel>{t('adminParticipation.form.roleLabel')}</FormLabel>
                   <FormControl>
-                    <Input data-testid="slot-form-role" maxLength={120} {...field} />
+                    <Input data-testid="slot-form-role" maxLength={MAX_LABEL_LENGTH} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
