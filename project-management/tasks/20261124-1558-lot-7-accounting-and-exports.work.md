@@ -796,3 +796,58 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
 - No handover is seeded in the E2E data; one fee payment of 10.00 € is, dated at seeding time.
 
 ## Diff-Review Findings
+
+`code-review` run by the Mason on 2026-11-24, on `git diff origin/staging...HEAD` (fixed point
+`8aabe59`), two fresh reviewers. Each finding has its decision: **fix** (done by a Typist, see the
+Worklog) or **answer** (no change, with the reason).
+
+### Spec axis
+
+- **Documentation missing.** The reviewer read the diff before the docs commit `42bb83e`. Answer:
+  the lot 7 page, the glossary terms and the index landed in `42bb83e`; the documentation build is
+  green.
+- **`suite-green` not checked by the reviewer.** Answer: the gates ran after steps 6 and 7 (see the
+  Worklog) and run again after the review fixes.
+- **The formula guard also covers tab and carriage return; the expense list is paged; label and
+  amount have limits.** Answer: wider than the spec, never against it. The guard was ruled in
+  "Corrections at the reading"; the limits keep the database from refusing what the contract let
+  through.
+- **`cancelsExpenseId` foreign key is `on delete set null`.** Answer: it is MikroORM's default for
+  a nullable link, the same as `correctsEntryId` on the wallet ledger. No route and no code deletes
+  an expense, so the rule never runs.
+- **"Current calendar year" is read from the browser clock, not Paris.** Answer: the same limit lot
+  6 accepted (the browser's zone is the cooperative's zone). It only matters for someone opening
+  the page on New Year's Eve from another zone, and the admin can change the period.
+- **Two spec amendments by the Architect** (criterion `five-csv-exports`, and the dating line in
+  Implementation Decisions) sit on the human decision surface. Answer: handed to the Architect in
+  the close report, to confirm with the human before merge.
+
+### Standards axis
+
+- **A hook in `utils/`** (`use-period.ts`; constitution, "Module Boundaries": `components/`,
+  `hooks/`, `utils/`). Fix: move it to `hooks/`.
+- **Names** (`general.mdx`: handlers start with `handle`, functions start with a verb):
+  `change` in `period-picker.tsx`; `text`, `amount`, `when`, `plainQuantity` in
+  `exports.service.ts`; `alreadyCancelled` in `expenses.service.ts`. Fix: rename; drop
+  `plainQuantity`, which is only `Number(value)`.
+- **One-letter parameters** (`p`, `r`). Fix: name them by what they hold.
+- **Mapper name** (`backend.mdx`: `entity.mapper.ts`). Fix: `accounting.mapper.ts` becomes
+  `expense.mapper.ts`.
+- **Raw SQL rows typed `Record<string, unknown>` and cast.** Fix: one row interface per query,
+  like `StockTotalsRow` in the inventory service.
+- **`.reduce` for the expense total** (`general.mdx`: "try to avoid reduce"). Fix: a plain sum.
+- **The nested `expensesByCategory` item has no `.meta()`** (constitution, "Full-Stack Type
+  Safety"). Fix: name the item schema with `.meta()`.
+- **Duplicated code.** Fix: the expense form uses `eurosToCents`; `EXPORT_NAMES` and the reason
+  length come from the generated client instead of a hand copy; the day string is built once in
+  `period.util.ts`; the `{ from, to }` pair gets one named interface. Answer for the rest: the
+  file name is built on both sides because reading `Content-Disposition` across origins needs an
+  extra CORS header for one string; the seeder builds its expenses by hand like every other
+  seeded ledger row; the `?from=&to=` link is two short lines.
+- **`readPeriod` is only called by `toPeriod`.** Answer: it is the pure seam the spec names
+  ("Period reader") and its table of cases tests it directly.
+- **Money formatting could move to `features/common`.** Answer: other features format inline
+  today; moving them all is a refactor outside this lot.
+- **OpenAPI says 200 for `POST admin/expenses`, which answers 201** (found by the frontend
+  Typist). Answer: every `@TypedRoute.Post` in the repo documents 200 this way; it is how
+  `@lonestone/nzoth` writes the response, and the client does not depend on it.
