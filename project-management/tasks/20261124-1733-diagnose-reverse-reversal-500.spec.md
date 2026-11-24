@@ -33,18 +33,32 @@ the same day. Branch: `fix/reverse-reversal-500`, off `staging`.
 - [ ] **failure-reproduced** — a check makes the 500 appear on demand, or the work document
       says why it could not, and what was tried.
 - [ ] **cause-named** — the work document names the cause, with the evidence.
-- [ ] **reversal-of-reversal-refused** — reversing a reversal answers 409 every time, proven by
-      the regression test run in a loop.
+- [ ] ~~**reversal-of-reversal-refused** — reversing a reversal answers 409 every time, proven by
+      the regression test run in a loop.~~
+- [ ] **reversal-of-reversal-refused** (amended 2026-11-24 by the Architect: the stray answer
+      comes about once in 4,500 calls, so no loop of one test can show it) — the test app owns
+      its port on 127.0.0.1, pinned by a regression test; the test "refuses reversing a
+      reversal" checks that its first reversal answers 201; and the work document shows the
+      harness (stray answers before the fix, none after on the same number of calls) and three
+      green full API runs in a row.
 - [ ] **suite-green** — `pnpm lint`, `pnpm typecheck` and `pnpm test` pass.
 
 ## Seams
 
 - **Handover reversal route** — `POST` reversal of a handover. Observable over HTTP: status and
   refusal code.
+- **Test app setup** (`initializeTestApp`, added 2026-11-24 by the Architect once the cause was
+  known) — the app listens on 127.0.0.1 before any request. Observable: the address and port it
+  holds, and a competing server refused on that port.
 
 ## Architecture
 
 **System design:** no change planned before the cause is known.
+
+Updated 2026-11-24 by the Architect, after the diagnosis: the cause is in the test setup, not in
+the app. Supertest started the app on a random port per request, and macOS could hand out a port
+another local program held on 127.0.0.1, which then answered instead. The fix starts the test app
+once on 127.0.0.1. No product code changes.
 
 ---
 
@@ -58,6 +72,8 @@ the same day. Branch: `fix/reverse-reversal-500`, off `staging`.
   single database connection under load. The HTTP test app has a pool of one database
   connection, and parallel calls on it fail now and then with `ECONNRESET` (seen in lots 6 and
   7; written in the API testing guide on the unmerged branch `feat/accounting-exports`).
+  Updated 2026-11-24 by the Architect: the diagnosis showed those `ECONNRESET` errors came from
+  the same port clash, not from the one-connection pool.
 
 ## Slices & Dependencies
 
