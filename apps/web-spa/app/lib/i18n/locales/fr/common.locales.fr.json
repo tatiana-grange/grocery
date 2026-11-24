@@ -756,5 +756,78 @@
       "slot_has_signups": "Ce créneau a des inscrits : la date et les heures ne peuvent plus changer, et il ne peut pas être supprimé.",
       "places_below_signups": "Le nombre de places ne peut pas être inférieur au nombre d'inscrits."
     }
+  },
+  "adminParticipation": {
+    "nav": {
+      "participation": "Participation"
+    },
+    "title": "Participation",
+    "subtitle": "Les créneaux dont la coopérative a besoin, et les adhérents qui s'y sont inscrits. Les horaires sont ceux de votre navigateur.",
+    "showPast": "Afficher les créneaux passés",
+    "new": "Nouveau créneau",
+    "empty": "Aucun créneau.",
+    "open": "Ouvrir",
+    "count_one": "{{count}} créneau",
+    "count_other": "{{count}} créneaux",
+    "taken": "{{taken}} / {{places}}",
+    "backToList": "Retour aux créneaux",
+    "columns": {
+      "role": "Rôle",
+      "day": "Jour",
+      "times": "Horaires",
+      "places": "Inscrits",
+      "status": "État"
+    },
+    "form": {
+      "newTitle": "Nouveau créneau",
+      "editTitle": "Modifier le créneau",
+      "description": "La date et les heures sont celles du fuseau de votre navigateur.",
+      "roleLabel": "Rôle",
+      "date": "Jour",
+      "startTime": "Début",
+      "endTime": "Fin",
+      "places": "Places",
+      "locked": "Des adhérents sont inscrits : le jour et les heures ne peuvent plus changer. Vous pouvez encore changer le rôle et le nombre de places.",
+      "create": "Créer le créneau",
+      "save": "Enregistrer",
+      "created": "Créneau créé.",
+      "updated": "Créneau modifié.",
+      "error": {
+        "roleLabel": "Saisissez un rôle de 1 à 120 caractères.",
+        "date": "Choisissez un jour.",
+        "time": "Choisissez une heure.",
+        "endBeforeStart": "La fin doit être après le début.",
+        "places": "Saisissez un nombre de places entre 1 et {{max}}."
+      }
+    },
+    "cancel": {
+      "title": "Annuler ce créneau ?",
+      "warning_one": "Cette action est définitive : un créneau annulé ne revient jamais. {{count}} inscrit le verra marqué comme annulé.",
+      "warning_other": "Cette action est définitive : un créneau annulé ne revient jamais. {{count}} inscrits le verront marqué comme annulé.",
+      "keep": "Garder le créneau",
+      "confirm": "Annuler le créneau",
+      "done": "Créneau annulé."
+    },
+    "delete": {
+      "title": "Supprimer ce créneau ?",
+      "description": "Personne n'est inscrit. Le créneau disparaît pour de bon.",
+      "confirm": "Supprimer",
+      "done": "Créneau supprimé."
+    },
+    "addMember": {
+      "title": "Inscrire un adhérent",
+      "description": "Cherchez un adhérent actif par nom ou par numéro, puis choisissez-le.",
+      "done": "Adhérent inscrit."
+    },
+    "detail": {
+      "edit": "Modifier",
+      "cancel": "Annuler le créneau",
+      "delete": "Supprimer",
+      "signups": "Inscrits",
+      "noSignups": "Personne n'est inscrit.",
+      "addMember": "Inscrire un adhérent",
+      "remove": "Retirer",
+      "removed": "Adhérent retiré."
+    }
   }
 }

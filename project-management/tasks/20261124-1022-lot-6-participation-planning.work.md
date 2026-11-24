@@ -667,6 +667,25 @@ one failure: `getByText('chevauche')` matched three elements (the toast and its 
 The member tests are four, not five as in plan section 8: sign up and see it and leave (one test, as the step
 names it), leave refused inside 7 days, overlap, full slot.
 
+**Step 8.** First failing test: `participation-admin.spec.ts`, written first. Red seen first: `5 failed, 1 passed
+(setup)`; the first failure was `expect(locator).toBeVisible() failed` on `page-slots-list` (no route yet) and the
+other four timed out at 45 s on the first click. Green after the admin screens: `11 passed` in one run of the admin
+spec, the member spec and `nav-smoke.spec.ts` together (login setup, nav smoke, 5 admin, 4 member).
+
+- The admin tests are five: create, member signs up, admin sees the member; admin removes a member inside 7 days;
+  no Delete with sign-ups then cancel and the member sees it cancelled; delete an empty slot; places cannot drop
+  below the sign-ups. The plan listed four bullets; the delete of an empty slot is one extra, so the Delete
+  button is proven to work and not only proven to be hidden.
+- `nav-smoke.spec.ts`: additions only. Three new routes in its list, plus a call to read one slot id. No existing
+  line was changed, skipped or removed.
+- A shared test helper `apps/web-spa-e2e/participation.ts` (API as a role, slot id by label, sign up as a role) is
+  used by both new specs. Plan did not name it.
+- The slot form sends the slot's original start and end unchanged when there are sign-ups. Rebuilding them from the
+  date and time inputs would drop the seconds and be refused as a change of times. The form cannot make a slot that
+  crosses midnight (the end time must be after the start time on the same day); the API still allows it. The plan
+  said both "a slot may cross midnight" and "end after start" in the form; I kept the simple form and report it.
+- The "Participation" entry in the back office is `back-office-nav-slots`. It is not clicked by a test.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
@@ -676,7 +695,7 @@ names it), leave refused inside 7 days, overlap, full slot.
 - [x] Step 5. Overlap rule and the two locks, with the concurrency tests.
 - [x] Step 6. Leave, admin sign-up and removal, my sign-ups.
 - [x] Step 7. Regenerated client, member screens, member browser test.
-- [ ] Step 8. Admin screens, admin browser test, nav smoke routes, E2E seed slots.
+- [x] Step 8. Admin screens, admin browser test, nav smoke routes, E2E seed slots.
 - [ ] Step 9. Documentation page, glossary, index, gates, close.
 
 ## Notes & Snippets

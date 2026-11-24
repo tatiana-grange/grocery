@@ -28,6 +28,12 @@ test('toutes les routes rendent leur contenu propre', async ({ page }) => {
   expect(products.length, 'la baseline seedée doit contenir au moins un produit').toBeGreaterThan(0)
   const productId = products[0].id
 
+  const slotsRes = await page.request.get(`${E2E.apiUrl}/api/admin/slots?offset=0&pageSize=1`)
+  expect(slotsRes.ok(), await slotsRes.text()).toBeTruthy()
+  const slots = (await slotsRes.json()).data as { id: string }[]
+  expect(slots.length, 'la baseline seedée doit contenir au moins un créneau').toBeGreaterThan(0)
+  const slotId = slots[0].id
+
   const routes: { path: string; testId: string }[] = [
     { path: '/shop', testId: 'page-shop' },
     { path: `/shop/products/${productId}`, testId: 'page-shop-product-detail' },
@@ -39,6 +45,9 @@ test('toutes les routes rendent leur contenu propre', async ({ page }) => {
     { path: '/admin/catalog/products/new', testId: 'page-product-form' },
     { path: `/admin/catalog/products/${productId}`, testId: 'page-product-detail' },
     { path: `/admin/catalog/products/${productId}/edit`, testId: 'page-product-form' },
+    { path: '/participation', testId: 'page-participation' },
+    { path: '/admin/slots', testId: 'page-slots-list' },
+    { path: `/admin/slots/${slotId}`, testId: 'page-slot-detail' },
   ]
 
   for (const { path, testId } of routes) {

@@ -1,6 +1,6 @@
-import { request } from '@playwright/test'
-import { E2E, E2E_PARTICIPATION, storageStatePath } from '../env'
+import { E2E_PARTICIPATION } from '../env'
 import { expect, test, withRole } from '../fixtures'
+import { apiAs, signUpAs, slotIdByLabel } from '../participation'
 
 type Page = import('@playwright/test').Page
 
@@ -13,25 +13,6 @@ function slotCard(page: Page, roleLabel: string) {
 
 function mySignup(page: Page, roleLabel: string) {
   return page.locator('[data-testid^="my-signup-"]').filter({ hasText: roleLabel })
-}
-
-/** A request context signed in as the admin, to set up data the member screen then shows. */
-async function adminApi() {
-  return request.newContext({
-    baseURL: E2E.apiUrl,
-    storageState: storageStatePath('admin'),
-  })
-}
-
-async function slotIdByLabel(roleLabel: string): Promise<string> {
-  const api = await adminApi()
-  const response = await api.get('/api/admin/slots?offset=0&pageSize=50')
-  expect(response.ok(), await response.text()).toBeTruthy()
-  const slots = (await response.json()).data as { id: string; roleLabel: string }[]
-  await api.dispose()
-  const slot = slots.find((candidate) => candidate.roleLabel === roleLabel)
-  expect(slot, `le créneau « ${roleLabel} » doit être seedé`).toBeDefined()
-  return slot!.id
 }
 
 test.describe('participation, côté adhérent', () => {
@@ -86,7 +67,7 @@ test.describe('participation, côté adhérent', () => {
     page,
   }) => {
     const start = Date.now() + 20 * DAY_MS
-    const api = await adminApi()
+    const api = await apiAs('admin')
     for (const [roleLabel, from, to] of [
       ['Chevauchement A', start, start + 2 * HOUR_MS],
       ['Chevauchement B', start + HOUR_MS, start + 3 * HOUR_MS],
@@ -118,10 +99,7 @@ test.describe('participation, côté adhérent', () => {
     const slotId = await slotIdByLabel(roleLabel)
 
     // The admin is a member too: they take the one place.
-    const api = await adminApi()
-    const signedUp = await api.post(`/api/me/slots/${slotId}/signup`)
-    expect(signedUp.ok(), await signedUp.text()).toBeTruthy()
-    await api.dispose()
+    await signUpAs('admin', slotId)
 
     await page.goto('/participation')
     const card = slotCard(page, roleLabel)

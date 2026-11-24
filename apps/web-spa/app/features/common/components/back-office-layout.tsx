@@ -14,6 +14,7 @@ import {
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import {
   Boxes,
+  CalendarDays,
   ClipboardList,
   HandCoins,
   LogOut,
@@ -38,6 +39,7 @@ function BackOfficeSidebar() {
     { label: t('catalog.nav.catalog'), to: '/admin/catalog', icon: Boxes },
     { label: t('purchasing.nav.purchasing'), to: '/admin/purchasing', icon: ClipboardList },
     { label: t('inventory.nav.inventory'), to: '/admin/inventory', icon: PackageSearch },
+    { label: t('adminParticipation.nav.participation'), to: '/admin/slots', icon: CalendarDays },
     // The table itself lives outside the back office, behind its own layout — an admin holds
     // the access implicitly, so this is just the way across.
     { label: t('distribution.nav.distribution'), to: '/distribution', icon: HandCoins },

@@ -756,5 +756,78 @@
       "slot_has_signups": "This slot has sign-ups: its date and times can no longer change, and it cannot be deleted.",
       "places_below_signups": "The number of places cannot be lower than the number of sign-ups."
     }
+  },
+  "adminParticipation": {
+    "nav": {
+      "participation": "Participation"
+    },
+    "title": "Participation",
+    "subtitle": "The slots the cooperative needs people for, and the members signed up on them. Times are shown in your browser's time zone.",
+    "showPast": "Show past slots",
+    "new": "New slot",
+    "empty": "No slots.",
+    "open": "Open",
+    "count_one": "{{count}} slot",
+    "count_other": "{{count}} slots",
+    "taken": "{{taken}} / {{places}}",
+    "backToList": "Back to the slots",
+    "columns": {
+      "role": "Role",
+      "day": "Day",
+      "times": "Times",
+      "places": "Signed up",
+      "status": "Status"
+    },
+    "form": {
+      "newTitle": "New slot",
+      "editTitle": "Edit the slot",
+      "description": "The date and the times are in your browser's time zone.",
+      "roleLabel": "Role",
+      "date": "Day",
+      "startTime": "Start",
+      "endTime": "End",
+      "places": "Places",
+      "locked": "Members are signed up: the day and the times can no longer change. You can still change the role and the number of places.",
+      "create": "Create the slot",
+      "save": "Save",
+      "created": "Slot created.",
+      "updated": "Slot updated.",
+      "error": {
+        "roleLabel": "Enter a role of 1 to 120 characters.",
+        "date": "Pick a day.",
+        "time": "Pick a time.",
+        "endBeforeStart": "The end must be after the start.",
+        "places": "Enter a number of places from 1 to {{max}}."
+      }
+    },
+    "cancel": {
+      "title": "Cancel this slot?",
+      "warning_one": "This cannot be undone: a cancelled slot never comes back. {{count}} member signed up will see it marked as cancelled.",
+      "warning_other": "This cannot be undone: a cancelled slot never comes back. {{count}} members signed up will see it marked as cancelled.",
+      "keep": "Keep the slot",
+      "confirm": "Cancel the slot",
+      "done": "Slot cancelled."
+    },
+    "delete": {
+      "title": "Delete this slot?",
+      "description": "Nobody is signed up. The slot is gone for good.",
+      "confirm": "Delete",
+      "done": "Slot deleted."
+    },
+    "addMember": {
+      "title": "Sign up a member",
+      "description": "Search an active member by name or number, then pick them.",
+      "done": "Member signed up."
+    },
+    "detail": {
+      "edit": "Edit",
+      "cancel": "Cancel the slot",
+      "delete": "Delete",
+      "signups": "Signed up",
+      "noSignups": "Nobody is signed up.",
+      "addMember": "Sign up a member",
+      "remove": "Remove",
+      "removed": "Member removed."
+    }
   }
 }
