@@ -140,14 +140,17 @@ export const adminSlotListSchema = paginatedSchema(adminSlotSchema).meta({
   title: 'AdminSlotList',
   description: 'A paginated page of slots, earliest start first',
 })
+export type AdminSlotList = z.infer<typeof adminSlotListSchema>
 export const memberSlotListSchema = paginatedSchema(memberSlotSchema).meta({
   title: 'MemberSlotList',
   description: 'A paginated page of coming slots, earliest start first',
 })
+export type MemberSlotList = z.infer<typeof memberSlotListSchema>
 export const mySignupListSchema = paginatedSchema(mySignupSchema).meta({
   title: 'MySignupList',
   description: 'A paginated page of the caller’s coming sign-ups, earliest start first',
 })
+export type MySignupList = z.infer<typeof mySignupListSchema>
 
 export const slotPaginationSchema = createPaginationQuerySchema({ defaultPageSize: 50 })
 export type SlotPagination = z.infer<typeof slotPaginationSchema>

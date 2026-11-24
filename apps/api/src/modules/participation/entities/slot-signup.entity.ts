@@ -12,8 +12,7 @@ import { Slot } from './slot.entity'
 
 /**
  * One member holding one place on one slot. The row is deleted when the member leaves or is
- * removed: nothing downstream needs the history in this lot. The unique pair is the backstop
- * for the one-sign-up rule.
+ * removed, so no history is kept. The unique pair is the backstop for the one-sign-up rule.
  */
 @Entity({ tableName: 'slotSignup' })
 @Unique({ properties: ['slot', 'member'] })
@@ -31,4 +30,7 @@ export class SlotSignup {
 
   @Property()
   createdAt: Date = new Date()
+
+  @Property({ onUpdate: () => new Date() })
+  updatedAt: Date = new Date()
 }

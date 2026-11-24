@@ -1,13 +1,22 @@
 import { Injectable } from '@nestjs/common'
-import type { AdminSlot, AdminSlotDetail, MemberSlot, MySignup } from './contracts/slot.contract'
+import type {
+  AdminSlot,
+  AdminSlotDetail,
+  AdminSlotList,
+  MemberSlot,
+  MemberSlotList,
+  MySignup,
+  MySignupList,
+  SlotPagination,
+} from './contracts/slot.contract'
 import type { SlotSignup } from './entities/slot-signup.entity'
 import type { Slot } from './entities/slot.entity'
-import { canMemberLeave, getLeaveDeadline } from './participation.util'
+import { canMemberLeave, getLeaveDeadline, toRemovalFacts } from './participation.util'
 
-/** Page details a list route reads from the request. */
-interface PageWindow {
-  pageSize: number
-  offset: number
+interface PageOf<T> {
+  total: number
+  pagination: SlotPagination
+  items: T[]
 }
 
 /** Turns slot entities into the contracts the controllers return. */
@@ -17,7 +26,7 @@ export class ParticipationMapper {
   toAdminSlot(slot: Slot): AdminSlot {
     // Sign-ups not loaded: report none rather than throw, as purchasing.mapper does for its collections.
     const signedUpCount = slot.signups.isInitialized() ? slot.signups.getItems().length : 0
-    const isCancelled = slot.cancelledAt != null
+    const { isCancelled } = toRemovalFacts(slot)
     return {
       id: slot.id,
       roleLabel: slot.roleLabel,
@@ -31,28 +40,38 @@ export class ParticipationMapper {
     }
   }
 
-  toAdminSlotList(slots: Slot[], total: number, pagination: PageWindow) {
+  toAdminSlotList({ items, total, pagination }: PageOf<Slot>): AdminSlotList {
     return {
-      data: slots.map((slot) => this.toAdminSlot(slot)),
+      data: items.map((slot) => this.toAdminSlot(slot)),
       meta: this.toMeta(total, pagination),
     }
   }
 
-  toMemberSlotList(slots: Slot[], total: number, pagination: PageWindow, memberId: string) {
+  toMemberSlotList({
+    items,
+    total,
+    pagination,
+    memberId,
+  }: PageOf<Slot> & { memberId: string }): MemberSlotList {
     return {
-      data: slots.map((slot) => this.toMemberSlot(slot, memberId)),
+      data: items.map((slot) => this.toMemberSlot(slot, memberId)),
       meta: this.toMeta(total, pagination),
     }
   }
 
-  toMySignupList(signups: SlotSignup[], total: number, pagination: PageWindow, now: Date) {
+  toMySignupList({
+    items,
+    total,
+    pagination,
+    now,
+  }: PageOf<SlotSignup> & { now: Date }): MySignupList {
     return {
-      data: signups.map((signup) => this.toMySignup(signup, now)),
+      data: items.map((signup) => this.toMySignup(signup, now)),
       meta: this.toMeta(total, pagination),
     }
   }
 
-  private toMeta(total: number, pagination: PageWindow) {
+  private toMeta(total: number, pagination: SlotPagination): AdminSlotList['meta'] {
     return {
       itemCount: total,
       pageSize: pagination.pageSize,
@@ -87,17 +106,14 @@ export class ParticipationMapper {
   /** The slot of the sign-up must be loaded. `now` is the clock the leave rule reads. */
   toMySignup(signup: SlotSignup, now: Date): MySignup {
     const { slot } = signup
-    const isCancelled = slot.cancelledAt != null
+    const facts = toRemovalFacts(slot)
     return {
       slotId: slot.id,
       roleLabel: slot.roleLabel,
       startsAt: slot.startsAt,
       endsAt: slot.endsAt,
-      isCancelled,
-      canLeave: canMemberLeave({
-        slot: { startsAt: slot.startsAt, endsAt: slot.endsAt, isCancelled },
-        now,
-      }),
+      isCancelled: facts.isCancelled,
+      canLeave: canMemberLeave({ slot: facts, now }),
       leaveDeadline: getLeaveDeadline(slot),
     }
   }

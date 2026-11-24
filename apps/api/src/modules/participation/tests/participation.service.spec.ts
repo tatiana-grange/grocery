@@ -31,13 +31,7 @@ describe('ParticipationService (database)', () => {
   }
 
   async function makeMember(name: string) {
-    const { member } = await createMemberData(em, {
-      user: {
-        name,
-        email: `${name.toLowerCase()}-${Math.random().toString(36).slice(2)}@example.com`,
-      },
-      status: 'active',
-    })
+    const { member } = await createMemberData(em, { user: { name }, status: 'active' })
     return member
   }
 
@@ -160,6 +154,28 @@ describe('ParticipationService (database)', () => {
       expect(refused).toHaveLength(1)
       expect(refused[0]?.reason).toMatchObject({ status: 409, response: { code: 'slot_full' } })
       expect(await signupsOn(slot.id)).toBe(1)
+    })
+
+    it('never leaves more sign-ups than places when an admin lowers the places during a sign-up', async () => {
+      const ada = await makeMember('Ada')
+      const bob = await makeMember('Bob')
+      const slot = await makeSlot(48, 4, 2)
+      await signUp(slot.id, ada.id)
+
+      await warmPool()
+
+      await Promise.allSettled([
+        serviceOnNewEm().updateSlot(slot.id, {
+          roleLabel: slot.roleLabel,
+          startsAt: slot.startsAt,
+          endsAt: slot.endsAt,
+          places: 1,
+        }),
+        signUp(slot.id, bob.id, serviceOnNewEm()),
+      ])
+
+      const stored = await orm.em.fork().findOneOrFail(Slot, slot.id)
+      expect(await signupsOn(slot.id)).toBeLessThanOrEqual(stored.places)
     })
 
     it('never holds two overlapping slots when one member signs up for both at once', async () => {

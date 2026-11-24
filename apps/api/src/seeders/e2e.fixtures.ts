@@ -81,8 +81,8 @@ export const E2E_DISTRIBUTION = {
 } as const
 
 /**
- * Lot 6 participation fixtures: three slots seeded relative to the seeding moment, so they are
- * always in the future whenever the suite runs. None holds a sign-up.
+ * Participation fixtures: three slots dated from the seeding moment, so they are always in the
+ * future when the suite runs. None holds a sign-up.
  */
 export const E2E_PARTICIPATION = {
   /** Ten days out, two places: leaving it is still allowed (more than 7 days). */

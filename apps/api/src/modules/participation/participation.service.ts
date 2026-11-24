@@ -12,20 +12,23 @@ import type {
   SignUpRefusal,
   SlotEditRefusal,
   SlotInput,
+  SlotPagination,
 } from './contracts/slot.contract'
 import { SlotSignup } from './entities/slot-signup.entity'
 import { Slot } from './entities/slot.entity'
-import { type Actor, checkRemoval, checkSignUp } from './participation.util'
+import {
+  type Actor,
+  checkRemoval,
+  checkSignUp,
+  hasEnded,
+  SLOT_ENDED_MESSAGE,
+  toRemovalFacts,
+} from './participation.util'
 
 /** A page of results and the total they were cut from. */
 export interface Page<T> {
   items: T[]
   total: number
-}
-
-interface PageRequest {
-  pageSize: number
-  offset: number
 }
 
 /** The clock the rules read. The service spec passes a fixed one; the controllers use the default. */
@@ -55,7 +58,7 @@ export class ParticipationService {
   }
 
   /** Slots by start, earliest first. Slots that have ended are hidden unless `includePast`. */
-  async listSlotsForAdmin(request: { includePast: boolean } & PageRequest): Promise<Page<Slot>> {
+  async listSlotsForAdmin(request: { includePast: boolean } & SlotPagination): Promise<Page<Slot>> {
     const now = this.clock()
     const [items, total] = await this.em.findAndCount(
       Slot,
@@ -87,8 +90,7 @@ export class ParticipationService {
    *
    * The label and the places may change at any time before the slot ends. The times may change
    * only while nobody is signed up, so a booked commitment never moves and the no-overlap rule
-   * of the members on it never breaks silently. A cancelled slot is final, so it is never
-   * edited: its members were told it is off, and nothing on it may change after that.
+   * of the members on it never breaks silently. A cancelled slot is never edited.
    */
   async updateSlot(slotId: string, input: SlotInput): Promise<Slot> {
     return this.em.transactional(async (tem) => {
@@ -161,7 +163,7 @@ export class ParticipationService {
   }
 
   /** Slots that start after now and are not cancelled, earliest first, with their sign-ups. */
-  async listComingSlots(page: PageRequest): Promise<Page<Slot>> {
+  async listComingSlots(page: SlotPagination): Promise<Page<Slot>> {
     const [items, total] = await this.em.findAndCount(
       Slot,
       { startsAt: { $gt: this.clock() }, cancelledAt: null },
@@ -182,8 +184,7 @@ export class ParticipationService {
    * for two overlapping slots lock different slots, so only the shared member row makes the
    * second one see the first. One fixed order rules out a deadlock between two sign-ups.
    *
-   * `checkSignUp` decides the refusals that need only the slot and the clock. A member already
-   * on the slot is told so even when it is full, because that is the useful answer. The overlap
+   * A member already on the slot is told so even when it is full, because that is the useful answer. The overlap
    * check comes last. The unique pair of the table backs the one-sign-up rule if two calls race
    * anyway. Returns the slot with its sign-ups.
    */
@@ -201,22 +202,16 @@ export class ParticipationService {
         const alreadySignedUp =
           (await tem.count(SlotSignup, { slot: slot.id, member: member.id })) > 0
         const refused = checkSignUp({
-          slot: {
-            startsAt: slot.startsAt,
-            endsAt: slot.endsAt,
-            places: slot.places,
-            isCancelled: slot.cancelledAt != null,
-            signedUpCount,
-          },
+          slot: { ...toRemovalFacts(slot), places: slot.places, signedUpCount },
           actor: input.actor,
           now: this.clock(),
         })
         if (alreadySignedUp && (refused === null || refused === 'slot_full')) {
-          throw this.signUpRefusal('already_signed_up')
+          throw this.buildSignUpRefusal('already_signed_up')
         }
-        if (refused) throw this.signUpRefusal(refused)
+        if (refused) throw this.buildSignUpRefusal(refused)
         if (await this.holdsAnOverlappingSlot(tem, member.id, slot)) {
-          throw this.signUpRefusal('overlaps_another_slot')
+          throw this.buildSignUpRefusal('overlaps_another_slot')
         }
 
         const signup = new SlotSignup()
@@ -229,16 +224,15 @@ export class ParticipationService {
       })
     } catch (error) {
       if (error instanceof UniqueConstraintViolationException) {
-        throw this.signUpRefusal('already_signed_up')
+        throw this.buildSignUpRefusal('already_signed_up')
       }
       throw error
     }
   }
 
   /**
-   * Whether the member holds a live slot that overlaps this one. The condition is the one of
-   * `doRangesOverlap`, written as a filter: slots that merely touch do not overlap, and a
-   * cancelled slot never blocks.
+   * Whether the member holds a live slot that overlaps this one. Slots that merely touch do not
+   * overlap, and a cancelled slot never blocks.
    */
   private async holdsAnOverlappingSlot(
     em: EntityManager,
@@ -267,15 +261,11 @@ export class ParticipationService {
       const signup = await tem.findOne(SlotSignup, { slot: slot.id, member: input.memberId })
       if (!signup) throw new NotFoundException('Sign-up not found')
       const refused = checkRemoval({
-        slot: {
-          startsAt: slot.startsAt,
-          endsAt: slot.endsAt,
-          isCancelled: slot.cancelledAt != null,
-        },
+        slot: toRemovalFacts(slot),
         actor: input.actor,
         now: this.clock(),
       })
-      if (refused) throw this.removalRefusal(refused)
+      if (refused) throw this.buildRemovalRefusal(refused)
       tem.remove(signup)
       await tem.flush()
       await tem.populate(slot, ['signups'], { refresh: true })
@@ -287,7 +277,7 @@ export class ParticipationService {
    * A member's sign-ups on slots that have not ended, earliest start first. Cancelled slots are
    * included: the member must see that the slot is off.
    */
-  async listMySignups(memberId: string, page: PageRequest): Promise<Page<SlotSignup>> {
+  async listMySignups(memberId: string, page: SlotPagination): Promise<Page<SlotSignup>> {
     const [items, total] = await this.em.findAndCount(
       SlotSignup,
       { member: memberId, slot: { endsAt: { $gt: this.clock() } } },
@@ -302,21 +292,14 @@ export class ParticipationService {
   }
 
   /** The current time on the cooperative's clock, for mappers that work out `canLeave`. */
-  now(): Date {
+  getNow(): Date {
     return this.clock()
   }
 
-  /** The member row of a signed-in user. An admin who is not a member gets a 404. */
-  async getMemberForUser(userId: string): Promise<Member> {
-    const member = await this.em.findOne(Member, { user: userId })
-    if (!member) throw new NotFoundException('Member not found')
-    return member
-  }
-
-  private signUpRefusal(code: SignUpRefusal) {
+  private buildSignUpRefusal(code: SignUpRefusal) {
     const messages: Record<SignUpRefusal, string> = {
       slot_cancelled: 'This slot was cancelled',
-      slot_ended: 'This slot has already ended',
+      slot_ended: SLOT_ENDED_MESSAGE,
       slot_started: 'This slot has already started',
       slot_full: 'This slot is full',
       already_signed_up: 'You are already signed up on this slot',
@@ -325,9 +308,9 @@ export class ParticipationService {
     return refusal(code, messages[code])
   }
 
-  private removalRefusal(code: RemovalRefusal) {
+  private buildRemovalRefusal(code: RemovalRefusal) {
     const messages: Record<RemovalRefusal, string> = {
-      slot_ended: 'This slot has already ended',
+      slot_ended: SLOT_ENDED_MESSAGE,
       too_late_to_leave: 'You can only leave a slot that starts in 7 days or more',
     }
     return refusal(code, messages[code])
@@ -340,8 +323,8 @@ export class ParticipationService {
   }
 
   private assertNotEnded(slot: Slot): void {
-    if (this.clock() >= slot.endsAt) {
-      throw refusal('slot_ended' satisfies SlotEditRefusal, 'This slot has already ended')
+    if (hasEnded(slot, this.clock())) {
+      throw refusal('slot_ended' satisfies SlotEditRefusal, SLOT_ENDED_MESSAGE)
     }
   }
 }

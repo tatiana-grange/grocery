@@ -5,7 +5,6 @@ import {
   checkSignUp,
   LEAVE_NOTICE_MS,
   getLeaveDeadline,
-  doRangesOverlap,
   type SlotFacts,
 } from '../participation.util'
 
@@ -114,37 +113,5 @@ describe('checkRemoval and canLeave', () => {
     const facts = slot()
 
     expect(getLeaveDeadline(facts).getTime()).toBe(facts.startsAt.getTime() - LEAVE_NOTICE_MS)
-  })
-})
-
-describe('doRangesOverlap', () => {
-  const base = {
-    startsAt: new Date('2026-12-10T09:00:00Z'),
-    endsAt: new Date('2026-12-10T12:00:00Z'),
-  }
-  const range = (from: string, to: string) => ({
-    startsAt: new Date(`2026-12-10T${from}:00Z`),
-    endsAt: new Date(`2026-12-10T${to}:00Z`),
-  })
-
-  it('overlaps when one range sits inside the other', () => {
-    expect(doRangesOverlap(base, range('10:00', '11:00'))).toBe(true)
-  })
-
-  it('overlaps when the ranges are the same', () => {
-    expect(doRangesOverlap(base, { ...base })).toBe(true)
-  })
-
-  it('overlaps when the ranges partly cover each other', () => {
-    expect(doRangesOverlap(base, range('11:00', '14:00'))).toBe(true)
-  })
-
-  it('does not overlap when one ends exactly when the other starts', () => {
-    expect(doRangesOverlap(base, range('12:00', '14:00'))).toBe(false)
-    expect(doRangesOverlap(range('07:00', '09:00'), base)).toBe(false)
-  })
-
-  it('does not overlap when the ranges are apart', () => {
-    expect(doRangesOverlap(base, range('15:00', '16:00'))).toBe(false)
   })
 })

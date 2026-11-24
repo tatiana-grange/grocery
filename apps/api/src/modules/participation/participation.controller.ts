@@ -6,11 +6,13 @@ import {
   TypedQuery,
   TypedRoute,
 } from '@lonestone/nzoth/server'
-import { HttpCode, UseGuards } from '@nestjs/common'
+import { HttpCode, NotFoundException, UseGuards } from '@nestjs/common'
 import { z } from 'zod'
 import { AdminOnly, MemberScoped, Session } from '../auth/auth.decorator'
 import { LoggedInBetterAuthSession } from '../auth/auth.config'
 import { AuthGuard } from '../auth/auth.guard'
+import type { Member } from '../members/entities/member.entity'
+import { MembersService } from '../members/members.service'
 import {
   adminSlotDetailSchema,
   adminSlotListSchema,
@@ -48,7 +50,7 @@ export class AdminSlotsController {
       includePast,
       ...pagination,
     })
-    return this.mapper.toAdminSlotList(items, total, pagination)
+    return this.mapper.toAdminSlotList({ items, total, pagination })
   }
 
   @TypedRoute.Get(':slotId', adminSlotDetailSchema)
@@ -115,17 +117,25 @@ export class AdminSlotsController {
 export class MemberSlotsController {
   constructor(
     private readonly participation: ParticipationService,
+    private readonly members: MembersService,
     private readonly mapper: ParticipationMapper,
   ) {}
+
+  /** An admin who is not a member gets a 404. */
+  private async getCallerMember(session: LoggedInBetterAuthSession): Promise<Member> {
+    const member = await this.members.getMemberByUserId(session.user.id)
+    if (!member) throw new NotFoundException('Member not found')
+    return member
+  }
 
   @TypedRoute.Get('slots', memberSlotListSchema)
   async listComing(
     @Session() session: LoggedInBetterAuthSession,
     @PaginationParams(slotPaginationSchema) pagination: SlotPagination,
   ) {
-    const member = await this.participation.getMemberForUser(session.user.id)
+    const member = await this.getCallerMember(session)
     const { items, total } = await this.participation.listComingSlots(pagination)
-    return this.mapper.toMemberSlotList(items, total, pagination, member.id)
+    return this.mapper.toMemberSlotList({ items, total, pagination, memberId: member.id })
   }
 
   @TypedRoute.Post('slots/:slotId/signup', memberSlotSchema)
@@ -133,7 +143,7 @@ export class MemberSlotsController {
     @Session() session: LoggedInBetterAuthSession,
     @TypedParam('slotId', z.string().uuid()) slotId: string,
   ) {
-    const member = await this.participation.getMemberForUser(session.user.id)
+    const member = await this.getCallerMember(session)
     const slot = await this.participation.signUp({ slotId, memberId: member.id, actor: 'member' })
     return this.mapper.toMemberSlot(slot, member.id)
   }
@@ -144,7 +154,7 @@ export class MemberSlotsController {
     @Session() session: LoggedInBetterAuthSession,
     @TypedParam('slotId', z.string().uuid()) slotId: string,
   ) {
-    const member = await this.participation.getMemberForUser(session.user.id)
+    const member = await this.getCallerMember(session)
     const slot = await this.participation.removeSignup({
       slotId,
       memberId: member.id,
@@ -158,9 +168,9 @@ export class MemberSlotsController {
     @Session() session: LoggedInBetterAuthSession,
     @PaginationParams(slotPaginationSchema) pagination: SlotPagination,
   ) {
-    const member = await this.participation.getMemberForUser(session.user.id)
+    const member = await this.getCallerMember(session)
     const { items, total } = await this.participation.listMySignups(member.id, pagination)
-    const now = this.participation.now()
-    return this.mapper.toMySignupList(items, total, pagination, now)
+    const now = this.participation.getNow()
+    return this.mapper.toMySignupList({ items, total, pagination, now })
   }
 }

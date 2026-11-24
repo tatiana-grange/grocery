@@ -482,7 +482,7 @@ export class E2eSeeder extends Seeder {
     })
     seedOrder(elio, 'in_store', [{ product: readyProduct, quantity: 1, unitPriceCents: 300 }])
 
-    // --- lot 6 participation: three coming slots, dated from now, with no sign-up -----------
+    // --- participation: three coming slots, dated from now, with no sign-up ----------------
     const DAY_MS = 24 * 60 * 60 * 1000
     const SLOT_LENGTH_MS = 2 * 60 * 60 * 1000
     for (const fixture of Object.values(E2E_PARTICIPATION)) {
