@@ -697,6 +697,26 @@ and the constitution (list of planned modules now says `participation`, version 
 real names. `oxfmt` also reformatted `lot-5-wallet.mdx` and `1_release_and_versionning.mdx`; I restored both with
 `git checkout`.
 
+### 2026-11-24 — Typist, code-review fixes
+
+Changed, with no change in behaviour:
+- Mapper: the sign-up collection is read only when loaded (`isInitialized()`, as `purchasing.mapper.ts` does). If it is
+  not loaded the count is 0, `isSignedUp` is false and the detail lists no sign-ups. Page `meta` is now built in the
+  mapper (`toAdminSlotList`, `toMemberSlotList`, `toMySignupList`); the three copies in the controller are gone. The
+  admin sign-up routes still re-read the slot, because the slot `signUp` and `removeSignup` return has no members
+  and users loaded, which the detail needs.
+- `slotInputSchema` is now derived from `adminSlotSchema` with `pick` and `extend`. The JSON schema of the input
+  (rules, title, description, examples) is byte for byte the same before and after, so the generated client is
+  unchanged and was not regenerated.
+- Names: `canMemberLeave`, `getLeaveDeadline`, `doRangesOverlap`; parameters `p` now `input`, `request` or `page`;
+  `getInitialValues` and `padNumber` in the web app. The unit spec follows the renames only.
+- Left as it was: `MAX_PLACES` and the 120 label limit in the web form. The generated client does not export those
+  numbers, so there is no single source to import.
+
+Gates (logs in the scratchpad): `typecheck.log` green; `lint.log` exit 0 (27 warnings, none in this lot);
+`test.log` exit 0 (API 601 of 601 passed); `build.log` exit 0; `e2e.log` exit 0 (132 passed, no flaky rerun needed).
+Ports 5434, 1093 and 1043 were free before the run, and the e2e stack was stopped with `e2e:down` after.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
