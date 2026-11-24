@@ -149,16 +149,48 @@ full run, passes on the rerun".
 Cleanup: the probe spec is deleted; `grep -rn "DEBUG-r500" apps` finds nothing. The scratch
 scripts live outside the repo.
 
+### 2026-11-24 — fix
+
+Typed by the Mason, not a Typist: the change is a few lines in one helper and one test, which
+is the "retouch of a few lines" exception in `.agents/workflow.md` (step 5, Code).
+
+- **Plan revision.** The e2e Vitest project did not find the new spec: its include pattern
+  `../**/*.e2e-spec.ts` does not reach back into its own root, `src/test`. Added
+  `**/*.e2e-spec.ts` to the e2e include in `apps/api/vitest.config.ts`, with a comment. The
+  project now finds 11 files: the 10 it had, plus the new one, no duplicate.
+- **Red.** `test-app.helper.e2e-spec.ts` failed on its first check: `expected undefined to be
+'127.0.0.1'` (the server was not listening after setup).
+- **Fix.** `await app.listen(0, '127.0.0.1')` after `app.init()` in `initializeTestApp`, with
+  the reason in a comment. **Green.**
+- **Stricter test** (correction 1): `expect(reversal.status).toBe(201)` after the first reversal
+  in "refuses reversing a reversal".
+- **Teardown** (correction 4). Every caller of `initializeTestApp` (ten spec files and the new
+  one) puts its app in `context.app`, which the e2e `afterEach` closes; the top-up spec does it
+  in each of its seven `beforeEach`. Proof at run time: a temporary tagged line in that
+  `afterEach` recorded, for one full API run, whether the server still listened after
+  `app.close()`. Result: 311 apps, 311 closed, none listening; the run exited on its own,
+  605 of 605 green. The line was removed and the file restored to the committed version.
+- **Loops.** "Refuses reversing a reversal" alone: 25 green of 25. Full API suite
+  (`vitest run`, unit and e2e): three runs in a row, 605 of 605 green each, full logs read;
+  the only error lines are from tests that check error paths on purpose (top-up mismatch,
+  email connection failure).
+- **Gates.** `pnpm lint` exit 0 (warnings only, none in the changed files), `pnpm typecheck`
+  exit 0, `pnpm test` exit 0 (API 605 of 605, i18n 15 of 15). No SPA code changed, so no
+  `pnpm build` or `pnpm e2e`. The docs change edits a page body, not a front matter, so the
+  documentation build was not run.
+- Commits: `2e5e23f` (fix, regression test, stricter test, Vitest include), `8714bae` (API
+  testing guide paragraph).
+
 ## Implementation Checkboxes
 
 - [x] Repeatable check that goes red (the harness: about 1 call in 4,500 answered by a
       stranger, on this machine)
 - [x] Cause named, with evidence
-- [ ] Regression test written and seen red
-- [ ] Fix in `initializeTestApp`, regression test green
-- [ ] Real test looped 25 times, full API suite run three times, logs read
-- [ ] Gates: `pnpm lint`, `pnpm typecheck`, `pnpm test`
-- [ ] API testing guide paragraph
+- [x] Regression test written and seen red
+- [x] Fix in `initializeTestApp`, regression test green
+- [x] Real test looped 25 times, full API suite run three times, logs read
+- [x] Gates: `pnpm lint`, `pnpm typecheck`, `pnpm test`
+- [x] API testing guide paragraph
 - [ ] `code-review` on the diff since `origin/staging`, findings recorded
 - [ ] Close: criteria ticked, documents archived, journal entry, `retro`
 
