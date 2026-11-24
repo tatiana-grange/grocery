@@ -1,6 +1,6 @@
 # Lot 7 — Accounting and exports
 
-**Status:** ready
+**Status:** in-progress
 
 ---
 
