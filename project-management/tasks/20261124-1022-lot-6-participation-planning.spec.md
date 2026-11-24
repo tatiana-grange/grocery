@@ -1,6 +1,6 @@
 # Lot 6 — Participation planning
 
-**Status:** ready
+**Status:** in-progress
 
 ---
 
