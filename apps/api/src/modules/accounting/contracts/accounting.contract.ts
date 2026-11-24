@@ -1,26 +1,44 @@
 import { z } from 'zod'
-import { isCalendarDay } from '../period.util'
+import { expenseCategorySchema } from './expense.contract'
+import { calendarDaySchema } from './period.contract'
 
-/** A real calendar day written `YYYY-MM-DD`. Shared by the expense date and the period. */
-export const calendarDaySchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/)
-  .refine(isCalendarDay, { message: 'Not a real calendar day' })
-  .meta({
-    title: 'CalendarDay',
-    description: 'A calendar day written YYYY-MM-DD, with no time and no time zone.',
-    examples: ['2026-03-31'],
+export const profitAndLossSchema = z
+  .object({
+    from: calendarDaySchema,
+    to: calendarDaySchema,
+    /** Sum of handover line totals in the period, reversal lines included (they are negative). */
+    salesCents: z.number().int(),
+    /** Cost recorded on the stock movements written by handovers in the period. */
+    costOfGoodsSoldCents: z.number().int(),
+    /** Sales minus cost of goods sold. */
+    grossMarginCents: z.number().int(),
+    /** Fee payments and adjustments paid in the period. */
+    membershipFeesCents: z.number().int(),
+    /** All six categories, in the fixed order, with 0 when empty. */
+    expensesByCategory: z.array(
+      z.object({ category: expenseCategorySchema, amountCents: z.number().int() }),
+    ),
+    expensesTotalCents: z.number().int(),
+    /** Sales plus fees minus cost of goods sold minus expenses. */
+    resultCents: z.number().int(),
   })
-
-export const periodQuerySchema = z
-  .object({ from: calendarDaySchema, to: calendarDaySchema })
-  .refine((period) => period.from <= period.to, {
-    message: 'The period must not start after it ends',
-    path: ['from'],
-  })
   .meta({
-    title: 'PeriodQuery',
+    title: 'ProfitAndLoss',
     description:
-      'A period of calendar days in Europe/Paris, both days included. `from` must not be after `to`.',
+      'The profit-and-loss account for a period. Wallet money (top-ups, payment corrections, ' +
+      'refunds) is not on it: it belongs to the members. All amounts are in cents.',
   })
-export type PeriodQuery = z.infer<typeof periodQuerySchema>
+export type ProfitAndLoss = z.infer<typeof profitAndLossSchema>
+
+export const EXPORT_NAMES = [
+  'wallet-movements',
+  'sales',
+  'purchases',
+  'membership-fees',
+  'expenses',
+] as const
+export const exportNameSchema = z.enum(EXPORT_NAMES).meta({
+  title: 'ExportName',
+  description: 'Which CSV export to download.',
+})
+export type ExportName = z.infer<typeof exportNameSchema>

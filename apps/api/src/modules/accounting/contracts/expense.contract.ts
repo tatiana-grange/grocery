@@ -1,6 +1,6 @@
 import { createPaginationQuerySchema, paginatedSchema } from '@lonestone/nzoth/server'
 import { z } from 'zod'
-import { calendarDaySchema } from './accounting.contract'
+import { calendarDaySchema } from './period.contract'
 
 export const EXPENSE_CATEGORIES = [
   'rent',

@@ -685,13 +685,37 @@ finds it in the list for its period (201 then 200)`. Then wrote entity, contract
     two admins) has no test of its own: it cannot be reached without a race. Said out loud.
   - A test bug found on the way: a helper default value hid a "no reason" case; replaced by a
     `null` reason.
+- 2026-11-24 — Typist, step 4 (the P&L). Wrote `tests/accounting-test-data.ts` and
+  `tests/profit-and-loss.controller.e2e-spec.ts` (20 tests). **Order of work, said plainly:** I
+  wrote the service and the route before the test file, then wrote the test file, then took the
+  new controller out of the module to show the red run, then put it back. Red run:
+  `pnpm --filter=api exec vitest run --project e2e src/modules/accounting/tests/profit` with the
+  controller unregistered: 20 failed, first `counts a sale just inside both bounds and leaves out
+one just outside` with `AssertionError: expected 404 to be 200`. With the controller back: 20
+  pass. The test setup itself (the helpers writing handovers, receptions, fees, wallet rows)
+  worked first time, so the red is the missing route and nothing else.
+  - Files: `accounting.queries.ts` (period filters, per-row cost, shared with the exports in step
+    5), `profit-and-loss.service.ts`, `AdminAccountingController.getProfitAndLoss`.
+  - Changes from the plan, all small: (1) `calendarDaySchema` and `periodQuerySchema` moved to
+    `contracts/period.contract.ts`, because `accounting.contract.ts` (the P&L schema) needs the
+    expense category schema and `expense.contract.ts` needs the calendar day: one file for both
+    would be a circular import. `accounting.contract.ts` now holds the P&L and export names.
+    (2) No P&L mapper: the service already returns the contract's shape, a mapper would only copy
+    it. (3) Timestamps go to SQL as ISO strings cast with `?::timestamptz`, days with `?::date`.
+  - Tests beyond the plan list: half a cent rounds away from zero and a reversal rounds to the
+    exact opposite; a declined line is a sale of 0; a sale whose stock movement is stamped 5 ms
+    after the bound still counts on the handover's time (the Architect's correction 1); a sale in
+    March reversed in April; a cancellation in a later period; `from` equal to `to`.
+  - The real-path test imports `DistributionModule`, `WalletModule`, `InventoryModule` and
+    `CatalogModule` too, records an express sale (600 cents of sales, 400 of cost), reverses it
+    through the route, and the P&L for today is 0, 0, 0.
 
 ## Implementation Checkboxes
 
 - [x] Step 1 — period reader and CSV writer, test first
 - [x] Step 2 — record and list expenses, entity, migration (cleaned, worklog entry)
 - [x] Step 3 — cancel an expense, closed doors of the final state
-- [ ] Step 4 — the P&L route, bounds, reversal, wallet ignored, real distribution path
+- [x] Step 4 — the P&L route, bounds, reversal, wallet ignored, real distribution path
 - [ ] Step 5 — the five CSV exports, totals match the P&L
 - [ ] Step 6 — regenerated client, expenses screen, browser tests
 - [ ] Step 7 — P&L and exports screen, browser tests, nav-smoke routes
