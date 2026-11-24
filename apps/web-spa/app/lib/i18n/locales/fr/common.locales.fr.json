@@ -861,7 +861,7 @@
     },
     "expenses": {
       "title": "Dépenses",
-      "subtitle": "Ce que l'association a dépensé. Une dépense annulée reste dans la liste, avec une seconde ligne qui l'annule.",
+      "subtitle": "Ce que la coopérative a dépensé. Une dépense annulée reste dans la liste, avec une seconde ligne qui la contrepasse.",
       "new": "Enregistrer une dépense",
       "cancel": "Annuler",
       "cancelled": "Annulée",
@@ -889,7 +889,7 @@
     },
     "cancel": {
       "title": "Annuler cette dépense",
-      "warning": "« {{label}} » ({{amount}}) reste dans les comptes et une seconde ligne l'annule. C'est définitif. Pour corriger une erreur, enregistrez de nouveau la dépense.",
+      "warning": "« {{label}} » ({{amount}}) reste dans les comptes et une seconde ligne la contrepasse. C'est définitif. Pour corriger une erreur, enregistrez de nouveau la dépense.",
       "reason": "Motif",
       "reasonHint": "Pourquoi cette dépense est-elle annulée ?",
       "keep": "La garder",
@@ -905,7 +905,7 @@
     },
     "pnl": {
       "title": "Compte de résultat",
-      "subtitle": "Ce que la coopérative a vendu, ce que cela a coûté et ce qu'elle a dépensé, sur une période. Les jours sont lus à l'heure de Paris.",
+      "subtitle": "Ce que la coopérative a vendu, ce que cela a coûté et ce qu'elle a dépensé, sur une période. Les dates sont comptées à l'heure de Paris.",
       "toExpenses": "Dépenses",
       "figure": "Poste",
       "sales": "Ventes",

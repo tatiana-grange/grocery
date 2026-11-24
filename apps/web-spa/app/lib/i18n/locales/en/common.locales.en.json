@@ -861,7 +861,7 @@
     },
     "expenses": {
       "title": "Expenses",
-      "subtitle": "What the association spent. A cancelled expense stays in the list, with a second row that reverses it.",
+      "subtitle": "What the cooperative spent. A cancelled expense stays in the list, with a second row that reverses it.",
       "new": "Record an expense",
       "cancel": "Cancel",
       "cancelled": "Cancelled",

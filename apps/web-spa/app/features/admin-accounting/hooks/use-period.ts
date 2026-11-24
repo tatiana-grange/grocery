@@ -1,35 +1,40 @@
-import { useSearchParams } from 'react-router'
+import { zCalendarDay } from '@grocery/openapi-generator/client/zod.gen'
+import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export interface Period {
   from: string
   to: string
 }
 
-const DAY = /^\d{4}-\d{2}-\d{2}$/
-
-/** 1 January to 31 December of the given year, as two calendar days. */
 export function yearPeriod(year: number): Period {
   return { from: `${year}-01-01`, to: `${year}-12-31` }
+}
+
+/** The address query that carries a period from one accounting screen to the other. */
+export function periodSearch(period: Period): string {
+  return `?from=${period.from}&to=${period.to}`
+}
+
+interface UsePeriodResult {
+  period: Period
+  setPeriod: (next: Period) => void
 }
 
 /**
  * The period of an accounting screen lives in the address (`?from=&to=`), so a reload or a shared
  * link keeps it. Without a valid pair it is the current calendar year in the browser.
  */
-export function usePeriod() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const from = searchParams.get('from')
-  const to = searchParams.get('to')
-  const isValid = from !== null && to !== null && DAY.test(from) && DAY.test(to) && from <= to
-  const period: Period = isValid ? { from, to } : yearPeriod(new Date().getFullYear())
+export function usePeriod(): UsePeriodResult {
+  const { searchParams, updateParams } = useListSearchParams()
+  const from = zCalendarDay.safeParse(searchParams.get('from'))
+  const to = zCalendarDay.safeParse(searchParams.get('to'))
+  const period: Period =
+    from.success && to.success && from.data <= to.data
+      ? { from: from.data, to: to.data }
+      : yearPeriod(new Date().getFullYear())
 
-  const setPeriod = (next: Period) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('from', next.from)
-    params.set('to', next.to)
-    params.delete('page')
-    setSearchParams(params, { replace: true })
-  }
+  const setPeriod = (next: Period): void =>
+    updateParams({ from: next.from, to: next.to, page: undefined }, { replace: true })
 
   return { period, setPeriod }
 }

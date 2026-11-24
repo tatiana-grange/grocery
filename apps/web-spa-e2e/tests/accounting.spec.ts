@@ -4,7 +4,6 @@ import { expect, newRolePage, test, withRole } from '../fixtures'
 
 type Page = import('@playwright/test').Page
 
-/** The rows of the expense list that hold this text. */
 function expenseRow(page: Page, text: string) {
   return page.locator('[data-testid^="expense-row-"]').filter({ hasText: text })
 }
@@ -12,13 +11,14 @@ function expenseRow(page: Page, text: string) {
 /** Records one expense through the screen. The day is today, which is the form's default. */
 async function recordExpenseOnScreen(
   page: Page,
-  expense: { amount: string; category: string; label: string },
-) {
+  expense: { amount: string; category: string; label: string; method?: string },
+): Promise<void> {
   await page.goto('/admin/accounting/expenses')
   await page.getByTestId('expenses-new').click()
   await page.getByTestId('expense-form-amount').fill(expense.amount)
   await page.getByTestId('expense-form-category').selectOption(expense.category)
   await page.getByTestId('expense-form-label').fill(expense.label)
+  if (expense.method) await page.getByTestId('expense-form-method').selectOption(expense.method)
   await page.getByTestId('expense-form-submit').click()
   await expect(expenseRow(page, expense.label)).toBeVisible()
 }
@@ -31,20 +31,26 @@ test.describe('comptabilité, côté administrateur', () => {
   })
 
   test("l'admin enregistre une dépense et la voit dans la liste", async ({ page }) => {
-    await page.goto('/admin/accounting/expenses')
-    await expect(page.getByTestId('page-expenses')).toBeVisible()
-
-    await page.getByTestId('expenses-new').click()
-    await page.getByTestId('expense-form-amount').fill('12.50')
-    await page.getByTestId('expense-form-category').selectOption('insurance')
-    await page.getByTestId('expense-form-label').fill('Assurance locaux E2E')
-    await page.getByTestId('expense-form-method').selectOption('cheque')
-    await page.getByTestId('expense-form-submit').click()
+    await recordExpenseOnScreen(page, {
+      amount: '12.50',
+      category: 'insurance',
+      label: 'Assurance locaux E2E',
+      method: 'cheque',
+    })
 
     const row = expenseRow(page, 'Assurance locaux E2E')
     await expect(row).toBeVisible()
     await expect(row).toContainText('12.50')
     await expect(row.getByTestId('expense-cancelled-badge')).toHaveCount(0)
+  })
+
+  test("la remise à zéro n'écrit aucune annulation dans les comptes", async ({ page }) => {
+    await page.goto('/admin/accounting/expenses')
+    await expect(expenseRow(page, 'E2E rent')).toBeVisible()
+    await expect(expenseRow(page, 'E2E bank fees')).toBeVisible()
+
+    await expect(page.getByTestId('expense-reason')).toHaveCount(0)
+    await expect(page.getByTestId('expense-cancelled-badge')).toHaveCount(0)
   })
 
   test("l'admin annule une dépense avec un motif, elle est marquée annulée", async ({ page }) => {
@@ -96,6 +102,50 @@ test.describe('comptabilité, côté administrateur', () => {
     await expect(page.getByTestId('pnl-expense-insurance')).toHaveText('20.00 €')
     await expect(page.getByTestId('pnl-expenses-total')).toHaveText('473.50 €')
     await expect(page.getByTestId('pnl-result')).toHaveText('-463.50 €')
+  })
+
+  test("l'admin change la période du compte de résultat, l'adresse la garde", async ({ page }) => {
+    await page.goto('/admin/accounting')
+    await expect(page.getByTestId('pnl-expenses-total')).toHaveText('453.50 €')
+
+    await page.getByTestId('period-from').fill('2020-01-01')
+    await page.getByTestId('period-to').fill('2020-12-31')
+
+    await expect(page.getByTestId('pnl-expenses-total')).toHaveText('0.00 €')
+    await expect(page.getByTestId('pnl-fees')).toHaveText('0.00 €')
+    await expect(page).toHaveURL(/[?&]from=2020-01-01&to=2020-12-31/)
+  })
+
+  test("l'admin télécharge les cinq exports, chacun avec son nom et son en-tête", async ({
+    page,
+  }) => {
+    const headers: Record<string, string> = {
+      'wallet-movements':
+        'date,recordedAt,entryId,membershipNumber,memberName,reason,paymentMethod,amountEur,handoverId,note',
+      sales:
+        'date,recordedAt,handoverId,kind,reversesHandoverId,membershipNumber,memberName,product,quantity,unitPriceEur,lineTotalEur,costOfGoodsEur',
+      purchases:
+        'date,recordedAt,receptionId,supplierOrderId,supplier,product,receivedQuantity,unitCostEur,lineTotalEur',
+      'membership-fees':
+        'date,recordedAt,paymentId,membershipNumber,memberName,kind,method,amountEur,note',
+      expenses:
+        'date,expenseId,kind,cancelsExpenseId,category,label,paymentMethod,amountEur,reason,recordedBy,recordedAt',
+    }
+    await page.goto('/admin/accounting')
+    await expect(page.getByTestId('page-profit-and-loss')).toBeVisible()
+    const year = new Date().getFullYear()
+
+    for (const [exportName, header] of Object.entries(headers)) {
+      const downloadPromise = page.waitForEvent('download')
+      await page.getByTestId(`export-${exportName}`).click()
+      const download = await downloadPromise
+
+      expect(download.suggestedFilename()).toBe(
+        `grocery-${exportName}-${year}-01-01-${year}-12-31.csv`,
+      )
+      const lines = (await readFile(await download.path(), 'utf8')).split('\r\n')
+      expect(lines[0], exportName).toBe(header)
+    }
   })
 
   test("l'admin télécharge l'export des dépenses", async ({ page }) => {

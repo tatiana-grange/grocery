@@ -12,9 +12,8 @@ export function eurosToCents(text: string): number {
   return Math.round(Number(text.trim().replace(',', '.')) * 100)
 }
 
-/** A `yyyy-mm-dd` day in the browser's own time zone. */
-export function toDayInput(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
+/** A calendar day (`2026-03-01`) written the way the language writes dates. No time zone. */
+export function formatDay(day: string, locale: string): string {
+  const [year, month, date] = day.split('-').map(Number)
+  return new Intl.DateTimeFormat(locale).format(new Date(year, month - 1, date))
 }

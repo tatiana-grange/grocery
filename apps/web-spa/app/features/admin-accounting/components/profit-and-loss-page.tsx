@@ -22,7 +22,7 @@ import {
   type ExportName,
   profitAndLossQueryOptions,
 } from '@/features/admin-accounting/utils/admin-accounting-queries'
-import { usePeriod } from '@/features/admin-accounting/hooks/use-period'
+import { periodSearch, usePeriod } from '@/features/admin-accounting/hooks/use-period'
 
 interface FigureRowProps {
   label: string
@@ -68,7 +68,7 @@ export default function ProfitAndLossPage() {
           variant="ghost"
           size="sm"
           data-testid="pnl-to-expenses"
-          render={<Link to={`/admin/accounting/expenses?from=${period.from}&to=${period.to}`} />}
+          render={<Link to={`/admin/accounting/expenses${periodSearch(period)}`} />}
         >
           {t('adminAccounting.pnl.toExpenses')}
         </Button>

@@ -19,16 +19,16 @@ import { Link } from 'react-router'
 import { CancelExpenseDialog } from '@/features/admin-accounting/components/cancel-expense-dialog'
 import { PeriodPicker } from '@/features/admin-accounting/components/period-picker'
 import { RecordExpenseDialog } from '@/features/admin-accounting/components/record-expense-dialog'
-import { formatCents } from '@/features/admin-accounting/utils/accounting-format'
+import { formatCents, formatDay } from '@/features/admin-accounting/utils/accounting-format'
 import {
   EXPENSES_PAGE_SIZE,
   expensesQueryOptions,
 } from '@/features/admin-accounting/utils/admin-accounting-queries'
-import { usePeriod } from '@/features/admin-accounting/hooks/use-period'
+import { periodSearch, usePeriod } from '@/features/admin-accounting/hooks/use-period'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export default function ExpensesPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { period, setPeriod } = usePeriod()
   const { page, updateParams } = useListSearchParams()
   const [isRecording, setIsRecording] = useState(false)
@@ -52,7 +52,7 @@ export default function ExpensesPage() {
             variant="ghost"
             size="sm"
             data-testid="expenses-to-profit-and-loss"
-            render={<Link to={`/admin/accounting?from=${period.from}&to=${period.to}`} />}
+            render={<Link to={`/admin/accounting${periodSearch(period)}`} />}
           >
             {t('adminAccounting.expenses.toProfitAndLoss')}
           </Button>
@@ -100,7 +100,9 @@ export default function ExpensesPage() {
 
             {data?.data.map((expense) => (
               <TableRow key={expense.id} data-testid={`expense-row-${expense.id}`}>
-                <TableCell className="tabular-nums">{expense.spentOn}</TableCell>
+                <TableCell className="tabular-nums">
+                  {formatDay(expense.spentOn, i18n.language)}
+                </TableCell>
                 <TableCell>{t(`adminAccounting.category.${expense.category}`)}</TableCell>
                 <TableCell>
                   <div className="font-medium">{expense.label}</div>

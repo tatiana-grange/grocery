@@ -22,7 +22,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { eurosToCents, toDayInput } from '@/features/admin-accounting/utils/accounting-format'
+import { eurosToCents } from '@/features/admin-accounting/utils/accounting-format'
 import {
   invalidateAccounting,
   recordExpense,
@@ -34,6 +34,7 @@ import {
   type ExpenseFormValues,
   MAX_EXPENSE_LABEL_LENGTH,
 } from '@/features/admin-accounting/utils/expense-form'
+import { toDateInput } from '@/features/common/lib/date-input'
 
 interface RecordExpenseDialogProps {
   onClose: () => void
@@ -47,7 +48,7 @@ export function RecordExpenseDialog({ onClose }: RecordExpenseDialogProps) {
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(createExpenseFormSchema(t)),
     defaultValues: {
-      spentOn: toDayInput(new Date()),
+      spentOn: toDateInput(new Date()),
       amount: '',
       category: 'other',
       label: '',

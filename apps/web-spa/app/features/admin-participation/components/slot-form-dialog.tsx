@@ -33,10 +33,10 @@ import {
   MAX_LABEL_LENGTH,
   MAX_PLACES,
   type SlotFormValues,
-  toDateInput,
   toInstant,
   toTimeInput,
 } from '@/features/admin-participation/utils/slot-form'
+import { toDateInput } from '@/features/common/lib/date-input'
 import { getParticipationRefusalMessage } from '@/features/participation/utils/participation-refusal'
 
 interface SlotFormDialogProps {

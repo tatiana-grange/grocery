@@ -18,7 +18,17 @@ export const EXPENSE_CATEGORY_OPTIONS = zRecordExpenseInput.shape.category.optio
 export const EXPENSE_METHOD_OPTIONS = zRecordExpenseInput.shape.paymentMethod.options
 
 /** The form holds plain text, as the inputs do. The amount is in euros and becomes cents on send. */
-export function createExpenseFormSchema(t: TFunction) {
+export interface ExpenseFormValues {
+  spentOn: string
+  amount: string
+  category: (typeof EXPENSE_CATEGORY_OPTIONS)[number]
+  label: string
+  paymentMethod: (typeof EXPENSE_METHOD_OPTIONS)[number]
+}
+
+export function createExpenseFormSchema(
+  t: TFunction,
+): z.ZodType<ExpenseFormValues, ExpenseFormValues> {
   return z.object({
     spentOn: z.string().min(1, t('adminAccounting.form.error.date')),
     amount: z
@@ -41,5 +51,3 @@ export function createExpenseFormSchema(t: TFunction) {
     paymentMethod: z.enum(EXPENSE_METHOD_OPTIONS),
   })
 }
-
-export type ExpenseFormValues = z.infer<ReturnType<typeof createExpenseFormSchema>>
