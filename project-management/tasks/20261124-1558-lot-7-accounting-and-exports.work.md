@@ -3,7 +3,7 @@
 Created by the Mason at the plan step, 2026-11-24. Spec:
 `project-management/tasks/20261124-1558-lot-7-accounting-and-exports.spec.md`.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect, 2026-11-24, with the corrections below.
 
 Read before planning: `AGENTS.md` (with "Working with chisel in this repo"), `.agents/workflow.md`,
 `.agents/discipline.md`, and the reading list of `.agents/project.md` (README, documentation
@@ -603,6 +603,23 @@ Added in a new file `apps/web-spa-e2e/tests/accounting.spec.ts`, never editing a
 4. **Two exports have no P&L figure to match.** The criterion `five-csv-exports` says the totals
    match the P&L; wallet movements and purchases are not on the P&L by design. Their totals are
    tested against the rows the test wrote instead. Fine?
+
+## Corrections at the reading
+
+Written and signed by the Architect, 2026-11-24.
+
+1. **Which time puts a sale's cost in the period: (a), the handover's time** for its lines and
+   their stock movements. The spec line that said "the stock movement's creation time" was the
+   Architect's own wording, not a human decision; it is corrected in the spec to match the
+   criterion `pnl-cost-of-goods`.
+2. **The date of a cancellation row: (a), the day it was cancelled**, in Paris time. A P&L given
+   for a past period never changes afterwards.
+3. **The formula guard also covers a tab and a carriage return.** It is a wider guard than the
+   spec's four characters, so it still meets `csv-safe-for-spreadsheets`.
+4. **Wallet movements and purchases are checked against the rows the test wrote.** The criterion
+   `five-csv-exports` is amended in the spec (struck, with a dated replacement).
+
+No other change. Go ahead with step 1.
 
 ## Worklog
 

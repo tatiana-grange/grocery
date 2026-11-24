@@ -68,9 +68,14 @@ profit-and-loss account, association expenses" and "data exports".
 - [ ] **period-bounds** — a period is a start date and an end date, both included, read as
       calendar days in the cooperative's time zone (Europe/Paris); a start after the end is
       refused.
-- [ ] **five-csv-exports** — the five exports each return a CSV file with a header row and
+- [ ] ~~**five-csv-exports** — the five exports each return a CSV file with a header row and
       one row per record in the period, and their totals match the P&L figures for the same
-      period.
+      period.~~
+- [ ] **five-csv-exports** (amended 2026-11-24, Architect: wallet movements and purchases are
+      not on the P&L) — the five exports each return a CSV file with a header row and one row
+      per record in the period. The sales, membership fees and expenses totals match the P&L
+      figures for the same period; the wallet movements and purchases totals match the rows
+      recorded in that period.
 - [ ] **csv-format** — comma separator, decimal point, amounts in euros with two decimals,
       ISO dates, UTF-8, values quoted when they hold a comma, a quote or a line break.
 - [ ] **csv-safe-for-spreadsheets** — a text value that starts with `=`, `+`, `-` or `@` is
@@ -128,11 +133,14 @@ is append-only.
   breakdown by category or month; wallet money off the P&L.
 - Amounts stay in cents in the database and the API, as everywhere else; the CSV writes
   euros with two decimals.
-- A record belongs to the period by its own date: the handover's and the stock movement's
-  creation time, the reception's date, the fee payment's `paidAt`, the expense's date, the
+- A record belongs to the period by its own date: the handover's creation time (for its lines
+  and their stock movements too, so one sale never splits across two periods; corrected by the
+  Architect on 2026-11-24), the reception's date, the fee payment's `paidAt`, the expense's date, the
   wallet entry's creation time.
 - The expense payment methods are cash, cheque, transfer and card.
 - The P&L screen opens on the current calendar year.
+- A cancelled expense counts on the day it was cancelled, not on the expense's own date
+  (Architect, 2026-11-24).
 - To check while planning: that every sale goes through a handover (express orders
   included). If some sale does not, report it before coding.
 
