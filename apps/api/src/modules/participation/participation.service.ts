@@ -1,9 +1,16 @@
-import { EntityManager, LockMode, QueryOrder } from '@mikro-orm/core'
+import {
+  EntityManager,
+  LockMode,
+  QueryOrder,
+  UniqueConstraintViolationException,
+} from '@mikro-orm/core'
 import { Injectable, NotFoundException, Optional } from '@nestjs/common'
 import { refusal } from '../../common/refusal'
-import type { SlotEditRefusal, SlotInput } from './contracts/slot.contract'
+import { Member } from '../members/entities/member.entity'
+import type { SignUpRefusal, SlotEditRefusal, SlotInput } from './contracts/slot.contract'
 import { SlotSignup } from './entities/slot-signup.entity'
 import { Slot } from './entities/slot.entity'
+import { type Actor, checkSignUp } from './participation.util'
 
 /** A page of results and the total they were cut from. */
 export interface Page<T> {
@@ -139,6 +146,88 @@ export class ParticipationService {
       tem.remove(slot)
       await tem.flush()
     })
+  }
+
+  /** Slots that start after now and are not cancelled, earliest first, with their sign-ups. */
+  async listComingSlots(p: PageRequest): Promise<Page<Slot>> {
+    const [items, total] = await this.em.findAndCount(
+      Slot,
+      { startsAt: { $gt: this.clock() }, cancelledAt: null },
+      {
+        orderBy: { startsAt: QueryOrder.ASC, id: QueryOrder.ASC },
+        limit: p.pageSize,
+        offset: p.offset,
+        populate: ['signups'],
+      },
+    )
+    return { items, total }
+  }
+
+  /**
+   * Signs a member up on a slot. The slot row is locked, so two sign-ups for the last place
+   * cannot both pass. `checkSignUp` decides the refusals that need only the slot and the clock.
+   * A member already on the slot is told so even when it is full, because that is the useful
+   * answer. The unique pair of the table backs the one-sign-up rule if two calls race anyway.
+   * Returns the slot with its sign-ups.
+   */
+  async signUp(p: { slotId: string; memberId: string; actor: Actor }): Promise<Slot> {
+    try {
+      return await this.em.transactional(async (tem) => {
+        const member = await tem.findOne(Member, { id: p.memberId })
+        if (!member) throw new NotFoundException('Member not found')
+        const slot = await this.lockSlot(tem, p.slotId)
+        const signedUpCount = await tem.count(SlotSignup, { slot: slot.id })
+        const alreadySignedUp =
+          (await tem.count(SlotSignup, { slot: slot.id, member: member.id })) > 0
+        const refused = checkSignUp({
+          slot: {
+            startsAt: slot.startsAt,
+            endsAt: slot.endsAt,
+            places: slot.places,
+            isCancelled: slot.cancelledAt != null,
+            signedUpCount,
+          },
+          actor: p.actor,
+          now: this.clock(),
+        })
+        if (alreadySignedUp && (refused === null || refused === 'slot_full')) {
+          throw this.signUpRefusal('already_signed_up')
+        }
+        if (refused) throw this.signUpRefusal(refused)
+
+        const signup = new SlotSignup()
+        signup.slot = slot
+        signup.member = member
+        tem.persist(signup)
+        await tem.flush()
+        await tem.populate(slot, ['signups'])
+        return slot
+      })
+    } catch (error) {
+      if (error instanceof UniqueConstraintViolationException) {
+        throw this.signUpRefusal('already_signed_up')
+      }
+      throw error
+    }
+  }
+
+  /** The member row of a signed-in user. An admin who is not a member gets a 404. */
+  async getMemberForUser(userId: string): Promise<Member> {
+    const member = await this.em.findOne(Member, { user: userId })
+    if (!member) throw new NotFoundException('Member not found')
+    return member
+  }
+
+  private signUpRefusal(code: SignUpRefusal) {
+    const messages: Record<SignUpRefusal, string> = {
+      slot_cancelled: 'This slot was cancelled',
+      slot_ended: 'This slot has already ended',
+      slot_started: 'This slot has already started',
+      slot_full: 'This slot is full',
+      already_signed_up: 'You are already signed up on this slot',
+      overlaps_another_slot: 'This slot overlaps another slot you are signed up on',
+    }
+    return refusal(code, messages[code])
   }
 
   private async lockSlot(em: EntityManager, slotId: string): Promise<Slot> {

@@ -599,12 +599,21 @@ refuses edit and cancel of an ended slot first, then, for an edit, `slot_has_sig
 (the plan does not say which comes first when both apply; I followed the order of the list in the contract).
 `DELETE admin/slots/:slotId` answers 204, like the other delete routes in the repo.
 
+**Step 4.** First failing test (e2e) `a member signs up for a slot with places left and sees it as taken by them`.
+Red seen first: `AssertionError: expected 404 to be 201` (no member route yet). Green after `listComingSlots`, `signUp`,
+`getMemberForUser`, `GET me/slots`, `POST me/slots/:slotId/signup`: 38 tests pass in the e2e spec (14 new). At this step
+`signUp` locks the slot row only; the member lock and the overlap query come in step 5 as the plan says. The plan was
+unclear on one point: section 3 says `checkSignUp` runs first and `already_signed_up` after, but also says a member
+already on a full slot is told `already_signed_up`, not `slot_full`. I made both true: if `checkSignUp` answers nothing
+or `slot_full`, a duplicate is reported as `already_signed_up`; for cancelled, ended and started slots the slot refusal
+wins. One test pins the full-slot case.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
 - [x] Step 2. Tables, migration, admin create and list.
 - [x] Step 3. Admin edit, cancel, delete.
-- [ ] Step 4. Member lists coming slots and signs up.
+- [x] Step 4. Member lists coming slots and signs up.
 - [ ] Step 5. Overlap rule and the two locks, with the concurrency tests.
 - [ ] Step 6. Leave, admin sign-up and removal, my sign-ups.
 - [ ] Step 7. Regenerated client, member screens, member browser test.

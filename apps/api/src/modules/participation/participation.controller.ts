@@ -8,13 +8,16 @@ import {
 } from '@lonestone/nzoth/server'
 import { HttpCode, UseGuards } from '@nestjs/common'
 import { z } from 'zod'
-import { AdminOnly } from '../auth/auth.decorator'
+import { AdminOnly, MemberScoped, Session } from '../auth/auth.decorator'
+import { LoggedInBetterAuthSession } from '../auth/auth.config'
 import { AuthGuard } from '../auth/auth.guard'
 import {
   adminSlotDetailSchema,
   adminSlotListSchema,
   adminSlotSchema,
   includePastSchema,
+  memberSlotListSchema,
+  memberSlotSchema,
   type SlotInput,
   slotInputSchema,
   type SlotPagination,
@@ -84,5 +87,47 @@ export class AdminSlotsController {
   @HttpCode(204)
   async remove(@TypedParam('slotId', z.string().uuid()) slotId: string): Promise<void> {
     await this.participation.deleteSlot(slotId)
+  }
+}
+
+/**
+ * A member reading the coming slots and signing themselves up. The member row is the caller's
+ * own: no route here takes a member id.
+ */
+@TypedController('me', undefined, { tags: ['Member Slots'] })
+@UseGuards(AuthGuard)
+@MemberScoped()
+export class MemberSlotsController {
+  constructor(
+    private readonly participation: ParticipationService,
+    private readonly mapper: ParticipationMapper,
+  ) {}
+
+  @TypedRoute.Get('slots', memberSlotListSchema)
+  async listComing(
+    @Session() session: LoggedInBetterAuthSession,
+    @PaginationParams(slotPaginationSchema) pagination: SlotPagination,
+  ) {
+    const member = await this.participation.getMemberForUser(session.user.id)
+    const { items, total } = await this.participation.listComingSlots(pagination)
+    return {
+      data: items.map((slot) => this.mapper.toMemberSlot(slot, member.id)),
+      meta: {
+        itemCount: total,
+        pageSize: pagination.pageSize,
+        offset: pagination.offset,
+        hasMore: pagination.offset + pagination.pageSize < total,
+      },
+    }
+  }
+
+  @TypedRoute.Post('slots/:slotId/signup', memberSlotSchema)
+  async signUp(
+    @Session() session: LoggedInBetterAuthSession,
+    @TypedParam('slotId', z.string().uuid()) slotId: string,
+  ) {
+    const member = await this.participation.getMemberForUser(session.user.id)
+    const slot = await this.participation.signUp({ slotId, memberId: member.id, actor: 'member' })
+    return this.mapper.toMemberSlot(slot, member.id)
   }
 }

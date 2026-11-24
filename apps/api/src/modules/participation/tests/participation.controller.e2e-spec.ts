@@ -12,6 +12,7 @@ import {
   type TestRequest,
 } from '../../../test/helpers/test-auth.helper'
 import { Member } from '../../members/entities/member.entity'
+import { createUserData } from '../../auth/auth.factory'
 import { createMemberData } from '../../members/members.factory'
 import { SlotSignup } from '../entities/slot-signup.entity'
 import { Slot } from '../entities/slot.entity'
@@ -395,6 +396,166 @@ describe('participation slots (e2e)', () => {
         const stored = await em.fork().findOneOrFail(Slot, slot.id)
         expect(stored.cancelledAt ?? null).toBeNull()
       })
+    })
+  })
+  describe('member list and sign-up', () => {
+    const inDays = (days: number) => new Date(Date.now() + days * DAY)
+    const idsOf = (res: { body: { data: { id: string }[] } }) => res.body.data.map((s) => s.id)
+
+    it('a member signs up for a slot with places left and sees it as taken by them', async () => {
+      const slot = await insertSlot(inDays(10), inDays(11), 3)
+
+      const res = await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+      const list = await request.withSession(member).get('/me/slots')
+
+      expect(res.status).toBe(201)
+      expect(res.body).toMatchObject({ id: slot.id, isSignedUp: true, signedUpCount: 1 })
+      expect(list.body.data).toHaveLength(1)
+      expect(list.body.data[0]).toMatchObject({ id: slot.id, isSignedUp: true, freePlaces: 2 })
+    })
+
+    it('shows a slot as not taken by the caller when someone else is on it', async () => {
+      const slot = await insertSlot(inDays(10), inDays(11), 3)
+      await insertSignups(slot, 1)
+
+      const list = await request.withSession(member).get('/me/slots')
+
+      expect(list.body.data[0]).toMatchObject({
+        isSignedUp: false,
+        signedUpCount: 1,
+        freePlaces: 2,
+      })
+    })
+
+    it('refuses a sign-up on a full slot (slot_full)', async () => {
+      const slot = await insertSlot(inDays(10), inDays(11), 1)
+      await insertSignups(slot, 1)
+
+      const res = await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('slot_full')
+    })
+
+    it('refuses a sign-up on a slot that has started (slot_started)', async () => {
+      const slot = await insertSlot(new Date(Date.now() - HOUR), inDays(1))
+
+      const res = await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('slot_started')
+    })
+
+    it('refuses a sign-up on a slot that has ended (slot_ended)', async () => {
+      const slot = await insertSlot(new Date(Date.now() - 2 * DAY), new Date(Date.now() - DAY))
+
+      const res = await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('slot_ended')
+    })
+
+    it('refuses a sign-up on a cancelled slot (slot_cancelled)', async () => {
+      const slot = await insertSlot(inDays(10), inDays(11))
+      await request.withSession(admin).post(`/admin/slots/${slot.id}/cancel`)
+
+      const res = await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('slot_cancelled')
+    })
+
+    it('refuses a second sign-up by the same member (already_signed_up) and keeps one row', async () => {
+      const slot = await insertSlot(inDays(10), inDays(11))
+      await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      const again = await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      expect(again.status).toBe(409)
+      expect(again.body.code).toBe('already_signed_up')
+      expect(await em.fork().count(SlotSignup, { slot: slot.id })).toBe(1)
+    })
+
+    it('tells a member already on a full slot already_signed_up, not slot_full', async () => {
+      const slot = await insertSlot(inDays(10), inDays(11), 1)
+      await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      const again = await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      expect(again.body.code).toBe('already_signed_up')
+    })
+
+    it('404s a sign-up on an unknown slot', async () => {
+      const res = await request
+        .withSession(member)
+        .post('/me/slots/00000000-0000-4000-8000-000000000000/signup')
+
+      expect(res.status).toBe(404)
+    })
+
+    it('hides started, ended and cancelled slots from the member list and orders by start', async () => {
+      const later = await insertSlot(inDays(6), inDays(7))
+      const sooner = await insertSlot(inDays(2), inDays(3))
+      await insertSlot(new Date(Date.now() - HOUR), inDays(1))
+      await insertSlot(new Date(Date.now() - 2 * DAY), new Date(Date.now() - DAY))
+      const cancelled = await insertSlot(inDays(4), inDays(5))
+      await request.withSession(admin).post(`/admin/slots/${cancelled.id}/cancel`)
+
+      const list = await request.withSession(member).get('/me/slots')
+
+      expect(idsOf(list)).toEqual([sooner.id, later.id])
+    })
+
+    it('answers 404 to an admin who has no member row on the member routes', async () => {
+      const lonely = createSessionFromUser(
+        await createUserData(em, { emailVerified: true, role: 'admin' }),
+      )
+      const slot = await insertSlot(inDays(10), inDays(11))
+
+      const responses = await Promise.all([
+        request.withSession(lonely).get('/me/slots'),
+        request.withSession(lonely).post(`/me/slots/${slot.id}/signup`),
+      ])
+
+      expect(responses.map((res) => res.status)).toEqual([404, 404])
+    })
+
+    it('answers 403 to a pending member', async () => {
+      const pending = await createMemberData(em, {
+        user: { name: 'Pat Pending', email: uniqueEmail('pending') },
+        status: 'pending',
+      })
+      const slot = await insertSlot(inDays(10), inDays(11))
+
+      const responses = await Promise.all([
+        request.withSession(createSessionFromUser(pending.user)).get('/me/slots'),
+        request
+          .withSession(createSessionFromUser(pending.user))
+          .post(`/me/slots/${slot.id}/signup`),
+      ])
+
+      expect(responses.map((res) => res.status)).toEqual([403, 403])
+    })
+
+    it('lets a distributor who is also a member sign up like any member', async () => {
+      const both = await createMemberData(em, {
+        user: { name: 'Dina Both', email: uniqueEmail('both') },
+        roles: ['member', 'distributor'],
+        status: 'active',
+      })
+      const slot = await insertSlot(inDays(10), inDays(11))
+
+      const res = await request
+        .withSession(createSessionFromUser(both.user))
+        .post(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(201)
+    })
+
+    it('refuses a caller with no session with 401', async () => {
+      const res = await request.get('/me/slots')
+
+      expect(res.status).toBe(401)
     })
   })
 })

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { AdminSlot, AdminSlotDetail } from './contracts/slot.contract'
+import type { AdminSlot, AdminSlotDetail, MemberSlot } from './contracts/slot.contract'
 import type { Slot } from './entities/slot.entity'
 
 /** Turns slot entities into the contracts the controllers return. */
@@ -33,5 +33,13 @@ export class ParticipationMapper {
         signedUpAt: signup.createdAt,
       }))
     return { ...this.toAdminSlot(slot), signups }
+  }
+
+  /** The sign-ups must be loaded: the counts and `isSignedUp` are read from them. */
+  toMemberSlot(slot: Slot, memberId: string): MemberSlot {
+    return {
+      ...this.toAdminSlot(slot),
+      isSignedUp: slot.signups.getItems().some((signup) => signup.member.id === memberId),
+    }
   }
 }
