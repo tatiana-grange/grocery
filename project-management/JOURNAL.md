@@ -5,6 +5,19 @@ task — never generated.
 
 ## 2026-11-24
 
+- Lot 7, accounting and exports, the last delivery lot: built and reviewed on
+  `feat/accounting-exports`. Admins record association expenses (rent, insurance, utilities,
+  equipment, bank fees, other). The expense ledger is append-only: a mistake is cancelled once,
+  with a reason, by an opposite row dated the day of the cancellation. Admins read a
+  profit-and-loss account for any period, read in Paris time: sales and cost of goods sold come
+  from handovers (express sales included, checked in the code), fees from fee payments, and
+  wallet money stays off it. Five CSV files (wallet movements, sales, purchases, fees, expenses)
+  match the account's figures and guard text against spreadsheet formulas. Three Typists coded
+  it in seven steps, test first. The review found naming, typing and placement points, all fixed
+  or answered in the work document. All five gates are green (726 API tests, 140 browser tests);
+  one distribution test failed once with a 500 and passed on the rerun. Open for the human: two
+  spec lines the Architect amended at the plan reading, and seven retro proposals in the spec.
+
 - Lot 6, participation planning: built and reviewed on `feat/participation-planning`. Admins create,
   edit, cancel and delete time slots with a number of places. Members sign up while places are
   left, and leave until 7 days before the start. Admins can sign up or remove anyone until the slot

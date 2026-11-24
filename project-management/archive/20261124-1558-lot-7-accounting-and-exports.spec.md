@@ -1,6 +1,6 @@
 # Lot 7 — Accounting and exports
 
-**Status:** in-progress
+**Status:** done
 
 ---
 
@@ -47,42 +47,42 @@ profit-and-loss account, association expenses" and "data exports".
 
 ## Acceptance Criteria
 
-- [ ] **admin-only** — every lot 7 route refuses a member and a distributor; the screens are
+- [x] **admin-only** — every lot 7 route refuses a member and a distributor; the screens are
       not reachable for them.
-- [ ] **expense-recorded** — an admin records an expense with date, amount, category, label
+- [x] **expense-recorded** — an admin records an expense with date, amount, category, label
       and payment method; a zero or negative amount, or an unknown category, is refused.
-- [ ] **expense-append-only** — no route edits or deletes an expense. Cancelling one writes a
+- [x] **expense-append-only** — no route edits or deletes an expense. Cancelling one writes a
       reversing row that names the expense it cancels and carries a reason; an expense can be
       cancelled once only, and a reversing row cannot itself be cancelled.
-- [ ] **pnl-sales** — sales for a period are the sum of handover line totals in that period,
+- [x] **pnl-sales** — sales for a period are the sum of handover line totals in that period,
       reversal lines included (they are negative).
-- [ ] **pnl-cost-of-goods** — cost of goods sold for a period is the cost recorded on the
+- [x] **pnl-cost-of-goods** — cost of goods sold for a period is the cost recorded on the
       stock movements written by handovers in that period, reversals included. Receptions do
       not count.
-- [ ] **pnl-fees** — membership fees for a period are the sum of fee payments and
+- [x] **pnl-fees** — membership fees for a period are the sum of fee payments and
       adjustments paid in that period.
-- [ ] **pnl-expenses** — expenses for a period are summed by category, reversing rows
+- [x] **pnl-expenses** — expenses for a period are summed by category, reversing rows
       included; the result is sales plus fees minus cost of goods sold minus expenses.
-- [ ] **pnl-ignores-wallet** — a top-up, a payment received, a payment correction or a
+- [x] **pnl-ignores-wallet** — a top-up, a payment received, a payment correction or a
       refund in the period changes no P&L figure.
-- [ ] **period-bounds** — a period is a start date and an end date, both included, read as
+- [x] **period-bounds** — a period is a start date and an end date, both included, read as
       calendar days in the cooperative's time zone (Europe/Paris); a start after the end is
       refused.
 - [ ] ~~**five-csv-exports** — the five exports each return a CSV file with a header row and
       one row per record in the period, and their totals match the P&L figures for the same
       period.~~
-- [ ] **five-csv-exports** (amended 2026-11-24, Architect: wallet movements and purchases are
+- [x] **five-csv-exports** (amended 2026-11-24, Architect: wallet movements and purchases are
       not on the P&L) — the five exports each return a CSV file with a header row and one row
       per record in the period. The sales, membership fees and expenses totals match the P&L
       figures for the same period; the wallet movements and purchases totals match the rows
       recorded in that period.
-- [ ] **csv-format** — comma separator, decimal point, amounts in euros with two decimals,
+- [x] **csv-format** — comma separator, decimal point, amounts in euros with two decimals,
       ISO dates, UTF-8, values quoted when they hold a comma, a quote or a line break.
-- [ ] **csv-safe-for-spreadsheets** — a text value that starts with `=`, `+`, `-` or `@` is
+- [x] **csv-safe-for-spreadsheets** — a text value that starts with `=`, `+`, `-` or `@` is
       written so a spreadsheet does not run it as a formula.
-- [ ] **screens-for-admin** — in the SPA an admin records and cancels expenses, reads the
+- [x] **screens-for-admin** — in the SPA an admin records and cancels expenses, reads the
       P&L for a chosen period and downloads each export. Covered by the browser suite.
-- [ ] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` and
+- [x] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` and
       `pnpm e2e` all pass.
 
 ## Seams
@@ -162,9 +162,9 @@ is append-only.
 
 ## Deliverables
 
-- [ ] The `accounting` API module, its migration and tests.
-- [ ] The admin screens (expenses, P&L, exports) and the regenerated client.
-- [ ] A documentation page for lot 7, the glossary terms (association expense, cost of goods
+- [x] The `accounting` API module, its migration and tests.
+- [x] The admin screens (expenses, P&L, exports) and the regenerated client.
+- [x] A documentation page for lot 7, the glossary terms (association expense, cost of goods
       sold, profit-and-loss account) and the updated documentation index.
 
 ## References
@@ -181,3 +181,41 @@ is append-only.
 ## Notes
 
 ## Retrospective
+
+Written by the Mason at the close, 2026-11-24. Sources: this session, the reports of the four
+Typists and reviewers (their full transcripts were not read back, so friction inside them is
+known only from what they reported), the work document and the git log. Nothing here is applied;
+each proposal waits for its owner. The `retro` skill asks for a `writing-great-skills` skill that
+does not exist in this repo, so the step was skipped.
+
+1. **Information access — rules kept outside the repo.** How to regenerate the client (a
+   throwaway API needs `NODE_ENV=development` and `E2E` unset to serve `/api/docs.json`), that
+   port 5111 belongs to another project, and the E2E gotchas live in a personal harness memory,
+   against rule 8 of `.agents/discipline.md`. The frontend Typist had to rediscover the first one.
+   Proposal: move them into `apps/documentation/src/content/docs/guides/generating-types.mdx`
+   and `web-spa-e2e.mdx`. Owner: the human.
+2. **Navigation — no example of a file download route.** Finding how `@lonestone/nzoth` handles a
+   non-JSON answer took several searches (the package is only in the root `node_modules`).
+   Proposal: one paragraph in `backend.mdx`, "Response Formatting": a download is a
+   `@TypedRoute.Get` with no schema returning a `StreamableFile`, documented with
+   `@ApiProduces`, see `accounting.controller.ts`. Owner: the human (living docs).
+3. **Automated checks — `oxfmt` per folder still touches other files.** Formatting the docs
+   project folder rewrote `lot-5-wallet.mdx`, which had to be reverted by hand. Proposal: format
+   that page once in its own commit so the folder is clean, and say in `AGENTS.md` ("Formatting")
+   to format changed files by name and check `git status` after. Owner: the human.
+4. **Test first, in practice.** The first Typist wrote the P&L service before its test and had to
+   unplug the controller to show red. Proposal: in the "Working with chisel in this repo" section
+   of `AGENTS.md`, "write the step's first failing test file before any production file of the
+   step". Owner: the human.
+5. **A 🧑 criterion amended by the Architect.** The spec reviewer flagged that `five-csv-exports`
+   was changed at the plan reading without a recorded word from the human. Proposal: say in
+   `AGENTS.md` that a change to a 🧑 line carries the human's name and date, or waits for it.
+   Owner: the human.
+6. **A flaky test that answers 500.** `distribution.controller.e2e-spec.ts`, "refuses reversing a
+   reversal", failed once with 500 instead of 409, then passed. The rule calls these known flaky,
+   but a 500 is a server error, not slowness. Proposal: a `diagnosing-bugs` task, outside lot 7.
+   Owner: the human.
+7. **Parallel HTTP calls in one test.** Four parallel calls in one API test gave `ECONNRESET`
+   (the test app has a pool of one connection, already met in lot 6). Proposal: one line in
+   `apps/documentation/src/content/docs/guides/api-testing.mdx`: call routes one after the other
+   inside a test. Owner: the human.

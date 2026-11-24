@@ -1,7 +1,7 @@
 # Lot 7 — Accounting and exports — work
 
 Created by the Mason at the plan step, 2026-11-24. Spec:
-`project-management/tasks/20261124-1558-lot-7-accounting-and-exports.spec.md`.
+`project-management/archive/20261124-1558-lot-7-accounting-and-exports.spec.md`.
 
 **Plan:** approved by the Architect, 2026-11-24, with the corrections below.
 
@@ -797,6 +797,14 @@ l'année et la dépense apparaît dans sa catégorie`, `l'admin télécharge l'e
     tests); `pnpm build` exit 0; `pnpm e2e` exit 0 (140 passed). No flaky rerun was needed.
     The E2E containers on 5434, 1093 and 1043 were the project's own.
 
+- 2026-11-24 — Mason, close. Wrote the lot 7 documentation page, the glossary terms, the
+  architecture plan line and the index (`42bb83e`); documentation build green. Ran `code-review`
+  (two fresh reviewers); findings and decisions are below, fixes landed in `87cb398` and
+  `898dd92`, gates green after them. Ticked every acceptance criterion of the spec (the struck
+  first version of `five-csv-exports` stays unticked, its amended version is ticked). Wrote the
+  retrospective in the spec and the journal entry. Archived both documents. Nothing this task
+  started is still running; the E2E containers were already up before the work began.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — period reader and CSV writer, test first
@@ -806,10 +814,10 @@ l'année et la dépense apparaît dans sa catégorie`, `l'admin télécharge l'e
 - [x] Step 5 — the five CSV exports, totals match the P&L
 - [x] Step 6 — regenerated client, expenses screen, browser tests
 - [x] Step 7 — P&L and exports screen, browser tests, nav-smoke routes
-- [ ] Step 8 — documentation page, glossary, architecture plan, index, documentation build
+- [x] Step 8 — documentation page, glossary, architecture plan, index, documentation build
 - [x] Gates — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm e2e`
-- [ ] Review — `code-review` on the full diff since `origin/staging`, findings answered
-- [ ] Close — criteria ticked, journal, archive, retro, status `done`
+- [x] Review — `code-review` on the full diff since `origin/staging`, findings answered
+- [x] Close — criteria ticked, journal, archive, retro, status `done`
 
 ## Notes & Snippets
 
