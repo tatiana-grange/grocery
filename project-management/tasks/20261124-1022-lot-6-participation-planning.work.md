@@ -569,10 +569,29 @@ Red seen first with a stub that returns null: `1 failed`, `AssertionError: expec
 (Before the stub, the file did not even load: `Cannot find module '../participation.util'`.)
 Green after the real rules: 20 tests pass in `participation.util.spec.ts`.
 
+**Step 2.** First failing test (e2e) `an admin creates a slot and lists it (201 then 200)`. Red seen first, with an
+empty `ParticipationModule`: `AssertionError: expected 404 to be 201`. Green after the entities, contract, mapper,
+service, controller and module: 10 tests pass in `participation.controller.e2e-spec.ts` (create and list, 403 and 401,
+four bad bodies, 200 places and midnight, `includePast` and order, detail and 404).
+
+Migration `Migration20261124093029.ts`, made against a throwaway Postgres (container `typist-lot6-pg`, port 5499, stopped
+and removed afterwards; port 5111 belongs to another project and was not touched). I ran `db:migrate:up` first, then
+`schema:update --dump`, then `db:migrate:create`. **Stray lines removed: 16** (8 `drop index` lines in `up`, 8
+`create index` lines in `down`, one per `*_search_idx` index). The dump also wanted to drop the `normalize_search`
+function; the generated file did not carry that line, so nothing more to remove. Compared with plan section 4: the
+tables, the three indexes, the unique pair and the two foreign keys are the same as expected. One difference: the
+foreign keys have no `on update cascade` (the plan's sketch had it). MikroORM emits a plain `references ... ("id")`,
+which is also what the earlier migrations do (for example `walletEntry_memberId_foreign`), so I kept the generated
+form. Delete is "no action", so deleting a member or a slot that has sign-ups fails. The migration also applied, rolled
+back and applied again cleanly, and after it the only difference left in `schema:update --dump` is the eight stray
+search indexes and the function. Running `migration:create` and `migration:up` rewrote `.snapshot-grocery.json`
+(about 1300 lines, dropping the search indexes). I restored it with `git checkout`, since lot 5 did not commit it
+either. Running `oxfmt` on the whole migrations folder also touched an older migration; I restored that one too.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
-- [ ] Step 2. Tables, migration, admin create and list.
+- [x] Step 2. Tables, migration, admin create and list.
 - [ ] Step 3. Admin edit, cancel, delete.
 - [ ] Step 4. Member lists coming slots and signs up.
 - [ ] Step 5. Overlap rule and the two locks, with the concurrency tests.
