@@ -198,6 +198,20 @@ export const userResponseSchema = z
 - Mappers should be named `entity.mapper.ts`
 - Mappers should handle collections gracefully, using MikroORM `getItems` after checking if the collection has been initialized via `entity.collection.isInitialized()`
 
+### File downloads
+
+A route that sends a file (a CSV export, for example) follows `accounting.controller.ts`:
+
+- `@TypedRoute.Get(path)` with **no** response schema, so it runs as a plain NestJS route and no
+  JSON check runs on the body;
+- `@ApiProduces('text/csv')` and an `@ApiOkResponse` whose `content` names the media type with
+  `schema: { type: 'string' }`, so the generated client reads the answer as text;
+- the method returns a `StreamableFile` with `type` and
+  `disposition: 'attachment; filename="…"'`. The file name is built from validated values only;
+- the CORS setup in `main.ts` exposes `Content-Disposition`, so the SPA reads the name from the
+  answer instead of building it again. The SPA saves the file with `downloadFile` from
+  `features/common/lib/download-file.ts`.
+
 ### Error Handling
 
 - Use NestJS exceptions for error handling

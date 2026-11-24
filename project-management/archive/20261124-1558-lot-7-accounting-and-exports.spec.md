@@ -225,3 +225,7 @@ does not exist in this repo, so the step was skipped.
    (the test app has a pool of one connection, already met in lot 6). Proposal: one line in
    `apps/documentation/src/content/docs/guides/api-testing.mdx`: call routes one after the other
    inside a test. Owner: the human.
+
+Ruling (human, 2026-11-24): all seven proposals accepted and applied the same day, in
+`AGENTS.md`, the guides (generating types, browser tests, database, API testing) and the backend
+guidelines. The diagnosis task is `project-management/tasks/20261124-1733-diagnose-reverse-reversal-500.spec.md`.

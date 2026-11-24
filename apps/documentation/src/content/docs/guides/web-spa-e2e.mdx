@@ -52,6 +52,12 @@ a spec touches carries a `data-testid` named `<feature>-<element>[-<variant>]`
 (`auth-login-submit`, `members-tab-pending`, `product-price-confirm`, …). Each route's root
 carries `page-<name>`; `root.tsx`'s error boundary carries `route-error-boundary`.
 
+### Test ids that share a prefix
+
+Lists are often found with a prefix, `page.locator('[data-testid^="thing-"]')`. A control inside
+a row named `thing-quantity` matches that prefix too, so a one-row list finds three elements.
+Give inner controls a different stem (`express-qty`, not `express-line-quantity`).
+
 ## Adding a journey
 
 Add `tests/<journey>.spec.ts`:
@@ -68,6 +74,23 @@ test('…', async ({ page }) => {
 ```
 
 Call `resetDb()` (in a `beforeEach`) only in specs that mutate shared data.
+
+## Running the suite safely
+
+- **Never edit a source file while `pnpm e2e` runs.** The dev server reloads in the middle of the
+  run and an unrelated spec times out. It looks exactly like a regression. If an existing spec
+  fails and you edited anything during the run, rerun that spec alone before believing it.
+- **Check the ports first.** The stack binds Postgres on 5434 and the mail container on 1093 and 1043. Run `docker ps` before `pnpm e2e`, and never stop another project's container.
+
+## Manual checks on the E2E stack
+
+The dev database port in `.env` (5111) can be taken by another project on the same machine. For a
+manual walkthrough against a real stack, use the disposable E2E stack:
+
+- `pnpm --filter @grocery/web-spa-e2e e2e:infra` starts Postgres and the mail container;
+- `pnpm --filter @grocery/web-spa-e2e e2e:setup` builds the schema and seeds `E2eSeeder`;
+- the API runs on 3060 with `.env.e2e`, the SPA on 5273;
+- `POST /api/test/seed/reset` resets the data; `e2e:down` tears the stack down.
 
 ## CI
 

@@ -97,6 +97,13 @@ vi.mock('../modules/email/email.service', () => ({
 }))
 ```
 
+## One database connection per test app
+
+The HTTP test app has a pool of one database connection. Inside one test, call routes one after
+the other, never with `Promise.all`: parallel calls on that one connection fail now and then with
+`ECONNRESET`. For the same reason, the HTTP test app cannot prove a row lock; prove a lock with
+two service calls on two entity managers, as the participation service tests do.
+
 ## Utils and configurations
 
 The `test/test.utils.ts` file contains some useful utilities for testing, like initializing the test application, creating a test user, and initializing the request with authentication.
