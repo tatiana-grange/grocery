@@ -7,10 +7,15 @@ import {
 import { Injectable, NotFoundException, Optional } from '@nestjs/common'
 import { refusal } from '../../common/refusal'
 import { Member } from '../members/entities/member.entity'
-import type { SignUpRefusal, SlotEditRefusal, SlotInput } from './contracts/slot.contract'
+import type {
+  RemovalRefusal,
+  SignUpRefusal,
+  SlotEditRefusal,
+  SlotInput,
+} from './contracts/slot.contract'
 import { SlotSignup } from './entities/slot-signup.entity'
 import { Slot } from './entities/slot.entity'
-import { type Actor, checkSignUp } from './participation.util'
+import { type Actor, checkRemoval, checkSignUp } from './participation.util'
 
 /** A page of results and the total they were cut from. */
 export interface Page<T> {
@@ -244,6 +249,56 @@ export class ParticipationService {
     return count > 0
   }
 
+  /**
+   * Removes one sign-up: a member leaving, or an admin removing someone. Only the slot row is
+   * locked. `checkRemoval` decides whether the actor may. A member who is not signed up, and an
+   * unknown slot, are both a 404. Returns the slot with its remaining sign-ups.
+   */
+  async removeSignup(p: { slotId: string; memberId: string; actor: Actor }): Promise<Slot> {
+    return this.em.transactional(async (tem) => {
+      const slot = await this.lockSlot(tem, p.slotId)
+      const signup = await tem.findOne(SlotSignup, { slot: slot.id, member: p.memberId })
+      if (!signup) throw new NotFoundException('Sign-up not found')
+      const refused = checkRemoval({
+        slot: {
+          startsAt: slot.startsAt,
+          endsAt: slot.endsAt,
+          isCancelled: slot.cancelledAt != null,
+        },
+        actor: p.actor,
+        now: this.clock(),
+      })
+      if (refused) throw this.removalRefusal(refused)
+      tem.remove(signup)
+      await tem.flush()
+      await tem.populate(slot, ['signups'], { refresh: true })
+      return slot
+    })
+  }
+
+  /**
+   * A member's sign-ups on slots that have not ended, earliest start first. Cancelled slots are
+   * included: the member must see that the slot is off.
+   */
+  async listMySignups(memberId: string, p: PageRequest): Promise<Page<SlotSignup>> {
+    const [items, total] = await this.em.findAndCount(
+      SlotSignup,
+      { member: memberId, slot: { endsAt: { $gt: this.clock() } } },
+      {
+        orderBy: { slot: { startsAt: QueryOrder.ASC }, id: QueryOrder.ASC },
+        limit: p.pageSize,
+        offset: p.offset,
+        populate: ['slot'],
+      },
+    )
+    return { items, total }
+  }
+
+  /** The current time on the cooperative's clock, for mappers that work out `canLeave`. */
+  now(): Date {
+    return this.clock()
+  }
+
   /** The member row of a signed-in user. An admin who is not a member gets a 404. */
   async getMemberForUser(userId: string): Promise<Member> {
     const member = await this.em.findOne(Member, { user: userId })
@@ -259,6 +314,14 @@ export class ParticipationService {
       slot_full: 'This slot is full',
       already_signed_up: 'You are already signed up on this slot',
       overlaps_another_slot: 'This slot overlaps another slot you are signed up on',
+    }
+    return refusal(code, messages[code])
+  }
+
+  private removalRefusal(code: RemovalRefusal) {
+    const messages: Record<RemovalRefusal, string> = {
+      slot_ended: 'This slot has already ended',
+      too_late_to_leave: 'You can only leave a slot that starts in 7 days or more',
     }
     return refusal(code, messages[code])
   }

@@ -630,6 +630,24 @@ other with slot_full` was red 5 runs out of 5, `expected [ fulfilled, fulfilled 
   member lock removed, both member-lock tests were red 6 runs out of 6. With the lock back: green.
   The plan named one member-lock test; there are now two. The extra one is the stronger proof.
 
+**Step 6.** First failing test (e2e) `a member cannot leave less than 7 days before the start and the answer says
+too_late_to_leave`. Red seen first: `AssertionError: expected 404 to be 409` (no leave route yet). Green after
+`removeSignup`, `listMySignups`, `DELETE me/slots/:slotId/signup`, `GET me/signups`, `POST admin/slots/:slotId/signups`
+and `DELETE admin/slots/:slotId/signups/:memberId`: 86 tests in the three participation files (20 util, 9 service, 57
+e2e). The other two closed doors of section 5 are now tested: a member leaving does not cancel, and removing the last
+sign-up does not cancel. I narrowed the type of `checkRemoval` and `canLeave` to the three facts they read (start, end,
+cancelled), so `GET me/signups` does not have to load the places and counts of every slot. Admin sign-up and admin
+removal answer with the admin slot detail (the plan said "the caller's view"; for an admin that is the detail with the
+sign-ups). Leaving a slot the member is not on is a 404 `Sign-up not found`, and so is an admin removal of a member who
+is not on the slot.
+
+**Gates at the end of step 6** (full logs in the session scratchpad: `lint.log`, `typecheck.log`, `test.log`):
+
+- `pnpm lint`: exit 0, 28 warnings, all in other files; one warning in my spec (an unused `DAY`) was fixed afterwards.
+- `pnpm --filter=api typecheck`: exit 0.
+- `pnpm --filter=api test`: exit 0, 32 test files, 601 tests, all passed. No flaky test seen, no rerun needed.
+- `pnpm e2e` not run, as asked. The documentation build and the web typecheck are for steps 7 to 9.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
@@ -637,7 +655,7 @@ other with slot_full` was red 5 runs out of 5, `expected [ fulfilled, fulfilled 
 - [x] Step 3. Admin edit, cancel, delete.
 - [x] Step 4. Member lists coming slots and signs up.
 - [x] Step 5. Overlap rule and the two locks, with the concurrency tests.
-- [ ] Step 6. Leave, admin sign-up and removal, my sign-ups.
+- [x] Step 6. Leave, admin sign-up and removal, my sign-ups.
 - [ ] Step 7. Regenerated client, member screens, member browser test.
 - [ ] Step 8. Admin screens, admin browser test, nav smoke routes, E2E seed slots.
 - [ ] Step 9. Documentation page, glossary, index, gates, close.

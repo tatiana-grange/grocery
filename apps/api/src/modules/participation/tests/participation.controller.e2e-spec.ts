@@ -102,6 +102,12 @@ describe('participation slots (e2e)', () => {
     await em.flush()
   }
 
+  /** The member row behind a session, for ids. */
+  async function memberRowOf(session: ReturnType<typeof createSessionFromUser>) {
+    if (!session) throw new Error('A session is needed')
+    return em.fork().findOneOrFail(Member, { user: session.user.id })
+  }
+
   describe('admin create and list', () => {
     it('an admin creates a slot and lists it (201 then 200)', async () => {
       const created = await request.withSession(admin).post('/admin/slots').send(slotBody(10))
@@ -556,6 +562,268 @@ describe('participation slots (e2e)', () => {
       const res = await request.get('/me/slots')
 
       expect(res.status).toBe(401)
+    })
+  })
+  describe('leaving, the admin acting on a member, and my sign-ups', () => {
+    const inDays = (days: number) => new Date(Date.now() + days * DAY)
+
+    it('a member cannot leave less than 7 days before the start and the answer says too_late_to_leave', async () => {
+      const slot = await insertSlot(inDays(3), inDays(4))
+      await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      const res = await request.withSession(member).del(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('too_late_to_leave')
+      expect(await em.fork().count(SlotSignup, { slot: slot.id })).toBe(1)
+    })
+
+    it('lets a member leave 7 days or more before the start and frees the place', async () => {
+      const slot = await insertSlot(inDays(8), inDays(9), 1)
+      await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+      const res = await request.withSession(member).del(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(200)
+      expect(res.body).toMatchObject({ isSignedUp: false, signedUpCount: 0, freePlaces: 1 })
+      expect(await em.fork().count(SlotSignup, { slot: slot.id })).toBe(0)
+    })
+
+    it('does not let a member leave for someone else: the route takes no member id', async () => {
+      const slot = await insertSlot(inDays(10), inDays(11))
+      await insertSignups(slot, 1)
+
+      const res = await request.withSession(member).del(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(404)
+      expect(await em.fork().count(SlotSignup, { slot: slot.id })).toBe(1)
+    })
+
+    it('answers 404 to a leave on an unknown slot', async () => {
+      const res = await request
+        .withSession(member)
+        .del('/me/slots/00000000-0000-4000-8000-000000000000/signup')
+
+      expect(res.status).toBe(404)
+    })
+
+    it('lets a member leave a cancelled slot inside the 7 days', async () => {
+      const slot = await insertSlot(inDays(2), inDays(3))
+      await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+      await request.withSession(admin).post(`/admin/slots/${slot.id}/cancel`)
+
+      const res = await request.withSession(member).del(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(200)
+      expect(await em.fork().count(SlotSignup, { slot: slot.id })).toBe(0)
+    })
+
+    it('refuses a leave on a slot that has ended (slot_ended)', async () => {
+      const slot = await insertSlot(inDays(-2), inDays(-1))
+      await insertSignups(slot, 1)
+      const mine = new SlotSignup()
+      mine.slot = em.getReference(Slot, slot.id)
+      mine.member = em.getReference(Member, (await memberRowOf(member)).id)
+      em.persist(mine)
+      await em.flush()
+
+      const res = await request.withSession(member).del(`/me/slots/${slot.id}/signup`)
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('slot_ended')
+    })
+
+    describe('the closed doors to the cancelled state', () => {
+      it('a member leaving does not cancel the slot', async () => {
+        const slot = await insertSlot(inDays(10), inDays(11))
+        await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+
+        await request.withSession(member).del(`/me/slots/${slot.id}/signup`)
+
+        const stored = await em.fork().findOneOrFail(Slot, slot.id)
+        expect(stored.cancelledAt ?? null).toBeNull()
+      })
+
+      it('removing the last sign-up does not cancel the slot', async () => {
+        const slot = await insertSlot(inDays(10), inDays(11))
+        await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+        const memberId = (await memberRowOf(member)).id
+
+        const res = await request
+          .withSession(admin)
+          .del(`/admin/slots/${slot.id}/signups/${memberId}`)
+
+        expect(res.status).toBe(200)
+        const stored = await em.fork().findOneOrFail(Slot, slot.id)
+        expect(stored.cancelledAt ?? null).toBeNull()
+      })
+    })
+
+    describe('admin acts on a member', () => {
+      it('removes a member on a slot starting tomorrow, where the member could not leave', async () => {
+        const slot = await insertSlot(inDays(1), inDays(2))
+        await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+        const memberId = (await memberRowOf(member)).id
+
+        const res = await request
+          .withSession(admin)
+          .del(`/admin/slots/${slot.id}/signups/${memberId}`)
+
+        expect(res.status).toBe(200)
+        expect(res.body).toMatchObject({ id: slot.id, signedUpCount: 0, signups: [] })
+      })
+
+      it('answers 404 when the member is not signed up on the slot', async () => {
+        const slot = await insertSlot(inDays(1), inDays(2))
+        const memberId = (await memberRowOf(member)).id
+
+        const res = await request
+          .withSession(admin)
+          .del(`/admin/slots/${slot.id}/signups/${memberId}`)
+
+        expect(res.status).toBe(404)
+      })
+
+      it('signs a member up on a slot that has already started', async () => {
+        const slot = await insertSlot(new Date(Date.now() - HOUR), inDays(1))
+        const memberId = (await memberRowOf(member)).id
+
+        const res = await request
+          .withSession(admin)
+          .post(`/admin/slots/${slot.id}/signups`)
+          .send({ memberId })
+
+        expect(res.status).toBe(201)
+        expect(res.body.signups.map((s: { memberId: string }) => s.memberId)).toEqual([memberId])
+        expect(res.body.signups[0]).toMatchObject({ memberName: 'Mia Member' })
+      })
+
+      it('refuses to sign a member up on a full slot (slot_full)', async () => {
+        const slot = await insertSlot(inDays(5), inDays(6), 1)
+        await insertSignups(slot, 1)
+        const memberId = (await memberRowOf(member)).id
+
+        const res = await request
+          .withSession(admin)
+          .post(`/admin/slots/${slot.id}/signups`)
+          .send({ memberId })
+
+        expect(res.status).toBe(409)
+        expect(res.body.code).toBe('slot_full')
+      })
+
+      it('refuses a sign-up and a removal on an ended slot (slot_ended)', async () => {
+        const slot = await insertSlot(inDays(-2), inDays(-1))
+        const memberId = (await memberRowOf(member)).id
+        const mine = new SlotSignup()
+        mine.slot = em.getReference(Slot, slot.id)
+        mine.member = em.getReference(Member, memberId)
+        em.persist(mine)
+        await em.flush()
+        const other = await makeMember('Otto Other')
+
+        const signUp = await request
+          .withSession(admin)
+          .post(`/admin/slots/${slot.id}/signups`)
+          .send({ memberId: other.member.id })
+        const remove = await request
+          .withSession(admin)
+          .del(`/admin/slots/${slot.id}/signups/${memberId}`)
+
+        expect([signUp.status, signUp.body.code]).toEqual([409, 'slot_ended'])
+        expect([remove.status, remove.body.code]).toEqual([409, 'slot_ended'])
+      })
+
+      it('answers 404 to a sign-up for an unknown member', async () => {
+        const slot = await insertSlot(inDays(5), inDays(6))
+
+        const res = await request
+          .withSession(admin)
+          .post(`/admin/slots/${slot.id}/signups`)
+          .send({ memberId: '00000000-0000-4000-8000-000000000000' })
+
+        expect(res.status).toBe(404)
+      })
+
+      it('respects the overlap rule and the one-sign-up rule', async () => {
+        const first = await insertSlot(inDays(5), new Date(inDays(5).getTime() + 4 * HOUR))
+        const overlapping = await insertSlot(
+          new Date(inDays(5).getTime() + HOUR),
+          new Date(inDays(5).getTime() + 5 * HOUR),
+        )
+        const memberId = (await memberRowOf(member)).id
+        const signUp = (slotId: string) =>
+          request.withSession(admin).post(`/admin/slots/${slotId}/signups`).send({ memberId })
+        await signUp(first.id)
+
+        const again = await signUp(first.id)
+        const overlap = await signUp(overlapping.id)
+
+        expect(again.body.code).toBe('already_signed_up')
+        expect(overlap.body.code).toBe('overlaps_another_slot')
+      })
+
+      it('refuses a member on the admin sign-up and removal routes with 403', async () => {
+        const slot = await insertSlot(inDays(5), inDays(6))
+        const memberId = (await memberRowOf(member)).id
+        const as = request.withSession(member)
+
+        const responses = await Promise.all([
+          as.post(`/admin/slots/${slot.id}/signups`).send({ memberId }),
+          as.del(`/admin/slots/${slot.id}/signups/${memberId}`),
+        ])
+
+        expect(responses.map((res) => res.status)).toEqual([403, 403])
+      })
+    })
+
+    describe('GET /me/signups', () => {
+      it('lists only my coming sign-ups, earliest first, with the leave rule worked out', async () => {
+        const later = await insertSlot(inDays(10), inDays(11), 3, 'Later role')
+        const sooner = await insertSlot(inDays(3), inDays(4), 3, 'Sooner role')
+        const ended = await insertSlot(inDays(-2), inDays(-1))
+        const notMine = await insertSlot(inDays(6), inDays(7))
+        await insertSignups(notMine, 1)
+        await request.withSession(member).post(`/me/slots/${later.id}/signup`)
+        await request.withSession(member).post(`/me/slots/${sooner.id}/signup`)
+        const mineEnded = new SlotSignup()
+        mineEnded.slot = em.getReference(Slot, ended.id)
+        mineEnded.member = em.getReference(Member, (await memberRowOf(member)).id)
+        em.persist(mineEnded)
+        await em.flush()
+
+        const res = await request.withSession(member).get('/me/signups')
+
+        expect(res.status).toBe(200)
+        expect(res.body.data.map((s: { slotId: string }) => s.slotId)).toEqual([
+          sooner.id,
+          later.id,
+        ])
+        expect(res.body.data[0]).toMatchObject({ roleLabel: 'Sooner role', canLeave: false })
+        expect(res.body.data[1]).toMatchObject({ roleLabel: 'Later role', canLeave: true })
+        expect(new Date(res.body.data[1].leaveDeadline).getTime()).toBe(
+          later.startsAt.getTime() - 7 * DAY,
+        )
+      })
+
+      it('includes a cancelled slot, marked cancelled, that can still be left', async () => {
+        const slot = await insertSlot(inDays(2), inDays(3))
+        await request.withSession(member).post(`/me/slots/${slot.id}/signup`)
+        await request.withSession(admin).post(`/admin/slots/${slot.id}/cancel`)
+
+        const res = await request.withSession(member).get('/me/signups')
+
+        expect(res.body.data).toHaveLength(1)
+        expect(res.body.data[0]).toMatchObject({
+          slotId: slot.id,
+          isCancelled: true,
+          canLeave: true,
+        })
+      })
+
+      it('refuses a caller with no session with 401', async () => {
+        expect((await request.get('/me/signups')).status).toBe(401)
+      })
     })
   })
 })

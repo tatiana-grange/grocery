@@ -7,7 +7,6 @@ import { Slot } from '../entities/slot.entity'
 import { ParticipationService } from '../participation.service'
 
 const HOUR = 60 * 60 * 1000
-const DAY = 24 * HOUR
 /** The cooperative's clock, fixed so the rules read the same moment on every run. */
 const NOW = new Date('2026-12-01T09:00:00Z')
 

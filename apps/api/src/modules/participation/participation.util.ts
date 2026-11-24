@@ -16,6 +16,9 @@ export interface SlotFacts extends TimeRange {
   signedUpCount: number
 }
 
+/** What the removal rules need: a removal never looks at the places. */
+export type RemovalFacts = TimeRange & Pick<SlotFacts, 'isCancelled'>
+
 export type Actor = 'member' | 'admin'
 
 export const LEAVE_NOTICE_MS = LEAVE_NOTICE_DAYS * 24 * 60 * 60 * 1000
@@ -42,7 +45,7 @@ export function checkSignUp(p: { slot: SlotFacts; actor: Actor; now: Date }): Si
  * live slot only while it starts in 7 days or more.
  */
 export function checkRemoval(p: {
-  slot: SlotFacts
+  slot: RemovalFacts
   actor: Actor
   now: Date
 }): RemovalRefusal | null {
@@ -55,7 +58,7 @@ export function checkRemoval(p: {
 }
 
 /** Whether a member may leave their own sign-up now. Same rule as `checkRemoval` for a member. */
-export function canLeave(p: { slot: SlotFacts; now: Date }): boolean {
+export function canLeave(p: { slot: RemovalFacts; now: Date }): boolean {
   return checkRemoval({ ...p, actor: 'member' }) === null
 }
 

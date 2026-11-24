@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import type { AdminSlot, AdminSlotDetail, MemberSlot } from './contracts/slot.contract'
+import type { AdminSlot, AdminSlotDetail, MemberSlot, MySignup } from './contracts/slot.contract'
+import type { SlotSignup } from './entities/slot-signup.entity'
 import type { Slot } from './entities/slot.entity'
+import { canLeave, leaveDeadline } from './participation.util'
 
 /** Turns slot entities into the contracts the controllers return. */
 @Injectable()
@@ -40,6 +42,24 @@ export class ParticipationMapper {
     return {
       ...this.toAdminSlot(slot),
       isSignedUp: slot.signups.getItems().some((signup) => signup.member.id === memberId),
+    }
+  }
+
+  /** The slot of the sign-up must be loaded. `now` is the clock the leave rule reads. */
+  toMySignup(signup: SlotSignup, now: Date): MySignup {
+    const { slot } = signup
+    const isCancelled = slot.cancelledAt != null
+    return {
+      slotId: slot.id,
+      roleLabel: slot.roleLabel,
+      startsAt: slot.startsAt,
+      endsAt: slot.endsAt,
+      isCancelled,
+      canLeave: canLeave({
+        slot: { startsAt: slot.startsAt, endsAt: slot.endsAt, isCancelled },
+        now,
+      }),
+      leaveDeadline: leaveDeadline(slot),
     }
   }
 }

@@ -18,6 +18,9 @@ import {
   includePastSchema,
   memberSlotListSchema,
   memberSlotSchema,
+  mySignupListSchema,
+  type SignUpMemberInput,
+  signUpMemberSchema,
   type SlotInput,
   slotInputSchema,
   type SlotPagination,
@@ -88,6 +91,26 @@ export class AdminSlotsController {
   async remove(@TypedParam('slotId', z.string().uuid()) slotId: string): Promise<void> {
     await this.participation.deleteSlot(slotId)
   }
+
+  /** Signs any member up, even after the slot has started. A full slot still refuses. */
+  @TypedRoute.Post(':slotId/signups', adminSlotDetailSchema)
+  async signUpMember(
+    @TypedParam('slotId', z.string().uuid()) slotId: string,
+    @TypedBody(signUpMemberSchema) body: SignUpMemberInput,
+  ) {
+    await this.participation.signUp({ slotId, memberId: body.memberId, actor: 'admin' })
+    return this.mapper.toAdminSlotDetail(await this.participation.getSlotForAdmin(slotId))
+  }
+
+  /** Removes any member's sign-up at any time before the slot ends. */
+  @TypedRoute.Delete(':slotId/signups/:memberId', adminSlotDetailSchema)
+  async removeMember(
+    @TypedParam('slotId', z.string().uuid()) slotId: string,
+    @TypedParam('memberId', z.string().uuid()) memberId: string,
+  ) {
+    await this.participation.removeSignup({ slotId, memberId, actor: 'admin' })
+    return this.mapper.toAdminSlotDetail(await this.participation.getSlotForAdmin(slotId))
+  }
 }
 
 /**
@@ -129,5 +152,39 @@ export class MemberSlotsController {
     const member = await this.participation.getMemberForUser(session.user.id)
     const slot = await this.participation.signUp({ slotId, memberId: member.id, actor: 'member' })
     return this.mapper.toMemberSlot(slot, member.id)
+  }
+
+  /** Leaves the caller's own sign-up. The route takes no member id, so nobody leaves for another. */
+  @TypedRoute.Delete('slots/:slotId/signup', memberSlotSchema)
+  async leave(
+    @Session() session: LoggedInBetterAuthSession,
+    @TypedParam('slotId', z.string().uuid()) slotId: string,
+  ) {
+    const member = await this.participation.getMemberForUser(session.user.id)
+    const slot = await this.participation.removeSignup({
+      slotId,
+      memberId: member.id,
+      actor: 'member',
+    })
+    return this.mapper.toMemberSlot(slot, member.id)
+  }
+
+  @TypedRoute.Get('signups', mySignupListSchema)
+  async listMine(
+    @Session() session: LoggedInBetterAuthSession,
+    @PaginationParams(slotPaginationSchema) pagination: SlotPagination,
+  ) {
+    const member = await this.participation.getMemberForUser(session.user.id)
+    const { items, total } = await this.participation.listMySignups(member.id, pagination)
+    const now = this.participation.now()
+    return {
+      data: items.map((signup) => this.mapper.toMySignup(signup, now)),
+      meta: {
+        itemCount: total,
+        pageSize: pagination.pageSize,
+        offset: pagination.offset,
+        hasMore: pagination.offset + pagination.pageSize < total,
+      },
+    }
   }
 }
