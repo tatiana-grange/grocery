@@ -43,6 +43,9 @@ export default defineConfig({
           // `createTestOrm` creates a fresh database and rebuilds the whole schema. Under load
           // that passes 10s, the default.
           hookTimeout: 60000,
+          // Each test builds a Nest app and clones a database. Under load the 5 s default is
+          // too short: eight tests failed on it in one pre-push run and passed when run alone.
+          testTimeout: 30000,
         },
       },
       {
@@ -59,6 +62,8 @@ export default defineConfig({
           ],
           // Container startup (PostgreSQL via testcontainers) can take >10s in CI
           hookTimeout: 60000,
+          // Same reason as the unit project.
+          testTimeout: 30000,
         },
       },
     ],
