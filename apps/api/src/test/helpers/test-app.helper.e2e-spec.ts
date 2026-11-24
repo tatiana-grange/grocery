@@ -5,27 +5,27 @@ import { DistributionModule } from '../../modules/distribution/distribution.modu
 import { initializeTestApp } from './test-app.helper'
 import { createRequest } from './test-auth.helper'
 
-/**
- * The test app must own its address. Supertest used to start the server on a random port open
- * on every address and then call `127.0.0.1` on that port. macOS can hand out a port another
- * program holds on `127.0.0.1` only, and that program then answered in the app's place.
- */
+/** Why the test app must own its address: "The test app listens on 127.0.0.1" in api-testing.mdx. */
 describe('initializeTestApp', () => {
-  it('the test app owns its port on 127.0.0.1', async (context) => {
+  it('binds the test app to 127.0.0.1, so no other program can answer for it', async (context) => {
+    // Arrange
     const { app } = await initializeTestApp({ orm: context.orm }, { imports: [DistributionModule] })
     context.app = app
+    const competingServer = createServer()
 
-    const address = app.getHttpServer().address() as AddressInfo | null
-    expect(address?.address).toBe('127.0.0.1')
-
-    const intruder = createServer()
-    const bindError = await new Promise<NodeJS.ErrnoException | undefined>((resolve) => {
-      intruder.once('error', resolve)
-      intruder.listen(address!.port, '127.0.0.1', () => intruder.close(() => resolve(undefined)))
+    // Act
+    const actualAddress = app.getHttpServer().address() as AddressInfo | null
+    const actualBindError = await new Promise<NodeJS.ErrnoException | undefined>((resolve) => {
+      competingServer.once('error', resolve)
+      competingServer.listen(actualAddress?.port ?? 0, '127.0.0.1', () =>
+        competingServer.close(() => resolve(undefined)),
+      )
     })
-    expect(bindError?.code).toBe('EADDRINUSE')
+    const actualResponse = await createRequest(app).get('/distribution/members')
 
-    const res = await createRequest(app).get('/distribution/members')
-    expect(res.status).toBe(401)
+    // Assert
+    expect(actualAddress?.address).toBe('127.0.0.1')
+    expect(actualBindError?.code).toBe('EADDRINUSE')
+    expect(actualResponse.status).toBe(401)
   })
 })

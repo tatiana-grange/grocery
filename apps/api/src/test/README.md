@@ -7,7 +7,8 @@ Ce dossier contient les tests pour l'API NestJS du projet. Nous utilisons Vitest
 ```
 src/test/
 ├── helpers/
-│   ├── test-app.helper.ts      # initializeTestApp – bootstrap NestJS app pour e2e
+│   ├── test-app.helper.ts      # initializeTestApp – bootstrap NestJS app pour e2e (écoute sur 127.0.0.1)
+│   ├── test-app.helper.e2e-spec.ts # vérifie que l'app de test garde son port sur 127.0.0.1
 │   ├── test-auth.helper.ts     # createRequest, createSessionFromUser, testSessionMiddleware
 │   ├── test-db.helper.ts       # createTestOrm, cleanupTestOrm
 │   └── test-user.helpers.ts    # createUserWithSession
