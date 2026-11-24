@@ -48,6 +48,8 @@ async function bootstrap() {
   app.enableCors({
     origin: config.betterAuth.trustedOrigins,
     credentials: true,
+    // A browser hides this header from the page unless it is exposed. The CSV exports use it.
+    exposedHeaders: ['Content-Disposition'],
   })
 
   app.setGlobalPrefix(PREFIX)

@@ -12,6 +12,8 @@ export const calendarDaySchema = z
     examples: ['2026-03-31'],
   })
 
+export type CalendarDay = z.infer<typeof calendarDaySchema>
+
 export const periodQuerySchema = z
   .object({ from: calendarDaySchema, to: calendarDaySchema })
   .refine((period) => period.from <= period.to, {

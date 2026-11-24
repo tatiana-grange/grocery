@@ -1,5 +1,5 @@
 import { EntityManager, QueryOrder, UniqueConstraintViolationException } from '@mikro-orm/core'
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { refusal } from '../../common/refusal'
 import { User } from '../auth/auth.entity'
 import type {
@@ -86,7 +86,7 @@ export class ExpensesService {
     }
   }
 
-  private toAlreadyCancelledRefusal() {
+  private toAlreadyCancelledRefusal(): ConflictException {
     return refusal(
       'already_cancelled' satisfies ExpenseCancelRefusal,
       'This expense was already cancelled',
@@ -111,7 +111,10 @@ export class ExpensesService {
     const cancellations = expenses.length
       ? await this.em.find(Expense, { cancelsExpense: { $in: expenses.map((row) => row.id) } })
       : []
-    const cancelledBy = new Map(cancellations.map((row) => [row.cancelsExpense!.id, row.id]))
+    const cancelledBy = new Map<string, string>()
+    for (const row of cancellations) {
+      if (row.cancelsExpense) cancelledBy.set(row.cancelsExpense.id, row.id)
+    }
     return {
       items: expenses.map((expense) => ({
         expense,

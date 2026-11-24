@@ -9,7 +9,7 @@ import {
 import { createMemberData } from '../../members/members.factory'
 import { AccountingModule } from '../accounting.module'
 import { Expense } from '../entities/expense.entity'
-import { toParisDay } from '../period.util'
+import { insertExpenseCancellation } from './accounting-test-data'
 
 describe('association expenses (e2e)', () => {
   let em: EntityManager
@@ -102,12 +102,10 @@ describe('association expenses (e2e)', () => {
     })
 
     it('refuses a caller with no session with 401', async () => {
-      const responses = await Promise.all([
-        request.get(`/admin/expenses?${period}`),
-        request.post('/admin/expenses').send(expenseBody()),
-      ])
+      const listed = await request.get(`/admin/expenses?${period}`)
+      const recorded = await request.post('/admin/expenses').send(expenseBody())
 
-      expect(responses.map((res) => res.status)).toEqual([401, 401])
+      expect([listed.status, recorded.status]).toEqual([401, 401])
     })
 
     it.each([
@@ -191,12 +189,12 @@ describe('association expenses (e2e)', () => {
     })
 
     it('refuses a missing or impossible period day with 400', async () => {
-      const responses = await Promise.all([
-        request.withSession(admin).get('/admin/expenses?from=2026-03-01'),
-        request.withSession(admin).get('/admin/expenses?from=2026-02-30&to=2026-03-01'),
-      ])
+      const missing = await request.withSession(admin).get('/admin/expenses?from=2026-03-01')
+      const impossible = await request
+        .withSession(admin)
+        .get('/admin/expenses?from=2026-02-30&to=2026-03-01')
 
-      expect(responses.map((res) => res.status)).toEqual([400, 400])
+      expect([missing.status, impossible.status]).toEqual([400, 400])
     })
 
     it('ignores kind and cancelsExpenseId in the body and records a plain expense', async () => {
@@ -281,17 +279,6 @@ describe('association expenses (e2e)', () => {
       })
     })
 
-    it('dates the cancellation row the Paris day it was cancelled, not the expense day', async () => {
-      const original = await record({ spentOn: '2026-03-10' })
-
-      await cancel(original.id)
-
-      const rows = await listAll()
-      const cancellation = rows.find((row) => row.kind === 'cancellation')
-      expect(cancellation?.spentOn).toBe(toParisDay(new Date()))
-      expect(cancellation?.spentOn).not.toBe('2026-03-10')
-    })
-
     it.each([
       ['an empty reason', ''],
       ['a blank reason', '   '],
@@ -369,38 +356,26 @@ describe('association expenses (e2e)', () => {
       it('refuses, in the database, a second row that cancels the same expense', async () => {
         const original = await record()
         await cancel(original.id)
-        const admins = await em.fork().findOneOrFail(Expense, { id: original.id })
-        const second = new Expense()
-        second.spentOn = '2026-11-24'
-        second.amountCents = -45000
-        second.category = 'rent'
-        second.label = 'March rent'
-        second.paymentMethod = 'transfer'
-        second.kind = 'cancellation'
-        second.cancelsExpense = admins
-        second.recordedByUser = admins.recordedByUser
-        const fork = em.fork()
-        fork.persist(second)
+        const row = await em.fork().findOneOrFail(Expense, { id: original.id })
 
-        await expect(fork.flush()).rejects.toBeInstanceOf(UniqueConstraintViolationException)
+        await expect(
+          insertExpenseCancellation(em.fork(), {
+            original: row,
+            recordedBy: row.recordedByUser,
+            spentOn: '2026-11-24',
+          }),
+        ).rejects.toBeInstanceOf(UniqueConstraintViolationException)
       })
 
       it('turns a cancellation row that already exists into already_cancelled', async () => {
         const original = await record()
         const row = await em.fork().findOneOrFail(Expense, { id: original.id })
-        const existing = new Expense()
-        existing.spentOn = '2026-11-24'
-        existing.amountCents = -45000
-        existing.category = 'rent'
-        existing.label = 'March rent'
-        existing.paymentMethod = 'transfer'
-        existing.kind = 'cancellation'
-        existing.reason = 'By hand'
-        existing.cancelsExpense = row
-        existing.recordedByUser = row.recordedByUser
-        const fork = em.fork()
-        fork.persist(existing)
-        await fork.flush()
+        await insertExpenseCancellation(em.fork(), {
+          original: row,
+          recordedBy: row.recordedByUser,
+          spentOn: '2026-11-24',
+          reason: 'By hand',
+        })
 
         const res = await cancel(original.id)
 

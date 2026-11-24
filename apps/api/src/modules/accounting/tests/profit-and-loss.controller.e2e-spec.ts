@@ -16,9 +16,9 @@ import { InventoryModule } from '../../inventory/inventory.module'
 import type { Member } from '../../members/entities/member.entity'
 import type { MembershipFee } from '../../members/entities/membership-fee.entity'
 import { createMemberData } from '../../members/members.factory'
-import { WalletEntry } from '../../wallet/entities/wallet-entry.entity'
 import { WalletModule } from '../../wallet/wallet.module'
 import { AccountingModule } from '../accounting.module'
+import type { ProfitAndLoss } from '../contracts/accounting.contract'
 import { toParisDay } from '../period.util'
 import {
   insertExpense,
@@ -29,18 +29,6 @@ import {
   insertSaleReversal,
   insertWalletEntry,
 } from './accounting-test-data'
-
-interface Pnl {
-  from: string
-  to: string
-  salesCents: number
-  costOfGoodsSoldCents: number
-  grossMarginCents: number
-  membershipFeesCents: number
-  expensesByCategory: { category: string; amountCents: number }[]
-  expensesTotalCents: number
-  resultCents: number
-}
 
 describe('profit and loss (e2e)', () => {
   let em: EntityManager
@@ -89,12 +77,12 @@ describe('profit and loss (e2e)', () => {
     product = (await createProductData(em, { name: 'Lentils', priceEur: 3 })).product
   })
 
-  async function pnl(from: string, to: string): Promise<Pnl> {
+  async function pnl(from: string, to: string): Promise<ProfitAndLoss> {
     const res = await request
       .withSession(admin)
       .get(`/admin/accounting/profit-and-loss?from=${from}&to=${to}`)
     expect(res.status).toBe(200)
-    return res.body as Pnl
+    return res.body as ProfitAndLoss
   }
 
   function sale(
@@ -484,17 +472,13 @@ describe('profit and loss (e2e)', () => {
           }),
         )
         .flush()
-      await em
-        .persist(
-          Object.assign(new WalletEntry(), {
-            member: shopper,
-            amountCents: 6000,
-            currency: 'EUR',
-            reason: 'payment_received',
-            paymentMethod: 'cash',
-          }),
-        )
-        .flush()
+      await insertWalletEntry(em, {
+        member: shopper,
+        reason: 'payment_received',
+        amountCents: 6000,
+        paymentMethod: 'cash',
+        at: new Date(),
+      })
       const sold = await request
         .withSession(distributor)
         .post(`/distribution/members/${shopper.id}/express-orders`)

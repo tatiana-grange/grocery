@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatEuros, toCsv } from '../csv.util'
+import { formatEuros, toCsv, toCsvLines } from './csv.util'
 
 function oneCell(cell: string | number | { cents: number } | null): string {
   const csv = toCsv({ header: ['h'], rows: [[cell]] })
@@ -70,6 +70,15 @@ describe('toCsv', () => {
 
   it('writes a number with String()', () => {
     expect(oneCell(1.5)).toBe('1.5')
+  })
+})
+
+describe('toCsvLines', () => {
+  it('writes no line end and quotes every text cell on request', () => {
+    expect(toCsvLines({ header: ['a', 'b'], rows: [['x', 2]] }, { alwaysQuote: true })).toEqual([
+      '"a","b"',
+      '"x",2',
+    ])
   })
 })
 

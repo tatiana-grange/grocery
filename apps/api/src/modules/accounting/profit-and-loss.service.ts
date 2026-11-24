@@ -11,9 +11,21 @@ import {
   SALE_MOVEMENT_REASONS,
   SALE_MOVEMENTS_FROM,
 } from './accounting.queries'
-import type { ProfitAndLoss } from './contracts/accounting.contract'
+import type { ExpensesByCategoryItem } from './contracts/accounting.contract'
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from './contracts/expense.contract'
 import type { Period } from './period.util'
+
+/** The figures of one period, as the service computes them. The mapper shapes them for the API. */
+export interface ProfitAndLossFigures {
+  period: Period
+  salesCents: number
+  costOfGoodsSoldCents: number
+  grossMarginCents: number
+  membershipFeesCents: number
+  expensesByCategory: ExpensesByCategoryItem[]
+  expensesTotalCents: number
+  resultCents: number
+}
 
 /**
  * The profit-and-loss account. It only reads: handover lines, the stock movements written by
@@ -24,7 +36,7 @@ import type { Period } from './period.util'
 export class ProfitAndLossService {
   constructor(private readonly em: EntityManager) {}
 
-  async compute(period: Period): Promise<ProfitAndLoss> {
+  async compute(period: Period): Promise<ProfitAndLossFigures> {
     const salesCents = await this.sum(
       `select coalesce(sum(hl."lineTotalAmountCents"), 0) as total
          from ${SALE_LINES_FROM} where ${HANDOVER_IN_PERIOD}`,
@@ -40,15 +52,11 @@ export class ProfitAndLossService {
          from "membershipPayment" mp where ${FEE_PAID_IN_PERIOD}`,
       instantParams(period),
     )
-    const expenseRows: { category: ExpenseCategory; total: string }[] = await this.em
-      .getConnection()
-      .execute(
-        `select e."category" as category, sum(e."amountCents") as total
-           from "expense" e where ${EXPENSE_IN_PERIOD} group by e."category"`,
-        dayParams(period),
-        'all',
-        this.em.getTransactionContext(),
-      )
+    const expenseRows = await this.query<{ category: ExpenseCategory; total: string }>(
+      `select e."category" as category, sum(e."amountCents") as total
+         from "expense" e where ${EXPENSE_IN_PERIOD} group by e."category"`,
+      dayParams(period),
+    )
     const byCategory = new Map(expenseRows.map((row) => [row.category, Number(row.total)]))
     const expensesByCategory = EXPENSE_CATEGORIES.map((category) => ({
       category,
@@ -58,8 +66,7 @@ export class ProfitAndLossService {
     for (const row of expensesByCategory) expensesTotalCents += row.amountCents
 
     return {
-      from: period.from,
-      to: period.to,
+      period,
       salesCents,
       costOfGoodsSoldCents,
       grossMarginCents: salesCents - costOfGoodsSoldCents,
@@ -70,10 +77,12 @@ export class ProfitAndLossService {
     }
   }
 
+  private query<T>(sql: string, params: string[]): Promise<T[]> {
+    return this.em.getConnection().execute(sql, params, 'all', this.em.getTransactionContext())
+  }
+
   private async sum(sql: string, params: string[]): Promise<number> {
-    const rows: { total: string }[] = await this.em
-      .getConnection()
-      .execute(sql, params, 'all', this.em.getTransactionContext())
+    const rows = await this.query<{ total: string }>(sql, params)
     return Number(rows[0]?.total ?? 0)
   }
 }

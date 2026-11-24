@@ -21,7 +21,6 @@ const parisParts = new Intl.DateTimeFormat('en-CA', {
   second: '2-digit',
 })
 
-/** `YYYY-MM-DD` from the year, month and day parts of a formatted date. */
 function formatDay({ year, month, day }: Record<string, string>): string {
   return `${year}-${month}-${day}`
 }
@@ -43,7 +42,6 @@ export function isCalendarDay(value: string): boolean {
   )
 }
 
-/** The calendar day, in Paris, that an instant falls on. */
 export function toParisDay(instant: Date): string {
   return formatDay(readParisParts(instant))
 }

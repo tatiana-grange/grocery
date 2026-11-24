@@ -16,11 +16,14 @@ import { ExpenseMapper } from './expense.mapper'
 import {
   exportNameSchema,
   type ExportName,
+  type ProfitAndLoss,
   profitAndLossSchema,
 } from './contracts/accounting.contract'
 import { type PeriodQuery, periodQuerySchema } from './contracts/period.contract'
 import {
   type CancelExpenseInput,
+  type ExpenseDto,
+  type ExpenseList,
   cancelExpenseSchema,
   type ExpensePagination,
   expenseListSchema,
@@ -32,6 +35,7 @@ import {
 import { ExpensesService } from './expenses.service'
 import { ExportsService } from './exports.service'
 import { toPeriod } from './period.util'
+import { ProfitAndLossMapper } from './profit-and-loss.mapper'
 import { ProfitAndLossService } from './profit-and-loss.service'
 
 /** Record and list association expenses. Admins only. */
@@ -48,7 +52,7 @@ export class AdminExpensesController {
   async list(
     @TypedQueryObject(periodQuerySchema) query: PeriodQuery,
     @PaginationParams(expensePaginationSchema) pagination: ExpensePagination,
-  ) {
+  ): Promise<ExpenseList> {
     const { items, total } = await this.expenses.list({ period: toPeriod(query), ...pagination })
     return this.mapper.toExpenseList({ items, total, pagination })
   }
@@ -58,7 +62,7 @@ export class AdminExpensesController {
   async record(
     @Session() session: LoggedInBetterAuthSession,
     @TypedBody(recordExpenseSchema) body: RecordExpenseInput,
-  ) {
+  ): Promise<ExpenseDto> {
     return this.mapper.toExpense(await this.expenses.record(body, session.user.id))
   }
 
@@ -69,7 +73,7 @@ export class AdminExpensesController {
     @Session() session: LoggedInBetterAuthSession,
     @TypedParam('expenseId', z.string().uuid()) expenseId: string,
     @TypedBody(cancelExpenseSchema) body: CancelExpenseInput,
-  ) {
+  ): Promise<ExpenseDto> {
     const row = await this.expenses.cancel({
       expenseId,
       reason: body.reason,
@@ -87,11 +91,14 @@ export class AdminAccountingController {
   constructor(
     private readonly profitAndLoss: ProfitAndLossService,
     private readonly exports: ExportsService,
+    private readonly mapper: ProfitAndLossMapper,
   ) {}
 
   @TypedRoute.Get('profit-and-loss', profitAndLossSchema)
-  async getProfitAndLoss(@TypedQueryObject(periodQuerySchema) query: PeriodQuery) {
-    return this.profitAndLoss.compute(toPeriod(query))
+  async getProfitAndLoss(
+    @TypedQueryObject(periodQuerySchema) query: PeriodQuery,
+  ): Promise<ProfitAndLoss> {
+    return this.mapper.toProfitAndLoss(await this.profitAndLoss.compute(toPeriod(query)))
   }
 
   /**

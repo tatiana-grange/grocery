@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import type { ExpenseDto, ExpenseList, ExpensePagination } from './contracts/expense.contract'
 import type { ExpenseRow } from './expenses.service'
 
-/** Turns expense rows into the contracts the controllers return. */
 @Injectable()
 export class ExpenseMapper {
   /** The user who recorded the row must be loaded. */

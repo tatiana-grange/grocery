@@ -18,23 +18,40 @@ export function formatEuros(cents: number): string {
   return `${sign}${euros}.${rest}`
 }
 
-function quoteIfNeeded(value: string): string {
-  if (/[",\r\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`
+export interface CsvOptions {
+  /** Quote every text cell, not only those that need it. */
+  alwaysQuote?: boolean
+}
+
+function quoteText(value: string, alwaysQuote: boolean): string {
+  if (alwaysQuote || /[",\r\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`
   return value
 }
 
-function writeCell(cell: CsvCell): string {
+function writeCell(cell: CsvCell, options: CsvOptions): string {
   if (cell === null) return ''
   if (typeof cell === 'number') return String(cell)
   if (typeof cell === 'object') return formatEuros(cell.cents)
   const guarded = FORMULA_STARTS.some((start) => cell.startsWith(start)) ? `'${cell}` : cell
-  return quoteIfNeeded(guarded)
+  return quoteText(guarded, options.alwaysQuote ?? false)
+}
+
+/** The header, then one line per row, with no line end. */
+export function toCsvLines(
+  input: { header: string[]; rows: CsvCell[][] },
+  options: CsvOptions = {},
+): string[] {
+  return [input.header, ...input.rows].map((row) =>
+    row.map((cell) => writeCell(cell, options)).join(','),
+  )
 }
 
 /** Header first, then one line per row, each ended by CRLF (RFC 4180). */
-export function toCsv(input: { header: string[]; rows: CsvCell[][] }): string {
-  const lines = [input.header, ...input.rows].map((row) =>
-    row.map((cell) => writeCell(cell)).join(','),
-  )
-  return lines.map((line) => line + LINE_END).join('')
+export function toCsv(
+  input: { header: string[]; rows: CsvCell[][] },
+  options: CsvOptions = {},
+): string {
+  return toCsvLines(input, options)
+    .map((line) => line + LINE_END)
+    .join('')
 }

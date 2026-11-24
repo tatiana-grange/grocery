@@ -1,3 +1,4 @@
+import type { StockMovementReason } from '../inventory/contracts/stock.contract'
 import type { Period } from './period.util'
 
 /**
@@ -17,7 +18,10 @@ export const SALE_MOVEMENTS_FROM = `"stockMovement" sm
   join "handoverLine" hl on hl."id" = sm."handoverLineId"
   join "handover" h on h."id" = hl."handoverId"`
 
-export const SALE_MOVEMENT_REASONS = `sm."reason" in ('distribution', 'distribution_reversal')`
+const SALE_ISSUE_REASON = 'distribution' satisfies StockMovementReason
+const SALE_REVERSAL_REASON = 'distribution_reversal' satisfies StockMovementReason
+
+export const SALE_MOVEMENT_REASONS = `sm."reason" in ('${SALE_ISSUE_REASON}', '${SALE_REVERSAL_REASON}')`
 
 /**
  * One movement's cost in whole cents, rounded half away from zero. An issue has a negative

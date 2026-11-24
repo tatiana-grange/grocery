@@ -9,6 +9,8 @@ export const expensesByCategoryItemSchema = z
     description: 'The expenses of one category in the period, in cents.',
   })
 
+export type ExpensesByCategoryItem = z.infer<typeof expensesByCategoryItemSchema>
+
 export const profitAndLossSchema = z
   .object({
     from: calendarDaySchema,
@@ -17,7 +19,6 @@ export const profitAndLossSchema = z
     salesCents: z.number().int(),
     /** Cost recorded on the stock movements written by handovers in the period. */
     costOfGoodsSoldCents: z.number().int(),
-    /** Sales minus cost of goods sold. */
     grossMarginCents: z.number().int(),
     /** Fee payments and adjustments paid in the period. */
     membershipFeesCents: z.number().int(),

@@ -8,14 +8,21 @@ import {
   instantParams,
   LINE_COST_CENTS,
   RECEPTION_IN_PERIOD,
+  SALE_LINES_FROM,
   SALE_MOVEMENT_REASONS,
   WALLET_ENTRY_IN_PERIOD,
 } from './accounting.queries'
 import type { ExportName } from './contracts/accounting.contract'
-import { type CsvCell, toCsv } from './csv.util'
+import { type CsvCell, toCsv } from '../../common/csv.util'
 import { type Period, toParisDay } from './period.util'
 
 type Instant = string | Date
+
+/** One export before it is written: its header, then its rows. */
+interface ExportTable {
+  header: string[]
+  rows: CsvCell[][]
+}
 
 interface WalletMovementRow {
   id: string
@@ -79,7 +86,6 @@ interface ExpenseExportRow {
   createdAt: Instant
 }
 
-/** Text, or an empty cell when the database holds null. */
 function toTextCell(value: string | null): string | null {
   return value
 }
@@ -95,9 +101,8 @@ function toInstantCells(value: Instant): [string, string] {
 }
 
 /**
- * The five CSV exports. Each reads its rows for one period with bound parameters, in time order
- * (day, time, id), and writes them with the CSV writer. The period filters and the cost
- * expression come from `accounting.queries.ts`, the file the P&L reads too.
+ * The five CSV exports. They share the period filters and the cost expression of the P&L
+ * (`accounting.queries.ts`).
  */
 @Injectable()
 export class ExportsService {
@@ -114,7 +119,7 @@ export class ExportsService {
     }
   }
 
-  private read(name: ExportName, period: Period): Promise<{ header: string[]; rows: CsvCell[][] }> {
+  private read(name: ExportName, period: Period): Promise<ExportTable> {
     switch (name) {
       case 'wallet-movements':
         return this.walletMovements(period)
@@ -133,7 +138,7 @@ export class ExportsService {
     return this.em.getConnection().execute(sql, params, 'all', this.em.getTransactionContext())
   }
 
-  private async walletMovements(period: Period) {
+  private async walletMovements(period: Period): Promise<ExportTable> {
     const rows = await this.query<WalletMovementRow>(
       `select we."id", we."createdAt", m."membershipNumber", u."name" as "memberName",
               we."reason", we."paymentMethod", we."amountCents", we."handoverId", we."note"
@@ -171,14 +176,13 @@ export class ExportsService {
     }
   }
 
-  private async sales(period: Period) {
+  private async sales(period: Period): Promise<ExportTable> {
     const rows = await this.query<SaleRow>(
       `select h."id" as "handoverId", h."createdAt", h."kind", h."reversesHandoverId",
               m."membershipNumber", u."name" as "memberName", ol."productNameSnapshot" as "product",
               hl."handedQuantity", hl."unitPriceAmountCents", hl."lineTotalAmountCents",
               coalesce(${LINE_COST_CENTS}, 0) as "costCents"
-         from "handoverLine" hl
-         join "handover" h on h."id" = hl."handoverId"
+         from ${SALE_LINES_FROM}
          join "orderLine" ol on ol."id" = hl."orderLineId"
          join "member" m on m."id" = h."memberId"
          join "user" u on u."id" = m."userId"
@@ -219,7 +223,7 @@ export class ExportsService {
     }
   }
 
-  private async purchases(period: Period) {
+  private async purchases(period: Period): Promise<ExportTable> {
     const rows = await this.query<PurchaseRow>(
       `select r."id" as "receptionId", r."receivedAt", r."supplierOrderId", s."name" as "supplier",
               p."name" as "product", rl."receivedQuantity", rl."unitCostAmountCents",
@@ -259,7 +263,7 @@ export class ExportsService {
     }
   }
 
-  private async membershipFees(period: Period) {
+  private async membershipFees(period: Period): Promise<ExportTable> {
     const rows = await this.query<MembershipFeeRow>(
       `select mp."id", mp."paidAt", m."membershipNumber", u."name" as "memberName", mp."kind",
               mp."method", mp."amountCents", mp."note"
@@ -296,7 +300,7 @@ export class ExportsService {
     }
   }
 
-  private async expenses(period: Period) {
+  private async expenses(period: Period): Promise<ExportTable> {
     // `to_char` hands the day back as text: a `date` column would come back as a JS Date.
     const rows = await this.query<ExpenseExportRow>(
       `select e."id", to_char(e."spentOn", 'YYYY-MM-DD') as "day", e."kind", e."cancelsExpenseId",

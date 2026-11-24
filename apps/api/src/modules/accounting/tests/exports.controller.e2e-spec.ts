@@ -13,7 +13,7 @@ import type { Member } from '../../members/entities/member.entity'
 import type { MembershipFee } from '../../members/entities/membership-fee.entity'
 import { createMemberData } from '../../members/members.factory'
 import { AccountingModule } from '../accounting.module'
-import type { ExportName } from '../contracts/accounting.contract'
+import type { ExportName, ProfitAndLoss } from '../contracts/accounting.contract'
 import {
   insertExpense,
   insertExpenseCancellation,
@@ -160,7 +160,6 @@ describe('accounting exports (e2e)', () => {
     return request.withSession(admin).get(`/admin/accounting/exports/${name}?from=${from}&to=${to}`)
   }
 
-  /** The body of an export as a table, header row split off. */
   async function table(name: ExportName, from?: string, to?: string) {
     const res = await download(name, from, to)
     expect(res.status).toBe(200)
@@ -172,13 +171,7 @@ describe('accounting exports (e2e)', () => {
     const res = await request
       .withSession(admin)
       .get('/admin/accounting/profit-and-loss?from=2026-03-01&to=2026-03-31')
-    return res.body as {
-      salesCents: number
-      costOfGoodsSoldCents: number
-      membershipFeesCents: number
-      expensesTotalCents: number
-      expensesByCategory: { category: string; amountCents: number }[]
-    }
+    return res.body as ProfitAndLoss
   }
 
   const sum = (rows: string[][], column: number) =>
