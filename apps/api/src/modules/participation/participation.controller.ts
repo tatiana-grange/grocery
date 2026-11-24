@@ -6,7 +6,7 @@ import {
   TypedQuery,
   TypedRoute,
 } from '@lonestone/nzoth/server'
-import { UseGuards } from '@nestjs/common'
+import { HttpCode, UseGuards } from '@nestjs/common'
 import { z } from 'zod'
 import { AdminOnly } from '../auth/auth.decorator'
 import { AuthGuard } from '../auth/auth.guard'
@@ -62,5 +62,27 @@ export class AdminSlotsController {
   async create(@TypedBody(slotInputSchema) body: SlotInput) {
     const slot = await this.participation.createSlot(body)
     return this.mapper.toAdminSlot(slot)
+  }
+
+  /** Replaces the label, places and times. Any other field in the body is ignored. */
+  @TypedRoute.Put(':slotId', adminSlotSchema)
+  async update(
+    @TypedParam('slotId', z.string().uuid()) slotId: string,
+    @TypedBody(slotInputSchema) body: SlotInput,
+  ) {
+    return this.mapper.toAdminSlot(await this.participation.updateSlot(slotId, body))
+  }
+
+  /** The one route that cancels a slot. Final, and a second call changes nothing. */
+  @TypedRoute.Post(':slotId/cancel', adminSlotSchema)
+  @HttpCode(200)
+  async cancel(@TypedParam('slotId', z.string().uuid()) slotId: string) {
+    return this.mapper.toAdminSlot(await this.participation.cancelSlot(slotId))
+  }
+
+  @TypedRoute.Delete(':slotId')
+  @HttpCode(204)
+  async remove(@TypedParam('slotId', z.string().uuid()) slotId: string): Promise<void> {
+    await this.participation.deleteSlot(slotId)
   }
 }

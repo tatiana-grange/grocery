@@ -588,11 +588,22 @@ search indexes and the function. Running `migration:create` and `migration:up` r
 (about 1300 lines, dropping the search indexes). I restored it with `git checkout`, since lot 5 did not commit it
 either. Running `oxfmt` on the whole migrations folder also touched an older migration; I restored that one too.
 
+**Step 3.** First failing test (e2e) `an admin cannot set places below the sign-ups already there (places_below_signups)`,
+with two sign-ups inserted straight into the database. Red seen first: `AssertionError: expected 404 to be 409`
+(the route did not exist). Green after `updateSlot`, `cancelSlot`, `deleteSlot` and the three routes: 24 tests pass in
+the e2e spec (14 new). Closed doors of section 5: two of the four tests are written now (an edit with `cancelledAt` and
+`isCancelled` in the body leaves the slot live, because the contract strips unknown fields; reading an ended slot
+shows it not cancelled). The other two (a member leaving does not cancel, removing the last sign-up does not cancel)
+need the leave and remove routes, which only exist in step 6, so those two tests are written in step 6. The service
+refuses edit and cancel of an ended slot first, then, for an edit, `slot_has_signups` before `places_below_signups`
+(the plan does not say which comes first when both apply; I followed the order of the list in the contract).
+`DELETE admin/slots/:slotId` answers 204, like the other delete routes in the repo.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
 - [x] Step 2. Tables, migration, admin create and list.
-- [ ] Step 3. Admin edit, cancel, delete.
+- [x] Step 3. Admin edit, cancel, delete.
 - [ ] Step 4. Member lists coming slots and signs up.
 - [ ] Step 5. Overlap rule and the two locks, with the concurrency tests.
 - [ ] Step 6. Leave, admin sign-up and removal, my sign-ups.
