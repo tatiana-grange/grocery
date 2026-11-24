@@ -4,6 +4,7 @@ import { AdminAccountingController, AdminExpensesController } from './accounting
 import { AccountingMapper } from './accounting.mapper'
 import { Expense } from './entities/expense.entity'
 import { ExpensesService } from './expenses.service'
+import { ExportsService } from './exports.service'
 import { ProfitAndLossService } from './profit-and-loss.service'
 
 /**
@@ -13,6 +14,6 @@ import { ProfitAndLossService } from './profit-and-loss.service'
 @Module({
   imports: [MikroOrmModule.forFeature([Expense])],
   controllers: [AdminExpensesController, AdminAccountingController],
-  providers: [ExpensesService, ProfitAndLossService, AccountingMapper],
+  providers: [ExpensesService, ProfitAndLossService, ExportsService, AccountingMapper],
 })
 export class AccountingModule {}

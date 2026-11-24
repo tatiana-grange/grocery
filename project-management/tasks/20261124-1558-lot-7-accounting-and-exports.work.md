@@ -709,6 +709,26 @@ one just outside` with `AssertionError: expected 404 to be 200`. With the contro
   - The real-path test imports `DistributionModule`, `WalletModule`, `InventoryModule` and
     `CatalogModule` too, records an express sale (600 cents of sales, 400 of cost), reverses it
     through the route, and the P&L for today is 0, 0, 0.
+- 2026-11-24 — Typist, step 5 (the five exports). Wrote `tests/exports.controller.e2e-spec.ts`
+  (24 tests) before any export code. Red run: `pnpm --filter=api exec vitest run --project e2e
+src/modules/accounting/tests/exports`: 24 failed, first `returns a CSV with its header and one
+row per handover line in the period` with `AssertionError: expected 404 to be 200`. Then wrote
+  `ExportsService` and `GET admin/accounting/exports/:exportName` (a `StreamableFile`, content
+  type `text/csv; charset=utf-8`, attachment name `grocery-<export>-<from>-<to>.csv`, documented
+  with `@ApiProduces` and `@ApiOkResponse`): 24 pass. Whole accounting folder, run three times in
+  a row: 78 tests, all green each time.
+  - The test file has its own small CSV reader, so the checks read cells, not substrings; two
+    checks also read the raw text (the `'=SUM(A1)` guard and the doubled quotes).
+  - Totals: sales `lineTotalEur` and `costOfGoodsEur`, fee `amountEur`, expense `amountEur` (and
+    per category) equal the P&L figures for the same period. Wallet movements and purchases are
+    checked against the rows the test wrote (Architect's correction 4).
+  - Row order inside one handover: the lines share the handover's time, so only their ids tell
+    them apart, and ids are random. The plan says "date, then recordedAt, then id", which is what
+    is done. The tests do not depend on the order of the lines of one handover.
+  - The `expenses` export reads the day with `to_char(... 'YYYY-MM-DD')`, because a raw query
+    would hand a `date` column back as a JavaScript Date.
+  - Not checked here: the OpenAPI document with the new routes (the client is generated in step
+    6, outside my part). `@TypedRoute.Get` with no schema ran as a plain route in the tests.
 
 ## Implementation Checkboxes
 
@@ -716,7 +736,7 @@ one just outside` with `AssertionError: expected 404 to be 200`. With the contro
 - [x] Step 2 — record and list expenses, entity, migration (cleaned, worklog entry)
 - [x] Step 3 — cancel an expense, closed doors of the final state
 - [x] Step 4 — the P&L route, bounds, reversal, wallet ignored, real distribution path
-- [ ] Step 5 — the five CSV exports, totals match the P&L
+- [x] Step 5 — the five CSV exports, totals match the P&L
 - [ ] Step 6 — regenerated client, expenses screen, browser tests
 - [ ] Step 7 — P&L and exports screen, browser tests, nav-smoke routes
 - [ ] Step 8 — documentation page, glossary, architecture plan, index, documentation build

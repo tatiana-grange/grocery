@@ -6,13 +6,18 @@ import {
   TypedQueryObject,
   TypedRoute,
 } from '@lonestone/nzoth/server'
-import { HttpCode, UseGuards } from '@nestjs/common'
+import { HttpCode, StreamableFile, UseGuards } from '@nestjs/common'
+import { ApiOkResponse, ApiProduces } from '@nestjs/swagger'
 import { z } from 'zod'
 import { AdminOnly, Session } from '../auth/auth.decorator'
 import { LoggedInBetterAuthSession } from '../auth/auth.config'
 import { AuthGuard } from '../auth/auth.guard'
 import { AccountingMapper } from './accounting.mapper'
-import { profitAndLossSchema } from './contracts/accounting.contract'
+import {
+  exportNameSchema,
+  type ExportName,
+  profitAndLossSchema,
+} from './contracts/accounting.contract'
 import { type PeriodQuery, periodQuerySchema } from './contracts/period.contract'
 import {
   type CancelExpenseInput,
@@ -25,6 +30,7 @@ import {
   recordExpenseSchema,
 } from './contracts/expense.contract'
 import { ExpensesService } from './expenses.service'
+import { ExportsService } from './exports.service'
 import { toPeriod } from './period.util'
 import { ProfitAndLossService } from './profit-and-loss.service'
 
@@ -78,10 +84,37 @@ export class AdminExpensesController {
 @UseGuards(AuthGuard)
 @AdminOnly()
 export class AdminAccountingController {
-  constructor(private readonly profitAndLoss: ProfitAndLossService) {}
+  constructor(
+    private readonly profitAndLoss: ProfitAndLossService,
+    private readonly exports: ExportsService,
+  ) {}
 
   @TypedRoute.Get('profit-and-loss', profitAndLossSchema)
   async getProfitAndLoss(@TypedQueryObject(periodQuerySchema) query: PeriodQuery) {
     return this.profitAndLoss.compute(toPeriod(query))
+  }
+
+  /**
+   * One CSV file for the period. A whole file in one answer, not a page. No response schema: the
+   * body is text, so the route is a plain NestJS route and no JSON check runs on it.
+   */
+  @TypedRoute.Get('exports/:exportName')
+  @ApiProduces('text/csv')
+  @ApiOkResponse({
+    description: 'The CSV file, with a header row. UTF-8, comma separated, CRLF line ends.',
+    content: { 'text/csv': { schema: { type: 'string' } } },
+  })
+  async downloadExport(
+    @TypedParam('exportName', exportNameSchema) exportName: ExportName,
+    @TypedQueryObject(periodQuerySchema) query: PeriodQuery,
+  ): Promise<StreamableFile> {
+    const { fileName, csv } = await this.exports.build({
+      exportName,
+      period: toPeriod(query),
+    })
+    return new StreamableFile(Buffer.from(csv, 'utf8'), {
+      type: 'text/csv; charset=utf-8',
+      disposition: `attachment; filename="${fileName}"`,
+    })
   }
 }
