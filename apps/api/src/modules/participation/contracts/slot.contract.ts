@@ -34,6 +34,7 @@ export type RemovalRefusal = z.infer<typeof removalRefusalSchema>
 /** Refusal codes of an admin edit, cancel or delete of a slot, read by the client from the 409 body. */
 export const SLOT_EDIT_REFUSALS = [
   'slot_ended',
+  'slot_cancelled',
   'slot_has_signups',
   'places_below_signups',
 ] as const

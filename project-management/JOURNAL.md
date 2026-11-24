@@ -13,7 +13,8 @@ task — never generated.
   lock (the HTTP test app has a pool of one connection, so it cannot prove a lock). The Typists
   coded it in nine steps, test first. The review found four standards points (mapper check,
   schema derivation, hand-written page meta, names), all fixed. All five gates are green (601 API
-  tests, 132 browser tests). Open: a cancelled slot can still have its label and places edited.
+  tests, 132 browser tests). Fixed after the close, on the human's word: a cancelled slot can no
+  longer be edited, the API refuses it with `slot_cancelled`.
 
 ## 2026-11-23
 

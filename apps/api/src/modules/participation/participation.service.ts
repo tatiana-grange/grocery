@@ -87,12 +87,19 @@ export class ParticipationService {
    *
    * The label and the places may change at any time before the slot ends. The times may change
    * only while nobody is signed up, so a booked commitment never moves and the no-overlap rule
-   * of the members on it never breaks silently.
+   * of the members on it never breaks silently. A cancelled slot is final, so it is never
+   * edited: its members were told it is off, and nothing on it may change after that.
    */
   async updateSlot(slotId: string, input: SlotInput): Promise<Slot> {
     return this.em.transactional(async (tem) => {
       const slot = await this.lockSlot(tem, slotId)
       this.assertNotEnded(slot)
+      if (slot.cancelledAt) {
+        throw refusal(
+          'slot_cancelled' satisfies SlotEditRefusal,
+          'A cancelled slot cannot be edited',
+        )
+      }
       const signedUpCount = await tem.count(SlotSignup, { slot: slot.id })
       const timesChanged =
         slot.startsAt.getTime() !== input.startsAt.getTime() ||

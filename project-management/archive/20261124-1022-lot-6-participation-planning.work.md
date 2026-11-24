@@ -761,7 +761,7 @@ Standards axis:
 Spec axis:
 
 - **suite-green was not proven.** Fixed: all five gates were run after the last fix, all green (see the last worklog lines).
-- **A cancelled slot can still be edited (label, places).** Answered, not changed: the plan did not refuse it and the spec's final state is about being un-cancelled, which no route does. Raised to the Architect as a question.
+- **A cancelled slot can still be edited (label, places).** Answered, not changed: the plan did not refuse it and the spec's final state is about being un-cancelled, which no route does. Raised to the Architect as a question. Ruled by the human on 2026-11-24: refuse it. Fixed after the close: the edit route answers 409 `slot_cancelled`, with an API test.
 - **"Coming" sign-ups use the end time, the slot list uses the start time.** Answered: deliberate (plan, section 2). A slot in progress stays in the list of the person on it.
 - **7 days are 168 hours, one hour off across a daylight saving change.** Answered: the spec says "7 days from the start time"; kept as 168 hours.
 - **Delete route and the leave-from-cancelled rule are beyond the spec text.** Answered: both are rulings of the Architect.

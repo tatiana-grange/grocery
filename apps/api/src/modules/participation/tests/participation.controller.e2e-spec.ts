@@ -297,6 +297,21 @@ describe('participation slots (e2e)', () => {
       expect(res.body.code).toBe('slot_ended')
     })
 
+    it('refuses to edit a cancelled slot and leaves it unchanged (slot_cancelled)', async () => {
+      const slot = await insertSlot(tomorrow(), inTwoDays(), 3)
+      await request.withSession(admin).post(`/admin/slots/${slot.id}/cancel`)
+
+      const res = await request
+        .withSession(admin)
+        .put(`/admin/slots/${slot.id}`)
+        .send(editBody(slot, { roleLabel: 'Renamed', places: 5 }))
+      const still = await request.withSession(admin).get(`/admin/slots/${slot.id}`)
+
+      expect(res.status).toBe(409)
+      expect(res.body.code).toBe('slot_cancelled')
+      expect(still.body).toMatchObject({ roleLabel: 'Stock the shelves', places: 3 })
+    })
+
     it('404s an edit, a cancel and a delete of an unknown slot', async () => {
       const unknown = '00000000-0000-4000-8000-000000000000'
       const as = request.withSession(admin)
