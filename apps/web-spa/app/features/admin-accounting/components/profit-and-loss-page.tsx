@@ -22,7 +22,7 @@ import {
   type ExportName,
   profitAndLossQueryOptions,
 } from '@/features/admin-accounting/utils/admin-accounting-queries'
-import { usePeriod } from '@/features/admin-accounting/utils/use-period'
+import { usePeriod } from '@/features/admin-accounting/hooks/use-period'
 
 interface FigureRowProps {
   label: string

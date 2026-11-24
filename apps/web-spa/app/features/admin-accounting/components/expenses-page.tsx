@@ -24,7 +24,7 @@ import {
   EXPENSES_PAGE_SIZE,
   expensesQueryOptions,
 } from '@/features/admin-accounting/utils/admin-accounting-queries'
-import { usePeriod } from '@/features/admin-accounting/utils/use-period'
+import { usePeriod } from '@/features/admin-accounting/hooks/use-period'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export default function ExpensesPage() {

@@ -1,6 +1,7 @@
 import { zRecordExpenseInput } from '@grocery/openapi-generator/client/zod.gen'
 import type { TFunction } from 'i18next'
 import { z } from 'zod'
+import { eurosToCents } from '@/features/admin-accounting/utils/accounting-format'
 
 function requireBound(bound: number | null | undefined, name: string): number {
   if (bound == null) throw new Error(`The API expense contract has no bound for ${name}`)
@@ -25,7 +26,7 @@ export function createExpenseFormSchema(t: TFunction) {
       .trim()
       .regex(/^\d+([.,]\d{1,2})?$/, t('adminAccounting.form.error.amount'))
       .refine((value) => {
-        const cents = Math.round(Number(value.replace(',', '.')) * 100)
+        const cents = eurosToCents(value)
         return cents >= 1 && cents <= MAX_AMOUNT_CENTS
       }, t('adminAccounting.form.error.amount')),
     category: z.enum(EXPENSE_CATEGORY_OPTIONS),

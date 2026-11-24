@@ -1,7 +1,7 @@
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { useTranslation } from 'react-i18next'
-import { type Period, yearPeriod } from '@/features/admin-accounting/utils/use-period'
+import { type Period, yearPeriod } from '@/features/admin-accounting/hooks/use-period'
 
 interface PeriodPickerProps {
   period: Period
@@ -13,7 +13,7 @@ export function PeriodPicker({ period, onChange }: PeriodPickerProps) {
   const { t } = useTranslation()
 
   // A half-typed or backwards pair is ignored: the screen keeps the last good period.
-  const change = (next: Period) => {
+  const handleChange = (next: Period) => {
     if (next.from && next.to && next.from <= next.to) onChange(next)
   }
 
@@ -27,7 +27,7 @@ export function PeriodPicker({ period, onChange }: PeriodPickerProps) {
           data-testid="period-from"
           value={period.from}
           max={period.to}
-          onChange={(event) => change({ from: event.target.value, to: period.to })}
+          onChange={(event) => handleChange({ from: event.target.value, to: period.to })}
         />
       </label>
       <label className="flex flex-col gap-1 text-sm">
@@ -38,7 +38,7 @@ export function PeriodPicker({ period, onChange }: PeriodPickerProps) {
           data-testid="period-to"
           value={period.to}
           min={period.from}
-          onChange={(event) => change({ from: period.from, to: event.target.value })}
+          onChange={(event) => handleChange({ from: period.from, to: event.target.value })}
         />
       </label>
       <Button

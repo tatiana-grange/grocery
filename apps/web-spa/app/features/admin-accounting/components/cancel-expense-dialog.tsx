@@ -1,4 +1,5 @@
 import type { Expense } from '@grocery/openapi-generator/client/types.gen'
+import { zCancelExpenseInput } from '@grocery/openapi-generator/client/zod.gen'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Dialog,
@@ -20,7 +21,7 @@ import {
 import { formatCents } from '@/features/admin-accounting/utils/accounting-format'
 import { refusalMessage } from '@/features/common/lib/api-error'
 
-const MAX_REASON_LENGTH = 500
+const MAX_REASON_LENGTH = zCancelExpenseInput.shape.reason.maxLength ?? undefined
 
 interface CancelExpenseDialogProps {
   expense: Expense

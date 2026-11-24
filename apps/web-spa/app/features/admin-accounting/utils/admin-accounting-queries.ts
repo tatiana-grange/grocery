@@ -5,12 +5,13 @@ import {
   adminExpensesControllerList,
   adminExpensesControllerRecord,
 } from '@grocery/openapi-generator/client/sdk.gen'
+import { zExportName } from '@grocery/openapi-generator/client/zod.gen'
 import type {
   AdminAccountingControllerDownloadExportData,
   AdminExpensesControllerRecordData,
 } from '@grocery/openapi-generator/client/types.gen'
 import type { QueryClient } from '@tanstack/react-query'
-import type { Period } from '@/features/admin-accounting/utils/use-period'
+import type { Period } from '@/features/admin-accounting/hooks/use-period'
 import { unwrap } from '@/lib/api-client'
 
 export const EXPENSES_PAGE_SIZE = 50
@@ -19,13 +20,7 @@ export const EXPENSES_PAGE_SIZE = 50
 export const ADMIN_ACCOUNTING_QUERY_KEY = 'admin-accounting'
 
 export type ExportName = AdminAccountingControllerDownloadExportData['path']['exportName']
-export const EXPORT_NAMES: ExportName[] = [
-  'wallet-movements',
-  'sales',
-  'purchases',
-  'membership-fees',
-  'expenses',
-]
+export const EXPORT_NAMES: readonly ExportName[] = zExportName.options
 
 /** An expense recorded or cancelled changes the list and the profit-and-loss account. */
 export function invalidateAccounting(queryClient: QueryClient): void {
