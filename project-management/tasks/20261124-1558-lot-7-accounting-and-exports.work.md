@@ -751,6 +751,26 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
   not exist as a shared helper (each form writes `Math.round(Number(x) * 100)`), so
   `accounting-format.ts` holds a small one. The nav entry and the P&L route come with step 7, so
   no link points at a page that does not exist yet.
+- 2026-11-24 — Typist, step 7 (P&L and exports screen, browser tests). **First failing test, red:**
+  added the three tests to `tests/accounting.spec.ts` before the page. Run
+  `playwright test tests/accounting.spec.ts`: 3 failed (`l'admin lit le compte de résultat de
+  l'année et la dépense apparaît dans sa catégorie`, `l'admin télécharge l'export des dépenses`,
+  `un adhérent et un distributeur n'atteignent pas les écrans de comptabilité`), the first on
+  `expect(getByTestId('page-profit-and-loss')).toBeVisible` (no such route); the two step 6 tests
+  still passed. Then wrote `profit-and-loss-page.tsx`, the `admin/accounting` route, the nav entry
+  `Accounting` (icon `Calculator`, test id `back-office-nav-accounting`) and the keys in both
+  locale files. Green: `tests/accounting.spec.ts` and `tests/nav-smoke.spec.ts` together, 7
+  passed (with the login setup).
+  - The download test records an expense on screen, clicks `export-expenses`, waits for the
+    download, checks the file name `grocery-expenses-<year>-01-01-<year>-12-31.csv`, the header
+    line, the new row and the two seeded rows.
+  - The role test runs one test with a step per role (member, distributor), as the brief names a
+    single test. It checks both screens show the access-denied block, and that the export route
+    answers 403 to the same session.
+  - `nav-smoke.spec.ts`: the only change to an existing test file is two lines in its route list
+    (`/admin/accounting`, `/admin/accounting/expenses`).
+  - The P&L page shows a note that wallet money is not on the account. That sentence is not in the
+    plan; it follows the rule that the P&L reads no wallet row.
 
 ## Implementation Checkboxes
 
@@ -760,7 +780,7 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
 - [x] Step 4 — the P&L route, bounds, reversal, wallet ignored, real distribution path
 - [x] Step 5 — the five CSV exports, totals match the P&L
 - [x] Step 6 — regenerated client, expenses screen, browser tests
-- [ ] Step 7 — P&L and exports screen, browser tests, nav-smoke routes
+- [x] Step 7 — P&L and exports screen, browser tests, nav-smoke routes
 - [ ] Step 8 — documentation page, glossary, architecture plan, index, documentation build
 - [ ] Gates — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm e2e`
 - [ ] Review — `code-review` on the full diff since `origin/staging`, findings answered

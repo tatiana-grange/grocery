@@ -899,6 +899,31 @@
         "already_cancelled": "This expense was already cancelled.",
         "cannot_cancel_cancellation": "A cancellation cannot be cancelled."
       }
+    },
+    "nav": {
+      "accounting": "Accounting"
+    },
+    "pnl": {
+      "title": "Profit and loss",
+      "subtitle": "What the cooperative sold, what it cost, and what it spent, for a period. Days are read in Paris time.",
+      "toExpenses": "Expenses",
+      "figure": "Figure",
+      "sales": "Sales",
+      "costOfGoodsSold": "Cost of goods sold",
+      "grossMargin": "Gross margin",
+      "membershipFees": "Membership fees",
+      "expensesTotal": "Total expenses",
+      "result": "Result",
+      "walletNote": "Member wallet money (top-ups, payments, refunds) belongs to the members and is not on this account."
+    },
+    "exports": {
+      "title": "Exports",
+      "description": "One CSV file per kind of record, for the period above. Open it in a spreadsheet.",
+      "wallet-movements": "Wallet movements",
+      "sales": "Sales",
+      "purchases": "Purchases",
+      "membership-fees": "Membership fees",
+      "expenses": "Expenses"
     }
   }
 }

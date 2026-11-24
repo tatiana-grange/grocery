@@ -899,6 +899,31 @@
         "already_cancelled": "Cette dépense a déjà été annulée.",
         "cannot_cancel_cancellation": "Une annulation ne peut pas être annulée."
       }
+    },
+    "nav": {
+      "accounting": "Comptabilité"
+    },
+    "pnl": {
+      "title": "Compte de résultat",
+      "subtitle": "Ce que la coopérative a vendu, ce que cela a coûté et ce qu'elle a dépensé, sur une période. Les jours sont lus à l'heure de Paris.",
+      "toExpenses": "Dépenses",
+      "figure": "Poste",
+      "sales": "Ventes",
+      "costOfGoodsSold": "Coût des marchandises vendues",
+      "grossMargin": "Marge brute",
+      "membershipFees": "Cotisations",
+      "expensesTotal": "Total des dépenses",
+      "result": "Résultat",
+      "walletNote": "L'argent des porte-monnaie des adhérents (recharges, paiements, remboursements) appartient aux adhérents et ne figure pas dans ce compte."
+    },
+    "exports": {
+      "title": "Exports",
+      "description": "Un fichier CSV par type d'écriture, pour la période choisie. À ouvrir dans un tableur.",
+      "wallet-movements": "Mouvements des porte-monnaie",
+      "sales": "Ventes",
+      "purchases": "Achats",
+      "membership-fees": "Cotisations",
+      "expenses": "Dépenses"
     }
   }
 }
