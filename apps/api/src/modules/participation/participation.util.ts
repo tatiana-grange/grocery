@@ -1,0 +1,70 @@
+import {
+  LEAVE_NOTICE_DAYS,
+  type RemovalRefusal,
+  type SignUpRefusal,
+} from './contracts/slot.contract'
+
+export interface TimeRange {
+  startsAt: Date
+  endsAt: Date
+}
+
+/** What the sign-up rules need to know about a slot. Nothing here reads the database. */
+export interface SlotFacts extends TimeRange {
+  places: number
+  isCancelled: boolean
+  signedUpCount: number
+}
+
+export type Actor = 'member' | 'admin'
+
+export const LEAVE_NOTICE_MS = LEAVE_NOTICE_DAYS * 24 * 60 * 60 * 1000
+
+/**
+ * The refusals that need only the slot and the clock, first match wins. `already_signed_up` and
+ * `overlaps_another_slot` need the database, so the service decides them after this call.
+ *
+ * An admin skips the started check (any time before the slot ends) and never skips the full
+ * check.
+ */
+export function checkSignUp(p: { slot: SlotFacts; actor: Actor; now: Date }): SignUpRefusal | null {
+  const { slot, actor, now } = p
+  if (slot.isCancelled) return 'slot_cancelled'
+  if (now >= slot.endsAt) return 'slot_ended'
+  if (actor === 'member' && now >= slot.startsAt) return 'slot_started'
+  if (slot.signedUpCount >= slot.places) return 'slot_full'
+  return null
+}
+
+/**
+ * Whether a sign-up may be removed. Nobody may touch a slot that has ended. An admin may remove
+ * at any time before that. A member may leave a cancelled slot at any time before it ends, and a
+ * live slot only while it starts in 7 days or more.
+ */
+export function checkRemoval(p: {
+  slot: SlotFacts
+  actor: Actor
+  now: Date
+}): RemovalRefusal | null {
+  const { slot, actor, now } = p
+  if (now >= slot.endsAt) return 'slot_ended'
+  if (actor === 'admin') return null
+  if (slot.isCancelled) return null
+  if (slot.startsAt.getTime() - now.getTime() >= LEAVE_NOTICE_MS) return null
+  return 'too_late_to_leave'
+}
+
+/** Whether a member may leave their own sign-up now. Same rule as `checkRemoval` for a member. */
+export function canLeave(p: { slot: SlotFacts; now: Date }): boolean {
+  return checkRemoval({ ...p, actor: 'member' }) === null
+}
+
+/** The last moment a member may leave a live slot: 7 days before it starts. */
+export function leaveDeadline(slot: { startsAt: Date }): Date {
+  return new Date(slot.startsAt.getTime() - LEAVE_NOTICE_MS)
+}
+
+/** Two slots that touch (one ends when the next starts) do not overlap. */
+export function rangesOverlap(a: TimeRange, b: TimeRange): boolean {
+  return a.startsAt < b.endsAt && b.startsAt < a.endsAt
+}

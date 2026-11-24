@@ -559,11 +559,19 @@ Signed: Architect, 2026-11-24 10:26.
 
 ## Worklog
 
-(empty — nothing coded)
+### 2026-11-24 — Typist, backend steps 1 to 6
+
+Test command used: `NODE_ENV=test pnpm exec vitest run --config=vitest.config.ts <file pattern>` in `apps/api`
+(`pnpm test -- <path>` ignores the filter and runs the whole suite).
+
+**Step 1.** First failing test `refuses a member sign-up on a slot that has already started with slot_started`.
+Red seen first with a stub that returns null: `1 failed`, `AssertionError: expected null to be 'slot_started'`.
+(Before the stub, the file did not even load: `Cannot find module '../participation.util'`.)
+Green after the real rules: 20 tests pass in `participation.util.spec.ts`.
 
 ## Implementation Checkboxes
 
-- [ ] Step 1. The sign-up rules (util, refusal lists, unit spec).
+- [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
 - [ ] Step 2. Tables, migration, admin create and list.
 - [ ] Step 3. Admin edit, cancel, delete.
 - [ ] Step 4. Member lists coming slots and signs up.
