@@ -2,16 +2,20 @@ import {
   PaginationParams,
   TypedBody,
   TypedController,
+  TypedParam,
   TypedQueryObject,
   TypedRoute,
 } from '@lonestone/nzoth/server'
-import { UseGuards } from '@nestjs/common'
+import { HttpCode, UseGuards } from '@nestjs/common'
+import { z } from 'zod'
 import { AdminOnly, Session } from '../auth/auth.decorator'
 import { LoggedInBetterAuthSession } from '../auth/auth.config'
 import { AuthGuard } from '../auth/auth.guard'
 import { AccountingMapper } from './accounting.mapper'
 import { type PeriodQuery, periodQuerySchema } from './contracts/accounting.contract'
 import {
+  type CancelExpenseInput,
+  cancelExpenseSchema,
   type ExpensePagination,
   expenseListSchema,
   expensePaginationSchema,
@@ -48,5 +52,21 @@ export class AdminExpensesController {
     @TypedBody(recordExpenseSchema) body: RecordExpenseInput,
   ) {
     return this.mapper.toExpense(await this.expenses.record(body, session.user.id))
+  }
+
+  /** The one route that cancels an expense. Final: a second call is refused. */
+  @TypedRoute.Post(':expenseId/cancel', expenseSchema)
+  @HttpCode(200)
+  async cancel(
+    @Session() session: LoggedInBetterAuthSession,
+    @TypedParam('expenseId', z.string().uuid()) expenseId: string,
+    @TypedBody(cancelExpenseSchema) body: CancelExpenseInput,
+  ) {
+    const row = await this.expenses.cancel({
+      expenseId,
+      reason: body.reason,
+      recordedByUserId: session.user.id,
+    })
+    return this.mapper.toExpense(row)
   }
 }

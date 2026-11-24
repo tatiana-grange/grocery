@@ -664,12 +664,33 @@ finds it in the list for its period (201 then 200)`. Then wrote entity, contract
     tracked `.snapshot-grocery.json` is not maintained (it has no `slotSignup`).
   - Seeder: two expenses dated today (Paris day), rent 450.00 EUR by transfer and bank fees 3.50
     EUR by card, no cancellation. Ran `E2eSeeder` on a scratch database: both rows are there.
+- 2026-11-24 — Typist, step 3 (cancel an expense, closed doors). Added the cancel tests to
+  `tests/expenses.controller.e2e-spec.ts` first. Red run: same command as step 2 gave 12 failed,
+  first one `cancelling an expense writes a reversing row that names it and carries the reason`
+  with `AssertionError: expected 404 to be 200` (the route did not exist). Then wrote
+  `ExpensesService.cancel` and `POST admin/expenses/:expenseId/cancel` (status 200): 34 tests
+  pass in the file.
+  - Closed doors, one test each: kind and cancelsExpenseId in the body are stripped (step 2
+    test); PUT, PATCH, DELETE on an expense give 404; cancelling a cancellation gives
+    `cannot_cancel_cancellation`; a second cancel gives `already_cancelled` with still one
+    cancellation row. The seeder door was checked by reading the table after running
+    `E2eSeeder` on a scratch database (step 2): both rows are kind `expense`. There is no
+    automated test for it.
+  - The unique index is proven by two tests. One inserts a second cancellation row for the same
+    expense through the entity manager and expects a `UniqueConstraintViolationException` from
+    the database. The other inserts a cancellation by hand and calls the route; it gets
+    `already_cancelled` with one cancellation row. Note: the route test is answered by the
+    service's own count check before the index is reached, so only the first test touches the
+    index. The `catch` that turns a unique violation into `already_cancelled` (the race between
+    two admins) has no test of its own: it cannot be reached without a race. Said out loud.
+  - A test bug found on the way: a helper default value hid a "no reason" case; replaced by a
+    `null` reason.
 
 ## Implementation Checkboxes
 
 - [x] Step 1 — period reader and CSV writer, test first
 - [x] Step 2 — record and list expenses, entity, migration (cleaned, worklog entry)
-- [ ] Step 3 — cancel an expense, closed doors of the final state
+- [x] Step 3 — cancel an expense, closed doors of the final state
 - [ ] Step 4 — the P&L route, bounds, reversal, wallet ignored, real distribution path
 - [ ] Step 5 — the five CSV exports, totals match the P&L
 - [ ] Step 6 — regenerated client, expenses screen, browser tests

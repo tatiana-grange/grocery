@@ -1,4 +1,4 @@
-import type { EntityManager } from '@mikro-orm/core'
+import { type EntityManager, UniqueConstraintViolationException } from '@mikro-orm/core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { initializeTestApp } from '../../../test/helpers/test-app.helper'
 import {
@@ -8,6 +8,8 @@ import {
 } from '../../../test/helpers/test-auth.helper'
 import { createMemberData } from '../../members/members.factory'
 import { AccountingModule } from '../accounting.module'
+import { Expense } from '../entities/expense.entity'
+import { toParisDay } from '../period.util'
 
 describe('association expenses (e2e)', () => {
   let em: EntityManager
@@ -210,6 +212,202 @@ describe('association expenses (e2e)', () => {
         kind: 'expense',
         cancelsExpenseId: null,
         isCancelled: false,
+      })
+    })
+  })
+
+  describe('cancel', () => {
+    const wide = 'from=2026-01-01&to=2099-12-31'
+
+    async function cancel(expenseId: string, reason: unknown = 'Paid twice') {
+      return request.withSession(admin).post(`/admin/expenses/${expenseId}/cancel`).send({ reason })
+    }
+
+    async function listAll() {
+      const res = await request.withSession(admin).get(`/admin/expenses?${wide}`)
+      return res.body.data as {
+        id: string
+        kind: string
+        amountCents: number
+        spentOn: string
+        cancelsExpenseId: string | null
+        cancelledByExpenseId: string | null
+        isCancelled: boolean
+        reason: string | null
+        category: string
+        label: string
+        paymentMethod: string
+      }[]
+    }
+
+    it('cancelling an expense writes a reversing row that names it and carries the reason', async () => {
+      const original = await record()
+
+      const res = await cancel(original.id, '  Paid twice  ')
+
+      expect(res.status).toBe(200)
+      const rows = await listAll()
+      const cancellations = rows.filter((row) => row.kind === 'cancellation')
+      expect(cancellations).toHaveLength(1)
+      expect(cancellations[0]).toMatchObject({
+        cancelsExpenseId: original.id,
+        amountCents: -45000,
+        reason: 'Paid twice',
+        category: 'rent',
+        label: 'March rent',
+        paymentMethod: 'transfer',
+        isCancelled: false,
+        cancelledByExpenseId: null,
+      })
+    })
+
+    it('answers the expense, now cancelled, and the list shows both rows', async () => {
+      const original = await record()
+
+      const res = await cancel(original.id)
+
+      expect(res.body).toMatchObject({
+        id: original.id,
+        kind: 'expense',
+        amountCents: 45000,
+        isCancelled: true,
+      })
+      expect(res.body.cancelledByExpenseId).toEqual(expect.any(String))
+      const rows = await listAll()
+      expect(rows).toHaveLength(2)
+      expect(rows.find((row) => row.id === original.id)).toMatchObject({
+        isCancelled: true,
+        cancelledByExpenseId: res.body.cancelledByExpenseId,
+      })
+    })
+
+    it('dates the cancellation row the Paris day it was cancelled, not the expense day', async () => {
+      const original = await record({ spentOn: '2026-03-10' })
+
+      await cancel(original.id)
+
+      const rows = await listAll()
+      const cancellation = rows.find((row) => row.kind === 'cancellation')
+      expect(cancellation?.spentOn).toBe(toParisDay(new Date()))
+      expect(cancellation?.spentOn).not.toBe('2026-03-10')
+    })
+
+    it.each([
+      ['an empty reason', ''],
+      ['a blank reason', '   '],
+      ['a reason of 501 characters', 'x'.repeat(501)],
+      ['a null reason', null],
+    ])('rejects %s with 400 and writes nothing', async (_name, reason) => {
+      const original = await record()
+
+      const res = await cancel(original.id, reason)
+
+      expect(res.status).toBe(400)
+      expect(await listAll()).toHaveLength(1)
+    })
+
+    it('answers 404 for an unknown expense', async () => {
+      const res = await cancel('2f8b3c1e-5d6a-4b7c-8d9e-0a1b2c3d4e5f')
+
+      expect(res.status).toBe(404)
+    })
+
+    it('refuses a member and a distributor with 403, and no session with 401', async () => {
+      const original = await record()
+      const url = `/admin/expenses/${original.id}/cancel`
+
+      const statuses = [
+        (await request.withSession(member).post(url).send({ reason: 'x' })).status,
+        (await request.withSession(distributor).post(url).send({ reason: 'x' })).status,
+        (await request.post(url).send({ reason: 'x' })).status,
+      ]
+
+      expect(statuses).toEqual([403, 403, 401])
+      expect(await listAll()).toHaveLength(1)
+    })
+
+    describe('the closed doors of the final state', () => {
+      it('has no PUT, PATCH or DELETE route on an expense', async () => {
+        const original = await record()
+        const url = `/admin/expenses/${original.id}`
+        const as = request.withSession(admin)
+
+        const statuses = [
+          (await as.put(url).send(expenseBody())).status,
+          (await as.patch(url).send(expenseBody())).status,
+          (await as.del(url)).status,
+        ]
+
+        expect(statuses).toEqual([404, 404, 404])
+        expect(await listAll()).toHaveLength(1)
+      })
+
+      it('refuses to cancel a cancellation row with cannot_cancel_cancellation', async () => {
+        const original = await record()
+        await cancel(original.id)
+        const cancellation = (await listAll()).find((row) => row.kind === 'cancellation')!
+
+        const res = await cancel(cancellation.id)
+
+        expect(res.status).toBe(409)
+        expect(res.body).toMatchObject({ code: 'cannot_cancel_cancellation' })
+        expect(await listAll()).toHaveLength(2)
+      })
+
+      it('refuses a second cancel with already_cancelled and keeps one cancellation row', async () => {
+        const original = await record()
+        await cancel(original.id)
+
+        const res = await cancel(original.id, 'Again')
+
+        expect(res.status).toBe(409)
+        expect(res.body).toMatchObject({ code: 'already_cancelled' })
+        const rows = await listAll()
+        expect(rows.filter((row) => row.kind === 'cancellation')).toHaveLength(1)
+      })
+
+      it('refuses, in the database, a second row that cancels the same expense', async () => {
+        const original = await record()
+        await cancel(original.id)
+        const admins = await em.fork().findOneOrFail(Expense, { id: original.id })
+        const second = new Expense()
+        second.spentOn = '2026-11-24'
+        second.amountCents = -45000
+        second.category = 'rent'
+        second.label = 'March rent'
+        second.paymentMethod = 'transfer'
+        second.kind = 'cancellation'
+        second.cancelsExpense = admins
+        second.recordedByUser = admins.recordedByUser
+        const fork = em.fork()
+        fork.persist(second)
+
+        await expect(fork.flush()).rejects.toBeInstanceOf(UniqueConstraintViolationException)
+      })
+
+      it('turns a cancellation row that already exists into already_cancelled', async () => {
+        const original = await record()
+        const row = await em.fork().findOneOrFail(Expense, { id: original.id })
+        const existing = new Expense()
+        existing.spentOn = '2026-11-24'
+        existing.amountCents = -45000
+        existing.category = 'rent'
+        existing.label = 'March rent'
+        existing.paymentMethod = 'transfer'
+        existing.kind = 'cancellation'
+        existing.reason = 'By hand'
+        existing.cancelsExpense = row
+        existing.recordedByUser = row.recordedByUser
+        const fork = em.fork()
+        fork.persist(existing)
+        await fork.flush()
+
+        const res = await cancel(original.id)
+
+        expect(res.status).toBe(409)
+        expect(res.body).toMatchObject({ code: 'already_cancelled' })
+        const rows = await listAll()
+        expect(rows.filter((r) => r.kind === 'cancellation')).toHaveLength(1)
       })
     })
   })
