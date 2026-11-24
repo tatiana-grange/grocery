@@ -742,7 +742,7 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
   **First failing test, red:** wrote `tests/accounting.spec.ts` first. Run
   `playwright test tests/accounting.spec.ts` (from `apps/web-spa-e2e`): 2 failed, first
   `l'admin enregistre une dépense et la voit dans la liste` with `expect(getByTestId('page-expenses'))
-  toBeVisible` failing (no such route). Then wrote the screen: 3 passed (the login setup and the
+toBeVisible` failing (no such route). Then wrote the screen: 3 passed (the login setup and the
   two tests, `l'admin annule une dépense avec un motif, elle est marquée annulée` second).
   Files: `features/admin-accounting/` (`utils/admin-accounting-queries.ts`, `use-period.ts`,
   `accounting-format.ts`, `expense-form.ts`; `components/period-picker.tsx`, `expenses-page.tsx`,
@@ -754,7 +754,7 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
 - 2026-11-24 — Typist, step 7 (P&L and exports screen, browser tests). **First failing test, red:**
   added the three tests to `tests/accounting.spec.ts` before the page. Run
   `playwright test tests/accounting.spec.ts`: 3 failed (`l'admin lit le compte de résultat de
-  l'année et la dépense apparaît dans sa catégorie`, `l'admin télécharge l'export des dépenses`,
+l'année et la dépense apparaît dans sa catégorie`, `l'admin télécharge l'export des dépenses`,
   `un adhérent et un distributeur n'atteignent pas les écrans de comptabilité`), the first on
   `expect(getByTestId('page-profit-and-loss')).toBeVisible` (no such route); the two step 6 tests
   still passed. Then wrote `profit-and-loss-page.tsx`, the `admin/accounting` route, the nav entry
@@ -772,6 +772,31 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
   - The P&L page shows a note that wallet money is not on the account. That sentence is not in the
     plan; it follows the rule that the P&L reads no wallet row.
 
+- 2026-11-24 — Typist, review fixes. Applied every "Fix" of the Standards axis, nothing else.
+  - Moved `use-period.ts` to `features/admin-accounting/hooks/`; imports updated.
+  - Names: `change` is now `handleChange`; in `exports.service.ts` `text`, `amount`, `when` are
+    `toTextCell`, `toAmountCell`, `toInstantCells`; `plainQuantity` is gone (`Number(value)`
+    inline); `alreadyCancelled` is `toAlreadyCancelledRefusal`.
+  - One-letter parameters `p` and `r` renamed (`input`, `query`, `row`) in the mapper, CSV writer,
+    both services and `period.util.ts`. The SPA feature had none.
+  - `accounting.mapper.ts` moved with `git mv` to `expense.mapper.ts`; the class is
+    `ExpenseMapper`; the module and controller follow.
+  - `exports.service.ts`: one row interface per query (`WalletMovementRow`, `SaleRow`,
+    `PurchaseRow`, `MembershipFeeRow`, `ExpenseExportRow`); `query<T>` is generic; no casts left.
+  - `profit-and-loss.service.ts`: the expense total is a `for...of` sum, no `reduce`.
+  - `accounting.contract.ts`: the `expensesByCategory` item has its own schema,
+    `expensesByCategoryItemSchema`, with `.meta()` (title `ExpensesByCategoryItem`). I checked the
+    OpenAPI document with a throwaway API on port 3998 against the E2E Postgres on 5434 and ran
+    the generator: the generated client did not change, so nothing was regenerated or committed.
+  - Duplicates: `expense-form.ts` uses `eurosToCents`; `EXPORT_NAMES` is `zExportName.options`
+    from the generated zod file; the cancel dialog reads the reason limit from
+    `zCancelExpenseInput`; `period.util.ts` builds the day string in one `formatDay` helper and
+    uses `PeriodQuery` (type import, no cycle at runtime) for the `{ from, to }` pair.
+  - Gates, all on the real target: `pnpm lint` exit 0 (27 warnings, all in files this change did
+    not touch); `pnpm typecheck` exit 0; `pnpm test` exit 0 (api 37 files, 726 tests; i18n 15
+    tests); `pnpm build` exit 0; `pnpm e2e` exit 0 (140 passed). No flaky rerun was needed.
+    The E2E containers on 5434, 1093 and 1043 were the project's own.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — period reader and CSV writer, test first
@@ -782,7 +807,7 @@ row per handover line in the period` with `AssertionError: expected 404 to be 20
 - [x] Step 6 — regenerated client, expenses screen, browser tests
 - [x] Step 7 — P&L and exports screen, browser tests, nav-smoke routes
 - [ ] Step 8 — documentation page, glossary, architecture plan, index, documentation build
-- [ ] Gates — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm e2e`
+- [x] Gates — `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm e2e`
 - [ ] Review — `code-review` on the full diff since `origin/staging`, findings answered
 - [ ] Close — criteria ticked, journal, archive, retro, status `done`
 
