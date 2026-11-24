@@ -30,8 +30,12 @@ export const LEAVE_NOTICE_MS = LEAVE_NOTICE_DAYS * 24 * 60 * 60 * 1000
  * An admin skips the started check (any time before the slot ends) and never skips the full
  * check.
  */
-export function checkSignUp(p: { slot: SlotFacts; actor: Actor; now: Date }): SignUpRefusal | null {
-  const { slot, actor, now } = p
+export function checkSignUp(input: {
+  slot: SlotFacts
+  actor: Actor
+  now: Date
+}): SignUpRefusal | null {
+  const { slot, actor, now } = input
   if (slot.isCancelled) return 'slot_cancelled'
   if (now >= slot.endsAt) return 'slot_ended'
   if (actor === 'member' && now >= slot.startsAt) return 'slot_started'
@@ -44,12 +48,12 @@ export function checkSignUp(p: { slot: SlotFacts; actor: Actor; now: Date }): Si
  * at any time before that. A member may leave a cancelled slot at any time before it ends, and a
  * live slot only while it starts in 7 days or more.
  */
-export function checkRemoval(p: {
+export function checkRemoval(input: {
   slot: RemovalFacts
   actor: Actor
   now: Date
 }): RemovalRefusal | null {
-  const { slot, actor, now } = p
+  const { slot, actor, now } = input
   if (now >= slot.endsAt) return 'slot_ended'
   if (actor === 'admin') return null
   if (slot.isCancelled) return null
@@ -58,16 +62,16 @@ export function checkRemoval(p: {
 }
 
 /** Whether a member may leave their own sign-up now. Same rule as `checkRemoval` for a member. */
-export function canLeave(p: { slot: RemovalFacts; now: Date }): boolean {
-  return checkRemoval({ ...p, actor: 'member' }) === null
+export function canMemberLeave(input: { slot: RemovalFacts; now: Date }): boolean {
+  return checkRemoval({ ...input, actor: 'member' }) === null
 }
 
 /** The last moment a member may leave a live slot: 7 days before it starts. */
-export function leaveDeadline(slot: { startsAt: Date }): Date {
+export function getLeaveDeadline(slot: { startsAt: Date }): Date {
   return new Date(slot.startsAt.getTime() - LEAVE_NOTICE_MS)
 }
 
 /** Two slots that touch (one ends when the next starts) do not overlap. */
-export function rangesOverlap(a: TimeRange, b: TimeRange): boolean {
+export function doRangesOverlap(a: TimeRange, b: TimeRange): boolean {
   return a.startsAt < b.endsAt && b.startsAt < a.endsAt
 }

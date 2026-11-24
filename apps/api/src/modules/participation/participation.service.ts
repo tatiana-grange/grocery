@@ -55,15 +55,15 @@ export class ParticipationService {
   }
 
   /** Slots by start, earliest first. Slots that have ended are hidden unless `includePast`. */
-  async listSlotsForAdmin(p: { includePast: boolean } & PageRequest): Promise<Page<Slot>> {
+  async listSlotsForAdmin(request: { includePast: boolean } & PageRequest): Promise<Page<Slot>> {
     const now = this.clock()
     const [items, total] = await this.em.findAndCount(
       Slot,
-      p.includePast ? {} : { endsAt: { $gt: now } },
+      request.includePast ? {} : { endsAt: { $gt: now } },
       {
         orderBy: { startsAt: QueryOrder.ASC, id: QueryOrder.ASC },
-        limit: p.pageSize,
-        offset: p.offset,
+        limit: request.pageSize,
+        offset: request.offset,
         populate: ['signups'],
       },
     )
@@ -154,14 +154,14 @@ export class ParticipationService {
   }
 
   /** Slots that start after now and are not cancelled, earliest first, with their sign-ups. */
-  async listComingSlots(p: PageRequest): Promise<Page<Slot>> {
+  async listComingSlots(page: PageRequest): Promise<Page<Slot>> {
     const [items, total] = await this.em.findAndCount(
       Slot,
       { startsAt: { $gt: this.clock() }, cancelledAt: null },
       {
         orderBy: { startsAt: QueryOrder.ASC, id: QueryOrder.ASC },
-        limit: p.pageSize,
-        offset: p.offset,
+        limit: page.pageSize,
+        offset: page.offset,
         populate: ['signups'],
       },
     )
@@ -180,16 +180,16 @@ export class ParticipationService {
    * check comes last. The unique pair of the table backs the one-sign-up rule if two calls race
    * anyway. Returns the slot with its sign-ups.
    */
-  async signUp(p: { slotId: string; memberId: string; actor: Actor }): Promise<Slot> {
+  async signUp(input: { slotId: string; memberId: string; actor: Actor }): Promise<Slot> {
     try {
       return await this.em.transactional(async (tem) => {
         const member = await tem.findOne(
           Member,
-          { id: p.memberId },
+          { id: input.memberId },
           { lockMode: LockMode.PESSIMISTIC_WRITE },
         )
         if (!member) throw new NotFoundException('Member not found')
-        const slot = await this.lockSlot(tem, p.slotId)
+        const slot = await this.lockSlot(tem, input.slotId)
         const signedUpCount = await tem.count(SlotSignup, { slot: slot.id })
         const alreadySignedUp =
           (await tem.count(SlotSignup, { slot: slot.id, member: member.id })) > 0
@@ -201,7 +201,7 @@ export class ParticipationService {
             isCancelled: slot.cancelledAt != null,
             signedUpCount,
           },
-          actor: p.actor,
+          actor: input.actor,
           now: this.clock(),
         })
         if (alreadySignedUp && (refused === null || refused === 'slot_full')) {
@@ -230,7 +230,7 @@ export class ParticipationService {
 
   /**
    * Whether the member holds a live slot that overlaps this one. The condition is the one of
-   * `rangesOverlap`, written as a filter: slots that merely touch do not overlap, and a
+   * `doRangesOverlap`, written as a filter: slots that merely touch do not overlap, and a
    * cancelled slot never blocks.
    */
   private async holdsAnOverlappingSlot(
@@ -254,10 +254,10 @@ export class ParticipationService {
    * locked. `checkRemoval` decides whether the actor may. A member who is not signed up, and an
    * unknown slot, are both a 404. Returns the slot with its remaining sign-ups.
    */
-  async removeSignup(p: { slotId: string; memberId: string; actor: Actor }): Promise<Slot> {
+  async removeSignup(input: { slotId: string; memberId: string; actor: Actor }): Promise<Slot> {
     return this.em.transactional(async (tem) => {
-      const slot = await this.lockSlot(tem, p.slotId)
-      const signup = await tem.findOne(SlotSignup, { slot: slot.id, member: p.memberId })
+      const slot = await this.lockSlot(tem, input.slotId)
+      const signup = await tem.findOne(SlotSignup, { slot: slot.id, member: input.memberId })
       if (!signup) throw new NotFoundException('Sign-up not found')
       const refused = checkRemoval({
         slot: {
@@ -265,7 +265,7 @@ export class ParticipationService {
           endsAt: slot.endsAt,
           isCancelled: slot.cancelledAt != null,
         },
-        actor: p.actor,
+        actor: input.actor,
         now: this.clock(),
       })
       if (refused) throw this.removalRefusal(refused)
@@ -280,14 +280,14 @@ export class ParticipationService {
    * A member's sign-ups on slots that have not ended, earliest start first. Cancelled slots are
    * included: the member must see that the slot is off.
    */
-  async listMySignups(memberId: string, p: PageRequest): Promise<Page<SlotSignup>> {
+  async listMySignups(memberId: string, page: PageRequest): Promise<Page<SlotSignup>> {
     const [items, total] = await this.em.findAndCount(
       SlotSignup,
       { member: memberId, slot: { endsAt: { $gt: this.clock() } } },
       {
         orderBy: { slot: { startsAt: QueryOrder.ASC }, id: QueryOrder.ASC },
-        limit: p.pageSize,
-        offset: p.offset,
+        limit: page.pageSize,
+        offset: page.offset,
         populate: ['slot'],
       },
     )

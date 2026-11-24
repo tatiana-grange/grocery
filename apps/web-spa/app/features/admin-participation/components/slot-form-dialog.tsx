@@ -45,7 +45,7 @@ interface SlotFormDialogProps {
   onClose: () => void
 }
 
-function initialValues(slot?: AdminSlot): SlotFormValues {
+function getInitialValues(slot?: AdminSlot): SlotFormValues {
   if (!slot) return { roleLabel: '', date: '', startTime: '', endTime: '', places: '1' }
   return {
     roleLabel: slot.roleLabel,
@@ -68,7 +68,7 @@ export function SlotFormDialog({ slot, onClose }: SlotFormDialogProps) {
 
   const form = useForm<SlotFormValues>({
     resolver: zodResolver(createSlotFormSchema(t)),
-    defaultValues: initialValues(slot),
+    defaultValues: getInitialValues(slot),
   })
 
   const mutation = useMutation({

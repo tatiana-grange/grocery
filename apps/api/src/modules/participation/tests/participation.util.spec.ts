@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-  canLeave,
+  canMemberLeave,
   checkRemoval,
   checkSignUp,
   LEAVE_NOTICE_MS,
-  leaveDeadline,
-  rangesOverlap,
+  getLeaveDeadline,
+  doRangesOverlap,
   type SlotFacts,
 } from '../participation.util'
 
@@ -74,7 +74,7 @@ describe('checkRemoval and canLeave', () => {
     })
 
     expect(checkRemoval({ slot: exactly, actor: 'member', now })).toBeNull()
-    expect(canLeave({ slot: exactly, now })).toBe(true)
+    expect(canMemberLeave({ slot: exactly, now })).toBe(true)
   })
 
   it('refuses a member leaving at 7 days minus 1 ms with too_late_to_leave', () => {
@@ -84,7 +84,7 @@ describe('checkRemoval and canLeave', () => {
     })
 
     expect(checkRemoval({ slot: late, actor: 'member', now })).toBe('too_late_to_leave')
-    expect(canLeave({ slot: late, now })).toBe(false)
+    expect(canMemberLeave({ slot: late, now })).toBe(false)
   })
 
   it('lets an admin remove a member 1 minute before the start', () => {
@@ -113,11 +113,11 @@ describe('checkRemoval and canLeave', () => {
   it('puts the leave deadline 7 days before the start', () => {
     const facts = slot()
 
-    expect(leaveDeadline(facts).getTime()).toBe(facts.startsAt.getTime() - LEAVE_NOTICE_MS)
+    expect(getLeaveDeadline(facts).getTime()).toBe(facts.startsAt.getTime() - LEAVE_NOTICE_MS)
   })
 })
 
-describe('rangesOverlap', () => {
+describe('doRangesOverlap', () => {
   const base = {
     startsAt: new Date('2026-12-10T09:00:00Z'),
     endsAt: new Date('2026-12-10T12:00:00Z'),
@@ -128,23 +128,23 @@ describe('rangesOverlap', () => {
   })
 
   it('overlaps when one range sits inside the other', () => {
-    expect(rangesOverlap(base, range('10:00', '11:00'))).toBe(true)
+    expect(doRangesOverlap(base, range('10:00', '11:00'))).toBe(true)
   })
 
   it('overlaps when the ranges are the same', () => {
-    expect(rangesOverlap(base, { ...base })).toBe(true)
+    expect(doRangesOverlap(base, { ...base })).toBe(true)
   })
 
   it('overlaps when the ranges partly cover each other', () => {
-    expect(rangesOverlap(base, range('11:00', '14:00'))).toBe(true)
+    expect(doRangesOverlap(base, range('11:00', '14:00'))).toBe(true)
   })
 
   it('does not overlap when one ends exactly when the other starts', () => {
-    expect(rangesOverlap(base, range('12:00', '14:00'))).toBe(false)
-    expect(rangesOverlap(range('07:00', '09:00'), base)).toBe(false)
+    expect(doRangesOverlap(base, range('12:00', '14:00'))).toBe(false)
+    expect(doRangesOverlap(range('07:00', '09:00'), base)).toBe(false)
   })
 
   it('does not overlap when the ranges are apart', () => {
-    expect(rangesOverlap(base, range('15:00', '16:00'))).toBe(false)
+    expect(doRangesOverlap(base, range('15:00', '16:00'))).toBe(false)
   })
 })
