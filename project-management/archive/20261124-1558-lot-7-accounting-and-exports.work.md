@@ -809,6 +809,38 @@ l'année et la dépense apparaît dans sa catégorie`, `l'admin télécharge l'e
   retrospective in the spec and the journal entry. Archived both documents. Nothing this task
   started is still running; the E2E containers were already up before the work began.
 
+- 2026-11-24 — Mason, feature review fixes. Fixed every point of
+  `20261124-1558-lot-7-accounting-and-exports.review.md` and ticked them; the two points the
+  Architect had already settled (the `updatedAt` deviation, the wallet note) were ticked with no
+  code change. Red runs, shown before the code was right: with the `catch` of `cancel` switched
+  off and the cancellation day read from `toISOString()`, `tests/expenses.service.spec.ts` failed
+  3 tests (`dates the cancellation the Paris day of now: the evening before, in summer time` got
+  `2026-03-31` and wanted `2026-04-01`; the winter case got `2026-01-15` and wanted `2026-01-16`;
+  `turns a unique-index violation into already_cancelled` got a raw
+  `UniqueConstraintViolationException`). The service was put back and the 4 tests pass.
+  - Shared code moved: the CSV writer to `apps/api/src/common/csv.util.ts` (with its spec),
+    `downloadFile` to `features/common/lib/download-file.ts` (the URL is revoked after 10 s),
+    `toDateInput` to `features/common/lib/date-input.ts`. `PurchasingMapper.toExport` now uses the
+    shared writer. Its existing unit test expects every cell quoted, LF line ends and no final line
+    end, so the writer got an `alwaysQuote` option and a `toCsvLines` function; no existing test was
+    changed. The purchasing export file is byte for byte the same.
+  - The CSV file name now comes from `Content-Disposition`. The generated client hands back the
+    `Response`, and the API now lists the header in `exposedHeaders` (one line in `main.ts`). This
+    reverses the earlier answer that the copy was needed: the extra CORS header turned out to be
+    one line.
+  - `ConfirmDialog` got `children` and `confirmDisabled`; the cancel dialog uses it. Test ids are
+    unchanged (`cancel-expense-dialog`, `-warning`, `-reason`, `-back`, `-confirm`).
+  - New API tests: `expenses.service.spec.ts`, `expense.mapper.spec.ts`. The parallel requests in
+    two expense e2e tests are now sequential. The P&L service returns an internal type and a new
+    `ProfitAndLossMapper` shapes it.
+  - New browser tests: no cancellation after the reset, a period change keeps the address, five
+    exports with name and header. `recordExpenseOnScreen` takes an optional method.
+  - Gates: `pnpm lint` exit 0 (27 warnings, none in touched files); `pnpm typecheck` exit 0;
+    `pnpm build` exit 0; `pnpm test` exit 0 on the second run (api 39 files, 735 tests; i18n 15).
+    The first run had 2 failures that pass alone and on rerun: the purchasing close test and the
+    expense test that reads a cancellation row (a 404 and an undefined body, the known load
+    flakiness). `pnpm e2e` exit 0 (143 passed). The `grocery-e2e-*` containers were already up.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — period reader and CSV writer, test first
