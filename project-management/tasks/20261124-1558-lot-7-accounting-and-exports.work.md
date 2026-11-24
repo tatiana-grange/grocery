@@ -636,11 +636,39 @@ spreadsheet does not run it`. Then wrote `period.util.ts` and `csv.util.ts`: 44 
   Nothing surprising. The period reader finds Paris midnight by trying a 1 hour and a 2 hour
   shift from UTC midnight and reading the Paris time back. The CSV writer guards every text cell,
   header included (no header starts with a guarded character).
+- 2026-11-24 — Typist, step 2 (record and list expenses, entity, migration, seeder). Wrote
+  `tests/expenses.controller.e2e-spec.ts` first. Red run: `pnpm --filter=api exec vitest run
+--project e2e src/modules/accounting/tests/expenses` failed with `Cannot find module
+'../accounting.module'` (no test ran). First named test: `an admin records an expense and
+finds it in the list for its period (201 then 200)`. Then wrote entity, contracts, mapper,
+  `ExpensesService.record` and `list`, `AdminExpensesController`, module, `app.module.ts`: 20
+  tests pass.
+  - `spentOn`: MikroORM 7 hands a `date` column back as a `'YYYY-MM-DD'` string. The list test
+    reads it from the database and checks the string. No `columnType` workaround needed.
+  - Small additions to the plan: `Period` and `toPeriod` live in `period.util.ts`, so the
+    controller and the services share them. The 403 test calls the four routes one after the
+    other, because four parallel supertest calls gave `ECONNRESET`.
+  - Migration `Migration20261124151128.ts`. Ran against a scratch database
+    `grocery_typist_diff` created inside this project's own `grocery-e2e-db` container (port
+    5434, dropped afterwards; `docker ps` showed no other project on 5434, 1093 or 1043). All
+    migrations were applied first. `schema:update --dump` showed the `expense` table, its index,
+    its unique constraint and its two foreign keys, then the 8 `drop index` lines for the
+    `*_search_idx` indexes and `drop function normalize_search`. The generated file held the
+    expense lines plus those 8 `drop index` lines in `up` and 8 `CREATE INDEX` lines in `down`.
+    **Removed: 16 lines in all (8 in `up`, 8 in `down`), every one a `*_search_idx` line.** The
+    `drop function` line was only in the dump, not in the file. What stays matches the plan's
+    expected SQL word for word: the table, `expense_spentOn_index`, `expense_cancelsExpenseId_unique`
+    and the two foreign keys; `down` drops the self foreign key and the table. Checked: `up` then
+    `schema:update --dump` shows only the search index drops (nothing about `expense`), `down`
+    reverts cleanly. The CLI also wrote `.snapshot-<database name>.json`; deleted it, because the
+    tracked `.snapshot-grocery.json` is not maintained (it has no `slotSignup`).
+  - Seeder: two expenses dated today (Paris day), rent 450.00 EUR by transfer and bank fees 3.50
+    EUR by card, no cancellation. Ran `E2eSeeder` on a scratch database: both rows are there.
 
 ## Implementation Checkboxes
 
 - [x] Step 1 — period reader and CSV writer, test first
-- [ ] Step 2 — record and list expenses, entity, migration (cleaned, worklog entry)
+- [x] Step 2 — record and list expenses, entity, migration (cleaned, worklog entry)
 - [ ] Step 3 — cancel an expense, closed doors of the final state
 - [ ] Step 4 — the P&L route, bounds, reversal, wallet ignored, real distribution path
 - [ ] Step 5 — the five CSV exports, totals match the P&L

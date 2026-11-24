@@ -73,3 +73,13 @@ export function readPeriod(p: { from: string; to: string }): PeriodBounds {
   if (p.from > p.to) throw new RangeError('The period starts after it ends')
   return { startsAt: startOfParisDay(p.from), endsBefore: startOfParisDay(nextDay(p.to)) }
 }
+
+/** What the services read: the two days as written, and the two instants that bound them. */
+export interface Period extends PeriodBounds {
+  from: string
+  to: string
+}
+
+export function toPeriod(p: { from: string; to: string }): Period {
+  return { from: p.from, to: p.to, ...readPeriod(p) }
+}

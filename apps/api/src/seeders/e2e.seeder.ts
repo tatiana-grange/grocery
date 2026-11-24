@@ -1,6 +1,8 @@
 import { EntityManager } from '@mikro-orm/core'
 import { Seeder } from '@mikro-orm/seeder'
 import { hashPassword } from 'better-auth/crypto'
+import { Expense } from '../modules/accounting/entities/expense.entity'
+import { toParisDay } from '../modules/accounting/period.util'
 import { Account } from '../modules/auth/auth.entity'
 import {
   createCategoryData,
@@ -122,6 +124,23 @@ export class E2eSeeder extends Seeder {
     partialPayment.paidAt = new Date()
     partialPayment.recordedByUser = adminUser
     em.persist(partialPayment)
+
+    // Two association expenses dated today, so the accounting screens have known figures for the
+    // current year. No cancellation: the browser tests cancel one themselves.
+    const today = toParisDay(new Date())
+    for (const seeded of [
+      { amountCents: 45000, category: 'rent', label: 'E2E rent', paymentMethod: 'transfer' },
+      { amountCents: 350, category: 'bank_fees', label: 'E2E bank fees', paymentMethod: 'card' },
+    ] as const) {
+      const expense = new Expense()
+      expense.spentOn = today
+      expense.amountCents = seeded.amountCents
+      expense.category = seeded.category
+      expense.label = seeded.label
+      expense.paymentMethod = seeded.paymentMethod
+      expense.recordedByUser = adminUser
+      em.persist(expense)
+    }
 
     // --- extra members so the list is paginated and searchable ------------------------------
     await createMemberData(em, {
