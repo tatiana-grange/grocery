@@ -648,6 +648,25 @@ is not on the slot.
 - `pnpm --filter=api test`: exit 0, 32 test files, 601 tests, all passed. No flaky test seen, no rerun needed.
 - `pnpm e2e` not run, as asked. The documentation build and the web typecheck are for steps 7 to 9.
 
+### 2026-11-24 — Typist, frontend steps 7 to 9
+
+**Step 7.** The client was regenerated against a throwaway API (a built `dist/main.js` on port 3999 with
+`NODE_ENV=development`, because the docs route only exists in development) and a throwaway Postgres container
+named `typist-lot6-pg7` on port 5499. Both were stopped and removed. Port 5111 was not touched. The generated
+client is committed on its own (`b50d98d`). `tmp/openapi.json` did not change, so it is not in that commit.
+The browsers for Playwright were not installed on this machine; I ran `playwright install chromium` once.
+
+First failing test: `participation-member.spec.ts`. I wrote it first, with the three E2E fixture slots
+(`E2E_PARTICIPATION` in `e2e.fixtures.ts`, seeded in `e2e.seeder.ts`). The plan put the seeder in step 8, but
+the member test cannot run without it, so it moved to step 7. Red seen first: `4 failed, 1 passed (setup)`,
+the web server logged `No route matches URL "/participation"` and every test ended with `element(s) not found`
+or a click timeout. Green after the screen: `5 passed` (4 tests plus the login setup). One run in between had
+one failure: `getByText('chevauche')` matched three elements (the toast and its screen-reader copies). I added
+`.first()` to my own new test, not to an existing one.
+
+The member tests are four, not five as in plan section 8: sign up and see it and leave (one test, as the step
+names it), leave refused inside 7 days, overlap, full slot.
+
 ## Implementation Checkboxes
 
 - [x] Step 1. The sign-up rules (util, refusal lists, unit spec).
@@ -656,7 +675,7 @@ is not on the slot.
 - [x] Step 4. Member lists coming slots and signs up.
 - [x] Step 5. Overlap rule and the two locks, with the concurrency tests.
 - [x] Step 6. Leave, admin sign-up and removal, my sign-ups.
-- [ ] Step 7. Regenerated client, member screens, member browser test.
+- [x] Step 7. Regenerated client, member screens, member browser test.
 - [ ] Step 8. Admin screens, admin browser test, nav smoke routes, E2E seed slots.
 - [ ] Step 9. Documentation page, glossary, index, gates, close.
 

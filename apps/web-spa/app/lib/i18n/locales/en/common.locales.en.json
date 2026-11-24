@@ -715,5 +715,46 @@
         "checkAgain": "Check again"
       }
     }
+  },
+  "participation": {
+    "nav": {
+      "participation": "Participation"
+    },
+    "title": "Participation",
+    "subtitle": "Sign up for the slots the cooperative needs people for. Times are shown in your browser's time zone.",
+    "mine": {
+      "title": "My coming sign-ups",
+      "empty": "You are not signed up for any slot."
+    },
+    "coming": {
+      "title": "Coming slots",
+      "empty": "No coming slot for now."
+    },
+    "placesLeft_one": "{{count}} place left",
+    "placesLeft_other": "{{count}} places left",
+    "full": "Full",
+    "signUp": "Sign up",
+    "signedUp": "You are signed up",
+    "signUpDone": "You are signed up.",
+    "leave": "Leave",
+    "leaveDone": "You have left the slot.",
+    "leaveUntil": "You can leave until {{date}}.",
+    "cancelled": "Cancelled",
+    "leaveDialog": {
+      "title": "Leave this slot?",
+      "description": "{{role}}, {{day}}, {{times}}. Your place goes back to the other members.",
+      "confirm": "Leave the slot"
+    },
+    "refusal": {
+      "slot_cancelled": "This slot is cancelled.",
+      "slot_ended": "This slot has ended.",
+      "slot_started": "This slot has already started.",
+      "slot_full": "This slot is full.",
+      "already_signed_up": "You are already signed up for this slot.",
+      "overlaps_another_slot": "This slot overlaps a slot you are already signed up for.",
+      "too_late_to_leave": "It is too late to leave: the slot starts in less than 7 days.",
+      "slot_has_signups": "This slot has sign-ups: its date and times can no longer change, and it cannot be deleted.",
+      "places_below_signups": "The number of places cannot be lower than the number of sign-ups."
+    }
   }
 }

@@ -18,6 +18,7 @@ export default [
     route('account', 'features/account/components/account-page.tsx'),
     route('account/topup/return', 'features/wallet/components/topup-return-page.tsx'),
     route('cart', 'features/cart/components/cart-page.tsx'),
+    route('participation', 'features/participation/components/participation-page.tsx'),
   ]),
   layout('features/common/components/distribution-layout.tsx', [
     route('distribution', 'features/distribution/components/distribution-home-page.tsx'),

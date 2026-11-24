@@ -7,6 +7,7 @@ import { E2E_USERS as E2E_USER_RECORDS, type E2eUserKey } from '../api/src/seede
 // the E2E accounts, password and search names (`apps/api/src/seeders/e2e.fixtures.ts`).
 export {
   E2E_DISTRIBUTION,
+  E2E_PARTICIPATION,
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
   E2E_SEARCH_MEMBER_NAME,

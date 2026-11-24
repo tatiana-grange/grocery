@@ -80,6 +80,19 @@ export const E2E_DISTRIBUTION = {
   ended: { email: 'ended@e2e.local', name: 'Elio Ended' },
 } as const
 
+/**
+ * Lot 6 participation fixtures: three slots seeded relative to the seeding moment, so they are
+ * always in the future whenever the suite runs. None holds a sign-up.
+ */
+export const E2E_PARTICIPATION = {
+  /** Ten days out, two places: leaving it is still allowed (more than 7 days). */
+  tenDay: { roleLabel: 'Tenir la distribution', places: 2, daysAhead: 10 },
+  /** Three days out, three places: inside the 7-day window, so a member cannot leave it. */
+  threeDay: { roleLabel: 'Accueillir les adhérents', places: 3, daysAhead: 3 },
+  /** Twelve days out, one place: the full-slot case once somebody takes the place. */
+  twelveDay: { roleLabel: 'Ranger la réserve', places: 1, daysAhead: 12 },
+} as const
+
 /** First names for the extra members that fill the paginated list (page size is 20). */
 export const FILLER_FIRST_NAMES = [
   'Alice',

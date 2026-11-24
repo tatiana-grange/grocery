@@ -15,9 +15,11 @@ import { Order } from '../modules/orders/entities/order.entity'
 import { Product } from '../modules/catalog/entities/product.entity'
 import { applySearchNormalization } from '../modules/db/search.util'
 import { StockMovement } from '../modules/inventory/entities/stock-movement.entity'
+import { Slot } from '../modules/participation/entities/slot.entity'
 import { WalletEntry } from '../modules/wallet/entities/wallet-entry.entity'
 import {
   E2E_DISTRIBUTION,
+  E2E_PARTICIPATION,
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
   E2E_PURCHASING,
@@ -30,6 +32,7 @@ import {
 // which the `@grocery/web-spa-e2e` package also imports.
 export {
   E2E_DISTRIBUTION,
+  E2E_PARTICIPATION,
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
   E2E_PURCHASING,
@@ -478,6 +481,18 @@ export class E2eSeeder extends Seeder {
       status: 'terminated',
     })
     seedOrder(elio, 'in_store', [{ product: readyProduct, quantity: 1, unitPriceCents: 300 }])
+
+    // --- lot 6 participation: three coming slots, dated from now, with no sign-up -----------
+    const DAY_MS = 24 * 60 * 60 * 1000
+    const SLOT_LENGTH_MS = 2 * 60 * 60 * 1000
+    for (const fixture of Object.values(E2E_PARTICIPATION)) {
+      const slot = new Slot()
+      slot.roleLabel = fixture.roleLabel
+      slot.places = fixture.places
+      slot.startsAt = new Date(Date.now() + fixture.daysAhead * DAY_MS)
+      slot.endsAt = new Date(slot.startsAt.getTime() + SLOT_LENGTH_MS)
+      em.persist(slot)
+    }
 
     // --- restore the canonical password ---------------------------------------------------
     // `POST /api/test/seed/reset` keeps the Better Auth tables, and `createUserData` leaves an
