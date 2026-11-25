@@ -350,6 +350,18 @@ detail` not found). Both passed when run alone (`gate-e2e-rerun2.log`). A full r
   a clean full E2E rerun, the screenshots (script `scratchpad/shots.mjs` is ready, no servers
   started), and the E2E stack is down. No existing test file is in the diff.
 
+- 2026-11-25 — Typist, review fixes (Mason's list). Done: destructive menu focus made solid
+  (`focus:bg-destructive focus:text-destructive-foreground`, svg follows, tints removed); `input-group`
+  root `h-12` and `text-base` on addon and text; `date-picker` `min-h-12`; `command` input `h-12!`;
+  `tags` input `h-12`; verb-first helper names in both specs; one shared `styles/read-css-block.ts`
+  (`readCssBlock`, with the `start === -1` guard); `AwningBand(): ReactElement`;
+  `expectTouchTarget(): Promise<void>`; renders moved into each `it` with `actualHtml` names;
+  restating comments removed from `globals.css`. Gates, logs with suffix `-fix`: `@grocery/ui` test
+  125 passed, `pnpm lint`, `pnpm typecheck`, `pnpm build`, all exit 0. Not done: the screenshots.
+  `e2e:infra` hung (Docker answered `docker ps` with nothing, and a `docker compose -p
+grocery-e2e down` that is not mine was running), so no stack and no servers were started. The
+  script `scratchpad/shots.mjs` is ready. Step 5 stays open.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — Vitest in `packages/ui`, `theme.spec.ts` red then green, new `globals.css`, Host Grotesk gone
