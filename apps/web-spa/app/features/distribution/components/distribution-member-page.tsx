@@ -1,13 +1,14 @@
 import type { WalletEntry } from '@grocery/openapi-generator/client/types.gen'
-import { PageTitle } from '@grocery/ui/components/app'
+import { PageTitle, SectionTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { Banknote, ShoppingBasket, Undo2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
+import { DistributionNotice } from '@/features/distribution/components/distribution-notice'
 import { HandoverForm } from '@/features/distribution/components/handover-form'
 import { InsufficientBalanceDialog } from '@/features/distribution/components/insufficient-balance-dialog'
 import { distributionMemberScreenQueryOptions } from '@/features/distribution/utils/distribution-queries'
@@ -18,9 +19,9 @@ import { WalletPanel } from '@/features/wallet/components/wallet-panel'
 import { staffWalletQueryOptions } from '@/features/wallet/utils/wallet-queries'
 
 /**
- * One member's table screen: status, balance, and every order still waiting, each line
- * showing what was ordered against what is actually on the shelf. US2 adds the handover
- * form on top of this.
+ * One member's table screen, top to bottom: name and number, the balance, every order still
+ * waiting (each line showing what was ordered against what is on the shelf, with its handover
+ * form), any warning, then the big actions.
  */
 export default function DistributionMemberPage() {
   const { t } = useTranslation()
@@ -41,16 +42,19 @@ export default function DistributionMemberPage() {
   const eur = (value: number) => t('distribution.eur', { value: value.toFixed(2) })
 
   return (
-    <div className="space-y-6" data-testid="page-distribution-member">
-      <div className="flex flex-wrap items-start gap-4">
-        <div className="flex-1">
-          <PageTitle>{data.name}</PageTitle>
-          <p className="text-sm text-muted-foreground">{data.membershipNumber}</p>
+    <div className="space-y-8" data-testid="page-distribution-member">
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div>
+          <p className="text-base text-muted-foreground">{data.membershipNumber}</p>
+          <PageTitle className="text-5xl">{data.name}</PageTitle>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">{t('distribution.member.balance')}</p>
+        <div
+          className="rounded-xl border-4 border-border bg-slate px-6 py-4 text-slate-foreground"
+          data-testid="distribution-member-balance-block"
+        >
+          <p className="text-base">{t('distribution.member.balance')}</p>
           <p
-            className={`text-2xl font-semibold tabular-nums ${data.balanceEur < 0 ? 'text-destructive' : ''}`}
+            className="font-serif text-3xl font-bold italic tabular-nums"
             data-testid="distribution-member-balance"
           >
             {eur(data.balanceEur)}
@@ -58,148 +62,126 @@ export default function DistributionMemberPage() {
         </div>
       </div>
 
-      {data.balanceEur < 0 ? (
-        <div
-          className="flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm"
-          data-testid="distribution-member-negative-notice"
-        >
-          <AlertTriangle className="size-4 shrink-0" />
-          <span>{t('wallet.negative.staff')}</span>
+      {recordedHandoverId ? (
+        <DistributionNotice tone="success" data-testid="handover-receipt">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>{t('distribution.handover.receipt')}</span>
+            <Button
+              variant="link"
+              className="ml-auto"
+              data-testid="handover-receipt-link"
+              render={<Link to={`/distribution/handovers/${recordedHandoverId}`} />}
+            >
+              {t('distribution.waiting.open')}
+            </Button>
+          </div>
+        </DistributionNotice>
+      ) : null}
+
+      <section className="space-y-4" data-testid="distribution-to-hand-over">
+        <div className="flex flex-wrap items-center gap-3">
+          <SectionTitle className="text-2xl">{t('distribution.member.toHandOver')}</SectionTitle>
+          {data.orders.length > 0 ? (
+            <span className="rounded-full bg-straw px-3 text-sm font-semibold text-straw-foreground">
+              {t('distribution.search.outstanding', { count: data.orders.length })}
+            </span>
+          ) : null}
         </div>
+
+        {data.orders.length === 0 ? (
+          <p
+            className="text-base text-muted-foreground"
+            data-testid="distribution-nothing-to-collect"
+          >
+            {t('distribution.member.nothingToCollect')}
+          </p>
+        ) : null}
+
+        {data.orders.map((order) => (
+          <section
+            key={order.id}
+            data-testid={`distribution-order-${order.id}`}
+            className="overflow-hidden rounded-xl border-2 border-border bg-card"
+          >
+            <header className="flex flex-wrap items-center gap-3 border-b border-rule p-4">
+              <Badge variant="secondary">
+                {order.orderingMode === 'pre_order'
+                  ? t('distribution.order.preOrder')
+                  : t('distribution.order.inStore')}
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                {t('distribution.order.placedAt', {
+                  date: new Date(order.placedAt).toLocaleDateString(),
+                })}
+              </span>
+              <Badge
+                variant={order.isReady ? 'default' : 'outline'}
+                data-testid={order.isReady ? 'order-readiness-ready' : 'order-readiness-not-ready'}
+              >
+                {order.isReady ? t('distribution.order.ready') : t('distribution.order.notReady')}
+              </Badge>
+              <span className="ml-auto text-lg font-semibold tabular-nums">
+                {eur(order.totalEur)}
+              </span>
+            </header>
+
+            <HandoverForm
+              order={order}
+              onRecorded={(handoverId) => {
+                setRecordedHandoverId(handoverId)
+                setPaymentOpen(false)
+                setShortfallEur(undefined)
+              }}
+              onInsufficientBalance={(shortfall) => {
+                setShortfallEur(shortfall)
+                setPaymentOpen(true)
+              }}
+            />
+          </section>
+        ))}
+      </section>
+
+      {data.balanceEur < 0 ? (
+        <DistributionNotice tone="warning" data-testid="distribution-member-negative-notice">
+          {t('wallet.negative.staff')}
+        </DistributionNotice>
       ) : null}
 
       {data.status !== 'active' ? (
-        <div
-          className="flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm"
-          data-testid="distribution-member-status-warning"
-        >
-          <AlertTriangle className="size-4 shrink-0" />
-          <span>
-            {t('distribution.member.statusWarning', { status: data.status })}
-            {data.status === 'terminated' ? ` ${t('distribution.member.terminatedBlocked')}` : ''}
-          </span>
-        </div>
+        <DistributionNotice tone="warning" data-testid="distribution-member-status-warning">
+          {t('distribution.member.statusWarning', { status: data.status })}
+          {data.status === 'terminated' ? ` ${t('distribution.member.terminatedBlocked')}` : ''}
+        </DistributionNotice>
       ) : null}
 
-      {recordedHandoverId ? (
-        <div
-          className="flex items-center gap-2 rounded-lg border border-border bg-accent/40 p-3 text-sm"
-          data-testid="handover-receipt"
-        >
-          <CheckCircle2 className="size-4 shrink-0" />
-          <span>{t('distribution.handover.receipt')}</span>
-          <Link
-            className="ml-auto underline"
-            to={`/distribution/handovers/${recordedHandoverId}`}
-            data-testid="handover-receipt-link"
-          >
-            {t('distribution.waiting.open')}
-          </Link>
-        </div>
-      ) : null}
-
-      {data.orders.length === 0 ? (
-        <p className="text-muted-foreground" data-testid="distribution-nothing-to-collect">
-          {t('distribution.member.nothingToCollect')}
-        </p>
-      ) : null}
-
-      {data.orders.map((order) => (
-        <section
-          key={order.id}
-          data-testid={`distribution-order-${order.id}`}
-          className="rounded-lg border border-border"
-        >
-          <header className="flex flex-wrap items-center gap-3 border-b border-border p-4">
-            <Badge variant="secondary">
-              {order.orderingMode === 'pre_order'
-                ? t('distribution.order.preOrder')
-                : t('distribution.order.inStore')}
-            </Badge>
-            <span className="text-sm text-muted-foreground">
-              {t('distribution.order.placedAt', {
-                date: new Date(order.placedAt).toLocaleDateString(),
-              })}
-            </span>
-            <Badge
-              variant={order.isReady ? 'default' : 'outline'}
-              data-testid={order.isReady ? 'order-readiness-ready' : 'order-readiness-not-ready'}
-            >
-              {order.isReady ? t('distribution.order.ready') : t('distribution.order.notReady')}
-            </Badge>
-            <span className="ml-auto font-medium tabular-nums">{eur(order.totalEur)}</span>
-          </header>
-
-          <ul className="divide-y divide-border">
-            {order.lines.map((line) => (
-              <li key={line.orderLineId} className="flex flex-wrap items-center gap-4 p-4">
-                <div className="min-w-48 flex-1">
-                  <p className="font-medium">{line.productName}</p>
-                  {line.isReady ? null : (
-                    <p
-                      className="text-sm text-destructive"
-                      data-testid="distribution-line-not-ready"
-                    >
-                      {t(`distribution.notReadyReason.${line.notReadyReason}`)}
-                    </p>
-                  )}
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">{t('distribution.line.ordered')} </span>
-                  <span className="tabular-nums">{line.orderedQuantity}</span>
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">{t('distribution.line.available')} </span>
-                  <span
-                    className={`tabular-nums ${line.availableQuantity < 0 ? 'text-destructive' : ''}`}
-                    data-testid="distribution-line-available"
-                  >
-                    {line.availableQuantity}
-                  </span>
-                </div>
-                <span className="tabular-nums">{eur(line.lineTotalEur)}</span>
-              </li>
-            ))}
-          </ul>
-
-          <HandoverForm
-            order={order}
-            onRecorded={(handoverId) => {
-              setRecordedHandoverId(handoverId)
-              setPaymentOpen(false)
-              setShortfallEur(undefined)
-            }}
-            onInsufficientBalance={(shortfall) => {
-              setShortfallEur(shortfall)
-              setPaymentOpen(true)
-            }}
-          />
-        </section>
-      ))}
-
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-3" data-testid="distribution-actions">
         <Button
-          variant="secondary"
-          data-testid="distribution-start-express"
-          render={<Link to={`/distribution/members/${memberId}/express`} />}
-        >
-          {t('distribution.member.startExpress')}
-        </Button>
-        <Button
-          variant="outline"
+          className="h-18 px-6 text-lg bg-warning text-warning-foreground hover:bg-warning/90"
           data-testid="wallet-record-payment"
           onClick={() => setPaymentOpen(true)}
         >
+          <Banknote />
           {t('wallet.recordPayment')}
+        </Button>
+        <Button
+          variant="outline"
+          className="h-18 px-6 text-lg"
+          data-testid="distribution-start-express"
+          render={<Link to={`/distribution/members/${memberId}/express`} />}
+        >
+          <ShoppingBasket />
+          {t('distribution.member.startExpress')}
         </Button>
         {isAdmin ? (
           <Button
             variant="outline"
+            className="h-18 px-6 text-lg"
             data-testid="wallet-refund-open"
             disabled={data.balanceEur <= 0}
             title={data.balanceEur <= 0 ? t('wallet.refund.disabledNoBalance') : undefined}
             onClick={() => setRefundOpen(true)}
           >
+            <Undo2 />
             {t('wallet.refund.open')}
           </Button>
         ) : null}

@@ -548,6 +548,7 @@
     },
     "member": {
       "balance": "Solde",
+      "toHandOver": "À remettre",
       "aboutToCharge": "À débiter",
       "shortfall": "Il manque {{amount}}",
       "nothingToCollect": "Rien à retirer.",
@@ -571,6 +572,7 @@
       "available": "En rayon",
       "handedOver": "Remis",
       "alreadyHandedOver": "Déjà remis",
+      "notHandedOver": "Pas remise cette fois",
       "unitPrice": "Prix unitaire",
       "lineTotal": "Total ligne",
       "negativeStock": "Le stock enregistré est négatif — un inventaire s'impose."

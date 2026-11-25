@@ -548,6 +548,7 @@
     },
     "member": {
       "balance": "Balance",
+      "toHandOver": "To hand over",
       "aboutToCharge": "About to charge",
       "shortfall": "Short by {{amount}}",
       "nothingToCollect": "Nothing to collect.",
@@ -571,6 +572,7 @@
       "available": "On the shelf",
       "handedOver": "Handing over",
       "alreadyHandedOver": "Already handed over",
+      "notHandedOver": "Not handed over this time",
       "unitPrice": "Unit price",
       "lineTotal": "Line total",
       "negativeStock": "Recorded stock is negative — a count is due."

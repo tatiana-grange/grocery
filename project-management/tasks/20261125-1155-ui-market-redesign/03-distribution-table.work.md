@@ -491,11 +491,32 @@ textes petits ou en capitales` (the uppercase header); at 768, `défilement hori
   waiting, wallet, reversal: 27 passed) and `s03-step1-others-b.log` (wallet-refund,
   wallet-correction, rbac-distributor, auth-logout, app-settings: 19 passed). `pnpm typecheck`:
   `s03-step1-typecheck.log`, clean. No departure from the plan.
+- 2026-11-25 — Typist, step 2, red. Added the three step 2 tests ("la fiche suit l'ordre de la
+  maquette", the terminated member's warning order, the not-ready line that keeps its reason) to
+  `distribution-tablet.spec.ts` before any production file. Run alone with `-g`: 3 failed. Red log:
+  `scratchpad/s03-step2-red.log`. Error lines: order test, `Expected: >= 40, Received: 32` (the
+  title is 32 px, so it stopped before the missing balance block); warning test, timeout waiting
+  for `getByTestId('distribution-to-hand-over')`; not-ready test, `toHaveCount` Expected 1,
+  Received 0 (the reason and `handover-excluded` sit in two lists).
+- 2026-11-25 — Typist, step 2, green. Added `distribution-notice.tsx`, rebuilt the member page,
+  `HandoverForm` (one merged list, kraft footer, 72 px validate), `insufficient-balance-dialog.tsx`,
+  and the keys `distribution.member.toHandOver` and `distribution.line.notHandedOver`. Green log:
+  `scratchpad/s03-step2-green.log` (4 passed, including the step 1 layout test). Other specs run
+  alone, all green: `s03-step2-others.log` (distribution screen, handover, express, waiting,
+  wallet, reversal, wallet-refund, wallet-correction, rbac-distributor: 42 passed). Typecheck:
+  `s03-step2-typecheck.log`. Two departures, both because the plan contradicted itself:
+  1. The plan says `h1` top < balance block top, but its own layout puts the member number above
+     the name and the balance block beside them, so the block starts higher than the name. I wrote
+     the test as: name left of the balance block, both above the list, the list above the actions.
+     The mockup order is kept.
+  2. The plan says the validate button is the widest of the three actions at `min-w-64` (256 px),
+     but "Enregistrer un paiement" with its icon is 307 px wide. I set `min-w-80` (320 px) on the
+     validate button so it is the widest in French. English labels were not measured.
 
 ## Implementation Checkboxes
 
 - [x] Step 1 — layout and search column: sweep and layout tests red, then the layout test green (sweep stays red until steps 2 and 3, on purpose)
-- [ ] Step 2 — member page, order card, big actions: red, then green
+- [x] Step 2 — member page, order card, big actions: red, then green
 - [ ] Step 3 — express sale, receipt, wallet components: red, then green
 - [ ] Step 4 — sweep green, five gates green, screenshots taken, files formatted
 

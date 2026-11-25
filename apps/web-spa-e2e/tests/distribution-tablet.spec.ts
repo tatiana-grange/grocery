@@ -17,6 +17,8 @@ const SIZES = [
   { name: '1194 × 834', width: 1194, height: 834 },
   { name: '768 × 1024', width: 768, height: 1024 },
 ] as const
+const SLATE = 'rgb(47, 58, 51)'
+const SAGE = 'rgb(78, 107, 74)'
 const THEMES = ['clair', 'soir'] as const
 
 /** Pas de défilement horizontal : la page tient dans la largeur de l'écran. */
@@ -264,6 +266,78 @@ test.describe('distributeur', () => {
     await expect(page.getByTestId('page-express-order')).toBeVisible()
     await expect(page.getByTestId('distribution-member-search')).toBeVisible()
     await expect(annaRow).toHaveAttribute('aria-current', 'page')
+  })
+
+  test("la fiche suit l'ordre de la maquette", async ({ page }) => {
+    await openMember(page, FANNY)
+
+    const title = page.getByRole('heading', { level: 1 })
+    const titleStyle = await title.evaluate((el) => ({
+      family: getComputedStyle(el).fontFamily,
+      size: parseFloat(getComputedStyle(el).fontSize),
+    }))
+    expect(titleStyle.family).toMatch(/^"?Lora Variable/)
+    expect(titleStyle.size).toBeGreaterThanOrEqual(40)
+
+    const balanceBlock = page.getByTestId('distribution-member-balance-block')
+    const toHandOver = page.getByTestId('distribution-to-hand-over')
+    const actions = page.getByTestId('distribution-actions')
+    // The name and the balance share the first row, the name on the left; then the list to hand
+    // over, then the actions.
+    const nameBox = (await title.boundingBox())!
+    const balanceBox = (await balanceBlock.boundingBox())!
+    const listBox = (await toHandOver.boundingBox())!
+    const actionsBox = (await actions.boundingBox())!
+    expect(nameBox.x, 'le nom à gauche du solde').toBeLessThan(balanceBox.x)
+    expect(balanceBox.y + balanceBox.height, 'le solde au-dessus de la liste').toBeLessThanOrEqual(
+      listBox.y,
+    )
+    expect(nameBox.y + nameBox.height, 'le nom au-dessus de la liste').toBeLessThanOrEqual(
+      listBox.y,
+    )
+    expect(listBox.y + listBox.height, 'la liste au-dessus des actions').toBeLessThanOrEqual(
+      actionsBox.y,
+    )
+
+    await expect(balanceBlock).toHaveCSS('background-color', SLATE)
+
+    const submit = page
+      .locator('[data-testid^="distribution-order-"]')
+      .first()
+      .getByTestId('handover-submit')
+    const payment = page.getByTestId('wallet-record-payment')
+    const express = page.getByTestId('distribution-start-express')
+    const widths: number[] = []
+    for (const button of [submit, payment, express]) {
+      await expectTall(button, 64)
+      expect(((await button.textContent()) ?? '').trim().length).toBeGreaterThan(0)
+      widths.push((await button.boundingBox())!.width)
+    }
+    await expect(submit).toHaveCSS('background-color', SAGE)
+    expect(widths[0], 'la validation est le bouton le plus large').toBeGreaterThan(
+      Math.max(widths[1], widths[2]),
+    )
+  })
+
+  test("l'avertissement d'un adhérent résilié vient après la liste et avant les actions", async ({
+    page,
+  }) => {
+    await openMember(page, E2E_DISTRIBUTION.ended.name)
+    const warning = (await page.getByTestId('distribution-member-status-warning').boundingBox())!
+    const list = (await page.getByTestId('distribution-to-hand-over').boundingBox())!
+    const actions = (await page.getByTestId('distribution-actions').boundingBox())!
+    expect(warning.y).toBeGreaterThanOrEqual(list.y + list.height)
+    expect(warning.y + warning.height).toBeLessThanOrEqual(actions.y)
+  })
+
+  test('une ligne pas prête garde sa raison dans la même ligne', async ({ page }) => {
+    await openMember(page, ANNA)
+    const row = page
+      .locator('[data-testid^="handover-line-"]')
+      .filter({ has: page.getByTestId('distribution-line-not-ready') })
+      .filter({ has: page.getByTestId('handover-excluded') })
+    await expect(row).toHaveCount(1)
+    await expect(row.getByTestId('distribution-line-not-ready')).toBeVisible()
   })
 
   test('sous 1024 px, la recherche passe au-dessus du contenu', async ({ page }) => {
