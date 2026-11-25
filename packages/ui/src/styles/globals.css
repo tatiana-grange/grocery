@@ -61,6 +61,8 @@
 
   --straw: #e9c46a;
   --straw-foreground: #2b241c;
+  /* Rows and notices that wait for an admin */
+  --straw-tint: #fdf6e4;
   --kraft: #d9c3a0;
   --kraft-foreground: #2b241c;
   --slate: #2f3a33;
@@ -134,6 +136,7 @@
   --border: #d9c3a0;
   --input: #d9c3a0;
   --rule: #5e6e63;
+  --straw-tint: #4c5443;
   /* Sage is too dark on slate: straw at night */
   --ring: #e9c46a;
 
@@ -218,6 +221,7 @@
   --color-info-foreground: var(--info-foreground);
   --color-straw: var(--straw);
   --color-straw-foreground: var(--straw-foreground);
+  --color-straw-tint: var(--straw-tint);
   --color-kraft: var(--kraft);
   --color-kraft-foreground: var(--kraft-foreground);
   --color-slate: var(--slate);

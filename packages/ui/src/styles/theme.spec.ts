@@ -70,6 +70,7 @@ describe('market palette, light mode', () => {
     info: '#2F5D73',
     'info-foreground': '#FFFCF5',
     straw: '#E9C46A',
+    'straw-tint': '#FDF6E4',
     'straw-foreground': '#2B241C',
     kraft: '#D9C3A0',
     'kraft-foreground': '#2B241C',
@@ -119,6 +120,7 @@ describe('evening mode', () => {
     border: '#D9C3A0',
     input: '#D9C3A0',
     rule: '#5E6E63',
+    'straw-tint': '#4C5443',
     ring: '#E9C46A',
     'awning-b': '#F7F1E3',
     sidebar: '#26302A',
@@ -189,6 +191,9 @@ describe('contrast of every text-on-background pair', () => {
     ['slate-foreground', 'slate'],
     ['sidebar-foreground', 'sidebar'],
     ['sidebar-accent-foreground', 'sidebar-accent'],
+    ['foreground', 'straw-tint'],
+    ['muted-foreground', 'straw-tint'],
+    ['sidebar-primary-foreground', 'sidebar-primary'],
     ['background', 'foreground'],
   ]
   for (const mode of ['light', 'dark'] as const) {

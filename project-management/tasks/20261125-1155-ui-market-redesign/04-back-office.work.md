@@ -517,10 +517,16 @@ same step, by PID, or reports the PIDs.
   searches below. The reference canvas could not be read from here (the artifact is private to
   the owner); the plan follows the spec's description and the Architect's brief. Wrote this plan.
   No production code yet. `pnpm install` ran in the worktree.
+- 2026-11-25 — Typist, step 1, red. Wrote `theme.spec.ts` additions and the new
+  `list-pagination.spec.tsx` first. Red log
+  `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/5f01a6da-c31d-4b21-b8df-1536a0650815/scratchpad/s04-step1-red.log`.
+  Error lines: `Error: --straw-tint is not defined in light mode` (and in dark mode), and
+  `AssertionError: expected '<div class="flex items-center gap-2 t…' to contain 'Précédent'`.
+  7 tests red. The `sidebar-primary` pair is green already, as the plan expects (it was only missing).
+  The first red run had a wrong regex in my "no labels" test; I fixed it and reran, so the saved log
+  is the second run.
 
-## Implementation Checkboxes
-
-- [ ] Step 1 — theme tint and `ListPagination` labels: unit tests red, then green
+- [x] Step 1 — theme tint and `ListPagination` labels: unit tests red, then green
 - [ ] Step 2 — sidebar and layout: browser case 1 red, then green
 - [ ] Step 3 — shared pieces and members screens: case 2 red, then green
 - [ ] Step 4 — catalogue: case 3 red, then green

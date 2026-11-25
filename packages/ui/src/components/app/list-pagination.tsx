@@ -13,6 +13,12 @@ interface ListPaginationProps {
   /** Optional item-count text shown on the left; when set the row spreads instead of hugging the right. */
   count?: ReactNode
   className?: string
+  /** Visible word beside the "previous" arrow. Without it the button shows the arrow alone. */
+  previousLabel?: string
+  /** Visible word beside the "next" arrow. Without it the button shows the arrow alone. */
+  nextLabel?: string
+  /** Text of the page indicator. Defaults to `{page} / {pageCount}`. */
+  pageOfLabel?: ReactNode
 }
 
 /** The prev / "{page} / {pageCount}" / next control shared by every paginated admin list. */
@@ -23,6 +29,9 @@ export function ListPagination({
   testIdPrefix,
   count,
   className,
+  previousLabel,
+  nextLabel,
+  pageOfLabel,
 }: ListPaginationProps) {
   return (
     <div
@@ -36,24 +45,26 @@ export function ListPagination({
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
-          size="icon"
+          size={previousLabel ? 'sm' : 'icon'}
           data-testid={`${testIdPrefix}-page-prev`}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          <ChevronLeft className="size-4" />
+          <ChevronLeft className={previousLabel ? undefined : 'size-4'} />
+          {previousLabel}
         </Button>
         <span data-testid={`${testIdPrefix}-page-indicator`}>
-          {page} / {pageCount}
+          {pageOfLabel ?? `${page} / ${pageCount}`}
         </span>
         <Button
           variant="outline"
-          size="icon"
+          size={nextLabel ? 'sm' : 'icon'}
           data-testid={`${testIdPrefix}-page-next`}
           disabled={page >= pageCount}
           onClick={() => onPageChange(page + 1)}
         >
-          <ChevronRight className="size-4" />
+          {nextLabel}
+          <ChevronRight className={nextLabel ? undefined : 'size-4'} />
         </Button>
       </div>
     </div>
