@@ -5,6 +5,25 @@ task — never generated.
 
 ## 2026-11-25
 
+- UI redesign "neighbourhood market", slice 02, member space and sign-in: built and reviewed on
+  `feat/ui-market-redesign`. Below 768 px the shop and member area now have a tab bar fixed at the
+  bottom (Shop, Cart, Participation, My account; Sign in for visitors), with the current tab marked
+  and the cart count on its icon. The top bar on a phone keeps the name and one "Menu" button for
+  the settings, the back office and sign-out. From 768 px the top links are as before, with an icon
+  each. CSS decides which bar shows, so both stay in the page: the phone controls have their own
+  testids, and a test that looks a navigation word up by its text must scope its search. The awning
+  band tops the shop, member area and sign-in pages; sign-in shows the name in Lora. The shop cards,
+  the cart and the slot cards fit at 390 px, and the member screens lose forced capitals and raw
+  colours. One new browser test at 390 px drives it, written step by step and seen red first. The
+  usage limit stopped the first Typist after step 1; a second one did steps 3 to 5. The review led
+  to one shared auth link and small fixes. The screenshots found a cut cart row the test had
+  missed, because the table frame scrolls on its own; the check now looks there too. Inter is no
+  longer loaded from Google Fonts. All five gates green (875 unit and API tests, 172 browser
+  tests). Two older flaky tests failed once each and passed on the rerun: the accounting period
+  test from slice 01, and a quick-add test of the cart that also fails without this slice's code.
+  Six retro proposals wait for the human in the work document. The parent spec stays open for
+  slices 03 and 04.
+
 - UI redesign "neighbourhood market", slice 01, theme and shared components: built and reviewed on
   `feat/ui-market-redesign`. The Citrus theme is gone. The app now uses cream paper, ink-brown
   text, sage and squash actions, Lora headings and Onest text, with an evening mode on slate. The

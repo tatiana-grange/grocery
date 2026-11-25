@@ -599,6 +599,53 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
   behaviour a member depends on, and the review reads it. The settings trigger got its `title` in
   step 2.
 
+- 2026-11-25 — Mason, review, gates, screenshots and close.
+  - **Review.** `code-review` since `cc7104e`, two fresh reviewers. Findings and answers are in
+    Diff-Review Findings. Fixes: `6009771`.
+  - **Gates on the final code.**
+    - `pnpm lint`, `pnpm typecheck`, `pnpm test` (125 + 15 + 735 passed) and `pnpm build` all exit
+      0 (`s02-gate-*.log`). Lint and the SPA build were rerun after the review fixes
+      (`s02-gate-lint-final.log`, `s02-gate-build-final.log`).
+    - First full `pnpm e2e`, under a load of about 14 from another project's tests: 171 passed, 1
+      failed (`s02-gate-e2e.log`). The failure was `accounting.spec.ts`, "l'admin change la période
+      du compte de résultat, l'adresse la garde" (453.50 € where 0.00 € was expected): the
+      period-picker race recorded in slice 01 (ruling 7). It failed once more alone, passed twice
+      alone on the frontend of `cc7104e` (`s02-accounting-baseline-*.log`), then passed alone on
+      `HEAD` (`s02-accounting-head-2.log`). This slice does not touch `admin-accounting`, and the
+      race depends on load, not on this code.
+    - Second full run: 172 passed, none failed (`s02-gate-e2e-2.log`). No existing E2E file is in
+      the diff.
+    - Third full run, on the final code after the cart and slot fixes (`e2a7024`): 171 passed, 1
+      failed (`s02-gate-e2e-3.log`). The failure was `cart.spec.ts`, "ajout rapide et ajustement
+      depuis la grille de la boutique": the submit button did not come back after two quick
+      decreases. The Typist had seen the same failure with this slice's production code stashed,
+      2 times in 8 runs (`s02-step3-cart-baseline.log`): the second click can land while the first
+      write is pending and the keys are disabled. Rerun alone: 7 passed
+      (`s02-gate-e2e-3-cart-rerun.log`). Reported as flaky, not edited.
+  - **Screenshots.** 46 files in the scratchpad's `screens-s02/`: seven member and sign-in pages at
+    390, 1194 and 1440 px, light and evening, plus distribution and the admin catalogue at 1440 px.
+    They were taken by a temporary Playwright config, which started and stopped its own servers and
+    was deleted afterwards.
+    - They showed one real defect: at 390 px the stacked cart row was wider than the table frame
+      (unit price, "Retirer" and the pickup sentence cut). The frame scrolls on its own, so the page
+      never scrolled and the test missed it. The spill check now also measures against the table
+      frame. Red (`s02-cartfix-red.log`, the remove button outside its box), then the fix, then
+      green with the cart specs (`s02-cartfix-green*.log`). Commit `c05f22d`.
+    - Also seen: the participation slot cards squeezed their text into a 90 px column. Fixed in
+      `e2a7024` with no failing test first (a cramped column is not cut or overflowing); checked on
+      the new screenshots and with `participation-member.spec.ts` (`s02-slotfix.log`).
+  - **Ruling 3 check.** At 1440 px the distribution and back office layouts look as on slice 01's
+    screenshots, except the settings button, now 44 px, which moves their top links about 8 px.
+    The safe-area padding is 0 on a desktop.
+  - **Close checks.** The `grep`s of Notes & Snippets, run on the criteria's files plus the four
+    new common components, find nothing. French and English locale files hold the same keys. The
+    only E2E file in the diff is `member-phone.spec.ts`.
+  - **Mason retouches** (exception to "the Typist types"): the step 2 logout test setup (Typist
+    stopped by the usage limit), the view switch `title`, the review fixes, the cart row and the
+    slot cards. Each was a few lines found while checking, and each is logged above.
+  - **Processes.** No process of this slice is left running. The E2E Docker stack
+    (`grocery-e2e-db`, `grocery-e2e-maildev`) is taken down by `e2e:down` at the end of the close.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — shell and tab bar: phone test red, then green
@@ -606,7 +653,7 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
 - [x] Step 3 — shop and cart overflow at 390, light and evening: red, then green
 - [x] Step 4 — member screens' text, capitals and colours: red, then green
 - [x] Step 5 — sign-in pages: red, then green
-- [ ] Step 6 — five gates green, screenshots taken, files formatted
+- [x] Step 6 — five gates green, screenshots taken, files formatted
 
 ## Notes & Snippets
 
@@ -627,6 +674,40 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
 
 Also accepted: the visible "Retirer" label on the cart remove button, the link buttons that keep
 their testids, the shop card type from the mockup, and CSS breakpoints instead of `useIsMobile`.
+
+**Retro proposals** (Mason, 2026-11-25, from the `retro` skill; none applied, each waits for its
+owner). Sources: this session, the two Typists' reports (the first was cut by the usage limit),
+and this document. The skill's style guide, `writing-great-skills`, is not installed here.
+
+1. **Automated checks — a shared layout check for the browser tests.** Owner: the human. The
+   overflow helper missed a cart row cut inside a table frame that scrolls on its own; only the
+   screenshots caught it. Proposal: move `expectNoHorizontalScroll`, `findSpilledControls` and the
+   small-text walker from `member-phone.spec.ts` into one helper file of `apps/web-spa-e2e`, and
+   make the spill check report any element that scrolls sideways inside the page (`scrollWidth`
+   above `clientWidth` with `overflow-x` auto or hidden). Slices 03 and 04 then reuse it on the
+   distribution table and the back office.
+2. **Coding standards — never sign out a shared role session in a test.** Owner: the human. The
+   step 2 logout case revoked the shared member session and turned every later member case red.
+   `auth-logout.spec.ts` already explains it in a comment, but nothing tells a new test's author.
+   Proposal: one line in `apps/documentation/src/content/docs/guides/web-spa-e2e.mdx`, and the
+   same rule for the `code-review` standards reviewer.
+3. **Information access — a committed screenshot command.** Owner: the human. Slice 01 left an
+   API and an SPA server running after its screenshots; this slice wrote a temporary Playwright
+   config three times to let Playwright own the servers. Proposal: a `shots` script in
+   `apps/web-spa-e2e` that takes routes, widths and modes, writes to a given folder, and starts
+   and stops its own servers through the Playwright config.
+4. **AGENTS.md hygiene — the known flaky list.** Owner: the human. The accounting period test
+   (the period-picker race of slice 01, ruling 7) failed under load in both slices and passed on
+   the rerun. Proposal: add it to "Known flaky tests" in `AGENTS.md`, beside wallet and
+   distribution, until its own task fixes the race.
+5. **Resuming after a stop — prove the red came first.** Owner: the human (project section of
+   `AGENTS.md`, since the socle files are rewritten by `chisel update`). After the usage limit, the
+   order "red before production code" could only be proven from file times. Proposal: the Typist
+   writes the red log's name and its error line in the worklog as soon as the red run ends, before
+   the production code, and commits the test file with that line when the step is long.
+6. **Tool economy — `sed -i ''` fails on this machine** (the `sed` on the path is GNU). Low.
+   Proposal: one line in "Working with chisel in this repo" in `AGENTS.md`: edit files with the
+   editing tools or a short Python script, not `sed -i`.
 
 **Searches run on 2026-11-25** from `apps/web-spa/app`, over the files of the criteria
 (`F` = `features/shop features/cart features/account features/wallet features/participation

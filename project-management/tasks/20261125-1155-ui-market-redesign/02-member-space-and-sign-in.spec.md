@@ -1,6 +1,6 @@
 # 02 — Member space and sign-in
 
-**Status:** in-progress
+**Status:** done
 **Blocked by:** [01 — Theme and shared components](01-theme-and-shared-components.spec.md) (done)
 **Parent:** [UI redesign — the "neighbourhood market" direction](../20261125-1155-ui-market-redesign.spec.md)
 
@@ -22,48 +22,48 @@ part of this slice (see "Not included"). The mockup's tab says "Créneaux"; the 
 
 ## Acceptance criteria
 
-- [ ] **mobile-tab-bar** — below 768 px wide, the shop and member area layouts show a tab bar fixed
+- [x] **mobile-tab-bar** — below 768 px wide, the shop and member area layouts show a tab bar fixed
       at the bottom of the screen. A signed-in member sees four tabs: Shop, Cart, Participation, My
       account. A signed-out visitor sees Shop, Cart and Sign in. Each tab shows an icon **and** its
       label (14 px or more), is at least 44 px high, and the current tab carries `aria-current="page"`.
       The Cart tab shows the number of items when the cart is not empty. The tab bar is a `nav` with an
       accessible name. Page content and toasts are never hidden behind it, including on phones with a
       home indicator (safe-area inset).
-- [ ] **phone-header** — below 768 px, the top bar shows the app name and one labelled "Menu" button.
+- [x] **phone-header** — below 768 px, the top bar shows the app name and one labelled "Menu" button.
       The menu holds what the tab bar does not: the settings (theme, language), the back office link for
       admins, and sign-out. Nothing in the top bar overflows at 390 px.
-- [ ] **desktop-nav** — from 768 px up, the tab bar is not shown and the top navigation holds every
+- [x] **desktop-nav** — from 768 px up, the tab bar is not shown and the top navigation holds every
       link it holds today, each with an icon and a visible label. Its existing `data-testid` attributes
       (`site-nav-cart`, `site-nav-cart-count`, `site-nav-admin`, `site-nav-participation`,
       `site-nav-account`, `site-nav-signin`, `nav-logout`, `app-settings-*`) stay on the desktop
       controls. The tab bar and the phone menu use new `data-testid` values of their own, so no test
       locator ever matches two elements.
-- [ ] **awning-band-placed** — the `AwningBand` of slice 01 sits at the top of the shop, member area
+- [x] **awning-band-placed** — the `AwningBand` of slice 01 sits at the top of the shop, member area
       and sign-in layouts.
-- [ ] **no-overflow-phone** — at 390 px wide, in light and evening mode, `/shop`, a product page,
+- [x] **no-overflow-phone** — at 390 px wide, in light and evening mode, `/shop`, a product page,
       `/cart`, `/account`, `/participation`, `/login` and `/register` have no horizontal scroll, and no
       label or button is cut or sticks out of its card. In particular, the "Participation" link is whole
       and the shop card's "Choisir les options" button stays inside its card.
-- [ ] **shop-grid-default** — the shop still opens in the grid view, on phones too. Each product card
+- [x] **shop-grid-default** — the shop still opens in the grid view, on phones too. Each product card
       that can be added straight away shows a button with the word "Ajouter" ("Add"); a card that needs a
       choice keeps its "Choisir les options" button. The list view stays one choice away.
-- [ ] **sign-in-pages** — `/login`, `/register`, `/verify-email`, `/forgot-password` and
+- [x] **sign-in-pages** — `/login`, `/register`, `/verify-email`, `/forgot-password` and
       `/reset-password` use the market look: the "Grocery" name in Lora instead of the anvil logo, the
       awning band, fields and buttons of the theme. The explanatory side panel stays on large screens.
-- [ ] **no-forced-capitals** — no `uppercase` class left in the files of `features/shop`,
+- [x] **no-forced-capitals** — no `uppercase` class left in the files of `features/shop`,
       `features/cart`, `features/account`, `features/wallet`, `features/participation`, `features/auth`
       and in `site-header.tsx`, `shop-layout.tsx`, `member-area-layout.tsx`.
-- [ ] **readable-text** — in those same files, no text below 14 px (`text-[10px]`, `text-[11px]`,
+- [x] **readable-text** — in those same files, no text below 14 px (`text-[10px]`, `text-[11px]`,
       `text-[12px]` and the like go), and body text is 18 px.
-- [ ] **theme-colours-only** — in those same files, no raw Tailwind colour (`amber-*`, `red-*`,
+- [x] **theme-colours-only** — in those same files, no raw Tailwind colour (`amber-*`, `red-*`,
       `green-*`, `lime-*` and the like) and no hex value: only theme variables.
-- [ ] **icon-with-label** — no navigation link or main action in those screens is an icon alone.
-- [ ] **phone-check-test** — a new Playwright test at 390 × 844 signs in, moves between the four
+- [x] **icon-with-label** — no navigation link or main action in those screens is an icon alone.
+- [x] **phone-check-test** — a new Playwright test at 390 × 844 signs in, moves between the four
       tabs, checks `aria-current` and the URL at each step, and checks the page has no horizontal scroll.
       It fails before the tab bar exists.
-- [ ] **i18n-intact** — no hard-coded text; every new key exists in French and English.
-- [ ] **e2e-green** — `pnpm e2e` passes with no existing test edited, skipped or deleted.
-- [ ] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass.
+- [x] **i18n-intact** — no hard-coded text; every new key exists in French and English.
+- [x] **e2e-green** — `pnpm e2e` passes with no existing test edited, skipped or deleted.
+- [x] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass.
 
 ## Seams
 
@@ -98,3 +98,9 @@ part of this slice (see "Not included"). The mockup's tab says "Créneaux"; the 
   the two overflows named in `no-overflow-phone`.
 - Use the shared components of `packages/ui` as they are. If a screen needs a component change, it
   goes into `packages/ui` with its props unchanged, and the work document says why.
+- **At the close** (Mason, 2026-11-25): `icon-with-label` is ticked with the exception the
+  Architect accepted at the plan reading: the settings button and the shop view switch stay
+  icon-only, each with an `aria-label` and a `title`; on phones the settings sit inside the labelled
+  "Menu". The quantity stepper's plus and minus keys are also icon-only with an `aria-label`; they
+  are neither navigation nor a main action. The evidence for every criterion is in the work
+  document, "How each criterion is checked" and the Worklog.
