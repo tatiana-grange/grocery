@@ -65,19 +65,19 @@ export function RefundDialog({ memberId, balanceEur, onClose }: RefundDialogProp
 
   return (
     <Dialog open onOpenChange={(open) => (open ? undefined : onClose())}>
-      <DialogContent data-testid="wallet-refund-dialog">
+      <DialogContent className="sm:max-w-lg" data-testid="wallet-refund-dialog">
         <DialogHeader>
           <DialogTitle>{t('wallet.refund.title')}</DialogTitle>
           <DialogDescription>{t('wallet.refund.description')}</DialogDescription>
         </DialogHeader>
-        <p className="text-sm" data-testid="wallet-refund-balance">
+        <p className="text-base" data-testid="wallet-refund-balance">
           {t('wallet.refund.balance', { balance: eur(balanceEur) })}
         </p>
 
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-base font-semibold">
           <span>{t('wallet.refund.amount')}</span>
           <Input
-            className="w-40 text-base tabular-nums"
+            className="h-12 w-44 text-lg tabular-nums"
             data-testid="wallet-refund-amount"
             type="number"
             min={0}
@@ -86,20 +86,22 @@ export function RefundDialog({ memberId, balanceEur, onClose }: RefundDialogProp
             onChange={(event) => setAmount(event.target.value)}
           />
           {tooLarge ? (
-            <span className="text-destructive" data-testid="wallet-refund-too-large">
+            <span
+              className="text-base font-normal text-destructive"
+              data-testid="wallet-refund-too-large"
+            >
               {t('wallet.refund.tooLarge')}
             </span>
           ) : null}
         </label>
 
-        <fieldset className="space-y-1 text-sm">
+        <fieldset className="space-y-1 text-base font-semibold">
           <legend>{t('wallet.refund.method')}</legend>
           <div className="flex gap-2">
             {REFUND_METHODS.map((candidate) => (
               <Button
                 key={candidate}
                 type="button"
-                size="sm"
                 variant={method === candidate ? 'default' : 'outline'}
                 data-testid={`wallet-refund-method-${candidate}`}
                 onClick={() => setMethod(candidate)}
@@ -110,7 +112,7 @@ export function RefundDialog({ memberId, balanceEur, onClose }: RefundDialogProp
           </div>
         </fieldset>
 
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-base font-semibold">
           <span>{t('wallet.refund.reason')}</span>
           <Textarea
             data-testid="wallet-refund-reason"

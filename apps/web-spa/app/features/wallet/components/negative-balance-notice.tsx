@@ -16,10 +16,10 @@ export function NegativeBalanceNotice() {
 
   return (
     <div
-      className="flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-base"
+      className="flex items-start gap-3 rounded-xl border-2 border-warning bg-warning/10 p-4 text-base text-foreground"
       data-testid="negative-balance-notice"
     >
-      <AlertTriangle className="size-5 shrink-0" />
+      <AlertTriangle className="size-6 shrink-0" />
       <span>{t('wallet.negative.member')}</span>
     </div>
   )

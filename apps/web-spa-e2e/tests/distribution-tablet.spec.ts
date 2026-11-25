@@ -19,6 +19,7 @@ const SIZES = [
 ] as const
 const SLATE = 'rgb(47, 58, 51)'
 const SAGE = 'rgb(78, 107, 74)'
+const TRANSPARENT = 'rgba(0, 0, 0, 0)'
 const THEMES = ['clair', 'soir'] as const
 
 /** Pas de défilement horizontal : la page tient dans la largeur de l'écran. */
@@ -88,7 +89,8 @@ async function findSmallOrCapitalText(page: Page): Promise<string[]> {
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       const text = node.textContent?.trim()
       const el = node.parentElement
-      if (!text || !el || el.closest('script, style, noscript')) continue
+      // Toasts come from `packages/ui` (shared by every layout), not from this slice.
+      if (!text || !el || el.closest('script, style, noscript, [data-sonner-toaster]')) continue
       if (!el.checkVisibility()) continue
       const style = getComputedStyle(el)
       if (parseFloat(style.fontSize) < 14) found.push(`${text} (${style.fontSize})`)
@@ -112,6 +114,11 @@ async function expectTall(locator: Locator, min: number): Promise<void> {
   expect(box!.height).toBeGreaterThanOrEqual(min)
 }
 
+/** La taille du texte d'un élément, en px. */
+async function fontSizeOf(locator: Locator): Promise<number> {
+  return locator.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))
+}
+
 /** Tout ce qui doit être vrai de l'écran affiché, quel qu'il soit. */
 async function expectScreenFits(page: Page, label: string): Promise<void> {
   await expectNoHorizontalScroll(page)
@@ -133,7 +140,7 @@ async function openExpressOverStock(page: Page): Promise<void> {
   await openMember(page, FANNY)
   await page.getByTestId('distribution-start-express').click()
   await expect(page.getByTestId('page-express-order')).toBeVisible()
-  await page.getByTestId('express-product-search').fill(E2E_DISTRIBUTION.readyProductName)
+  await page.getByTestId('express-product-search').fill(E2E_DISTRIBUTION.expressProductName)
   await page.locator('[data-testid^="express-product-option-"]').first().click()
   await page.getByTestId('express-qty').fill('30')
   await expect(page.getByTestId('express-over-stock')).toBeVisible()
@@ -340,6 +347,57 @@ test.describe('distributeur', () => {
     await expect(row.getByTestId('distribution-line-not-ready')).toBeVisible()
   })
 
+  test('vente express, ticket et portefeuille au look du marché', async ({ page }) => {
+    // La vente express, avec une quantité au-dessus du stock.
+    await openExpressOverStock(page)
+    await expect(page.getByTestId('express-over-stock')).not.toHaveCSS(
+      'background-color',
+      TRANSPARENT,
+    )
+    const remove = page.getByTestId('express-remove')
+    await expect(remove.locator('svg')).toHaveCount(1)
+    await expect(remove).toContainText('Retirer')
+    await expectTall(page.getByTestId('express-submit'), 64)
+
+    // Le ticket d'une remise où une quantité a été baissée.
+    await openMember(page, FANNY)
+    const order = page.locator('[data-testid^="distribution-order-"]').first()
+    await order
+      .locator('[data-testid^="handover-line-"]', { hasText: E2E_DISTRIBUTION.readyProductName })
+      .getByTestId('handover-qty')
+      .fill('3')
+    await order.getByTestId('handover-submit').click()
+    await expect(page.getByTestId('handover-receipt')).toBeVisible()
+    await page.getByTestId('handover-receipt-link').click()
+    await expect(page.getByTestId('page-handover-receipt')).toBeVisible()
+    await expect(page.getByTestId('handover-line-difference')).not.toHaveCSS(
+      'background-color',
+      TRANSPARENT,
+    )
+
+    // Le panneau de paiement.
+    await openMember(page, FANNY)
+    await page.getByTestId('wallet-record-payment').click()
+    const amountLabel = page
+      .locator('label')
+      .filter({ has: page.getByTestId('wallet-payment-amount') })
+    expect(await fontSizeOf(amountLabel)).toBe(18)
+    await expectTall(page.getByTestId('wallet-payment-submit'), 64)
+
+    // La correction d'un paiement.
+    await page.getByTestId('wallet-payment-amount').fill('10')
+    await page.getByTestId('wallet-payment-method-cash').click()
+    await page.getByTestId('wallet-payment-submit').click()
+    await expect(page.getByTestId('insufficient-balance-dialog')).toBeHidden()
+    await page
+      .locator('[data-testid^="wallet-entry-"]')
+      .filter({ hasText: 'Paiement reçu' })
+      .first()
+      .getByTestId('wallet-correct-open')
+      .click()
+    expect(await fontSizeOf(page.getByTestId('wallet-correct-payment'))).toBe(18)
+  })
+
   test('sous 1024 px, la recherche passe au-dessus du contenu', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto('/distribution')
@@ -354,6 +412,12 @@ test.describe('administrateur', () => {
 
   test.beforeEach(async ({ resetDb }) => {
     await resetDb()
+  })
+
+  test('le remboursement au look du marché', async ({ page }) => {
+    await openMember(page, FANNY)
+    await page.getByTestId('wallet-refund-open').click()
+    expect(await fontSizeOf(page.getByTestId('wallet-refund-balance'))).toBe(18)
   })
 
   for (const size of SIZES) {

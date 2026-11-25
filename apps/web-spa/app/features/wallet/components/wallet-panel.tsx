@@ -33,12 +33,12 @@ export function WalletPanel({ wallet, onCorrect }: WalletPanelProps) {
   const eur = (value: number) => t('wallet.eur', { value: value.toFixed(2) })
 
   return (
-    <section className="space-y-4 rounded-lg border border-border p-4" data-testid="wallet-panel">
+    <section className="space-y-4 rounded-xl border-2 border-border p-4" data-testid="wallet-panel">
       <div className="flex items-baseline gap-3">
         <SectionTitle>{t('wallet.title')}</SectionTitle>
-        <span className="ml-auto text-sm text-muted-foreground">{t('wallet.balance')}</span>
+        <span className="ml-auto text-base text-muted-foreground">{t('wallet.balance')}</span>
         <span
-          className={`text-2xl font-semibold tabular-nums ${shown.balanceEur < 0 ? 'text-destructive' : ''}`}
+          className={`font-serif text-3xl font-bold italic tabular-nums ${shown.balanceEur < 0 ? 'text-destructive' : ''}`}
           data-testid="wallet-balance"
         >
           {eur(shown.balanceEur)}
@@ -49,7 +49,7 @@ export function WalletPanel({ wallet, onCorrect }: WalletPanelProps) {
         {shown.entries.data.length === 0 ? (
           <p className="text-base text-muted-foreground">{t('wallet.empty')}</p>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-rule">
             {shown.entries.data.map((entry) => (
               <li
                 key={entry.id}
