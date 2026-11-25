@@ -934,6 +934,12 @@
   "backOffice": {
     "subtitle": "Gestion de l'épicerie",
     "navigation": "Navigation du back-office",
-    "openDistribution": "Ouvrir la distribution"
+    "openDistribution": "Ouvrir la distribution",
+    "open": "Ouvrir",
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "pageOf": "Page {{page}} / {{pageCount}}"
+    }
   }
 }

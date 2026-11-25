@@ -546,12 +546,29 @@ found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-curr
   passed (`s04-step2-existing.log`). `pnpm typecheck` passes. No departure. The `ShieldCheck`
   import stays, the access-denied panel still uses it. The `backOffice.open` and
   `backOffice.pagination.*` keys come in step 3.
+- 2026-11-25 — Typist, step 3, red. Wrote case 2 first: the helpers (`setEveningModeBeforeLoad`,
+  `expectNoHorizontalScroll`, `findCutControls`, `expectPageHead`, `expectTable`, a frame finder) and
+  three tests (list on the pending tab, list on the `all` tab, first member's detail) for each of
+  the four size and mode pairs. Red log `s04-step3-red.log` in the scratchpad: 12 red (the setup
+  passes). Error lines: `Expected: "2px"  Received: "1px"` (table frame border) and
+  `Expected: >= 48  Received: 32` (the `h1`). Run under the lock.
+- 2026-11-25 — Typist, step 3, green. Added the four shared files and the pagination hook
+  (`features/common`), rewrote `members-list-page.tsx` (page head, search first then tabs, frame,
+  straw-tint pending rows, "Examiner" in sage or "Ouvrir" in outline, pagination words),
+  `member-detail-page.tsx` (page head, outline back link, labels no longer capitals, history codes
+  translated with `members.status.*`), `member-fee-panel.tsx` and `member-status-badge.tsx` (tones;
+  new `MemberFeeBadge` so the three fee badges share one tone map). Added `backOffice.open` and
+  `backOffice.pagination.*` in both languages. Green log `s04-step3-green.log`: 17 passed (setup,
+  4 sidebar tests, 12 members tests). Existing `members-list` and `members-detail` specs alone: 12
+  passed (`s04-step3-existing.log`). `pnpm typecheck` passes. Departures: `member-profile-edit.tsx`
+  needed no change, so it is untouched. The fee value in the detail grid is now a badge instead of
+  plain text (a fee badge reads the same word).
 
 ## Implementation Checkboxes
 
 - [x] Step 1 — theme tint and `ListPagination` labels: unit tests red, then green
 - [x] Step 2 — sidebar and layout: browser case 1 red, then green
-- [ ] Step 3 — shared pieces and members screens: case 2 red, then green
+- [x] Step 3 — shared pieces and members screens: case 2 red, then green
 - [ ] Step 4 — catalogue: case 3 red, then green
 - [ ] Step 5 — purchasing, inventory, participation, accounting: case 4 red, then green
 - [ ] Step 6 — five gates green, close checks, files formatted

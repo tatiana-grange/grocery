@@ -1,6 +1,5 @@
 import type { MemberDetail } from '@grocery/openapi-generator/client/types.gen'
 import { SectionTitle } from '@grocery/ui/components/app'
-import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Dialog,
@@ -17,6 +16,7 @@ import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MemberFeeBadge } from '@/features/admin-members/components/member-status-badge'
 import {
   feePaymentsQueryOptions,
   recordFeePayment,
@@ -67,24 +67,24 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
 
   return (
     <section
-      className="space-y-3 rounded-lg border border-border p-4"
+      className="space-y-3 rounded-xl border-2 border-border bg-card p-4"
       data-testid="member-fee-panel"
     >
       <div className="flex items-center justify-between">
         <SectionTitle>{t('adminMembers.fee.title')}</SectionTitle>
-        <Badge variant="outline" data-testid="member-fee-state">
-          {t(`members.feeState.${member.fee.state}`)}
-        </Badge>
+        <MemberFeeBadge feeState={member.fee.state} testId="member-fee-state" />
       </div>
 
-      <p className="text-sm" data-testid="member-fee-summary">
+      <p className="text-base" data-testid="member-fee-summary">
         {(member.fee.paidAmountCents / 100).toFixed(2)} /{' '}
         {(member.fee.expectedAmountCents / 100).toFixed(2)} €
       </p>
 
       <div className="flex flex-wrap items-end gap-2">
         <label className="space-y-1">
-          <span className="text-xs text-muted-foreground">{t('adminMembers.fee.expected')}</span>
+          <span className="text-sm font-semibold text-muted-foreground">
+            {t('adminMembers.fee.expected')}
+          </span>
           <Input
             type="number"
             step="0.01"
@@ -152,9 +152,9 @@ export function MemberFeePanel({ member }: { member: MemberDetail }) {
       </Dialog>
 
       {payments && payments.length > 0 && (
-        <ul className="space-y-1 text-sm">
+        <ul className="space-y-1 text-base">
           {payments.map((payment) => (
-            <li key={payment.id} className="flex justify-between border-b border-border py-1">
+            <li key={payment.id} className="flex justify-between border-b border-rule py-1">
               <span>
                 {payment.kind === 'adjustment' ? '± ' : ''}
                 {(payment.amountCents / 100).toFixed(2)} € ·{' '}

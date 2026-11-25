@@ -1,5 +1,4 @@
-import { ListPagination, PageTitle } from '@grocery/ui/components/app'
-import { Badge } from '@grocery/ui/components/primitives/badge'
+import { ListPagination } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Dialog,
@@ -33,7 +32,13 @@ import {
   MEMBERS_PAGE_SIZE,
   membersListQueryOptions,
 } from '@/features/admin-members/utils/admin-members-queries'
-import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
+import {
+  MemberFeeBadge,
+  MemberStatusBadge,
+} from '@/features/admin-members/components/member-status-badge'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
+import { useBackOfficePaginationLabels } from '@/features/common/hooks/use-back-office-pagination-labels'
 import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
@@ -58,15 +63,27 @@ export default function MembersListPage() {
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / MEMBERS_PAGE_SIZE))
+  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
 
   return (
     <div className="space-y-6" data-testid="page-members-list">
-      <div>
-        <PageTitle>{t('adminMembers.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('adminMembers.subtitle')}</p>
-      </div>
+      <BackOfficePageHead
+        title={t('adminMembers.title')}
+        description={t('adminMembers.subtitle')}
+        actions={<CreateMemberDialog />}
+      />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-4">
+        <Input
+          className="h-13 w-80"
+          data-testid="members-search"
+          placeholder={t('adminMembers.searchPlaceholder')}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') flushSearch()
+          }}
+        />
         <Tabs
           value={status}
           onValueChange={(value) => updateParams({ status: value, page: undefined })}
@@ -79,22 +96,9 @@ export default function MembersListPage() {
             ))}
           </TabsList>
         </Tabs>
-        <div className="flex items-center gap-2">
-          <Input
-            className="w-56"
-            data-testid="members-search"
-            placeholder={t('adminMembers.searchPlaceholder')}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') flushSearch()
-            }}
-          />
-          <CreateMemberDialog />
-        </div>
       </div>
 
-      <div className="rounded-lg border border-border">
+      <BackOfficeTableFrame>
         <Table>
           <TableHeader>
             <TableRow>
@@ -129,8 +133,12 @@ export default function MembersListPage() {
             )}
 
             {data?.data.map((member) => (
-              <TableRow key={member.id} data-testid={`members-row-${member.membershipNumber}`}>
-                <TableCell className="font-mono text-xs">{member.membershipNumber}</TableCell>
+              <TableRow
+                key={member.id}
+                className={member.status === 'pending' ? 'bg-straw-tint' : undefined}
+                data-testid={`members-row-${member.membershipNumber}`}
+              >
+                <TableCell className="font-mono text-sm">{member.membershipNumber}</TableCell>
                 <TableCell className="font-medium" data-testid="members-row-name">
                   {member.name}
                 </TableCell>
@@ -141,23 +149,23 @@ export default function MembersListPage() {
                   <MemberStatusBadge status={member.status} />
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">{t(`members.feeState.${member.feeState}`)}</Badge>
+                  <MemberFeeBadge feeState={member.feeState} />
                 </TableCell>
                 <TableCell>
                   <Button
-                    variant="ghost"
+                    variant={member.status === 'pending' ? 'default' : 'outline'}
                     size="sm"
                     data-testid="members-row-review"
                     render={<Link to={`/admin/members/${member.id}`} />}
                   >
-                    {t('adminMembers.review')}
+                    {member.status === 'pending' ? t('adminMembers.review') : t('backOffice.open')}
                   </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
+      </BackOfficeTableFrame>
 
       <ListPagination
         page={page}
@@ -165,6 +173,7 @@ export default function MembersListPage() {
         onPageChange={(next) => updateParams({ page: String(next) })}
         testIdPrefix="members"
         count={t('adminMembers.count', { count: total })}
+        {...paginationLabels}
       />
     </div>
   )
@@ -201,7 +210,7 @@ function CreateMemberDialog() {
   return (
     <Dialog>
       <DialogTrigger render={<Button size="sm" data-testid="members-create-open" />}>
-        <UserPlus className="mr-2 size-4" />
+        <UserPlus />
         {t('adminMembers.create.new')}
       </DialogTrigger>
       <DialogContent>
@@ -229,7 +238,7 @@ function CreateMemberDialog() {
             value={phoneNumber}
             onChange={(event) => setPhoneNumber(event.target.value)}
           />
-          <p className="text-xs text-muted-foreground">{t('adminMembers.create.hint')}</p>
+          <p className="text-base text-muted-foreground">{t('adminMembers.create.hint')}</p>
         </div>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>

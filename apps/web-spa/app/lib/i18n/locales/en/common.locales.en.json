@@ -934,6 +934,12 @@
   "backOffice": {
     "subtitle": "Grocery management",
     "navigation": "Back office navigation",
-    "openDistribution": "Open the distribution"
+    "openDistribution": "Open the distribution",
+    "open": "Open",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {{page}} / {{pageCount}}"
+    }
   }
 }
