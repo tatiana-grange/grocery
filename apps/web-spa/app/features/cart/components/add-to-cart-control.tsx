@@ -21,7 +21,7 @@ import { authClient } from '@/lib/auth-client'
 // so they take the primary tint there. Light mode keeps the plain outline, which already stands
 // out against white.
 const stepperButtonClass =
-  'dark:border-primary/40 dark:bg-primary/15 dark:text-primary dark:hover:bg-primary/25'
+  'dark:border-primary/40 dark:bg-primary/15 dark:text-foreground dark:hover:bg-primary/25'
 
 // A number field still gets the browser's up/down spinner, which duplicates the +/- keys and
 // steps by its own rules. Hidden in WebKit and, through the standard property, in Firefox.
