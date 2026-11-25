@@ -99,9 +99,9 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
           <li
             key={line.orderLineId}
             data-testid={`handover-line-${line.orderLineId}`}
-            className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3"
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
           >
-            <div className="min-w-48 flex-1">
+            <div className="min-w-40 flex-1">
               <p className="text-lg font-semibold">{line.productName}</p>
               {line.isReady ? null : (
                 <p className="text-base text-destructive" data-testid="distribution-line-not-ready">

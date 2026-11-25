@@ -49,18 +49,18 @@ export function DistributionMemberSearch(): ReactElement {
                 to={`/distribution/members/${member.id}`}
                 aria-current={member.id === currentMemberId ? 'page' : undefined}
                 data-testid={`distribution-member-row-${member.id}`}
-                className="group flex min-h-19 w-full items-center gap-3 rounded-xl border-2 border-border bg-card p-4 text-left hover:bg-accent aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground aria-[current=page]:hover:bg-primary/90"
+                className="group flex min-h-19 w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border-2 border-border bg-card p-4 text-left hover:bg-accent aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground aria-[current=page]:hover:bg-primary/90"
               >
-                <div className="min-w-0 flex-1">
+                <div className="min-w-40 flex-1">
                   <p className="text-lg font-bold">{member.name}</p>
                   <p
-                    className="text-sm text-muted-foreground group-aria-[current=page]:text-primary-foreground"
+                    className="text-sm whitespace-nowrap text-muted-foreground group-aria-[current=page]:text-primary-foreground"
                     data-testid="member-number"
                   >
                     {member.membershipNumber}
                   </p>
                 </div>
-                <div className="flex flex-col items-end gap-1">
+                <div className="ml-auto flex flex-col items-end gap-1">
                   {member.outstandingOrderCount > 0 ? (
                     <span className="rounded-full bg-straw px-3 text-sm font-semibold text-straw-foreground">
                       {t('distribution.search.outstanding', {
