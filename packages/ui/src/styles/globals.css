@@ -28,7 +28,6 @@
   --header-height: 3rem;
   --radius: 0.75rem;
 
-  /* ── Light mode ─────────────────────────────────────────────────────── */
   --background: #f7f1e3;
   --foreground: #2b241c;
 
@@ -38,11 +37,9 @@
   --popover: #fffcf5;
   --popover-foreground: #2b241c;
 
-  /* Primary = sage */
   --primary: #4e6b4a;
   --primary-foreground: #fffcf5;
 
-  /* Secondary = kraft */
   --secondary: #d9c3a0;
   --secondary-foreground: #2b241c;
 
@@ -62,7 +59,6 @@
   --info: #2f5d73;
   --info-foreground: #fffcf5;
 
-  /* Decoration only */
   --straw: #e9c46a;
   --straw-foreground: #2b241c;
   --kraft: #d9c3a0;
@@ -76,18 +72,15 @@
   --rule: #d9c3a0;
   --ring: #4e6b4a;
 
-  /* The two stripes of the awning band */
   --awning-a: #4e6b4a;
   --awning-b: #fffcf5;
 
-  /* Charts */
   --chart-1: #4e6b4a;
   --chart-2: #b4541a;
   --chart-3: #e9c46a;
   --chart-4: #d9c3a0;
   --chart-5: #2f3a33;
 
-  /* Sidebar */
   --sidebar: #fffcf5;
   --sidebar-foreground: #2b241c;
   --sidebar-primary: #4e6b4a;
@@ -105,7 +98,6 @@
   --font-display: var(--font-serif);
   --font-text: var(--font-sans);
 
-  /* Shadows, tinted ink-brown */
   --shadow-2xs: 0 1px 3px 0px rgb(43 36 28 / 0.05);
   --shadow-xs: 0 1px 3px 0px rgb(43 36 28 / 0.05);
   --shadow-sm: 0 1px 3px 0px rgb(43 36 28 / 0.1), 0 1px 2px -1px rgb(43 36 28 / 0.1);

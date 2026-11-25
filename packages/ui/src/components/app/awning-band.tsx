@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 
 import { cn } from '@grocery/ui/lib/utils'
 
@@ -6,7 +6,10 @@ import { cn } from '@grocery/ui/lib/utils'
  * A striped market awning with a scalloped edge. Decoration only: hidden from assistive tech.
  * The colours come from `--awning-a` and `--awning-b`, so the band follows light and evening mode.
  */
-export function AwningBand({ className, ...props }: Omit<ComponentProps<'div'>, 'children'>) {
+export function AwningBand({
+  className,
+  ...props
+}: Omit<ComponentProps<'div'>, 'children'>): ReactElement {
   return (
     <div
       aria-hidden="true"

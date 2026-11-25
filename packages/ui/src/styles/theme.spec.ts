@@ -2,27 +2,20 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
+import { readCssBlock } from './read-css-block'
+
 const cssPath = fileURLToPath(new URL('./globals.css', import.meta.url))
 const packagePath = fileURLToPath(new URL('../../package.json', import.meta.url))
 const css = readFileSync(cssPath, 'utf8')
 
 type Mode = 'light' | 'dark'
 
-/** The body of the first top-level block that starts with `selector {`. */
-function block(selector: string): string {
-  const start = css.indexOf(`${selector} {`)
-  if (start === -1) throw new Error(`No ${selector} block in globals.css`)
-  const open = css.indexOf('{', start)
-  let depth = 0
-  for (let i = open; i < css.length; i++) {
-    if (css[i] === '{') depth++
-    if (css[i] === '}') depth--
-    if (depth === 0) return css.slice(open + 1, i)
-  }
-  throw new Error(`Unclosed ${selector} block`)
+/** The body of a block of `globals.css`. */
+function readBlock(selector: string): string {
+  return readCssBlock(css, selector)
 }
 
-function declarations(body: string): Record<string, string> {
+function readDeclarations(body: string): Record<string, string> {
   const result: Record<string, string> = {}
   for (const match of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
     result[match[1]] = match[2].trim()
@@ -30,23 +23,23 @@ function declarations(body: string): Record<string, string> {
   return result
 }
 
-const light = declarations(block(':root'))
+const light = readDeclarations(readBlock(':root'))
 // Evening mode only overrides some tokens: the rest is inherited from light.
-const dark = { ...light, ...declarations(block('.dark')) }
+const dark = { ...light, ...readDeclarations(readBlock('.dark')) }
 const modes: Record<Mode, Record<string, string>> = { light, dark }
 
-function luminance(hex: string): number {
+function computeLuminance(hex: string): number {
   const channels = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
   const [r, g, b] = channels.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
-function contrast(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+function computeContrast(a: string, b: string): number {
+  const [hi, lo] = [computeLuminance(a), computeLuminance(b)].sort((x, y) => y - x)
   return (hi + 0.05) / (lo + 0.05)
 }
 
-function token(mode: Mode, name: string): string {
+function readToken(mode: Mode, name: string): string {
   const value = modes[mode][`--${name}`]
   if (!value) throw new Error(`--${name} is not defined in ${mode} mode`)
   return value.toUpperCase()
@@ -99,13 +92,13 @@ describe('market palette, light mode', () => {
   }
   for (const [name, value] of Object.entries(expected)) {
     it(`--${name} is ${value}`, () => {
-      expect(token('light', name)).toBe(value)
+      expect(readToken('light', name)).toBe(value)
     })
   }
 
   it('keeps no Citrus oklch value in :root or .dark', () => {
-    expect(block(':root')).not.toContain('oklch(')
-    expect(block('.dark')).not.toContain('oklch(')
+    expect(readBlock(':root')).not.toContain('oklch(')
+    expect(readBlock('.dark')).not.toContain('oklch(')
   })
 })
 
@@ -137,13 +130,13 @@ describe('evening mode', () => {
   }
   for (const [name, value] of Object.entries(expected)) {
     it(`--${name} is ${value}`, () => {
-      expect(token('dark', name)).toBe(value)
+      expect(readToken('dark', name)).toBe(value)
     })
   }
 
   it('keeps sage primary and squash warning the same as in light mode', () => {
-    expect(token('dark', 'primary')).toBe(token('light', 'primary'))
-    expect(token('dark', 'warning')).toBe(token('light', 'warning'))
+    expect(readToken('dark', 'primary')).toBe(readToken('light', 'primary'))
+    expect(readToken('dark', 'warning')).toBe(readToken('light', 'warning'))
   })
 })
 
@@ -164,10 +157,12 @@ describe('fonts', () => {
 
 describe('text scale', () => {
   it('makes the body text 18 px', () => {
-    expect(declarations(block('@theme'))['--text-base']).toBe('1.125rem')
+    expect(readDeclarations(readBlock('@theme'))['--text-base']).toBe('1.125rem')
   })
   it('keeps the smallest class at 14 px or more', () => {
-    expect(parseFloat(declarations(block('@theme'))['--text-xs'])).toBeGreaterThanOrEqual(0.875)
+    expect(parseFloat(readDeclarations(readBlock('@theme'))['--text-xs'])).toBeGreaterThanOrEqual(
+      0.875,
+    )
   })
 })
 
@@ -199,7 +194,9 @@ describe('contrast of every text-on-background pair', () => {
   for (const mode of ['light', 'dark'] as const) {
     for (const [fg, bg] of pairs) {
       it(`${mode}: ${fg} on ${bg} is at least 4.5:1`, () => {
-        expect(contrast(token(mode, fg), token(mode, bg))).toBeGreaterThanOrEqual(4.5)
+        expect(computeContrast(readToken(mode, fg), readToken(mode, bg))).toBeGreaterThanOrEqual(
+          4.5,
+        )
       })
     }
   }

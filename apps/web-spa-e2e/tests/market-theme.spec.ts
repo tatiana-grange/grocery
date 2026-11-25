@@ -8,7 +8,7 @@ import { expect, test, withRole } from '../fixtures'
 
 const MIN_TOUCH_HEIGHT = 44
 
-async function expectTouchTarget(locator: Locator) {
+async function expectTouchTarget(locator: Locator): Promise<void> {
   const box = await locator.boundingBox()
   expect(box, 'élément visible').not.toBeNull()
   expect(box!.height).toBeGreaterThanOrEqual(MIN_TOUCH_HEIGHT)
