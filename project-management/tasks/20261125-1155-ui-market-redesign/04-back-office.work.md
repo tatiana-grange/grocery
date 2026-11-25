@@ -8,7 +8,7 @@ The parent spec, with the owner's decisions, is
 overflow and small-text helpers of `member-phone.spec.ts` come from slice 02. Their work documents
 sit in this folder.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect, 2026-11-25, with the rulings in Notes & Snippets.
 
 ## Program Design
 
@@ -528,6 +528,28 @@ same step, by PID, or reports the PIDs.
 - [ ] Step 6 — five gates green, close checks, files formatted
 
 ## Notes & Snippets
+
+**Architect's rulings at the plan reading** (Architect, 2026-11-25, written by the Mason):
+
+1. **Figure cards: accepted**, only where the number already sits beside the title: stock detail
+   (on hand, cost price) and slot detail (places taken). No card on the members list.
+2. **`offcanvas` instead of `icon`: accepted.**
+3. **The new `back-office-*` shared files in `features/common`: accepted.** They are named in the
+   seams below. Slice 03 touches none of them.
+4. **"Examiner" in sage for pending rows, "Ouvrir" in outline for the others: accepted.**
+5. **Status history codes translated** with the existing `members.status.*` keys: accepted. It
+   changes the display only. Done in step 3.
+6. **Table body at 16 px if 1194 px is too tight: accepted.** It never goes below 16 px.
+
+Also accepted: the indicator reads "Page 1 / 3"; badges stay at 14 px; the `Table` and `Badge`
+primitives stay untouched; the inner `main` becomes a `div`; the supplier order tones; the neutral
+"Archivé" badge; `--straw-tint` with the theme test.
+
+**Seams of this slice, as ruled:** the layout `back-office-layout.tsx`; `ListPagination`; the
+theme file `globals.css` (one token) and its test; the back office screens in `features/admin-*`
+and `features/catalog`; and the new shared files `back-office-page-head.tsx`,
+`back-office-figure-card.tsx`, `back-office-table-frame.tsx`, `back-office-status-badge.tsx` and
+`hooks/use-back-office-pagination-labels.ts` in `features/common`.
 
 **Architect's notes during the plan reading** (Architect, 2026-11-25, found by slice 03; written
 by the Mason):
