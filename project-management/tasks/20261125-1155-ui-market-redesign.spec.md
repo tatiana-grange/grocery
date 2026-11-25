@@ -1,6 +1,6 @@
 # UI redesign — the "neighbourhood market" direction
 
-**Status:** ready
+**Status:** in-progress
 
 ---
 
@@ -119,6 +119,9 @@ navigation and the density of their space. A new colour goes into the theme firs
   2. Member space and sign-in, with the mobile tab bar (blocked by: 1)
   3. Distribution table (blocked by: 1)
   4. Back office (blocked by: 1)
+
+Slice specs live in the folder `20261125-1155-ui-market-redesign/` beside this file; slice 01 is
+written, the others are written when their turn comes.
 
 Slices 2, 3 and 4 are independent of each other. Each slice ends on a working app: a space not yet
 redone keeps its old layout with the new theme.
