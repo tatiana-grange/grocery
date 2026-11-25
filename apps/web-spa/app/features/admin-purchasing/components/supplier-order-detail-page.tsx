@@ -14,6 +14,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Download, Send, TriangleAlert, XCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'react-router'
+import { SupplierOrderStatusBadge } from '@/features/admin-purchasing/components/supplier-order-status-badge'
 import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
 import {
   BackOfficeStatusBadge,
@@ -38,13 +39,6 @@ const DISCREPANCY_TONE: Record<'none' | 'short' | 'over', StatusTone> = {
   none: 'positive',
   short: 'negative',
   over: 'attention',
-}
-
-const ORDER_STATUS_TONE: Record<'draft' | 'sent' | 'received' | 'closed', StatusTone> = {
-  draft: 'neutral',
-  sent: 'attention',
-  received: 'positive',
-  closed: 'neutral',
 }
 
 export default function SupplierOrderDetailPage() {
@@ -107,13 +101,11 @@ export default function SupplierOrderDetailPage() {
         })}
         actions={
           <>
-            <BackOfficeStatusBadge
-              tone={ORDER_STATUS_TONE[order.status]}
-              data-testid="supplier-order-status"
+            <SupplierOrderStatusBadge
+              status={order.status}
+              testId="supplier-order-status"
               className="self-center"
-            >
-              {t(`purchasing.status.${order.status}`)}
-            </BackOfficeStatusBadge>
+            />
             <Button
               variant="outline"
               size="sm"

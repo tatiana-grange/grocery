@@ -19,10 +19,8 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { MemberFeePanel } from '@/features/admin-members/components/member-fee-panel'
 import { MemberProfileEdit } from '@/features/admin-members/components/member-profile-edit'
-import {
-  MemberFeeBadge,
-  MemberStatusBadge,
-} from '@/features/admin-members/components/member-status-badge'
+import { MemberFeeBadge } from '@/features/admin-members/components/member-fee-badge'
+import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
 import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
 import {
   decideMember,

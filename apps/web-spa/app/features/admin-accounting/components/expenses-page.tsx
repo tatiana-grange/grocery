@@ -40,7 +40,7 @@ export default function ExpensesPage() {
   const { data, isLoading } = useQuery(expensesQueryOptions({ period, page }))
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / EXPENSES_PAGE_SIZE))
-  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
+  const paginationLabels = useBackOfficePaginationLabels({ page, pageCount })
 
   return (
     <div className="space-y-6" data-testid="page-expenses">

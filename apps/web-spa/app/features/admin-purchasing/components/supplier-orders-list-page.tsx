@@ -17,23 +17,13 @@ import {
   SUPPLIER_ORDERS_PAGE_SIZE,
   supplierOrdersListQueryOptions,
 } from '@/features/admin-purchasing/utils/purchasing-queries'
+import { SupplierOrderStatusBadge } from '@/features/admin-purchasing/components/supplier-order-status-badge'
 import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
-import {
-  BackOfficeStatusBadge,
-  type StatusTone,
-} from '@/features/common/components/back-office-status-badge'
 import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
 import { useBackOfficePaginationLabels } from '@/features/common/hooks/use-back-office-pagination-labels'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 const STATUS_TABS = ['all', 'draft', 'sent', 'received', 'closed'] as const
-
-const ORDER_STATUS_TONE: Record<'draft' | 'sent' | 'received' | 'closed', StatusTone> = {
-  draft: 'neutral',
-  sent: 'attention',
-  received: 'positive',
-  closed: 'neutral',
-}
 
 export default function SupplierOrdersListPage() {
   const { t } = useTranslation()
@@ -46,7 +36,7 @@ export default function SupplierOrdersListPage() {
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / SUPPLIER_ORDERS_PAGE_SIZE))
-  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
+  const paginationLabels = useBackOfficePaginationLabels({ page, pageCount })
 
   return (
     <div className="space-y-6" data-testid="page-supplier-orders-list">
@@ -103,12 +93,10 @@ export default function SupplierOrdersListPage() {
               <TableRow key={order.id} data-testid={`supplier-orders-row-${order.id}`}>
                 <TableCell className="font-medium">{order.supplier.name}</TableCell>
                 <TableCell>
-                  <BackOfficeStatusBadge
-                    tone={ORDER_STATUS_TONE[order.status]}
-                    data-testid="supplier-orders-row-status"
-                  >
-                    {t(`purchasing.status.${order.status}`)}
-                  </BackOfficeStatusBadge>
+                  <SupplierOrderStatusBadge
+                    status={order.status}
+                    testId="supplier-orders-row-status"
+                  />
                 </TableCell>
                 <TableCell className="text-right tabular-nums">{order.lineCount}</TableCell>
                 <TableCell className="text-right tabular-nums">

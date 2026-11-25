@@ -24,14 +24,14 @@ async function findSmallOrCapitalText(page: Page, scope: string): Promise<string
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       const text = node.textContent?.trim()
-      const el = node.parentElement
-      if (!text || !el || el.closest('script, style, noscript')) continue
-      if (!el.checkVisibility()) continue
-      const style = getComputedStyle(el)
+      const element = node.parentElement
+      if (!text || !element || element.closest('script, style, noscript')) continue
+      if (!element.checkVisibility()) continue
+      const style = getComputedStyle(element)
       const size = parseFloat(style.fontSize)
       if (size < 14) found.push(`${text} (${style.fontSize})`)
       if (style.textTransform === 'uppercase') found.push(`${text} (uppercase)`)
-      if (el.closest('td') && !el.closest('[data-slot="badge"]') && size < 16)
+      if (element.closest('td') && !element.closest('[data-slot="badge"]') && size < 16)
         found.push(`${text} (cellule ${style.fontSize})`)
     }
     return found
@@ -56,10 +56,13 @@ async function expectNoHorizontalScroll(page: Page): Promise<void> {
     if (root.scrollWidth > root.clientWidth) found.push('page')
     const inset = document.querySelector('[data-slot="sidebar-inset"]')
     if (inset && inset.scrollWidth > inset.clientWidth) found.push('zone de contenu')
-    for (const el of inset?.querySelectorAll('*') ?? []) {
-      const overflowX = getComputedStyle(el).overflowX
-      if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth + 1)
-        found.push(`${el.getAttribute('data-slot') ?? el.tagName} défile de côté`)
+    for (const element of inset?.querySelectorAll('*') ?? []) {
+      const overflowX = getComputedStyle(element).overflowX
+      if (
+        (overflowX === 'auto' || overflowX === 'scroll') &&
+        element.scrollWidth > element.clientWidth + 1
+      )
+        found.push(`${element.getAttribute('data-slot') ?? element.tagName} défile de côté`)
     }
     return found
   })
@@ -72,13 +75,15 @@ async function findCutControls(page: Page): Promise<string[]> {
     const found: string[] = []
     const width = document.documentElement.clientWidth
     const height = document.documentElement.clientHeight
-    for (const el of document.querySelectorAll('button, a, input, [data-slot="badge"]')) {
-      if (!(el as HTMLElement).checkVisibility()) continue
-      const rect = el.getBoundingClientRect()
+    for (const element of document.querySelectorAll('button, a, input, [data-slot="badge"]')) {
+      if (!(element as HTMLElement).checkVisibility()) continue
+      const rect = element.getBoundingClientRect()
       if (rect.width === 0 || rect.height === 0) continue
       const name =
-        el.getAttribute('data-testid') ?? el.textContent?.trim() ?? el.getAttribute('aria-label')
-      if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1)
+        element.getAttribute('data-testid') ??
+        element.textContent?.trim() ??
+        element.getAttribute('aria-label')
+      if (element.clientWidth > 0 && element.scrollWidth > element.clientWidth + 1)
         found.push(`${name} (texte coupé)`)
       if (rect.left < -1 || rect.right > width + 1) found.push(`${name} (hors de l'écran)`)
       // Vertically, a long page scrolls: only the horizontal box is checked there.
@@ -92,9 +97,9 @@ async function findCutControls(page: Page): Promise<string[]> {
 async function expectPageHead(page: Page): Promise<void> {
   const title = page.locator('h1').first()
   await expect(title).toBeVisible()
-  const metrics = await title.evaluate((el) => ({
-    family: getComputedStyle(el).fontFamily,
-    size: parseFloat(getComputedStyle(el).fontSize),
+  const metrics = await title.evaluate((element) => ({
+    family: getComputedStyle(element).fontFamily,
+    size: parseFloat(getComputedStyle(element).fontSize),
   }))
   expect(metrics.family).toMatch(/^"?Lora Variable/)
   expect(metrics.size).toBeGreaterThanOrEqual(48)
@@ -106,11 +111,11 @@ async function expectPageHead(page: Page): Promise<void> {
  */
 async function expectTable(frame: Locator): Promise<void> {
   await expect(frame).toBeVisible()
-  const metrics = await frame.evaluate((el) => {
-    const style = getComputedStyle(el)
-    const heads = [...el.querySelectorAll('th')].filter((th) => th.checkVisibility())
-    const actions = [...el.querySelectorAll('td a[data-slot="button"], td button')].filter((b) =>
-      (b as HTMLElement).checkVisibility(),
+  const metrics = await frame.evaluate((element) => {
+    const style = getComputedStyle(element)
+    const heads = [...element.querySelectorAll('th')].filter((th) => th.checkVisibility())
+    const actions = [...element.querySelectorAll('td a[data-slot="button"], td button')].filter(
+      (b) => (b as HTMLElement).checkVisibility(),
     )
     return {
       border: style.borderTopWidth,
@@ -140,6 +145,38 @@ async function expectTable(frame: Locator): Promise<void> {
   }
 }
 
+/** Le texte d'aide du champ tient en entier dans la largeur utile du champ. */
+async function expectPlaceholderFits(input: Locator): Promise<void> {
+  const widths = await input.evaluate((element) => {
+    const field = element as HTMLInputElement
+    const style = getComputedStyle(field)
+    const context = document.createElement('canvas').getContext('2d')!
+    context.font = style.font
+    return {
+      text: context.measureText(field.placeholder).width,
+      inner: field.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+    }
+  })
+  expect(widths.text, 'texte d’aide plus large que le champ').toBeLessThanOrEqual(widths.inner)
+}
+
+/** Le prix de chaque ligne du tableau des produits reste sur une seule ligne. */
+async function expectPriceOnOneLine(page: Page): Promise<void> {
+  const broken = await page.evaluate(() => {
+    const rows = document.querySelectorAll('[data-slot="table-container"] tbody tr')
+    const found: string[] = []
+    for (const row of rows) {
+      const cell = row.querySelectorAll('td')[3]
+      if (!cell?.textContent?.includes('€')) continue
+      const range = document.createRange()
+      range.selectNodeContents(cell)
+      if (range.getClientRects().length > 1) found.push(cell.textContent.trim())
+    }
+    return found
+  })
+  expect(broken, 'prix sur deux lignes').toEqual([])
+}
+
 /** Le cadre du premier tableau de la page. */
 function firstTableFrame(page: Page): Locator {
   return page.locator('[data-slot="table-container"]:visible').first().locator('..')
@@ -149,7 +186,7 @@ const SIZES = [
   { name: '1440 × 900', width: 1440, height: 900 },
   { name: '1194 × 834', width: 1194, height: 834 },
 ] as const
-const MODES = ['jour', 'soir'] as const
+const MODES = ['light', 'evening'] as const
 
 /** Les contrôles communs à toutes les pages du back-office. */
 async function expectCleanPage(page: Page): Promise<void> {
@@ -168,10 +205,12 @@ test.describe('barre latérale', () => {
     const sidebar = page.locator('[data-slot="sidebar"]')
 
     await expect(sidebar.locator('[data-slot="awning-band"]')).toBeVisible()
-    const name = sidebar.getByText('Grocery', { exact: true })
+    const name = page.getByTestId('back-office-brand')
     await expect(name).toBeVisible()
-    expect(await name.evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/^"?Lora Variable/)
-    await expect(sidebar.getByText("Gestion de l'épicerie")).toBeVisible()
+    expect(await name.evaluate((element) => getComputedStyle(element).fontFamily)).toMatch(
+      /^"?Lora Variable/,
+    )
+    await expect(page.getByTestId('back-office-subtitle')).toBeVisible()
 
     for (const link of NAV_LINKS) {
       const item = page.getByTestId(`back-office-nav-${link}`)
@@ -180,7 +219,9 @@ test.describe('barre latérale', () => {
       const label = item.locator('span').last()
       await expect(label).toBeVisible()
       await expect(label).toHaveText(/\S/)
-      expect(await label.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBe(18)
+      expect(
+        await label.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)),
+      ).toBe(18)
       if (link === 'members') await expect(item).toHaveAttribute('aria-current', 'page')
       else await expect(item).not.toHaveAttribute('aria-current', 'page')
     }
@@ -243,7 +284,7 @@ for (const size of SIZES) {
       test.beforeEach(async ({ page, resetDb }) => {
         await resetDb()
         await page.setViewportSize({ width: size.width, height: size.height })
-        if (mode === 'soir') await setEveningModeBeforeLoad(page)
+        if (mode === 'evening') await setEveningModeBeforeLoad(page)
       })
 
       test('la liste : en-tête, cadre, statut en mots, actions et pagination', async ({ page }) => {
@@ -255,6 +296,7 @@ for (const size of SIZES) {
         expect(
           (await page.getByTestId('members-search').boundingBox())!.height,
         ).toBeGreaterThanOrEqual(52)
+        await expectPlaceholderFits(page.getByTestId('members-search'))
 
         const pendingRow = page
           .locator('tr', { has: page.getByTestId('member-status-pending') })
@@ -298,7 +340,7 @@ for (const size of SIZES) {
       test.beforeEach(async ({ page, resetDb }) => {
         await resetDb()
         await page.setViewportSize({ width: size.width, height: size.height })
-        if (mode === 'soir') await setEveningModeBeforeLoad(page)
+        if (mode === 'evening') await setEveningModeBeforeLoad(page)
       })
 
       for (const tab of ['products', 'suppliers', 'categories'] as const) {
@@ -312,6 +354,10 @@ for (const size of SIZES) {
 
           await expectTable(firstTableFrame(page))
           await expectCleanPage(page)
+          if (tab === 'products') {
+            await expectPlaceholderFits(page.getByTestId('products-search'))
+            await expectPriceOnOneLine(page)
+          }
         })
       }
 
@@ -354,7 +400,7 @@ for (const size of SIZES) {
       test.beforeEach(async ({ page, resetDb }) => {
         await resetDb()
         await page.setViewportSize({ width: size.width, height: size.height })
-        if (mode === 'soir') await setEveningModeBeforeLoad(page)
+        if (mode === 'evening') await setEveningModeBeforeLoad(page)
       })
 
       test('le compte de résultat', async ({ page }) => {

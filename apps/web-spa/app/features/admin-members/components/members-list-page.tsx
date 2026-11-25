@@ -32,10 +32,8 @@ import {
   MEMBERS_PAGE_SIZE,
   membersListQueryOptions,
 } from '@/features/admin-members/utils/admin-members-queries'
-import {
-  MemberFeeBadge,
-  MemberStatusBadge,
-} from '@/features/admin-members/components/member-status-badge'
+import { MemberFeeBadge } from '@/features/admin-members/components/member-fee-badge'
+import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
 import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
 import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
 import { useBackOfficePaginationLabels } from '@/features/common/hooks/use-back-office-pagination-labels'
@@ -63,7 +61,7 @@ export default function MembersListPage() {
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / MEMBERS_PAGE_SIZE))
-  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
+  const paginationLabels = useBackOfficePaginationLabels({ page, pageCount })
 
   return (
     <div className="space-y-6" data-testid="page-members-list">
@@ -75,7 +73,7 @@ export default function MembersListPage() {
 
       <div className="flex flex-wrap items-center gap-4">
         <Input
-          className="h-13 w-80"
+          className="h-13 w-full max-w-md"
           data-testid="members-search"
           placeholder={t('adminMembers.searchPlaceholder')}
           value={search}

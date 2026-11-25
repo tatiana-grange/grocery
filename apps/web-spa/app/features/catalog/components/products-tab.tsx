@@ -35,13 +35,13 @@ export function ProductsTab() {
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / CATALOG_PAGE_SIZE))
-  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
+  const paginationLabels = useBackOfficePaginationLabels({ page, pageCount })
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <Input
-          className="h-13 w-80"
+          className="h-13 w-full max-w-md"
           data-testid="products-search"
           placeholder={t('catalog.products.searchPlaceholder')}
           value={search}
@@ -98,7 +98,7 @@ export function ProductsTab() {
                 </TableCell>
                 <TableCell className="text-muted-foreground">{product.supplier.name}</TableCell>
                 <TableCell className="text-muted-foreground">{product.category.name}</TableCell>
-                <TableCell>
+                <TableCell className="whitespace-nowrap!">
                   {product.currentPriceEur != null
                     ? `${product.currentPriceEur.toFixed(2)} € / ${t(
                         `catalog.pricingUnit.${product.pricingUnit}`,

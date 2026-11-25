@@ -52,10 +52,18 @@ function BackOfficeSidebar() {
       <AwningBand />
       <SidebarHeader className="gap-0 px-5 pt-5 pb-3">
         <Link to="/admin/members" className="block rounded-md outline-hidden focus-visible:ring-2">
-          <span className="block font-serif text-3xl font-bold text-foreground">
+          <span
+            data-testid="back-office-brand"
+            className="block font-serif text-3xl font-bold text-foreground"
+          >
             {t('members.title')}
           </span>
-          <span className="block text-base text-muted-foreground">{t('backOffice.subtitle')}</span>
+          <span
+            data-testid="back-office-subtitle"
+            className="block text-base text-muted-foreground"
+          >
+            {t('backOffice.subtitle')}
+          </span>
         </Link>
       </SidebarHeader>
 

@@ -37,14 +37,14 @@ export default function StockListPage() {
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / STOCK_PAGE_SIZE))
-  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
+  const paginationLabels = useBackOfficePaginationLabels({ page, pageCount })
 
   return (
     <div className="space-y-6" data-testid="page-stock-list">
       <BackOfficePageHead title={t('inventory.title')} description={t('inventory.subtitle')} />
 
       <Input
-        className="h-13 w-80"
+        className="h-13 w-full max-w-md"
         data-testid="stock-search"
         placeholder={t('inventory.searchPlaceholder')}
         value={search}

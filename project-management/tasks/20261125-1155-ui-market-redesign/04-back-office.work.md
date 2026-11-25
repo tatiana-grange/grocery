@@ -629,6 +629,24 @@ found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-curr
   the expense reason line, all 16 px). The French and English locale files hold the same 690 keys.
   A search for quoted French words in the changed `.tsx` files found none. `oxfmt --check` on the 37
   changed files: all formatted. Departures: none new. Screenshots are the Mason's.
+- 2026-11-25 — Typist, review fixes (Mason's list). Item 7 test first: added
+  `expectPlaceholderFits` (canvas `measureText` in the input's font against its inner width) on
+  `members-search` and `products-search`, and `expectPriceOnOneLine` on the products tab. Red log
+  `s04-review-red.log`: 9 red. Error lines: `Error: texte d’aide plus large que le champ`
+  (`Expected: <= 292`, `Received: 357.65966796875` and `370.025634765625`), and the brand test
+  failing on the missing `back-office-brand` testid. Fixes: search fields `w-full max-w-md`
+  (members, products, inventory); one export per file (`member-fee-badge.tsx`); named props
+  interfaces and `ReactElement` returns; `useBackOfficePaginationLabels({ page, pageCount })` and
+  its six callers; one `SupplierOrderStatusBadge` for both purchasing pages; status maps typed with
+  generated types by indexed access (`SupplierOrder['status']`, `MemberListItem['status']`,
+  `MemberListItem['feeState']`, since the generated file has no named union); testids
+  `back-office-brand` and `back-office-subtitle`; English mode values; `el` renamed; the repeated
+  `toContain` lines removed from `list-pagination.spec.tsx`. Departure: the price cell first got
+  `whitespace-nowrap`, which lost to the frame's wrap rule (higher specificity), so the first green
+  run (`s04-review-green-run1.log`) still had the price broken at 1194 px; the cell now uses
+  `whitespace-nowrap!`. Green log `s04-review-green.log`: 67 passed (the new spec, `members-list`,
+  `members-detail`, `admin-purchasing-reception`, `admin-purchasing-aggregate`). `pnpm typecheck`,
+  `@grocery/ui` tests and oxlint on the changed files pass.
 
 ## Implementation Checkboxes
 

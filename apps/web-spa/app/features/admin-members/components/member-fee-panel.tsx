@@ -16,7 +16,7 @@ import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MemberFeeBadge } from '@/features/admin-members/components/member-status-badge'
+import { MemberFeeBadge } from '@/features/admin-members/components/member-fee-badge'
 import {
   feePaymentsQueryOptions,
   recordFeePayment,

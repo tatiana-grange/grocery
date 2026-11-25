@@ -37,7 +37,7 @@ export default function SlotsListPage() {
   const { data, isLoading } = useQuery(adminSlotsQueryOptions({ page, includePast }))
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / ADMIN_SLOTS_PAGE_SIZE))
-  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
+  const paginationLabels = useBackOfficePaginationLabels({ page, pageCount })
 
   return (
     <div className="space-y-6" data-testid="page-slots-list">

@@ -15,13 +15,17 @@ const TONES: Record<
   neutral: { variant: 'outline' },
 }
 
+interface BackOfficeStatusBadgeProps extends Omit<ComponentProps<typeof Badge>, 'variant'> {
+  tone: StatusTone
+}
+
 /** A status written as a word, in one of four theme tones. Never a colour alone. */
 export function BackOfficeStatusBadge({
   tone,
   className,
   children,
   ...badgeProps
-}: { tone: StatusTone } & Omit<ComponentProps<typeof Badge>, 'variant'>): ReactElement {
+}: BackOfficeStatusBadgeProps): ReactElement {
   const { variant, className: toneClassName } = TONES[tone]
   return (
     <Badge variant={variant} className={cn(toneClassName, className)} {...badgeProps}>
