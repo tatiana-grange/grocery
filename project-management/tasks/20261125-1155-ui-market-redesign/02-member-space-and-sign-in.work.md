@@ -656,4 +656,52 @@ stepper needs 44 + 8 + 64 + 4 + unit + 8 + 44, about 190 px, hence the container
 
 ## Diff-Review Findings
 
-Written after `code-review` runs.
+`code-review` ran on `git diff cc7104e...HEAD` at `10232c8` with two fresh reviewers, 2026-11-25.
+Each finding with its fix or its answer, signed by the Mason. Fixes landed in `6009771`.
+
+**Standards axis:**
+
+- The five auth links repeated one long class string (Duplicated Code). Fixed: one
+  `AuthTextLink` in `features/auth/components/auth-text-link.tsx`.
+- The same wrapping classes (`h-auto whitespace-normal` plus a minimum height) also sit on the
+  add-to-cart buttons; the reviewer suggests a `Button` size in `packages/ui`. Answered: not in
+  this slice, which keeps `packages/ui` and its props unchanged. If slices 03 and 04 need it too, a
+  wrapping size belongs there, as an additive change ruled by the Architect.
+- The tab bar and the desktop bar both define the shop, cart, participation and account
+  destinations; the phone menu repeats the admin and logout items (Duplicated Code). Answered:
+  kept. The two bars differ in what they hold (settings, admin, logout and a badge on the desktop;
+  sign-in as a tab), in their icons' size and in their testids, which must stay apart. A shared
+  list would carry per-bar flags for every difference. The settings items, which really are the
+  same, are shared (`AppSettingsItems`).
+- `useEveningMode(page)` in the test looked like a hook (`general.mdx`, naming). Fixed: renamed
+  `setEveningModeBeforeLoad`.
+- `expectTall` had no JSDoc (`general.mdx`, "Use JSDoc"). Fixed.
+- Prop types written inline on `PhoneMenu` and `MemberShell` (`general.mdx`, "prefer
+  interfaces"). Fixed: `PhoneMenuProps`, `MemberShellProps`.
+- `end={false}` on `NavLink` repeated the default. Fixed: removed.
+- `MemberShell` also wraps the public shop, so the name may mislead (Mysterious Name).
+  Answered: kept. The slice spec calls the shop and the member area together the member space,
+  and the shell is the chrome of that space.
+- The new test is written in French (`general.mdx`, "Use English"). Answered: kept, as in slice
+  01: the E2E suite's titles and comments are French in most files, and the new file follows it.
+  Given-When-Then is not followed by the older specs either.
+
+**Spec axis:**
+
+- `phone-check-test`: the sign-in test did not check horizontal scroll at each tab (the step 1
+  departure in the worklog). Fixed: it now calls `expectNoHorizontalScroll` after each tab.
+- `readable-text`: two explanatory sentences stayed at 16 px (`member-qr.tsx` hint,
+  `topup-form.tsx` note). Fixed: `text-base`. The date lines of `slot-card.tsx` and
+  `my-signup-row.tsx` stay `text-sm`: they are annotations under a title, as the plan's rule
+  allows.
+- `icon-with-label`: the settings button and the view switch are icon-only. Answered: an accepted
+  exception, Architect's ruling 2, each with an `aria-label` and a `title`. The quantity stepper's
+  plus and minus keys are icon-only too, with an `aria-label` each; they are neither navigation
+  nor a main action (the main action, "Ajouter", has its word). Reported to the Architect at the
+  close.
+- Changes outside the listed seams: `root.tsx` (viewport, body safe-area padding, Inter removed)
+  and the settings trigger, which reaches the back office and distribution layouts. Answered:
+  rulings 3 and 4, and the plan's file table; the 1440 px screenshots check the other layouts.
+- The desktop `nav` and the tab bar share the name "Navigation principale". Answered: only one is
+  displayed at any width, so assistive tech sees one landmark.
+- Scope creep: the new testids `auth-brand` and `auth-aside` are additions the tests need.
