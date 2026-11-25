@@ -648,6 +648,33 @@ found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-curr
   `members-detail`, `admin-purchasing-reception`, `admin-purchasing-aggregate`). `pnpm typecheck`,
   `@grocery/ui` tests and oxlint on the changed files pass.
 
+- 2026-11-25 — Mason, review, screenshots, final gates and close.
+  - **Checked the Typist's steps.** Each step has a red log before its green log, with failures
+    in the red and none in the green (`s04-step1-red.log` 7 failed, step 2 3 failed, step 3 12,
+    step 4 20, step 5 11; greens 136 unit, then 5, 17, 37 and 48 browser tests passed).
+  - **Review.** `code-review` since `9b98504`, two fresh reviewers. Findings and answers are in
+    Diff-Review Findings. The Typist typed the fixes in `987385e`, with a red first for the
+    two defects the screenshots found (`s04-review-red.log`, `s04-review-green.log`).
+  - **Screenshots.** 64 files in the scratchpad's `screens-s04/`: sixteen back office views
+    (members pending and all, member detail, the three catalogue tabs, product detail and form,
+    purchasing list, order detail, inventory, stock detail, slots, slot detail, profit and loss,
+    expenses) at 1440 and 1194 px, light and evening. Taken under the lock by a temporary spec
+    in `apps/web-spa-e2e/tests`, deleted right after and never committed. They showed the cut
+    search placeholders and the price on two lines at 1194 px (fixed), and the misplaced header
+    separator of `AppLayoutHeader`, which predates the slice (left open).
+  - **Final gates on `987385e`.** `pnpm lint`, `pnpm typecheck`, `pnpm build` exit 0
+    (`s04-final-*.log`); `pnpm test` exit 0 at `f849dc6`, 15 + 136 + 735 passed
+    (`s04-gate-test.log`), and the `@grocery/ui` tests again after the fixes. `pnpm e2e`: 218
+    passed, 1 failed (`s04-final-e2e.log`), the known flaky accounting period test (the
+    period-picker race of slice 01, ruling 7), as in the Typist's run. `accounting.spec.ts` alone
+    passed 9 of 9 (`s04-final-e2e-accounting-rerun.log`). The only E2E file in the diff is
+    `back-office-desktop.spec.ts`.
+  - **Close checks.** The `grep`s of Notes & Snippets on the criteria's files and the new shared
+    files: no `uppercase`, no raw colour, no hex value, no `opacity-50`; the only arbitrary size
+    is the 52 px title. French and English hold the same 690 keys.
+  - **Processes.** Every Playwright run took `scratchpad/e2e.lock`. The lock is released, no
+    `grocery-e2e-*` container runs, and nothing listens on 3060 or 5273.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — theme tint and `ListPagination` labels: unit tests red, then green
@@ -728,6 +755,93 @@ so 10 %. Light tint `#FDF6E4`: foreground 14.20, muted 7.08.
 The members table holds six columns; the widest is the e-mail or phone column. The browser test
 measures it; if it does not fit, the identifier cell gets `max-w-64 truncate` with a `title`.
 
+**Retro proposals** (Mason, 2026-11-25, from the `retro` skill; none applied, each waits for its
+owner). Sources: this session, the Typist's and the two reviewers' reports, and this document.
+The Typist's transcript was not read in full; its reports were. The skill's style guide,
+`writing-great-skills`, is not installed here.
+
+1. **Automated checks — Playwright must not test another worktree's servers.** Owner: the human.
+   Outside CI, `playwright.config.ts` reuses any server on 3060 or 5273. With two worktrees, a
+   run without the lock silently tests the other slice's code; only a hand-made lock prevented it.
+   Proposal: `reuseExistingServer` only when an env variable asks for it, or a check in
+   `global-setup.ts` that the SPA and API answering come from this checkout.
+2. **Tool economy — a committed E2E lock with a fair wait.** Owner: the human. The lock was a
+   `mkdir` written into each brief. The Typist waited about 25 minutes the first time, because a
+   slow poll lost the race each time the other slice released it. Proposal: a small script in
+   `apps/web-spa-e2e/scripts` that takes the lock, waits in order, writes its owner, and always
+   releases it; the parallel-slice briefs point at it.
+3. **Automated checks — one shared layout helper file for the browser tests** (slice 02's
+   proposal 1, still open). Owner: the human. This slice copied the overflow and small-text
+   helpers a third time, and grew them (scroll frames, placeholder width, cut controls). The
+   copies now differ between three spec files.
+4. **Coding standards — the selector rule of `web-spa-e2e.mdx`.** Owner: the human. "Specs use
+   `getByTestId` only" is broken by ten older specs, and a layout test must find elements by
+   `data-slot`, `h1` or `th`. Proposal: keep testids for behaviour, and allow structural
+   selectors for layout and style checks, said in one line.
+5. **Navigation — the reference mockup is out of the agents' reach.** Owner: the Architect. The
+   canvas is private to the owner, so the Mason planned from the spec's words and the brief's
+   colours, and the review could not check the look against it. Proposal: the slice spec copies
+   the numbers it needs (sizes, colours, which action is primary), as this brief did for the row
+   colours, or the canvas is shared read-only with the agents' account.
+6. **Spec wording — "body text" in `readable-text`.** Owner: the human. Slices 02 and 04 both had
+   to read "18 px elsewhere" as "sentences", leaving 16 px labels beside values; the reviewers
+   flagged it each time. Proposal: the parent spec says which text is body text, once.
+
 ## Diff-Review Findings
 
-Written after `code-review`.
+`code-review` ran on `git diff 9b98504...HEAD` at `f849dc6` with two fresh reviewers, 2026-11-25.
+Each finding with its fix or its answer, signed by the Mason. Fixes landed in `987385e`.
+
+**Standards axis:**
+
+- `member-status-badge.tsx` exported two components (`general.mdx`, "One export per file for
+  React components"). Fixed: `MemberFeeBadge` has its own file.
+- The browser test found the brand and subtitle by text (`web-spa-e2e.mdx`, "Specs use
+  `getByTestId` only"). Fixed: `back-office-brand` and `back-office-subtitle` testids. Its other
+  structural lookups (`data-slot`, `h1`, `th`) measure layout, which no testid names; kept.
+- Inline props and no return type on the three status badges (`general.mdx`, "prefer
+  interfaces", "declare the return type"). Fixed: named props interfaces, `ReactElement`.
+- The pagination hook took two positional parameters (`general.mdx`, RO-RO). Fixed: one object.
+- French values in code (`'jour'`, `'soir'`) and the `el` abbreviation in the test. Fixed:
+  `'light'`, `'evening'`, `element`. The French titles stay, as in slices 01 and 02.
+- `ORDER_STATUS_TONE` copied in two purchasing pages (Duplicated Code). Fixed: one
+  `SupplierOrderStatusBadge`.
+- Hand-written status unions where `frontend.mdx` points at the generated types. Fixed as far as
+  the generated file allows: it holds no named status types, so the maps are typed by indexed
+  access (`SupplierOrder['status']`, `MemberListItem['status']`, `MemberListItem['feeState']`).
+- Redundant assertions and the `baseProps` name in `list-pagination.spec.tsx`. Fixed.
+- Four `beforeEach` blocks repeat `resetDb()` and a viewport size (Duplicated Code). Answered:
+  kept. Each block sets a different size or mode, and a helper would hide which one a case uses.
+
+**Spec axis:**
+
+- `readable-text`: some labels and annotations outside tables are 16 px (field labels, the
+  membership number, figure card labels, the pagination count), where the spec says 18 px
+  "elsewhere". Answered: kept, and brought to the Architect. The spec's words are "body text";
+  these are short labels beside a value, the same rule slice 02 applied and the review accepted
+  there. Sentences are 18 px or more. Nothing is under 14 px.
+- `sidebar`: "Grocery" is 32 px, not the mockup's 30 px. Answered: the theme's nearest step, said
+  in the plan and accepted.
+- Scope: "Ouvrir" on non-pending rows, the pending row tint, the translated history codes and
+  `offcanvas` on the desktop. Answered: rulings 2, 4 and 5 at the plan reading.
+- The theme token and its test sit outside the spec's seams, and the four `back-office-*` files
+  and the hook are not named in the spec. Answered: the Architect's brief put any missing tint in
+  `globals.css` with a theme test, and ruling 3 accepted the shared files. The seams as ruled are
+  written in Notes & Snippets. The spec itself is not amended; the Architect may want to.
+- The rulings are "written by the Mason". Answered: the Architect gave them by message; the
+  Mason wrote them down signed with the Architect's name and date, as in slices 01 and 02. The
+  Architect may rewrite them in its own hand.
+- A temporary screenshot spec was in the worktree during the review. Answered: deleted right
+  after the screenshot run, never committed, and the final `pnpm e2e` ran without it.
+- Implementation wrong: none found.
+
+**Found by the screenshots, not by the reviewers** (fixed in `987385e`, red first in
+`s04-review-red.log`): the search placeholders were cut at `w-80`, and the product price broke
+on two lines at 1194 px.
+
+**Left open for the Architect:** archived suppliers and categories never show in the catalogue
+(the screens always ask for `includeArchived=false`), so the new "Archivé" badge is only reached
+by the test, which rewrites the API answer with `page.route`. The removed `opacity-50` and the
+badge are right if an archived row ever shows. The vertical separator of `AppLayoutHeader` sits at
+the top of the header bar instead of its middle; it did so before this slice (slice 02's 1440 px
+screenshot), and `AppLayout` is out of this slice's files.

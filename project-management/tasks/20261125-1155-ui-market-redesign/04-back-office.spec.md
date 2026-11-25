@@ -1,6 +1,6 @@
 # 04 — Back office
 
-**Status:** in-progress
+**Status:** done
 **Blocked by:** [01 — Theme and shared components](01-theme-and-shared-components.spec.md) (done)
 **Parent:** [UI redesign — the "neighbourhood market" direction](../20261125-1155-ui-market-redesign.spec.md)
 
@@ -34,34 +34,37 @@ the parent spec links. It shows the following, from top to bottom:
 
 ## Acceptance criteria
 
-- [ ] **sidebar** — the back office sidebar follows the reference: "Grocery" in Lora with its
+- [x] **sidebar** — the back office sidebar follows the reference: "Grocery" in Lora with its
       subtitle, the awning band, every current link with an icon and a label, the current page marked
       (`aria-current="page"` or the component's active state), and the way to the distribution table at
       the bottom as a visible button. The links keep their `data-testid` (`back-office-nav-*`,
       `nav-logout`). It still folds away on small screens as today.
-- [ ] **page-heads** — each back office page opens with its title in Lora and, where the page has
+- [x] **page-heads** — each back office page opens with its title in Lora and, where the page has
       one today, its short explanation.
-- [ ] **tables** — the back office tables (members, catalogue, purchasing, inventory, slots,
+- [x] **tables** — the back office tables (members, catalogue, purchasing, inventory, slots,
       accounting) use the reference look: framed, heading row tinted, body text at least 16 px, row
       actions at least 44 px high with a visible label. Wide tables scroll inside their frame, never the
       page.
-- [ ] **status-words** — every status (membership, order, stock, slot) is a badge with a word, never
+- [x] **status-words** — every status (membership, order, stock, slot) is a badge with a word, never
       a colour alone.
-- [ ] **pagination-labels** — `ListPagination` in `packages/ui` takes optional label props
+- [x] **pagination-labels** — `ListPagination` in `packages/ui` takes optional label props
       (previous, next, page of), with today's text as the default. The back office passes translated
       labels. No existing prop changes.
-- [ ] **no-forced-capitals** — no `uppercase` class left in `back-office-layout.tsx` and in
+- [x] **no-forced-capitals** — no `uppercase` class left in `back-office-layout.tsx` and in
       `features/admin-*` and `features/catalog`.
-- [ ] **readable-text** — in those same files, body text is at least 16 px in tables and 18 px
+- [x] **readable-text** — in those same files, body text is at least 16 px in tables and 18 px
       elsewhere, and nothing is below 14 px.
-- [ ] **theme-colours-only** — in those same files, no raw Tailwind colour and no hex value: only
+      _(Mason, 2026-11-25: sentences are 18 px or more; short labels beside a value are 16 px, as
+      in slice 02. The reading of "body text" is left to the Architect; see Diff-Review Findings
+      in the work document.)_
+- [x] **theme-colours-only** — in those same files, no raw Tailwind colour and no hex value: only
       theme variables.
-- [ ] **no-overflow-desktop** — at 1440 × 900 and at 1194 × 834, in light and evening mode, the back
+- [x] **no-overflow-desktop** — at 1440 × 900 and at 1194 × 834, in light and evening mode, the back
       office pages have no horizontal page scroll and nothing cut. A new Playwright test checks the
       members list, the catalogue and the accounting page at both sizes. It fails before the change.
-- [ ] **i18n-intact** — no hard-coded text; every new key exists in French and English.
-- [ ] **e2e-green** — `pnpm e2e` passes with no existing test edited, skipped or deleted.
-- [ ] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass.
+- [x] **i18n-intact** — no hard-coded text; every new key exists in French and English.
+- [x] **e2e-green** — `pnpm e2e` passes with no existing test edited, skipped or deleted.
+- [x] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass.
 
 ## Seams
 
