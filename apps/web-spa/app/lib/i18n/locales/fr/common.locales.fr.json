@@ -930,5 +930,10 @@
       "membership-fees": "Cotisations",
       "expenses": "Dépenses"
     }
+  },
+  "backOffice": {
+    "subtitle": "Gestion de l'épicerie",
+    "navigation": "Navigation du back-office",
+    "openDistribution": "Ouvrir la distribution"
   }
 }

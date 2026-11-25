@@ -525,9 +525,32 @@ same step, by PID, or reports the PIDs.
   7 tests red. The `sidebar-primary` pair is green already, as the plan expects (it was only missing).
   The first red run had a wrong regex in my "no labels" test; I fixed it and reran, so the saved log
   is the second run.
+- 2026-11-25 — Typist, step 1, green. Added `--straw-tint` (light and evening, mapped in `@theme
+inline`) and the three optional `ListPagination` props. Green log `s04-step1-green.log` in the
+  scratchpad: 4 files, 136 tests pass. `pnpm typecheck` passes. No departure.
+- 2026-11-25 — Typist, step 2, red. Wrote case 1 of `back-office-desktop.spec.ts` first (four
+  tests: sidebar at 1440, current link on the catalogue page, desktop fold-away, phone sheet). Ran
+  it under the lock. Red log `s04-step2-red.log` in the scratchpad. 3 red, 1 green (the phone
+  sheet already works, as the plan says). Error lines: `Locator:
+locator('[data-slot="sidebar"]').locator('[data-slot="awning-band"]')` with `element(s) not
+found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-current); and
+  `Expected: not in viewport  Received: in viewport` on `back-office-nav-members` (today's icon
+  rail keeps the links in view). Waited about 30 minutes for the lock, the other Mason's runs took
+  it again each time I polled slowly.
+- 2026-11-25 — Typist, step 2, green. Rewrote the sidebar in `back-office-layout.tsx` as planned
+  (offcanvas, awning band, Lora name and subtitle, six links with `aria-current`, footer with
+  account, logout and the straw distribution button; header bar border; inner `main` became a
+  `div`). Added the `backOffice` block (`subtitle`, `navigation`, `openDistribution`) at the end of
+  both locale files. Green log `s04-step2-green.log`: 5 passed (the four tests of case 1 and the
+  setup). Existing specs `nav-smoke`, `rbac-admin`, `app-settings`, `market-theme` run alone: 15
+  passed (`s04-step2-existing.log`). `pnpm typecheck` passes. No departure. The `ShieldCheck`
+  import stays, the access-denied panel still uses it. The `backOffice.open` and
+  `backOffice.pagination.*` keys come in step 3.
+
+## Implementation Checkboxes
 
 - [x] Step 1 — theme tint and `ListPagination` labels: unit tests red, then green
-- [ ] Step 2 — sidebar and layout: browser case 1 red, then green
+- [x] Step 2 — sidebar and layout: browser case 1 red, then green
 - [ ] Step 3 — shared pieces and members screens: case 2 red, then green
 - [ ] Step 4 — catalogue: case 3 red, then green
 - [ ] Step 5 — purchasing, inventory, participation, accounting: case 4 red, then green

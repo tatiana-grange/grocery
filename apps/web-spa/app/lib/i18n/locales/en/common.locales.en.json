@@ -930,5 +930,10 @@
       "membership-fees": "Membership fees",
       "expenses": "Expenses"
     }
+  },
+  "backOffice": {
+    "subtitle": "Grocery management",
+    "navigation": "Back office navigation",
+    "openDistribution": "Open the distribution"
   }
 }
