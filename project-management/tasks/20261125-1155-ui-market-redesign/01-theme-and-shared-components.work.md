@@ -5,7 +5,7 @@ Created by the Mason at the plan step, 2026-11-25. Spec:
 The parent spec, with the colour values and the owner's decisions, is
 `project-management/tasks/20261125-1155-ui-market-redesign.spec.md`.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect, 2026-11-25, with the rulings in Notes & Snippets.
 
 ## Program Design
 
@@ -296,6 +296,19 @@ then a commit.
 - [ ] Step 5 — the five gates green, screenshots taken, files formatted
 
 ## Notes & Snippets
+
+**Architect's rulings at the plan reading** (Architect, 2026-11-25):
+
+1. **Squash as text.** Ruled: squash stays a fill only, with light text on it, and the test enforcing
+   it stays. A later screen that needs squash-coloured text asks for a darker variant first.
+2. **Pagination labels.** Ruled: deferred to slice 04 (back office), as optional label props on
+   `ListPagination`. An additive optional prop is accepted there; this slice changes no props.
+3. **Solid destructive buttons and badges.** Ruled: accepted. The redesign is a change of look, and
+   the pale tint fails 4.5:1 in evening mode.
+4. **Screens bigger before their layout is redone.** Ruled: accepted. The parent spec already says a
+   space not yet redone keeps its old layout with the new theme; it must still work.
+5. **Vitest in `packages/ui`.** Ruled: accepted, set up as in `packages/i18n`.
+
 
 - Usage in `apps/web-spa` (import counts): button 53, input 31, app components 29, skeleton 24,
   badge 23, dialog 14, table 12, segmented control 8, form 6, textarea 5, tabs 3, native select 3,
