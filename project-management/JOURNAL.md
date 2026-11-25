@@ -3,6 +3,23 @@
 Project history, newest first. Written by hand, one dated entry per
 task — never generated.
 
+## 2026-11-25
+
+- UI redesign "neighbourhood market", slice 01, theme and shared components: built and reviewed on
+  `feat/ui-market-redesign`. The Citrus theme is gone. The app now uses cream paper, ink-brown
+  text, sage and squash actions, Lora headings and Onest text, with an evening mode on slate. The
+  text scale is raised in the theme, so body text is 18 px and nothing is under 14 px. Buttons,
+  fields, selects and tabs are 44 to 52 px high, with 2 px ink-brown borders and 12 px corners. A
+  new awning band component waits for slices 02 to 04 to place it. Every text pair of both modes
+  passes 4.5:1, and a new unit test in `packages/ui` checks it. A Typist coded it in four steps,
+  each test written first and seen failing. The review found two real gaps, both fixed:
+  destructive menu items unreadable at night, and four unused fields still too short. On the
+  Architect's word, one class changed in the add-to-cart control, whose sage text was unreadable
+  on slate. The final full runs are green (875 unit and API tests, 150 browser tests). Left open:
+  a period-picker race found in the accounting screen, which predates the slice and needs its own
+  task; the phone layout of the member space, for slice 02. The slice documents stay beside the
+  parent spec, which is still open.
+
 ## 2026-11-24
 
 - Lot 7, accounting and exports, the last delivery lot: built and reviewed on

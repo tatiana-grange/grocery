@@ -1,6 +1,6 @@
 # 01 — Theme and shared components
 
-**Status:** in-progress
+**Status:** done
 **Blocked by:** None — can start immediately
 **Parent:** [UI redesign — the "neighbourhood market" direction](../20261125-1155-ui-market-redesign.spec.md)
 
@@ -20,22 +20,22 @@ composants" on the page "Marché de quartier" of the canvas the parent spec link
 
 Each one is the parent criterion of the same name, checked on what this slice touches.
 
-- [ ] **market-palette** — the light-mode values of the parent criterion, in
-  `packages/ui/src/styles/globals.css`. No Citrus value is left.
-- [ ] **evening-mode** — the dark mode keeps its toggle and gets the slate "evening" values of the
-  parent criterion.
-- [ ] **market-fonts** — headings in Lora, the rest in Onest; Host Grotesk no longer imported.
-- [ ] **readable-text** — body text at least 18 px; no text below 14 px in the shared components.
-- [ ] **no-forced-capitals** — no `uppercase` class in `packages/ui/src`.
-- [ ] **touch-targets** — the default sizes of buttons, inputs, selects and tabs are at least 44 px
-  high.
-- [ ] **contrast-aa** — every text-on-background pair of both modes reaches 4.5:1. The work document
-  lists each pair with its ratio.
-- [ ] **awning-band** — a reusable awning band component exists in `packages/ui`, decorative only
-  (hidden from assistive technology), drawn from theme variables.
-- [ ] **components-unchanged-api** — no component's props, `data-testid` or ARIA role changes.
-- [ ] **e2e-green** — `pnpm e2e` passes with no existing test edited, skipped or deleted.
-- [ ] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass.
+- [x] **market-palette** — the light-mode values of the parent criterion, in
+      `packages/ui/src/styles/globals.css`. No Citrus value is left.
+- [x] **evening-mode** — the dark mode keeps its toggle and gets the slate "evening" values of the
+      parent criterion.
+- [x] **market-fonts** — headings in Lora, the rest in Onest; Host Grotesk no longer imported.
+- [x] **readable-text** — body text at least 18 px; no text below 14 px in the shared components.
+- [x] **no-forced-capitals** — no `uppercase` class in `packages/ui/src`.
+- [x] **touch-targets** — the default sizes of buttons, inputs, selects and tabs are at least 44 px
+      high.
+- [x] **contrast-aa** — every text-on-background pair of both modes reaches 4.5:1. The work document
+      lists each pair with its ratio.
+- [x] **awning-band** — a reusable awning band component exists in `packages/ui`, decorative only
+      (hidden from assistive technology), drawn from theme variables.
+- [x] **components-unchanged-api** — no component's props, `data-testid` or ARIA role changes.
+- [x] **e2e-green** — `pnpm e2e` passes with no existing test edited, skipped or deleted.
+- [x] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass.
 
 ## Seams
 
