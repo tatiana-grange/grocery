@@ -48,6 +48,24 @@ async function findSpilledControls(page: Page): Promise<string[]> {
   })
 }
 
+/** Les textes visibles de moins de 14 px ou en majuscules forcées. */
+async function findSmallOrCapitalText(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const found: string[] = []
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const text = node.textContent?.trim()
+      const el = node.parentElement
+      if (!text || !el || el.closest('script, style, noscript')) continue
+      if (!el.checkVisibility()) continue
+      const style = getComputedStyle(el)
+      if (parseFloat(style.fontSize) < 14) found.push(`${text} (${style.fontSize})`)
+      if (style.textTransform === 'uppercase') found.push(`${text} (uppercase)`)
+    }
+    return found
+  })
+}
+
 /** Passe en mode soir avant que l'application lise son réglage. */
 async function useEveningMode(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -338,4 +356,29 @@ test.describe('boutique et panier à 390 px', () => {
 
     await expect(page.getByRole('link', { name: 'Choisir les options' }).first()).toBeVisible()
   })
+})
+
+test.describe('textes des écrans du membre à 390 px', () => {
+  test.use(withRole('member'))
+
+  for (const mode of ['clair', 'soir'] as const) {
+    test(`les quatre onglets sont lisibles et ne débordent pas (mode ${mode})`, async ({
+      page,
+    }) => {
+      if (mode === 'soir') await useEveningMode(page)
+
+      for (const tab of TABS) {
+        await page.goto(`/${tab.name}`)
+        await expect(page.getByTestId(tab.page)).toBeVisible()
+        // Let the lists and the wallet load before reading the page.
+        await page.waitForLoadState('networkidle')
+
+        expect(await findSmallOrCapitalText(page), `${tab.name} : textes`).toEqual([])
+        await expectNoHorizontalScroll(page)
+        expect(await findSpilledControls(page), `${tab.name} : commandes`).toEqual([])
+        const bodySize = await page.evaluate(() => getComputedStyle(document.body).fontSize)
+        expect(bodySize).toBe('18px')
+      }
+    })
+  }
 })

@@ -95,7 +95,7 @@ export default function AccountPage() {
     return (
       <div className="space-y-4 text-center" data-testid="account-load-error">
         <PageTitle>{t('members.account.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('members.account.loadError')}</p>
+        <p className="text-base text-muted-foreground">{t('members.account.loadError')}</p>
         <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
           {t('common.retry')}
         </Button>
@@ -107,7 +107,7 @@ export default function AccountPage() {
     return (
       <div className="space-y-4 text-center" data-testid="account-not-active">
         <PageTitle>{t('members.account.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('members.account.notActive')}</p>
+        <p className="text-base text-muted-foreground">{t('members.account.notActive')}</p>
         <Button
           variant="outline"
           onClick={async () => {
@@ -125,7 +125,7 @@ export default function AccountPage() {
     <div className="space-y-8" data-testid="page-account">
       <div>
         <PageTitle>{t('members.account.title')}</PageTitle>
-        <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <Badge
             variant={account.status === 'active' ? 'default' : 'secondary'}
             data-testid="account-status"
@@ -154,7 +154,7 @@ export default function AccountPage() {
         <section className="space-y-4">
           <SectionTitle>{t('members.account.personalDetails')}</SectionTitle>
           <label className="block space-y-1">
-            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <span className="text-base font-semibold text-foreground">
               {t('members.account.name')}
             </span>
             <Input
@@ -165,7 +165,7 @@ export default function AccountPage() {
           </label>
           {FIELDS.map((field) => (
             <label key={field} className="block space-y-1">
-              <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              <span className="text-base font-semibold text-foreground">
                 {t(`members.account.${field}`)}
               </span>
               <Input
@@ -209,7 +209,7 @@ export default function AccountPage() {
             <DialogHeader>
               <DialogTitle>{t('members.account.endMembershipTitle')}</DialogTitle>
             </DialogHeader>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               {t('members.account.endMembershipWarning')}
             </p>
             <DialogFooter>

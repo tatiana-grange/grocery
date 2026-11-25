@@ -19,7 +19,7 @@ export function MySignupRow({ signup, onLeave }: MySignupRowProps) {
       data-testid={`my-signup-${signup.slotId}`}
     >
       <div className="min-w-0 flex-1">
-        <p className="font-medium">{signup.roleLabel}</p>
+        <p className="text-lg font-semibold">{signup.roleLabel}</p>
         <p className="text-sm text-muted-foreground">
           {formatSlotWhen(signup.startsAt, signup.endsAt, i18n.language)}
         </p>

@@ -560,12 +560,29 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
   cases. (3) Ruling 2's `title` on the shop view switch is NOT done: the `SegmentedControl` option
   takes `ariaLabel` but no title, and `packages/ui` is out of bounds. Reported to the Architect.
 
+- 2026-11-25 — Typist, step 4. Red: `s02-step4-red.log`, 2 failed (light and evening). Error line:
+  `Error: account : textes` with the six field labels reported as `Nom (uppercase)`, `Adresse
+(uppercase)` and so on. Shop, cart and participation passed the same checks before the account
+  tab was reached. Green: `s02-step4-green.log`, 17 passed. Also green alone:
+  `cart.spec.ts`, `checkout.spec.ts`, `shop-catalog.spec.ts`, `account.spec.ts`,
+  `wallet-topup.spec.ts`, `participation-member.spec.ts` (`s02-step4-others.log`, 32 passed).
+  `pnpm typecheck` clean (`s02-step4-typecheck.log`). The step's test checks `expectNoHorizontalScroll`
+  on `/shop`, `/cart`, `/participation` and `/account`, as asked. Landed: account page labels and
+  sizes, member QR (own quiet zone, no `bg-white`), wallet panel and top-up form (`SectionTitle`,
+  larger text), negative-balance notice, top-up return page, participation page and rows, shop
+  subtitle, aside heading, category rail rows and sheet trigger, product page texts and back link,
+  cart texts, checkout confirmation. Departures: (1) `findSmallOrCapitalText` comes back in the spec
+  here (taken out in step 3). (2) The link buttons for the cart, checkout and product-not-found
+  links landed here, since they sit in shop and cart files; the auth links and the three
+  `text-red-500` lines stay for step 5. (3) The top-up form does not show in the E2E stack (payments
+  off), so the walker did not read it; its classes follow the plan.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — shell and tab bar: phone test red, then green
 - [x] Step 2 — phone header and menu, desktop checks: red, then green
 - [x] Step 3 — shop and cart overflow at 390, light and evening: red, then green
-- [ ] Step 4 — member screens' text, capitals and colours: red, then green
+- [x] Step 4 — member screens' text, capitals and colours: red, then green
 - [ ] Step 5 — sign-in pages: red, then green
 - [ ] Step 6 — five gates green, screenshots taken, files formatted
 

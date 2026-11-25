@@ -1,3 +1,4 @@
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -46,7 +47,7 @@ export function TopupForm() {
       className="space-y-3 rounded-lg border border-border p-4"
       data-testid="wallet-topup-form"
     >
-      <h2 className="font-semibold">{t('wallet.topup.title')}</h2>
+      <SectionTitle>{t('wallet.topup.title')}</SectionTitle>
 
       <form className="space-y-3" noValidate onSubmit={handleSubmit}>
         <div className="flex flex-wrap gap-2">
@@ -64,8 +65,8 @@ export function TopupForm() {
           ))}
         </div>
 
-        <label className="flex flex-col gap-1 text-sm">
-          <span>{t('wallet.topup.amount')}</span>
+        <label className="flex flex-col gap-1 text-base">
+          <span className="font-semibold">{t('wallet.topup.amount')}</span>
           <Input
             className="w-40 text-base tabular-nums"
             data-testid="wallet-topup-amount"
@@ -74,13 +75,13 @@ export function TopupForm() {
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
           />
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {t('wallet.topup.bounds', { min: options.minAmountEur, max: options.maxAmountEur })}
           </span>
         </label>
 
         {mutation.isError ? (
-          <p className="text-sm text-destructive" role="alert" data-testid="wallet-topup-error">
+          <p className="text-base text-destructive" role="alert" data-testid="wallet-topup-error">
             {code && ERROR_CODES.includes(code)
               ? t(`wallet.topup.error.${code}`, {
                   min: options.minAmountEur,
@@ -95,7 +96,7 @@ export function TopupForm() {
         </Button>
       </form>
 
-      <p className="text-xs text-muted-foreground">{t('wallet.topup.note')}</p>
+      <p className="text-sm text-muted-foreground">{t('wallet.topup.note')}</p>
     </section>
   )
 }

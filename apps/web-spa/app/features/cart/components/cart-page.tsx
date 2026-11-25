@@ -92,7 +92,7 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
             to wait for a delivery. */}
         {later > 0 && (
           <ul
-            className="mt-1.5 space-y-0.5 text-xs text-muted-foreground"
+            className="mt-1.5 space-y-0.5 text-sm text-muted-foreground"
             data-testid={`cart-line-pickup-${line.id}`}
           >
             {now > 0 && (
@@ -180,8 +180,8 @@ function PendingPickupNotice({ pickups }: { pickups: CartLinePickup[] }) {
 
   return (
     <div className="rounded-lg bg-muted p-4" data-testid="cart-pending-notice">
-      <h2 className="text-sm font-semibold">{t('cart.pickup.summaryTitle')}</h2>
-      <ul className="mt-2 space-y-1 text-sm">
+      <h2 className="font-serif text-lg font-semibold">{t('cart.pickup.summaryTitle')}</h2>
+      <ul className="mt-2 space-y-1 text-base">
         {pending.map(({ line, later }) => (
           <li key={line.id} className="flex flex-wrap justify-between gap-x-4">
             <span>{line.product.name}</span>
@@ -191,7 +191,7 @@ function PendingPickupNotice({ pickups }: { pickups: CartLinePickup[] }) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-muted-foreground">{t('cart.pickup.summaryNote')}</p>
+      <p className="mt-3 text-sm text-muted-foreground">{t('cart.pickup.summaryNote')}</p>
     </div>
   )
 }
@@ -242,13 +242,9 @@ export default function CartPage() {
       <div className="space-y-6" data-testid="page-cart">
         <PageTitle>{t('cart.checkout.title')}</PageTitle>
         <CheckoutConfirmation result={confirmation} />
-        <Link
-          to="/shop"
-          className="text-sm font-medium underline"
-          data-testid="checkout-back-to-shop"
-        >
+        <Button variant="link" render={<Link to="/shop" />} data-testid="checkout-back-to-shop">
           {t('cart.browseShop')}
-        </Link>
+        </Button>
       </div>
     )
   }
@@ -268,7 +264,7 @@ export default function CartPage() {
         <BackToShopButton />
         <div className="space-y-4 text-center">
           <PageTitle>{t('cart.title')}</PageTitle>
-          <p className="text-sm text-muted-foreground">{t('cart.loadError')}</p>
+          <p className="text-base text-muted-foreground">{t('cart.loadError')}</p>
           <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
             {t('common.retry')}
           </Button>
@@ -292,13 +288,9 @@ export default function CartPage() {
             title={t('cart.empty')}
           />
           <div className="text-center">
-            <Link
-              to="/shop"
-              className="text-sm font-medium underline"
-              data-testid="cart-browse-shop"
-            >
+            <Button variant="link" render={<Link to="/shop" />} data-testid="cart-browse-shop">
               {t('cart.browseShop')}
-            </Link>
+            </Button>
           </div>
         </div>
       ) : (
