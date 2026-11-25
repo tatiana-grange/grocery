@@ -511,10 +511,25 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
   01's work document and its 390 px shop screenshot, the shell, header, layouts, every screen file
   of the slice, the E2E config and the tests that touch navigation and the cart. Ran the searches
   in Notes & Snippets. Wrote this plan. No production code yet.
+- 2026-11-25 — Typist, extra commit (ruling 4): the grep for the word Inter over `apps/web-spa/app` and
+  `packages/ui/src` (ts, tsx, css) finds only the Google Fonts link in `root.tsx`; no font setting
+  names Inter. Removed the three `links` entries and the empty `links` export (`Route` is still used
+  by `ErrorBoundary`, nothing else needs `LinksFunction`). Own commit 9685e98.
+- 2026-11-25 — Typist, step 1. Red: `s02-step1-red.log`, 4 failed, 1 passed (the setup). The error
+  line is `Error: element(s) not found ... waiting for getByTestId('member-tab-bar')` (and
+  `tab-bar-cart-count` for the cart count case). Green: `s02-step1-green.log`, 5 passed.
+  `pnpm typecheck` clean (`s02-step1-typecheck.log`). Landed: `member-shell.tsx`,
+  `member-tab-bar.tsx`, both layouts, `root.tsx` viewport and body padding, five i18n keys of the
+  plan's table that step 1 needs (`mainNavigation`, `menu`, `cartItems_*`; `cart.removeLine` comes
+  with step 3). Departures from the plan: (1) the "no horizontal scroll" check on each tab is not in
+  step 1's test. On the first green run `/shop` scrolled to 786 px, because the old top bar (step 2)
+  and the shop cards (step 3) still overflow, so the plan's step 1 assertion cannot be green before
+  those steps. Step 4's test must check all four tabs for horizontal scroll; the Mason should keep
+  that in mind. (2) The toast case polls the toast's box until it rests, because Sonner slides it in.
 
 ## Implementation Checkboxes
 
-- [ ] Step 1 — shell and tab bar: phone test red, then green
+- [x] Step 1 — shell and tab bar: phone test red, then green
 - [ ] Step 2 — phone header and menu, desktop checks: red, then green
 - [ ] Step 3 — shop and cart overflow at 390, light and evening: red, then green
 - [ ] Step 4 — member screens' text, capitals and colours: red, then green

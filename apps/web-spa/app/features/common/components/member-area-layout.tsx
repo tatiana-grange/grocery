@@ -1,11 +1,10 @@
 import { AppLoader } from '@grocery/ui/components/app'
-import { Toaster } from '@grocery/ui/components/primitives/sonner'
 import { Navigate, Outlet, useLocation } from 'react-router'
-import { SiteHeader } from '@/features/common/components/site-header'
+import { MemberShell } from '@/features/common/components/member-shell'
 import { authClient } from '@/lib/auth-client'
 
 /**
- * Shell for signed-in members. Same chrome as the shop — the shared SiteHeader — plus the
+ * Shell for signed-in members. Same chrome as the shop — the shared MemberShell — plus the
  * guard that sends signed-out visitors to the login page with a return path.
  */
 export default function MemberAreaLayout() {
@@ -18,12 +17,8 @@ export default function MemberAreaLayout() {
   }
 
   return (
-    <div className="min-h-svh bg-background">
-      <SiteHeader />
-      <main className="mx-auto max-w-3xl p-6">
-        <Outlet />
-      </main>
-      <Toaster position="bottom-right" richColors />
-    </div>
+    <MemberShell contentClassName="max-w-3xl">
+      <Outlet />
+    </MemberShell>
   )
 }

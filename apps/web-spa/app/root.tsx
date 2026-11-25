@@ -36,7 +36,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <title>Grocery</title>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="author" content="Grocery" />
         <meta name="keywords" content="Grocery" />
 
@@ -44,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="bg-gradient-bg">
+      <body className="bg-gradient-bg pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
         {children}
         <ScrollRestoration />
         <Scripts />

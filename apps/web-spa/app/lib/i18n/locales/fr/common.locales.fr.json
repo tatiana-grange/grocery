@@ -315,6 +315,10 @@
   },
   "shop": {
     "nav": {
+      "mainNavigation": "Navigation principale",
+      "menu": "Menu",
+      "cartItems_one": "{{count}} article",
+      "cartItems_other": "{{count}} articles",
       "shop": "Boutique",
       "cart": "Panier",
       "myAccount": "Mon compte",
