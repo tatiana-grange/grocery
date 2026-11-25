@@ -452,7 +452,8 @@ test`.
    full. The close `grep`s of Notes & Snippets. `oxfmt` on the changed files by name, a few at a
    time. Screenshots are the Mason's, after the review.
 
-Every run on the E2E stack takes the lock first (`scratchpad/e2e.lock`, with `s04` and the time
+Every Playwright run (one file, a red run, the full suite) and every use of the E2E stack takes
+the lock first (`scratchpad/e2e.lock`, with `s04` and the time
 in a file inside), checks `docker ps` for another project on 5434, 1093 and 1043, and removes the
 lock as soon as its stack and servers are down. The Typist stops every server it starts in the
 same step, by PID, or reports the PIDs.
@@ -527,6 +528,17 @@ same step, by PID, or reports the PIDs.
 - [ ] Step 6 — five gates green, close checks, files formatted
 
 ## Notes & Snippets
+
+**Architect's notes during the plan reading** (Architect, 2026-11-25, found by slice 03; written
+by the Mason):
+
+- **The lock holds for every Playwright run.** Outside CI, `playwright.config.ts` reuses any
+  server already listening on 3060 or 5273 (`reuseExistingServer`). A run without the lock can
+  silently test slice 03's code from the other worktree. So every Playwright run takes
+  `scratchpad/e2e.lock` first: single test files, red runs, green runs, the full suite and the
+  screenshots alike. The Typist's brief repeats it.
+- **The settings control stays icon-only**, under slice 02's ruling 2 exception. This slice
+  builds no second settings menu; `AppSettingsMenu` is reused in the header bar as it is.
 
 **Searches run on 2026-11-25** from `apps/web-spa/app`, over the files of the criteria
 (`F` = `features/admin-accounting features/admin-inventory features/admin-members
