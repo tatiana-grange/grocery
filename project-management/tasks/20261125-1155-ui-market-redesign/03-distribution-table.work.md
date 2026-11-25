@@ -13,14 +13,15 @@ Work happens in the worktree `.worktrees/s03-distribution`, branch `feat/ui-mark
 cut from `feat/ui-market-redesign` at `9b98504`. Slice 04 is built at the same time in
 `.worktrees/s04-back-office`.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect, 2026-11-25, with the rulings in Notes & Snippets.
 
 ## Program Design
 
 ### What changes, in one paragraph
 
 The distribution layout gets the awning band, a market top bar ("Distribution" in Lora, then the
-shop, account, sign-out and settings controls, each with an icon and a word), and a two-column body
+shop, account and sign-out controls, each with an icon and a word, and the icon-only settings
+button of ruling 1), and a two-column body
 from 1024 px up: the member search on the left (400 px, sticky, 2 px right border), the page on the
 right. Below 1024 px the same search sits above the page. The search leaves the home page and
 becomes one component that the layout renders once; the open member's result carries
@@ -66,7 +67,6 @@ export function DistributionMemberSearch(): ReactElement
 | `apps/web-spa-e2e/tests/distribution-tablet.spec.ts`                                          | New browser test at 1194 × 834 (and 768 × 1024), grown step by step.                                                             |
 | `apps/web-spa/app/features/common/components/distribution-layout.tsx`                         | Awning band, market top bar, the two-column body with the search column. Guard and access-denied screen unchanged word for word. |
 | `apps/web-spa/app/features/distribution/components/distribution-member-search.tsx`            | New. The search label, field and results, moved from the home page.                                                              |
-| `apps/web-spa/app/features/distribution/components/distribution-settings-menu.tsx`            | New, only if the Architect rules for the labelled settings button (question 1).                                                  |
 | `apps/web-spa/app/features/distribution/components/distribution-notice.tsx`                   | New. The one warning and success box of the table (see "Shared notice").                                                         |
 | `apps/web-spa/app/features/distribution/components/distribution-home-page.tsx`                | Search removed; waiting lists restyled.                                                                                          |
 | `apps/web-spa/app/features/distribution/components/distribution-member-page.tsx`              | Rebuilt in the mockup's order.                                                                                                   |
@@ -96,7 +96,7 @@ div  min-h-svh bg-background  data-testid="distribution-layout"
 │       ├─ Button outline (48 px)  Store icon + "Retour à la boutique"  data-testid="distribution-nav-shop"
 │       ├─ Button ghost (48 px)    User icon + "Mon compte"             data-testid="distribution-nav-account"
 │       ├─ Button ghost (48 px)    LogOut icon + "Se déconnecter"       data-testid="nav-logout" (text-destructive kept)
-│       └─ settings (question 1)
+│       └─ AppSettingsMenu, unchanged: icon-only with `aria-label` and `title` (ruling 1)
 ├─ div  lg:grid lg:grid-cols-[400px_minmax(0,1fr)]
 │   ├─ aside aria-label=distribution.search.label  border-b-2 border-border bg-card p-6
 │   │        lg:sticky lg:top-0 lg:max-h-svh lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r-2
@@ -188,8 +188,9 @@ px-4 py-3`, divided by `divide-y divide-rule` (1 px kraft):
 - handable: the quantity `Input` `h-12 w-28 text-lg`, `handover-qty` kept, inside a label
   "Remis" (`text-base`); then the line price `text-lg tabular-nums`;
 - not handable: `handover-excluded` (`text-base text-muted-foreground`) reads "Déjà remis" as today,
-  or, for a not-ready line, `distribution.line.notHandedOver` ("Pas remise cette fois") instead of
-  repeating the reason that now sits under the name in the same row.
+  or, for a not-ready line, `distribution.line.notHandedOver` ("Pas remise cette fois"). The
+  reason stays visible in the same row, under the name (`distribution-line-not-ready`), as ruling 2
+  requires: the distributor needs it to answer the member.
 
 Footer, `flex flex-wrap items-center gap-4 border-t-2 border-rule bg-kraft/40 p-4 dark:bg-muted`
 (ink on kraft-tinted card 12.3:1; cream on evening muted 12.12:1; at night the kraft tint over the
@@ -359,8 +360,8 @@ No case signs out: the distributor and admin sessions are shared (lesson of slic
      now and turns green at step 4 (it covers screens of steps 2 and 3 as well).
    - "une seule recherche, à gauche, sur chaque page" — at 1194: `[data-slot="awning-band"]` inside
      `distribution-layout`; `distribution-home-link` font family starts with `Lora Variable`;
-     `distribution-nav-shop`, `distribution-nav-account`, `nav-logout` and the settings trigger each
-     hold an `svg` and non-empty visible text and are at least 44 px high; the search field's right
+     `distribution-nav-shop`, `distribution-nav-account`, `nav-logout` each hold an `svg` and non-empty
+     visible text (`app-settings-trigger` an `svg`, an `aria-label` and a `title`, ruling 1) and are at least 44 px high; the search field's right
      edge is at most 402 px and `page-distribution-home`'s left edge at least 400 px; type Fanny,
      click her row: `page-distribution-member`, `distribution-member-search` and
      `distribution-search-results` each `toHaveCount(1)`, her row has `aria-current="page"`; type
@@ -368,7 +369,7 @@ No case signs out: the distributor and admin sessions are shared (lesson of slic
      Fanny's is not; open the express sale: the search is still visible and Anna still current. At
      768 × 1024: the search field's bottom is above `page-distribution-home`'s top. **Expected red:**
      awning band not found in the layout.
-     Then: `distribution-member-search.tsx`, the layout, the settings control, the home page, the
+     Then: `distribution-member-search.tsx`, the layout, the home page, the
      `nav.main` and `waiting.title` keys. Green for the second test; the existing
      `distribution-*.spec.ts`, `wallet-refund.spec.ts`, `wallet-correction.spec.ts`,
      `rbac-distributor.spec.ts`, `auth-logout.spec.ts` and `app-settings.spec.ts` run alone, green.
@@ -438,7 +439,7 @@ releases the lock, or reports what is still running.
   `distribution-member-balance-block`, `distribution-to-hand-over`, `distribution-actions`: the new
   test needs them; none reuses an old value.
 
-### Questions for the Architect
+### Questions for the Architect (answered: see the rulings in Notes & Snippets)
 
 1. **The settings control needs a label, but `app-settings-menu.tsx` is out of bounds.** The
    `header` criterion asks for an icon and a label on the settings; `AppSettingsMenu` is icon-only
@@ -461,3 +462,40 @@ testIdPrefix="app-settings" />`, so the testids stay the same and only one trigg
    the bottom row. A member can have several orders, each validated on its own (`handover-submit`
    is scoped per order by the tests). So each order card carries its 72 px sage button in its kraft
    footer, and the bottom row holds the payment, express sale and refund. Recommendation: accept.
+
+## Worklog
+
+- 2026-11-25 — Mason: read the reading list (README, documentation index, general and frontend
+  guidelines, constitution, `CONTRIBUTING.md`, `.cursor/rules`, the journal), both specs, the work
+  documents of slices 01 and 02, every file of the slice, the distribution and wallet E2E specs,
+  `member-phone.spec.ts` and the E2E config. Ran the `grep`s above. Wrote this plan. No production
+  code. Plan commit `dc7c076`.
+
+## Implementation Checkboxes
+
+- [ ] Step 1 — layout and search column: sweep and layout tests red, then the layout test green
+- [ ] Step 2 — member page, order card, big actions: red, then green
+- [ ] Step 3 — express sale, receipt, wallet components: red, then green
+- [ ] Step 4 — sweep green, five gates green, screenshots taken, files formatted
+
+## Notes & Snippets
+
+**Architect's rulings at the plan reading** (Architect, 2026-11-25, written by the Mason):
+
+1. **Settings: option (b).** The settings control stays `AppSettingsMenu`, icon-only, with its
+   `aria-label` and `title`, under slice 02's ruling 2 exception. No second menu is built. The
+   Architect may move a labelled settings menu into `features/common` once both slices are merged.
+2. **One list of lines per order, inside `HandoverForm`: accepted, on one condition.** A line that
+   is not ready still shows its reason, as today. "Pas remise cette fois" may lead, but the reason
+   stays visible, because the distributor needs it to answer the member. The testids move into the
+   rows.
+3. **One "Valider la remise" per order**, in that order's footer: accepted.
+
+Also accepted: no session date, progress pill or checkboxes; the shortfall warning still comes
+from the server; today's wording kept; the nearest theme sizes; no red inside the slate block;
+`DistributionNotice`, with its classes copied in the wallet's notice. The E2E lock is mandatory for
+every Playwright run.
+
+## Diff-Review Findings
+
+Written after `code-review`.
