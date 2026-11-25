@@ -591,6 +591,14 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
   compte ? S'inscrire") is `whitespace-nowrap` in a link button. The auth link buttons now carry
   `h-auto min-h-12 text-center whitespace-normal`, so the text wraps. The test was not changed.
 
+- 2026-11-25 — Mason, retouch for ruling 2 (a few lines, after the Typist reported the gap).
+  `SegmentedControl` options take `ariaLabel` but no `title`, and the slice spec keeps the props
+  of `packages/ui` unchanged. In `shop-view-toggle.tsx` each option's label is now a `span` with
+  `title` set to the view's name, filling the 44 px button, around the icon (now `size-5`). The
+  `aria-label` stays on the button. No failing test was written first: a hover title has no
+  behaviour a member depends on, and the review reads it. The settings trigger got its `title` in
+  step 2.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — shell and tab bar: phone test red, then green
