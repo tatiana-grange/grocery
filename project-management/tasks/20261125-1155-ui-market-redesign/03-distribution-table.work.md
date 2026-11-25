@@ -470,10 +470,31 @@ testIdPrefix="app-settings" />`, so the testids stay the same and only one trigg
   documents of slices 01 and 02, every file of the slice, the distribution and wallet E2E specs,
   `member-phone.spec.ts` and the E2E config. Ran the `grep`s above. Wrote this plan. No production
   code. Plan commit `dc7c076`.
+- 2026-11-25 — Typist, step 1, red. Wrote `apps/web-spa-e2e/tests/distribution-tablet.spec.ts`
+  before any production file: the sweep (4 cases: 1194 and 768, light and evening), the "one search"
+  test, a 768 px "search above the content" test and the admin refund sweep (4 cases). Ran it alone
+  under the E2E lock: 10 failed, as expected. Red log:
+  `scratchpad/s03-step1-red.log`. Error lines: sweep at 1194 light, `locator.fill: Test timeout of
+45000ms exceeded` waiting for `distribution-member-search` on the member page; evening, `accueil :
+textes petits ou en capitales` (the uppercase header); at 768, `défilement horizontal`, Expected
+  <= 768, Received 796 (the old header); "one search", `awning-band` not found in the layout.
+- 2026-11-25 — Typist, step 1, green. Added `distribution-member-search.tsx`, the layout (awning
+  band, market top bar, two-column body), the home page without the search, and the keys
+  `distribution.nav.main` and `distribution.waiting.title` (fr and en). Green log:
+  `scratchpad/s03-step1-green.log`: "une seule recherche" and "sous 1024 px" pass. The sweep gets
+  further but stays red on purpose until steps 2 and 3. Two findings. First, the correction dialog
+  holds a 1 px wide `sr-only` frame (the close label) that my own `findSidewaysScrollers` counted as
+  cut. I fixed that false positive in the new helper (frames 1 px wide are skipped). Second, a real
+  one: `wallet-refund-confirm` leaves the refund dialog box on the left at both sizes (two wide
+  buttons in a `sm:max-w-sm` dialog). Step 3 owns `refund-dialog.tsx`, so it is fixed there. Other
+  specs run alone, all green: `s03-step1-others-a.log` (distribution screen, handover, express,
+  waiting, wallet, reversal: 27 passed) and `s03-step1-others-b.log` (wallet-refund,
+  wallet-correction, rbac-distributor, auth-logout, app-settings: 19 passed). `pnpm typecheck`:
+  `s03-step1-typecheck.log`, clean. No departure from the plan.
 
 ## Implementation Checkboxes
 
-- [ ] Step 1 — layout and search column: sweep and layout tests red, then the layout test green
+- [x] Step 1 — layout and search column: sweep and layout tests red, then the layout test green (sweep stays red until steps 2 and 3, on purpose)
 - [ ] Step 2 — member page, order card, big actions: red, then green
 - [ ] Step 3 — express sale, receipt, wallet components: red, then green
 - [ ] Step 4 — sweep green, five gates green, screenshots taken, files formatted

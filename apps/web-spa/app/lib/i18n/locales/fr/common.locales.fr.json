@@ -534,7 +534,8 @@
     "subtitle": "Trouvez un adhérent, remettez ses commandes ou vendez depuis le rayon.",
     "nav": {
       "distribution": "Distribution",
-      "backToShop": "Retour à la boutique"
+      "backToShop": "Retour à la boutique",
+      "main": "Navigation de la distribution"
     },
     "accessDenied": "Il faut le rôle distributeur pour tenir une distribution.",
     "search": {
@@ -599,6 +600,7 @@
       "success": "Vendu. {{amount}} débités."
     },
     "waiting": {
+      "title": "Commandes à remettre",
       "preOrders": "Précommandes à remettre",
       "inStoreOrders": "Commandes sur stock à remettre",
       "empty": "Rien en attente.",

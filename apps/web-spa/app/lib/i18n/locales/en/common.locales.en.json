@@ -534,7 +534,8 @@
     "subtitle": "Find a member, hand over their orders, or sell from the shelf.",
     "nav": {
       "distribution": "Distribution",
-      "backToShop": "Back to shop"
+      "backToShop": "Back to shop",
+      "main": "Distribution navigation"
     },
     "accessDenied": "You need the distributor role to staff a distribution.",
     "search": {
@@ -599,6 +600,7 @@
       "success": "Sold. {{amount}} charged."
     },
     "waiting": {
+      "title": "Orders to hand over",
       "preOrders": "Pre-orders to hand over",
       "inStoreOrders": "In-store orders to hand over",
       "empty": "Nothing waiting.",
