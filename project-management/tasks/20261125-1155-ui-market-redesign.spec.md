@@ -1,6 +1,6 @@
 # UI redesign — the "neighbourhood market" direction
 
-**Status:** draft
+**Status:** ready
 
 ---
 
@@ -66,6 +66,10 @@ on a desktop. The link is private to the project owner.
   goes with it.
 - [ ] **mobile-tab-bar** — below 768 px wide, the member space shows a tab bar fixed at the bottom
   (Shop, Cart, Participation, My account); above it, the navigation is at the top.
+- [ ] **evening-mode** — the dark mode stays, with its existing toggle: a slate background, cream
+  text, and the same sage and squash action colours, each pair at 4.5:1 or more.
+- [ ] **shop-grid-default** — on phones the shop still opens in the grid view; each product card's add
+  button shows the word "Add" ("Ajouter"), not an icon alone.
 - [ ] **distribution-search-visible** — on the distribution table, the "Find a member" field stays
   visible while a member's page is open.
 - [ ] **i18n-intact** — no hard-coded text is added; every new translation key exists in French and
@@ -138,15 +142,11 @@ redone keeps its old layout with the new theme.
 the participation and accounting screens yet, and the redesign touches them. The pull request will
 target `feat/accounting-exports`.
 
-**Open questions for the project owner** (written by the Architect, 25 November 2026):
+**Answered questions** (asked by the Architect and answered by the project owner, 25 November 2026):
 
-1. **Dark mode.** The app has a dark mode today. Keep it, as an "evening" variant on a slate
-   background, or remove it? Recommendation: keep it; the setting already exists and some members may
-   prefer it.
-2. **"Participation" or "Créneaux".** The mockups suggested "Créneaux". Renaming changes texts the E2E
-   suite looks for, which would mean editing tests. Recommendation: keep "Participation" in this task.
-3. **Products as a list on phones.** The shop already has three views (large images, compact images,
-   list). Recommendation: the list by default on phones, with a real "Add" button instead of a "+".
+1. **Dark mode: kept**, as an "evening" variant on a slate background. See `evening-mode`.
+2. **"Participation" label: kept.** The tab is not renamed "Créneaux", so the E2E suite stays intact.
+3. **Shop on phones: grid kept** as the default view, as today. The list view stays one choice away.
 
 ## Retrospective
 
