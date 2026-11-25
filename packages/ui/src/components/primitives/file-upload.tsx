@@ -895,7 +895,7 @@ function FileUploadItemMetadata({
             id={itemContext.nameId}
             className={cn(
               'truncate font-medium text-sm',
-              size === 'sm' && 'font-normal text-[13px] leading-snug',
+              size === 'sm' && 'font-normal text-xs leading-snug',
             )}
           >
             {itemContext.fileState.file.name}
@@ -904,7 +904,7 @@ function FileUploadItemMetadata({
             id={itemContext.sizeId}
             className={cn(
               'truncate text-muted-foreground text-xs',
-              size === 'sm' && 'text-[11px] leading-snug',
+              size === 'sm' && 'text-xs leading-snug',
             )}
           >
             {formatBytes(itemContext.fileState.file.size)}
@@ -970,14 +970,14 @@ function FileUploadItemProgress({
           stroke="currentColor"
         >
           <circle
-            className="text-primary/20"
+            className="text-foreground/20"
             strokeWidth="2"
             cx={size / 2}
             cy={size / 2}
             r={(size - 4) / 2}
           />
           <circle
-            className="text-primary transition-[stroke-dashoffset] duration-300 ease-linear"
+            className="text-foreground transition-[stroke-dashoffset] duration-300 ease-linear"
             strokeWidth="2"
             strokeLinecap="round"
             strokeDasharray={circumference}
