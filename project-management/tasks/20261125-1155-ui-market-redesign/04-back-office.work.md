@@ -613,6 +613,22 @@ found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-curr
   `delete-slot-dialog.tsx` and `cancel-slot-dialog.tsx` needed no change, so they are untouched.
   The slot detail count card shows the old text "0 / 3" under the label "Inscrits" (the existing
   `adminParticipation.detail.signups` key).
+- 2026-11-25 — Typist, step 6. Gates, each with its full log in the scratchpad: `pnpm lint`
+  (`s04-gate-lint.log`, exit 0, only warnings in files this slice does not touch), `pnpm typecheck`
+  (`s04-gate-typecheck.log`, exit 0), `pnpm test` (`s04-gate-test.log`, exit 0: i18n 15, ui 136,
+  api 735 tests), `pnpm build` (`s04-gate-build.log`, exit 0), `pnpm e2e` (`s04-gate-e2e.log`):
+  218 passed, 1 failed. The one failure is the known flaky accounting period filter test
+  (`accounting.spec.ts:107`, `pnl-expenses-total` still showed the old total). Rerun alone:
+  `accounting.spec.ts` 9 passed (`s04-gate-e2e-rerun-accounting.log`). No existing test was edited,
+  skipped or deleted: `git diff --stat 9b98504 -- apps/web-spa-e2e` shows only the new
+  `back-office-desktop.spec.ts`. Close checks run from `apps/web-spa/app` on the criterion files
+  plus the five new shared files: `uppercase` none; arbitrary text sizes only the 52 px title
+  (`text-[3.25rem]` in `back-office-page-head.tsx`); raw colours none; hex none; `text-xs` none;
+  `opacity-50` none; `text-primary` and `text-warning` none; `mr-2` none; every `text-sm` line read
+  (labels, annotations, member numbers; none inside a table cell except member and slot numbers and
+  the expense reason line, all 16 px). The French and English locale files hold the same 690 keys.
+  A search for quoted French words in the changed `.tsx` files found none. `oxfmt --check` on the 37
+  changed files: all formatted. Departures: none new. Screenshots are the Mason's.
 
 ## Implementation Checkboxes
 
@@ -621,7 +637,7 @@ found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-curr
 - [x] Step 3 — shared pieces and members screens: case 2 red, then green
 - [x] Step 4 — catalogue: case 3 red, then green
 - [x] Step 5 — purchasing, inventory, participation, accounting: case 4 red, then green
-- [ ] Step 6 — five gates green, close checks, files formatted
+- [x] Step 6 — five gates green, close checks, files formatted
 
 ## Notes & Snippets
 
