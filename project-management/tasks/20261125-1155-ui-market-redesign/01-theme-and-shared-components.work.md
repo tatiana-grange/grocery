@@ -330,12 +330,19 @@ page-title.tsx: uppercase"]` for capitals (3 of 4 failed; log `scratchpad/step3-
   the plan did not list them, so they only follow the tokens; (f) tooltip text stays `text-xs`
   (now 14 px).
 
+- 2026-11-25 — Typist, step 4. `awning-band.spec.tsx` written first. Red: `Error: Cannot find module
+'./awning-band'` (the whole file failed to load). Then wrote `AwningBand`, the `awning`
+  utility (three layers as in the plan: stripes, then one half-disc layer per stripe colour) and
+  the export in `components/app/index.tsx`. Green: `packages/ui` 125 passed. The band is not
+  placed in any layout. Tiny choice: the utility sits just before `@theme inline` in
+  `globals.css`; `theme.spec.ts` still reads `:root`, `.dark` and `@theme` correctly.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — Vitest in `packages/ui`, `theme.spec.ts` red then green, new `globals.css`, Host Grotesk gone
 - [x] Step 2 — `market-theme.spec.ts` written and red on the heights
 - [x] Step 3 — `component-rules.spec.ts` red then green, components restyled, browser test green
-- [ ] Step 4 — `awning-band.spec.tsx` red then green, `AwningBand` exported
+- [x] Step 4 — `awning-band.spec.tsx` red then green, `AwningBand` exported
 - [ ] Step 5 — the five gates green, screenshots taken, files formatted
 
 ## Notes & Snippets
