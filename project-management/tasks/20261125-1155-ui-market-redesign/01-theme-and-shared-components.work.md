@@ -299,10 +299,20 @@ then a commit.
   only lists tokens that differ from light, the others are inherited (the spec merges them the same
   way); (d) `apps/web-spa/build/` (ignored build output) still holds an old CSS with the word.
 
+- 2026-11-25 — Typist, step 2. `docker ps` showed ports 5434, 1093 and 1043 held only by this
+  project's own `grocery-e2e` containers. `e2e:infra` up, then `market-theme.spec.ts` run alone.
+  Red on the real target: `expect(box.height).toBeGreaterThanOrEqual(44)` received 32 (login
+  button, login field and mode choice, shop search and sort) and 25 (catalog tabs). It also failed
+  on the 14 px floor: `Email (12.8px)`, `Téléphone (12.8px)` (the segmented control's
+  `text-[0.8rem]`), a failure the plan did not list but step 3 fixes. The colour, font, 18 px body
+  and evening cases passed, as the plan expected. The very first run also failed on the colour
+  case because the SPA was cold (`auth-login-submit` not found within 10 s); a second run passed
+  it. Logs: `scratchpad/step2-red.log` and `step2-red2.log`.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — Vitest in `packages/ui`, `theme.spec.ts` red then green, new `globals.css`, Host Grotesk gone
-- [ ] Step 2 — `market-theme.spec.ts` written and red on the heights
+- [x] Step 2 — `market-theme.spec.ts` written and red on the heights
 - [ ] Step 3 — `component-rules.spec.ts` red then green, components restyled, browser test green
 - [ ] Step 4 — `awning-band.spec.tsx` red then green, `AwningBand` exported
 - [ ] Step 5 — the five gates green, screenshots taken, files formatted
