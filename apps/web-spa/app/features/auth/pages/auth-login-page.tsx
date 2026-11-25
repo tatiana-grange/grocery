@@ -1,3 +1,4 @@
+import { Button } from '@grocery/ui/components/primitives/button'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -59,10 +60,10 @@ export default function Login() {
         onSubmit={(data) => loginMutate(data)}
         isPending={isPending}
       />
-      <div className="h-10">
+      <div className="min-h-10">
         {error ? (
           <div
-            className="text-sm font-medium text-red-500"
+            className="text-base font-medium text-destructive"
             data-testid={
               error.message === 'BANNED_USER' ? 'auth-login-error-banned' : 'auth-login-error'
             }
@@ -73,10 +74,14 @@ export default function Login() {
           </div>
         ) : null}
       </div>
-      <div className="text-center text-sm">
-        <Link to="/register" className="font-medium transition-colors">
+      <div className="text-center">
+        <Button
+          variant="link"
+          className="h-auto min-h-12 text-center whitespace-normal"
+          render={<Link to="/register" />}
+        >
           {t('auth.login.noAccount')} {t('auth.login.signUp')}
-        </Link>
+        </Button>
       </div>
     </div>
   )

@@ -94,9 +94,9 @@ export const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             <FormItem>
               <div className="flex justify-between">
                 <FormLabel htmlFor="password">{t('auth.login.password')}</FormLabel>
-                <Link className="text-sm text-muted-foreground" to="/forgot-password">
+                <Button variant="link" size="sm" render={<Link to="/forgot-password" />}>
                   {t('auth.login.forgotPassword')}
-                </Link>
+                </Button>
               </div>
               <FormControl>
                 <Input

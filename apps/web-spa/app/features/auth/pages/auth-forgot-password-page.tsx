@@ -84,7 +84,7 @@ export default function AuthForgotPasswordPage() {
             isPending={request.isPending}
           />
           {request.error ? (
-            <p className="text-sm font-medium text-red-500">
+            <p className="text-base font-medium text-destructive">
               {t('auth.forgotPassword.failedToSend')}
             </p>
           ) : null}
@@ -93,7 +93,7 @@ export default function AuthForgotPasswordPage() {
 
       {step === 'emailSent' && (
         <div className="space-y-3 text-center" data-testid="auth-forgot-sent">
-          <p className="text-sm text-muted-foreground">{t('auth.forgotPassword.emailSent')}</p>
+          <p className="text-base text-muted-foreground">{t('auth.forgotPassword.emailSent')}</p>
           <Button
             variant="ghost"
             className="w-full"
@@ -131,10 +131,14 @@ export default function AuthForgotPasswordPage() {
         </div>
       )}
 
-      <div className="text-center text-sm">
-        <Link to="/login" className="font-medium transition-colors">
+      <div className="text-center">
+        <Button
+          variant="link"
+          className="h-auto min-h-12 text-center whitespace-normal"
+          render={<Link to="/login" />}
+        >
           {t('auth.forgotPassword.backToLogin')}
-        </Link>
+        </Button>
       </div>
     </div>
   )

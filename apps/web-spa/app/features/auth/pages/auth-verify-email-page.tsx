@@ -1,3 +1,4 @@
+import { Button } from '@grocery/ui/components/primitives/button'
 import { useMutation } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
@@ -67,10 +68,14 @@ export default function AuthVerifyEmailPage() {
         <div className="flex h-full">
           <Loader2 className="w-10 h-10 animate-spin" />
         </div>
-        <div className="text-sm text-center mt-4">
-          <Link to="/login" className="font-medium transition-colors">
+        <div className="mt-4 text-center">
+          <Button
+            variant="link"
+            className="h-auto min-h-12 text-center whitespace-normal"
+            render={<Link to="/login" />}
+          >
             {t('auth.verifyEmail.redirectNow')}
-          </Link>
+          </Button>
         </div>
       </div>
     )

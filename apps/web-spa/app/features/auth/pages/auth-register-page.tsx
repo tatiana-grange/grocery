@@ -102,10 +102,14 @@ export default function Register() {
             {t('auth.register.resendEmail')}
           </Button>
         )}
-        <div className="mt-4 text-center text-sm">
-          <Link to="/login" className="font-medium">
+        <div className="mt-4 text-center">
+          <Button
+            variant="link"
+            className="h-auto min-h-12 text-center whitespace-normal"
+            render={<Link to="/login" />}
+          >
             {t('auth.register.backToLogin')}
-          </Link>
+          </Button>
         </div>
       </div>
     )
@@ -155,17 +159,21 @@ export default function Register() {
         onSubmit={(data) => register.mutate(data)}
         isPending={register.isPending}
       />
-      <div className="h-6">
+      <div className="min-h-7">
         {register.error ? (
-          <div className="text-sm font-medium text-red-500">
+          <div className="text-base font-medium text-destructive">
             {t('auth.register.failedToRegister')}
           </div>
         ) : null}
       </div>
-      <div className="text-center text-sm">
-        <Link to="/login" className="font-medium">
+      <div className="text-center">
+        <Button
+          variant="link"
+          className="h-auto min-h-12 text-center whitespace-normal"
+          render={<Link to="/login" />}
+        >
           {t('auth.register.hasAccount')} {t('auth.register.login')}
-        </Link>
+        </Button>
       </div>
     </div>
   )

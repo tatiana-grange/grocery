@@ -25,13 +25,13 @@ async function expectNoHorizontalScroll(page: Page): Promise<void> {
  * Les commandes (bouton, lien, champ) du contenu qui sortent de leur carte, ou de l'écran quand
  * elles n'ont pas de carte, ou dont le texte est coupé. Renvoie le testid ou le texte de chacune.
  */
-async function findSpilledControls(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
+async function findSpilledControls(page: Page, scope = 'main'): Promise<string[]> {
+  return page.evaluate((root) => {
     const found: string[] = []
     const cardSelector =
       '[data-slot="card"], [data-testid^="shop-product-card-"]:not([data-testid="shop-product-card-link"])'
     const view = document.documentElement.clientWidth
-    for (const el of document.querySelectorAll('main button, main a, main input')) {
+    for (const el of document.querySelectorAll(`${root} button, ${root} a, ${root} input`)) {
       if (!(el as HTMLElement).checkVisibility()) continue
       const rect = el.getBoundingClientRect()
       if (rect.width === 0 || rect.height === 0) continue
@@ -45,7 +45,7 @@ async function findSpilledControls(page: Page): Promise<string[]> {
         found.push(`${name} (texte coupé)`)
     }
     return found
-  })
+  }, scope)
 }
 
 /** Les textes visibles de moins de 14 px ou en majuscules forcées. */
@@ -381,4 +381,39 @@ test.describe('textes des écrans du membre à 390 px', () => {
       }
     })
   }
+})
+
+test.describe('pages de connexion à 390 px', () => {
+  test.use({ storageState: SIGNED_OUT })
+
+  for (const route of [
+    '/login',
+    '/register',
+    '/verify-email',
+    '/forgot-password',
+    '/reset-password',
+  ]) {
+    test(`${route} : marque, auvent, texte lisible, rien ne déborde`, async ({ page }) => {
+      await page.goto(route)
+      const brand = page.getByTestId('auth-brand')
+      await expect(brand).toBeVisible()
+      const family = await brand.evaluate((el) => getComputedStyle(el).fontFamily)
+      expect(family).toMatch(/^"?Lora Variable/)
+      await expect(page.locator('[data-slot="awning-band"]')).toBeVisible()
+      await expect(page.getByTestId('auth-aside')).toBeHidden()
+
+      await expectNoHorizontalScroll(page)
+      expect(await findSmallOrCapitalText(page), 'textes').toEqual([])
+      expect(await findSpilledControls(page, 'body'), 'commandes').toEqual([])
+    })
+  }
+
+  test.describe('à 1440 px', () => {
+    test.use({ viewport: { width: 1440, height: 900 } })
+
+    test('/login : le panneau latéral est visible', async ({ page }) => {
+      await page.goto('/login')
+      await expect(page.getByTestId('auth-aside')).toBeVisible()
+    })
+  })
 })

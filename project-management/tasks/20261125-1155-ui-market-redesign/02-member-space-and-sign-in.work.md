@@ -577,13 +577,27 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
   `text-red-500` lines stay for step 5. (3) The top-up form does not show in the E2E stack (payments
   off), so the walker did not read it; its classes follow the plan.
 
+- 2026-11-25 — Typist, step 5. Red: `s02-step5-red.log`, 6 failed (five routes at 390 and the
+  1440 px aside). Error line: `element(s) not found ... waiting for getByTestId('auth-brand')`.
+  Green: `s02-step5-green.log`, 23 passed. Also green alone: `auth-login.spec.ts`,
+  `auth-forms.spec.ts`, `auth-reset-password.spec.ts`, `market-theme.spec.ts`
+  (`s02-step5-others.log`, 14 passed). `pnpm typecheck` clean (`s02-step5-typecheck.log`). Landed:
+  `auth-layout.tsx` (awning band, serif name from `members.title`, card-style aside with
+  `auth-aside`), `auth-page-header.tsx`, the four auth pages and the login form (`text-destructive`
+  in place of `text-red-500`, `min-h-10` and `min-h-7` error boxes, link buttons, 18 px sentences).
+  Departures: (1) `findSpilledControls` takes a `scope` argument (default `main`); the auth cases
+  pass `body`, as the plan says. (2) The first green run failed at 390 px with a horizontal scroll
+  of 408 px on `/login` and 419 px on `/register`: the long link text ("Vous n'avez pas de
+  compte ? S'inscrire") is `whitespace-nowrap` in a link button. The auth link buttons now carry
+  `h-auto min-h-12 text-center whitespace-normal`, so the text wraps. The test was not changed.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — shell and tab bar: phone test red, then green
 - [x] Step 2 — phone header and menu, desktop checks: red, then green
 - [x] Step 3 — shop and cart overflow at 390, light and evening: red, then green
 - [x] Step 4 — member screens' text, capitals and colours: red, then green
-- [ ] Step 5 — sign-in pages: red, then green
+- [x] Step 5 — sign-in pages: red, then green
 - [ ] Step 6 — five gates green, screenshots taken, files formatted
 
 ## Notes & Snippets
