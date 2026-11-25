@@ -374,6 +374,7 @@
     "quantity": "Quantité",
     "unitPrice": "Prix unitaire",
     "lineTotal": "Total de la ligne",
+    "removeLine": "Retirer",
     "total": "Total",
     "signInToAdd": "Se connecter pour ajouter au panier",
     "addToCart": "Ajouter au panier",

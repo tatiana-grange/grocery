@@ -35,7 +35,7 @@ export function ProductCard({
     return (
       <div
         data-testid={`shop-product-card-${product.id}`}
-        className="flex items-center gap-3 rounded-xl bg-card p-2 text-card-foreground ring-1 ring-foreground/10"
+        className="flex items-center gap-3 rounded-xl border-2 border-border bg-card p-2 text-card-foreground"
       >
         <Link
           to={`/shop/products/${product.id}`}
@@ -46,13 +46,13 @@ export function ProductCard({
             {image}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium" data-testid="shop-product-card-name">
+            <p className="truncate text-lg font-bold" data-testid="shop-product-card-name">
               {product.name}
             </p>
-            <p className="text-sm text-muted-foreground">{price}</p>
+            <p className="font-serif text-lg font-bold italic">{price}</p>
           </div>
         </Link>
-        <div className="w-40 shrink-0 space-y-1">
+        <div className="w-36 shrink-0 space-y-1 sm:w-44">
           <StockNotice product={product} className="justify-end text-right" />
           <QuickAddToCart product={product} />
         </div>
@@ -66,7 +66,7 @@ export function ProductCard({
     <Card
       data-testid={`shop-product-card-${product.id}`}
       size={compact ? 'sm' : 'default'}
-      className="h-full overflow-hidden"
+      className="h-full overflow-hidden [--card-spacing:--spacing(3)] sm:[--card-spacing:--spacing(5)]"
     >
       <Link
         to={`/shop/products/${product.id}`}
@@ -78,7 +78,7 @@ export function ProductCard({
         </div>
         <CardHeader>
           <CardTitle
-            className={cn('line-clamp-2', compact ? 'min-h-10' : 'min-h-11 text-base')}
+            className={cn('line-clamp-2 text-lg font-bold', compact ? 'min-h-10' : 'min-h-11')}
             data-testid="shop-product-card-name"
           >
             {product.name}
@@ -95,7 +95,9 @@ export function ProductCard({
         )}
       </Link>
       <CardFooter className="mt-auto flex-col items-stretch gap-2">
-        <span className={cn('font-semibold', compact ? 'text-xs' : 'text-sm')}>{price}</span>
+        <span className={cn('font-serif font-bold italic', compact ? 'text-lg' : 'text-xl')}>
+          {price}
+        </span>
         <StockNotice product={product} />
         <QuickAddToCart product={product} />
       </CardFooter>

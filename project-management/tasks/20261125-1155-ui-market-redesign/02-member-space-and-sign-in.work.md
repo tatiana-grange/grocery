@@ -541,11 +541,30 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
   `pnpm typecheck` clean (`s02-step2-typecheck.log`). Landed: `site-header.tsx`, `phone-menu.tsx`,
   `app-settings-items.tsx`, `app-settings-menu.tsx` (44 px trigger with `aria-label` and `title`).
 
+- 2026-11-25 — Typist, step 3. Red: `s02-step3-red.log`, 3 failed, 12 passed. Errors: "Choisir les
+  options (texte coupé)" three times in the spilled-controls check, and `Expected: >= 48 Received: 44`
+  for the "Ajouter" button. Green: `s02-step3-green.log`, 15 passed. `cart.spec.ts`,
+  `checkout.spec.ts` and `shop-catalog.spec.ts` alone: `s02-step3-others.log`, 15 passed and 1
+  failed, "ajout rapide et ajustement depuis la grille" (second click on the decrease key, element
+  detached). That case is flaky without this slice's changes too: 2 failures in 8 runs with the
+  production files stashed (`s02-step3-cart-baseline.log`), and 1 in 3 with them
+  (`s02-step3-cart-rerun.log`). `pnpm typecheck` clean (`s02-step3-typecheck.log`). Landed:
+  `add-to-cart-control.tsx` (wrapping add button, stepper in a container query), `quick-add-to-cart.tsx`
+  (default size, 48 px), `product-card.tsx` (mockup type, tighter spacing on phones, list card),
+  `shop-page.tsx` (compact view in 2 columns on phones), `cart-page.tsx` (stacked table below 768 px,
+  "Retirer" label, wrapping total row), `cart.removeLine` in both locales. Departures: (1) the
+  container query cannot style its own element, so `AddToCartControl` has an outer `@container` div
+  (keeps the `root` testid and the caller's `className`) and an inner row that carries the
+  `@max-[12rem]` classes. (2) The helper `findSmallOrCapitalText` is removed from the spec for now: it
+  was unused after `export` came off and `tsc` refuses unused functions. Step 4 adds it back with its
+  cases. (3) Ruling 2's `title` on the shop view switch is NOT done: the `SegmentedControl` option
+  takes `ariaLabel` but no title, and `packages/ui` is out of bounds. Reported to the Architect.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — shell and tab bar: phone test red, then green
 - [x] Step 2 — phone header and menu, desktop checks: red, then green
-- [ ] Step 3 — shop and cart overflow at 390, light and evening: red, then green
+- [x] Step 3 — shop and cart overflow at 390, light and evening: red, then green
 - [ ] Step 4 — member screens' text, capitals and colours: red, then green
 - [ ] Step 5 — sign-in pages: red, then green
 - [ ] Step 6 — five gates green, screenshots taken, files formatted

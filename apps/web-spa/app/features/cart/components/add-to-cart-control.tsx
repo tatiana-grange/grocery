@@ -131,7 +131,11 @@ export function AddToCartControl({
   const addButton = (label: string, testId: string, onClick: () => void) => (
     <Button
       size={size}
-      className={cn('w-full', className)}
+      className={cn(
+        'h-auto w-full text-center whitespace-normal',
+        size === 'sm' ? 'min-h-11' : 'min-h-12',
+        className,
+      )}
       data-testid={testId}
       disabled={pending}
       onClick={onClick}
@@ -156,59 +160,58 @@ export function AddToCartControl({
   const buttonSize = size === 'sm' ? 'icon-sm' : 'icon'
 
   return (
-    <div
-      className={cn('flex w-full items-center justify-between gap-2', className)}
-      data-testid={testIds.root}
-    >
-      <Button
-        variant="outline"
-        size={buttonSize}
-        className={stepperButtonClass}
-        aria-label={t('shop.quickAdd.decrease')}
-        data-testid={testIds.decrease}
-        disabled={pending}
-        onClick={() => stepBy(-1)}
-      >
-        <Minus className="size-3" />
-      </Button>
-      <div className="flex items-center gap-1">
-        {isWeight ? (
-          <>
-            <Input
-              type="number"
-              step={step}
-              min={quantityMin(product)}
-              className={cn('w-16 text-center', noSpinnerClass, size === 'sm' && 'h-7')}
-              aria-label={t('shop.quickAdd.amount')}
-              data-testid={testIds.amount}
-              value={shown}
-              onChange={(event) => setDraft(event.target.value)}
-              onBlur={() => apply(Number(shown))}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') event.currentTarget.blur()
-              }}
-            />
-            <span className="text-sm text-muted-foreground">
-              {t(`catalog.pricingUnit.${selectionUnitLabel(product)}`)}
+    <div className={cn('@container w-full', className)} data-testid={testIds.root}>
+      <div className="flex items-center justify-between gap-2 @max-[12rem]:flex-wrap">
+        <Button
+          variant="outline"
+          size={buttonSize}
+          className={stepperButtonClass}
+          aria-label={t('shop.quickAdd.decrease')}
+          data-testid={testIds.decrease}
+          disabled={pending}
+          onClick={() => stepBy(-1)}
+        >
+          <Minus className="size-4" />
+        </Button>
+        <div className="flex items-center gap-1 @max-[12rem]:order-first @max-[12rem]:basis-full @max-[12rem]:justify-center">
+          {isWeight ? (
+            <>
+              <Input
+                type="number"
+                step={step}
+                min={quantityMin(product)}
+                className={cn('w-16 text-center', noSpinnerClass, size === 'sm' && 'h-11')}
+                aria-label={t('shop.quickAdd.amount')}
+                data-testid={testIds.amount}
+                value={shown}
+                onChange={(event) => setDraft(event.target.value)}
+                onBlur={() => apply(Number(shown))}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') event.currentTarget.blur()
+                }}
+              />
+              <span className="text-sm text-muted-foreground">
+                {t(`catalog.pricingUnit.${selectionUnitLabel(product)}`)}
+              </span>
+            </>
+          ) : (
+            <span className="text-sm font-semibold tabular-nums" data-testid={testIds.amount}>
+              {shown}
             </span>
-          </>
-        ) : (
-          <span className="text-sm font-semibold tabular-nums" data-testid={testIds.amount}>
-            {shown}
-          </span>
-        )}
+          )}
+        </div>
+        <Button
+          variant="outline"
+          size={buttonSize}
+          className={stepperButtonClass}
+          aria-label={t('shop.quickAdd.increase')}
+          data-testid={testIds.increase}
+          disabled={pending}
+          onClick={() => stepBy(1)}
+        >
+          <Plus className="size-4" />
+        </Button>
       </div>
-      <Button
-        variant="outline"
-        size={buttonSize}
-        className={stepperButtonClass}
-        aria-label={t('shop.quickAdd.increase')}
-        data-testid={testIds.increase}
-        disabled={pending}
-        onClick={() => stepBy(1)}
-      >
-        <Plus className="size-3" />
-      </Button>
     </div>
   )
 }

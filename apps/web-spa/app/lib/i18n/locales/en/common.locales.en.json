@@ -374,6 +374,7 @@
     "quantity": "Quantity",
     "unitPrice": "Unit price",
     "lineTotal": "Line total",
+    "removeLine": "Remove",
     "total": "Total",
     "signInToAdd": "Sign in to add to cart",
     "addToCart": "Add to cart",

@@ -13,7 +13,7 @@ const MIN_TOUCH_HEIGHT = 44
 const SIGNED_OUT = { cookies: [], origins: [] }
 
 /** Pas de défilement horizontal : la page tient dans la largeur de l'écran. */
-export async function expectNoHorizontalScroll(page: Page): Promise<void> {
+async function expectNoHorizontalScroll(page: Page): Promise<void> {
   const widths = await page.evaluate(() => ({
     scroll: document.documentElement.scrollWidth,
     client: document.documentElement.clientWidth,
@@ -21,26 +21,35 @@ export async function expectNoHorizontalScroll(page: Page): Promise<void> {
   expect(widths.scroll, 'défilement horizontal').toBeLessThanOrEqual(widths.client)
 }
 
-/** Les textes visibles de moins de 14 px ou en majuscules forcées. */
-export async function findSmallOrCapitalText(page: Page): Promise<string[]> {
+/**
+ * Les commandes (bouton, lien, champ) du contenu qui sortent de leur carte, ou de l'écran quand
+ * elles n'ont pas de carte, ou dont le texte est coupé. Renvoie le testid ou le texte de chacune.
+ */
+async function findSpilledControls(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const found: string[] = []
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
-    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-      const text = node.textContent?.trim()
-      const el = node.parentElement
-      if (!text || !el || el.closest('script, style, noscript')) continue
-      if (!el.checkVisibility()) continue
-      const style = getComputedStyle(el)
-      if (parseFloat(style.fontSize) < 14) found.push(`${text} (${style.fontSize})`)
-      if (style.textTransform === 'uppercase') found.push(`${text} (uppercase)`)
+    const cardSelector =
+      '[data-slot="card"], [data-testid^="shop-product-card-"]:not([data-testid="shop-product-card-link"])'
+    const view = document.documentElement.clientWidth
+    for (const el of document.querySelectorAll('main button, main a, main input')) {
+      if (!(el as HTMLElement).checkVisibility()) continue
+      const rect = el.getBoundingClientRect()
+      if (rect.width === 0 || rect.height === 0) continue
+      const name =
+        el.getAttribute('data-testid') ?? el.textContent?.trim() ?? el.getAttribute('aria-label')
+      const card = el.parentElement?.closest(cardSelector)
+      const left = card ? card.getBoundingClientRect().left : 0
+      const right = card ? card.getBoundingClientRect().right : view
+      if (rect.left < left - 1 || rect.right > right + 1) found.push(`${name} (sort de sa boîte)`)
+      if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1)
+        found.push(`${name} (texte coupé)`)
     }
     return found
   })
 }
 
 /** Passe en mode soir avant que l'application lise son réglage. */
-export async function useEveningMode(page: Page): Promise<void> {
+async function useEveningMode(page: Page): Promise<void> {
   await page.addInitScript(() => {
     localStorage.setItem('app-theme', 'dark')
   })
@@ -272,5 +281,61 @@ test.describe('ordinateur et tablette', () => {
       await expect(page.getByTestId('app-settings-trigger')).toBeVisible()
       await expectNoHorizontalScroll(page)
     })
+  })
+})
+
+test.describe('boutique et panier à 390 px', () => {
+  test.use(withRole('member'))
+
+  test.beforeEach(async ({ resetDb }) => {
+    await resetDb()
+  })
+
+  async function expectFits(page: Page): Promise<void> {
+    await expectNoHorizontalScroll(page)
+    expect(await findSpilledControls(page)).toEqual([])
+  }
+
+  for (const mode of ['clair', 'soir'] as const) {
+    test(`rien ne déborde à 390 px (mode ${mode})`, async ({ page }) => {
+      if (mode === 'soir') await useEveningMode(page)
+
+      await page.goto('/shop')
+      const grid = page.getByTestId('shop-product-grid')
+      await expect(grid).toBeVisible()
+      await expect(grid).toHaveAttribute('data-view', 'large')
+      await expectFits(page)
+
+      await page.getByTestId('shop-product-card-link').first().click()
+      await expect(page.getByTestId('page-shop-product-detail')).toBeVisible()
+      await expectFits(page)
+
+      await page.goto('/shop')
+      await page.getByTestId('shop-search').fill('Pommes Golden')
+      await page.getByTestId('shop-search').press('Enter')
+      const card = page.getByTestId('shop-product-grid').locator('> *').filter({
+        hasText: 'Pommes Golden',
+      })
+      await card.locator('[data-testid^="quick-add-submit-"]').click()
+      await expect(card.locator('[data-testid^="quick-add-quantity-"]')).toBeVisible()
+      await expectFits(page)
+
+      await page.goto('/cart')
+      await expect(page.locator('[data-testid^="cart-line-"]').first()).toBeVisible()
+      await expectFits(page)
+    })
+  }
+
+  test('chaque carte garde un bouton Ajouter d’au moins 48 px', async ({ page }) => {
+    await page.goto('/shop')
+    await expect(page.getByTestId('shop-product-grid')).toBeVisible()
+
+    const add = page.locator('[data-testid^="quick-add-submit-"]').first()
+    await expect(add).toBeVisible()
+    await expect(add).toHaveText('Ajouter')
+    const box = await add.boundingBox()
+    expect(box!.height).toBeGreaterThanOrEqual(48)
+
+    await expect(page.getByRole('link', { name: 'Choisir les options' }).first()).toBeVisible()
   })
 })

@@ -25,9 +25,8 @@ export function QuickAddToCart({ product }: { product: ShopProduct }) {
   if (!line && product.orderingMode === 'both') {
     return (
       <Button
-        size="sm"
         variant="outline"
-        className="w-full"
+        className="h-auto min-h-12 w-full text-center whitespace-normal"
         render={<Link to={`/shop/products/${product.id}`} />}
       >
         {t('shop.quickAdd.chooseOptions')}
@@ -40,7 +39,6 @@ export function QuickAddToCart({ product }: { product: ShopProduct }) {
       product={product}
       line={line}
       actions={actions}
-      size="sm"
       testIds={{
         root: `quick-add-stepper-${product.id}`,
         signIn: `quick-add-signin-${product.id}`,

@@ -69,10 +69,13 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
   const amount = (quantity: number) => quantityLabel(product, quantity, t)
 
   return (
-    <TableRow data-testid={`cart-line-${line.id}`}>
+    <TableRow
+      data-testid={`cart-line-${line.id}`}
+      className="max-md:grid max-md:grid-cols-[1fr_auto] max-md:items-center max-md:gap-x-3 max-md:gap-y-2 max-md:py-4"
+    >
       {/* The pickup breakdown is a sentence, not a label: it has to wrap inside the column
           rather than push the table wider than the page. */}
-      <TableCell className="font-medium whitespace-normal wrap-break-word">
+      <TableCell className="font-medium whitespace-normal wrap-break-word max-md:col-span-2 max-md:block max-md:p-0">
         {product.name}
         {/* The ordering mode is a catalogue detail the shopper has already acted on; what it
             means for them here is the pickup breakdown below. Only a problem with the line
@@ -107,7 +110,7 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
           </ul>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell className="max-md:block max-md:p-0">
         {/* The line is there by definition, so this only ever renders as the stepper. Taking the
             amount down to nothing drops the line, exactly as it does in the shop. */}
         <AddToCartControl
@@ -124,16 +127,23 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
           }}
         />
       </TableCell>
-      <TableCell>{line.unitPriceEur.toFixed(2)} €</TableCell>
-      <TableCell className="font-semibold">{line.lineTotalEur.toFixed(2)} €</TableCell>
-      <TableCell>
+      <TableCell className="max-md:block max-md:p-0">
+        <span className="md:hidden">{t('cart.unitPrice')} </span>
+        {line.unitPriceEur.toFixed(2)} €
+      </TableCell>
+      <TableCell className="font-semibold max-md:block max-md:p-0 max-md:text-right">
+        <span className="md:hidden">{t('cart.lineTotal')} </span>
+        {line.lineTotalEur.toFixed(2)} €
+      </TableCell>
+      <TableCell className="max-md:block max-md:p-0 max-md:text-right">
         <AlertDialog>
           <AlertDialogTrigger
             render={
-              <Button variant="ghost" size="icon" data-testid={`cart-line-remove-${line.id}`} />
+              <Button variant="ghost" size="sm" data-testid={`cart-line-remove-${line.id}`} />
             }
           >
             <Trash2 className="size-4" />
+            {t('cart.removeLine')}
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -297,17 +307,17 @@ export default function CartPage() {
             {/* Fixed widths: the product name and its pickup breakdown would otherwise size the
                 column from their longest line and scroll the table sideways. Everything else is
                 a short number, so the product column takes whatever room is left. */}
-            <Table className="table-fixed">
-              <TableHeader>
+            <Table className="table-fixed max-md:block">
+              <TableHeader className="max-md:hidden">
                 <TableRow>
                   <TableHead>{t('cart.product')}</TableHead>
                   <TableHead className="w-44">{t('cart.quantity')}</TableHead>
                   <TableHead className="w-28">{t('cart.unitPrice')}</TableHead>
                   <TableHead className="w-32">{t('cart.lineTotal')}</TableHead>
-                  <TableHead className="w-14" />
+                  <TableHead className="w-32" />
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="max-md:block">
                 {pickups.map((pickup) => (
                   <CartLineRow key={pickup.line.id} pickup={pickup} />
                 ))}
@@ -317,7 +327,7 @@ export default function CartPage() {
 
           <PendingPickupNotice pickups={pickups} />
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-lg font-bold" data-testid="cart-total">
               {t('cart.total')}: {cart.totalEur.toFixed(2)} €
             </span>
