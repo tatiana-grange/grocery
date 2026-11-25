@@ -309,11 +309,32 @@ then a commit.
   case because the SPA was cold (`auth-login-submit` not found within 10 s); a second run passed
   it. Logs: `scratchpad/step2-red.log` and `step2-red2.log`.
 
+- 2026-11-25 — Typist, step 3. `component-rules.spec.ts` written first. Red: `AssertionError:
+expected [ …(5) ] to deeply equal []` for the sizes and sage-text cases, and `["components/app/
+page-title.tsx: uppercase"]` for capitals (3 of 4 failed; log `scratchpad/step3-red.log`). Then
+  restyled the components in the plan, class strings only. Green: `packages/ui` 119 passed, and
+  `market-theme.spec.ts` 8 passed on the real stack (`scratchpad/step3-e2e.log`).
+  **Contradiction with the plan, not decided by me beyond the smallest change:** the plan leaves
+  `components/layout/` alone and says no `text-primary` in `packages/ui/src`, but
+  `layout/Navigation.tsx` (active link) and `primitives/file-upload.tsx` (progress ring, two
+  circles) wrote `text-primary`. To make the planned test pass I changed those three class
+  strings to `text-foreground` (and `text-foreground/20`). Navigation is imported by nothing in
+  `apps/web-spa`. The Architect may prefer to exempt them from the test instead.
+  Other small choices to confirm: (a) button `xs` and `sm` keep their old icon sizes (`size-3`,
+  `size-3.5`), the plan gave no new ones; (b) `Switch` is not sized in the plan: I made it
+  `h-7 w-12` with a `size-5` thumb (default) and `h-5 w-9` (sm), with `border-2 border-border`;
+  (c) `Textarea` min height went from `min-h-16` to `min-h-20`, `Checkbox` and `RadioGroup` to
+  `size-5`, `AlertDialogMedia` got `border-2 border-border`; (d) the dropdown menu separator
+  became `bg-rule`, and accordion item dividers `border-rule`; (e) `combobox`, `hover-card`,
+  `input-group` and `input-otp` still hold `ring-1 ring-foreground/10` or `dark:bg-input/30`;
+  the plan did not list them, so they only follow the tokens; (f) tooltip text stays `text-xs`
+  (now 14 px).
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — Vitest in `packages/ui`, `theme.spec.ts` red then green, new `globals.css`, Host Grotesk gone
 - [x] Step 2 — `market-theme.spec.ts` written and red on the heights
-- [ ] Step 3 — `component-rules.spec.ts` red then green, components restyled, browser test green
+- [x] Step 3 — `component-rules.spec.ts` red then green, components restyled, browser test green
 - [ ] Step 4 — `awning-band.spec.tsx` red then green, `AwningBand` exported
 - [ ] Step 5 — the five gates green, screenshots taken, files formatted
 
