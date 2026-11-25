@@ -527,10 +527,24 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
   those steps. Step 4's test must check all four tabs for horizontal scroll; the Mason should keep
   that in mind. (2) The toast case polls the toast's box until it rests, because Sonner slides it in.
 
+- 2026-11-25 — Typist, step 2, then the Mason after the usage limit stopped the Typist. The red
+  run was saved before any production file of the step (`s02-step2-red.log`, 14:41; the step's
+  production files date from 14:42): 6 failed, among them `phone-menu-trigger` not found and
+  `site-nav-signin` with no `svg`. The Typist's green run (`s02-step2-green.log`) still had 1
+  failure, and so did the Mason's rerun (`s02-step2-green2.log`): at 1440 px the member was signed
+  out. Cause: the case "se déconnecter depuis le menu" used the shared member session, and
+  `signOut` revokes it on the server, so every later member case in the run was signed out (in the
+  full suite it would break the other member specs too). **Mason's retouch** (a few lines of test
+  setup, no assertion changed; the Typist was gone): that case now starts signed out and signs in
+  through the form, as `auth-logout.spec.ts` does. Green: `s02-step2-green3.log`,
+  `member-phone.spec.ts` with `app-settings.spec.ts` and `market-theme.spec.ts`, 21 passed.
+  `pnpm typecheck` clean (`s02-step2-typecheck.log`). Landed: `site-header.tsx`, `phone-menu.tsx`,
+  `app-settings-items.tsx`, `app-settings-menu.tsx` (44 px trigger with `aria-label` and `title`).
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — shell and tab bar: phone test red, then green
-- [ ] Step 2 — phone header and menu, desktop checks: red, then green
+- [x] Step 2 — phone header and menu, desktop checks: red, then green
 - [ ] Step 3 — shop and cart overflow at 390, light and evening: red, then green
 - [ ] Step 4 — member screens' text, capitals and colours: red, then green
 - [ ] Step 5 — sign-in pages: red, then green

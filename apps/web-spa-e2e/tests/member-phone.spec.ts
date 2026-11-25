@@ -164,3 +164,113 @@ test.describe('barre d’onglets du téléphone', () => {
     })
   })
 })
+
+test.describe('en-tête du téléphone et menu', () => {
+  test.describe('membre', () => {
+    test.use(withRole('member'))
+
+    test('le bouton Menu remplace les liens, sans débordement', async ({ page }) => {
+      await page.goto('/shop')
+      const trigger = page.getByTestId('phone-menu-trigger')
+      await expect(trigger).toBeVisible()
+      await expect(trigger).toContainText('Menu')
+      await expect(page.getByTestId('site-nav-cart')).toBeHidden()
+      const header = await page.locator('header').evaluate((el) => ({
+        scroll: el.scrollWidth,
+        client: el.clientWidth,
+      }))
+      expect(header.scroll).toBeLessThanOrEqual(header.client)
+    })
+
+    test('le menu propose le thème, les langues et la déconnexion', async ({ page }) => {
+      await page.goto('/shop')
+      await page.getByTestId('phone-menu-trigger').click()
+      await expect(page.getByTestId('phone-menu-theme')).toBeVisible()
+      await expect(page.getByTestId('phone-menu-lang-fr')).toBeVisible()
+      await expect(page.getByTestId('phone-menu-lang-en')).toBeVisible()
+      await expect(page.getByTestId('phone-menu-logout')).toBeVisible()
+      await expect(page.getByTestId('phone-menu-admin')).toHaveCount(0)
+
+      await page.getByTestId('phone-menu-theme').click()
+      await expect(page.locator('body')).toHaveClass(/dark/)
+    })
+  })
+
+  // Connexion par le formulaire, comme `auth-logout.spec.ts` : `signOut` révoque la session
+  // côté serveur, et la session partagée du rôle membre servirait encore aux specs suivantes.
+  test.describe('membre connecté par le formulaire', () => {
+    test.use({ storageState: SIGNED_OUT })
+
+    test('se déconnecter depuis le menu mène à la connexion', async ({ page }) => {
+      await page.goto('/login')
+      await page.getByTestId('auth-login-identifier').fill(E2E_USERS.member)
+      await page.getByTestId('auth-login-password').fill(E2E_PASSWORD)
+      await page.getByTestId('auth-login-submit').click()
+      await expect(page.getByTestId('page-shop')).toBeVisible()
+
+      await page.getByTestId('phone-menu-trigger').click()
+      await page.getByTestId('phone-menu-logout').click()
+      await expect(page).toHaveURL(/\/login/)
+    })
+  })
+
+  test.describe('administrateur', () => {
+    test.use(withRole('admin'))
+
+    test('le menu mène à l’administration', async ({ page }) => {
+      await page.goto('/shop')
+      await page.getByTestId('phone-menu-trigger').click()
+      await page.getByTestId('phone-menu-admin').click()
+      await expect(page).toHaveURL(/\/admin\/members/)
+    })
+  })
+})
+
+test.describe('ordinateur et tablette', () => {
+  test.describe('membre à 1440 px', () => {
+    test.use({ ...withRole('member'), viewport: { width: 1440, height: 900 } })
+
+    test('les liens du bureau portent une icône et un texte, sans barre d’onglets', async ({
+      page,
+    }) => {
+      await page.goto('/shop')
+      await expect(page.getByTestId('member-tab-bar')).toBeHidden()
+      await expect(page.getByTestId('phone-menu-trigger')).toBeHidden()
+      for (const id of [
+        'site-nav-cart',
+        'site-nav-participation',
+        'site-nav-account',
+        'nav-logout',
+      ]) {
+        const link = page.getByTestId(id)
+        await expect(link.locator('svg')).toHaveCount(1)
+        await expect(link).toHaveText(/\S/)
+      }
+    })
+  })
+
+  test.describe('visiteur à 1440 px', () => {
+    test.use({ storageState: SIGNED_OUT, viewport: { width: 1440, height: 900 } })
+
+    test('le lien de connexion porte une icône', async ({ page }) => {
+      await page.goto('/shop')
+      const link = page.getByTestId('site-nav-signin')
+      await expect(link.locator('svg')).toHaveCount(1)
+      await expect(link).toHaveText(/\S/)
+    })
+  })
+
+  test.describe('administrateur à 768 px', () => {
+    test.use({ ...withRole('admin'), viewport: { width: 768, height: 1024 } })
+
+    test('les commandes du bureau sont là et rien ne déborde', async ({ page }) => {
+      await page.goto('/shop')
+      await expect(page.getByTestId('member-tab-bar')).toBeHidden()
+      await expect(page.getByTestId('phone-menu-trigger')).toBeHidden()
+      await expect(page.getByTestId('site-nav-cart')).toBeVisible()
+      await expect(page.getByTestId('site-nav-admin')).toBeVisible()
+      await expect(page.getByTestId('app-settings-trigger')).toBeVisible()
+      await expectNoHorizontalScroll(page)
+    })
+  })
+})

@@ -1,10 +1,11 @@
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
-import { CalendarDays, LogOut, ShieldCheck, ShoppingCart, User } from 'lucide-react'
+import { CalendarDays, LogIn, LogOut, ShieldCheck, ShoppingCart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { AppSettingsMenu } from '@/features/common/components/app-settings-menu'
 import { useCartCount } from '@/features/cart/hooks/use-cart-count'
+import { PhoneMenu } from '@/features/common/components/phone-menu'
 import { useRoles } from '@/features/common/hooks/use-session'
 import { authClient } from '@/lib/auth-client'
 
@@ -26,11 +27,17 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="flex items-center justify-between border-b border-border px-4 py-3">
-      <Link to="/shop" className="text-sm font-black uppercase tracking-tight">
+    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b-2 border-border bg-card px-4 py-3 md:px-6">
+      <Link to="/shop" className="font-serif text-xl font-bold">
         {t('members.title')}
       </Link>
-      <div className="flex items-center gap-2">
+      <div className="md:hidden">
+        <PhoneMenu isAdmin={isAdmin} isSignedIn={Boolean(sessionData)} onSignOut={handleLogout} />
+      </div>
+      <nav
+        aria-label={t('shop.nav.mainNavigation')}
+        className="hidden flex-wrap items-center justify-end gap-1 md:flex"
+      >
         <AppSettingsMenu />
         <Button
           variant="ghost"
@@ -41,7 +48,7 @@ export function SiteHeader() {
           // instead, matching AddToCartForm's sign-in prompt.
           render={<Link to={sessionData ? '/cart' : '/login?redirect=%2Fcart'} />}
         >
-          <ShoppingCart className="mr-2 size-4" />
+          <ShoppingCart className="size-5" />
           {t('shop.nav.cart')}
           {cartCount > 0 && (
             <Badge variant="secondary" className="ml-2" data-testid="site-nav-cart-count">
@@ -56,7 +63,7 @@ export function SiteHeader() {
             data-testid="site-nav-admin"
             render={<Link to="/admin/members" />}
           >
-            <ShieldCheck className="mr-2 size-4" />
+            <ShieldCheck className="size-5" />
             {t('adminMembers.backOffice')}
           </Button>
         )}
@@ -68,7 +75,7 @@ export function SiteHeader() {
               data-testid="site-nav-participation"
               render={<Link to="/participation" />}
             >
-              <CalendarDays className="mr-2 size-4" />
+              <CalendarDays className="size-5" />
               {t('participation.nav.participation')}
             </Button>
             <Button
@@ -77,11 +84,11 @@ export function SiteHeader() {
               data-testid="site-nav-account"
               render={<Link to="/account" />}
             >
-              <User className="mr-2 size-4" />
+              <User className="size-5" />
               {t('shop.nav.myAccount')}
             </Button>
             <Button variant="ghost" size="sm" data-testid="nav-logout" onClick={handleLogout}>
-              <LogOut className="mr-2 size-4" />
+              <LogOut className="size-5" />
               {t('members.nav.logOut')}
             </Button>
           </>
@@ -92,10 +99,11 @@ export function SiteHeader() {
             data-testid="site-nav-signin"
             render={<Link to="/login" />}
           >
+            <LogIn className="size-5" />
             {t('shop.nav.signIn')}
           </Button>
         )}
-      </div>
+      </nav>
     </header>
   )
 }
