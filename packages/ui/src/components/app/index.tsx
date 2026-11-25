@@ -1,5 +1,6 @@
 export { AppLayout, AppLayoutHeader } from './app-layout'
 export { AppLoader } from './app-loader'
+export { AwningBand } from './awning-band'
 export { AuthRedirect } from './auth-redirect'
 export { EmptyState } from './empty-state'
 export { ListPagination } from './list-pagination'

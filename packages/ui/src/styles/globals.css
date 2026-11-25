@@ -176,6 +176,24 @@
   --text-4xl--line-height: 2.75rem;
 }
 
+/* The market awning: stripes on the top half, one half-disc under each stripe for the scalloped
+   edge. 24 px high, 48 px per stripe pair. Uses only the two awning variables. */
+@utility awning {
+  background-image:
+    repeating-linear-gradient(90deg, var(--awning-a) 0 24px, var(--awning-b) 24px 48px),
+    radial-gradient(circle at 12px 12px, var(--awning-a) 12px, transparent 12.5px),
+    radial-gradient(circle at 12px 12px, var(--awning-b) 12px, transparent 12.5px);
+  background-size:
+    100% 12px,
+    48px 24px,
+    48px 24px;
+  background-position:
+    0 0,
+    0 0,
+    24px 0;
+  background-repeat: no-repeat, repeat-x, repeat-x;
+}
+
 @theme inline {
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
