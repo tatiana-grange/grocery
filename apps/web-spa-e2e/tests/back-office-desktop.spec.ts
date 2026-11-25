@@ -141,7 +141,7 @@ async function expectTable(frame: Locator): Promise<void> {
 
 /** Le cadre du premier tableau de la page. */
 function firstTableFrame(page: Page): Locator {
-  return page.locator('[data-slot="table-container"]').first().locator('..')
+  return page.locator('[data-slot="table-container"]:visible').first().locator('..')
 }
 
 const SIZES = [
@@ -285,6 +285,62 @@ for (const size of SIZES) {
         await page.getByTestId('members-row-review').first().click()
         await expect(page.getByTestId('page-member-detail')).toBeVisible()
 
+        await expectCleanPage(page)
+      })
+    })
+  }
+}
+
+for (const size of SIZES) {
+  for (const mode of MODES) {
+    test.describe(`catalogue à ${size.name}, mode ${mode}`, () => {
+      test.beforeEach(async ({ page, resetDb }) => {
+        await resetDb()
+        await page.setViewportSize({ width: size.width, height: size.height })
+        if (mode === 'soir') await setEveningModeBeforeLoad(page)
+      })
+
+      for (const tab of ['products', 'suppliers', 'categories'] as const) {
+        test(`l’onglet ${tab}`, async ({ page }) => {
+          await page.goto(`/admin/catalog?tab=${tab}`)
+          await expect(page.getByTestId(`catalog-tab-${tab}`)).toHaveAttribute(
+            'aria-selected',
+            'true',
+          )
+          await expect(firstTableFrame(page).locator('tbody tr').first()).toBeVisible()
+
+          await expectTable(firstTableFrame(page))
+          await expectCleanPage(page)
+        })
+      }
+
+      test('la fiche d’un produit et le formulaire d’un nouveau produit', async ({ page }) => {
+        await page.goto('/admin/catalog')
+        await page.getByTestId('product-row-open').first().click()
+        await expect(page.getByTestId('product-detail-name')).toBeVisible()
+        await expectCleanPage(page)
+
+        await page.goto('/admin/catalog/products/new')
+        await expect(page.getByTestId('page-product-form')).toBeVisible()
+        await expectCleanPage(page)
+      })
+
+      test('un fournisseur archivé porte le mot « Archivé »', async ({ page }) => {
+        // The page never asks for archived suppliers, so the answer is changed on its way:
+        // the first supplier comes back archived, as the API would send it.
+        await page.route(
+          (url) => url.pathname === '/api/admin/suppliers',
+          async (route) => {
+            const response = await route.fetch()
+            const body = await response.json()
+            body.data[0].archivedAt = '2026-01-01T00:00:00.000Z'
+            await route.fulfill({ response, json: body })
+          },
+        )
+        await page.goto('/admin/catalog?tab=suppliers')
+
+        const row = page.locator('[data-testid^="supplier-row-"]').first()
+        await expect(row).toContainText('Archivé')
         await expectCleanPage(page)
       })
     })

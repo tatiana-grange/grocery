@@ -563,13 +563,44 @@ found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-curr
   passed (`s04-step3-existing.log`). `pnpm typecheck` passes. Departures: `member-profile-edit.tsx`
   needed no change, so it is untouched. The fee value in the detail grid is now a badge instead of
   plain text (a fee badge reads the same word).
+- 2026-11-25 — Typist, step 4, red. Wrote case 3 first (per size and mode: the three catalogue
+  tabs, a product detail plus the new-product form, an archived supplier row). Red log
+  `s04-step4-red.log` in the scratchpad: 20 red, 0 green (the setup passes). Error lines:
+  `Expected: "2px"  Received: "1px"` (frame), `Expected: >= 48  Received: 32` (`h1`), and
+  `Expected substring: "Archivé"  Received string: "Ferme des PrésProducteur6ModifierRestaurer"`.
+  Departure from the plan, test side: the catalogue page never asks the API for archived suppliers
+  or categories (`includeArchived` is always `false`), so an archived row cannot be reached by
+  archiving through the API and opening the page. The test instead rewrites the suppliers answer
+  in the browser (`page.route`) so the first supplier comes back with `archivedAt` set. The page
+  code is not touched for this. Open question for the Architect: the "Archivé" badge on suppliers
+  and categories is today unreachable by a user; the plan keeps the badge, and so do I.
+- 2026-11-25 — Typist, step 4, green. Rewrote the six `features/catalog` files as planned (page
+  head on the catalogue, product detail and product form; frames; outline row actions; wrapped action
+  cells; search at 52 px; pagination words; `opacity-50` gone, replaced by a neutral "Archivé" badge
+  in the name cell of suppliers and categories, testids `supplier-archived-badge` and
+  `category-archived-badge`; product archived badge neutral; no capitals, no 10 px text). Green log
+  `s04-step4-green.log`: 37 passed (setup, case 1, case 2, case 3). Existing specs
+  `catalog-products`, `catalog-suppliers`, `catalog-categories`, `members-list`, `members-detail`
+  alone: 25 passed (`s04-step4-existing.log`). `pnpm typecheck` passes.
+  Departures, found by the new test at 1194 px (two real defects, both fixed with the smallest
+  change):
+  1. The products table pushed the whole content area wider than the window (page scroll of 145 px).
+     Cause: the content column had no `min-w-0`, so a nowrap table set its minimum width. Fix:
+     `className="min-w-0"` passed to `AppLayout` from `back-office-layout.tsx` (a prop that
+     already exists; `AppLayout` itself is untouched).
+  2. After that fix the products table still needed to scroll inside its frame at 1194 px (1015 px
+     of table in 870 px), because of long names with `whitespace-nowrap` cells. Fix:
+     `BackOfficeTableFrame` lets body cells wrap (`[&_[data-slot=table-cell]]:whitespace-normal`).
+     Heading cells stay on one line. This touches every framed table, so steps 3 to 5 tests cover it.
+     One run (`s04-step4-green-run1-hang.log`) had a browser session crash ("Protocol error ... session
+     closed", 8.6 minutes) on two tests; the same file passed on rerun without changes (37 passed).
 
 ## Implementation Checkboxes
 
 - [x] Step 1 — theme tint and `ListPagination` labels: unit tests red, then green
 - [x] Step 2 — sidebar and layout: browser case 1 red, then green
 - [x] Step 3 — shared pieces and members screens: case 2 red, then green
-- [ ] Step 4 — catalogue: case 3 red, then green
+- [x] Step 4 — catalogue: case 3 red, then green
 - [ ] Step 5 — purchasing, inventory, participation, accounting: case 4 red, then green
 - [ ] Step 6 — five gates green, close checks, files formatted
 

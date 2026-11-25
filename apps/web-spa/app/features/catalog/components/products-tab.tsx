@@ -16,6 +16,8 @@ import { PlusCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { CATALOG_PAGE_SIZE, productsQueryOptions } from '@/features/catalog/utils/catalog-queries'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
+import { useBackOfficePaginationLabels } from '@/features/common/hooks/use-back-office-pagination-labels'
 import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
@@ -33,12 +35,13 @@ export function ProductsTab() {
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / CATALOG_PAGE_SIZE))
+  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <Input
-          className="w-64"
+          className="h-13 w-80"
           data-testid="products-search"
           placeholder={t('catalog.products.searchPlaceholder')}
           value={search}
@@ -48,12 +51,12 @@ export function ProductsTab() {
           }}
         />
         <Button data-testid="products-new" render={<Link to="/admin/catalog/products/new" />}>
-          <PlusCircle className="mr-2 size-4" />
+          <PlusCircle />
           {t('catalog.products.new')}
         </Button>
       </div>
 
-      <div className="rounded-lg border border-border">
+      <BackOfficeTableFrame>
         <Table>
           <TableHeader>
             <TableRow>
@@ -104,7 +107,7 @@ export function ProductsTab() {
                 </TableCell>
                 <TableCell>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     data-testid="product-row-open"
                     render={<Link to={`/admin/catalog/products/${product.id}`} />}
@@ -116,7 +119,7 @@ export function ProductsTab() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </BackOfficeTableFrame>
 
       <ListPagination
         page={page}
@@ -124,6 +127,7 @@ export function ProductsTab() {
         onPageChange={(next) => updateParams({ page: String(next) })}
         testIdPrefix="products"
         count={t('catalog.products.count', { count: total })}
+        {...paginationLabels}
       />
     </div>
   )

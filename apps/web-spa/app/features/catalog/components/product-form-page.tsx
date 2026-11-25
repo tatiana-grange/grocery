@@ -1,5 +1,4 @@
 import { ProductOrderingMode } from '@grocery/openapi-generator/client/types.gen'
-import { PageTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { NativeSelect } from '@grocery/ui/components/primitives/native-select'
@@ -20,6 +19,7 @@ import {
   suppliersQueryOptions,
   updateProduct,
 } from '@/features/catalog/utils/catalog-queries'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
 
 const LABELS = ['organic', 'local', 'vegetarian', 'vegan'] as const
 type Label = (typeof LABELS)[number]
@@ -123,15 +123,15 @@ export default function ProductFormPage() {
   return (
     <div className="space-y-6" data-testid="page-product-form">
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         data-testid="product-form-back"
         render={<Link to="/admin/catalog" />}
       >
-        <ArrowLeft className="mr-2 size-4" />
+        <ArrowLeft />
         {t('catalog.backToCatalogue')}
       </Button>
-      <PageTitle>{isEdit ? t('catalog.products.edit') : t('catalog.products.new')}</PageTitle>
+      <BackOfficePageHead title={isEdit ? t('catalog.products.edit') : t('catalog.products.new')} />
 
       <div className="max-w-lg space-y-4">
         <Field label={t('catalog.products.name')}>
@@ -180,7 +180,10 @@ export default function ProductFormPage() {
         </Field>
         <Field label={t('catalog.products.saleMode')}>
           {isEdit ? (
-            <p className="text-sm text-muted-foreground" data-testid="product-form-salemode-locked">
+            <p
+              className="text-base text-muted-foreground"
+              data-testid="product-form-salemode-locked"
+            >
               {t(`catalog.saleMode.${saleMode}`)} · {t('catalog.products.saleModeLocked')}
             </p>
           ) : (
@@ -282,9 +285,7 @@ export default function ProductFormPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1">
-      <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        {label}
-      </span>
+      <span className="text-base font-semibold text-foreground">{label}</span>
       {children}
     </label>
   )

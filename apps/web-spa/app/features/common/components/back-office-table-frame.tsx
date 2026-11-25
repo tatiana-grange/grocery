@@ -15,7 +15,7 @@ export function BackOfficeTableFrame({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-xl border-2 border-border bg-card [&_[data-slot=table-head]]:text-sm [&_[data-slot=table-head]]:font-bold',
+        'overflow-hidden rounded-xl border-2 border-border bg-card [&_[data-slot=table-head]]:text-sm [&_[data-slot=table-head]]:font-bold [&_[data-slot=table-cell]]:whitespace-normal',
         className,
       )}
     >

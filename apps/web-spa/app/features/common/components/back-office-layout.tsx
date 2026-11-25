@@ -143,7 +143,7 @@ export default function BackOfficeLayout() {
 
   return (
     <>
-      <AppLayout sidebar={<BackOfficeSidebar />}>
+      <AppLayout sidebar={<BackOfficeSidebar />} className="min-w-0">
         <AppLayoutHeader className="border-b-2 border-rule bg-background">
           <div className="ml-auto flex items-center gap-2">
             <Button
