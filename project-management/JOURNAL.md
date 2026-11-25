@@ -5,6 +5,27 @@ task — never generated.
 
 ## 2026-11-25
 
+- UI redesign "neighbourhood market", slice 03, distribution table: built and reviewed on
+  `feat/ui-market-distribution`, in its own worktree beside slice 04.
+  - **The table.** The member search now lives in the layout, once. From 1024 px it is a
+    400 px column on the left that stays in view; below that it sits above the page. Picking
+    another member opens their page at once, and the open member is marked as current.
+  - **A member's page.** It reads like the mockup: the name in Lora, the balance in a slate
+    block, then "À remettre" with one card per order. Each card has one list of lines, which
+    still shows why a line is not ready. Its kraft footer holds the total and a 72 px "Valider la
+    remise". Warnings come next, in a squash box, then 72 px buttons for a payment and an express
+    sale.
+  - **Other screens.** The express sale, the receipt and the wallet dialogs follow the same look.
+    Forced capitals and raw amber are gone.
+  - **How it was built.** A Typist wrote a new browser test at 1194 and 768 px, seen red first at
+    each of three steps. The review led to one shared receipt notice and the new translation keys
+    in one block. The screenshots found cramped names in the search column, now fixed.
+  - **Gates.** All five pass: 187 browser tests and 874 unit and API tests. One known flaky
+    wallet test failed once in the full run and passed alone.
+  - **Left open for the Architect.** The shared toasts are 13 px with colours from outside the
+    theme; fixing that needs `packages/ui`. Four retro proposals wait in the work document.
+  - The parent spec stays open for slice 04.
+
 - UI redesign "neighbourhood market", slice 02, member space and sign-in: built and reviewed on
   `feat/ui-market-redesign`. Below 768 px the shop and member area now have a tab bar fixed at the
   bottom (Shop, Cart, Participation, My account; Sign in for visitors), with the current tab marked

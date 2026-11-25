@@ -550,12 +550,59 @@ textes petits ou en capitales` (the uppercase header); at 768, `défilement hori
   - `git diff --stat 9b98504 -- apps/web-spa-e2e`: only the new `distribution-tablet.spec.ts`.
   - Not done: the screenshots under `screens-s03/` (Mason).
 
+- 2026-11-25 — Mason, review, retouches, screenshots, final gates and close.
+  - **Typist's work checked.**
+    - Each step's red log came before its production commit, and each error line matches the plan:
+      `s03-step1-red.log` (10 failed), `s03-step2-red.log` (3), `s03-step3-red.log` (2).
+    - All gate logs were read in full.
+    - The Typist's departures are accepted: the order check, `min-w-80`, the `sr-only` filter, the
+      honey for the over-stock case, and the wider refund dialog.
+  - **Review.** `code-review` ran with two fresh reviewers. The findings and their answers are in
+    Diff-Review Findings, and the fixes are in `f62bb05`. Those fixes are a Mason retouch, an
+    exception to "the Typist types": a few lines found while checking, with the Typist already
+    gone. They are:
+    - the four keys moved into one `distribution.table` block;
+    - one `HandoverRecordedNotice` for the receipt notice;
+    - the not-ready reason at 18 px;
+    - the "Pas remis" wording;
+    - the hover colour on the current result;
+    - the `committedSearch` name.
+  - **Retouch check.** The browser tests that touch the table passed after the retouch
+    (`s03-fix-e2e.log`, 57 passed). The final gates came after the screenshot fixes.
+  - **Screenshots.** There are 72 files in the scratchpad's `screens-s03/`:
+    - the home, member, not-ready, terminated, refused-payment, express and receipt pages;
+    - the correction and refund dialogs;
+    - `/account` and `/cart`;
+    - each at 1194, 768 and 1440 px, in light and evening mode.
+      A temporary Playwright config took them; it started and stopped its own servers and was
+      deleted afterwards (`s03-shots.log`, `s03-shots-2.log`).
+  - **What the screenshots found.** The tests had missed it:
+    - in the 400 px column, member names and numbers were broken over two lines;
+    - each line price was pushed under its row.
+      Nothing was cut or overflowing, so no test failed first. Fixed in `bdd2dfe`. The fix was
+      checked on new screenshots and with `s03-fix-e2e-2.log` (32 passed).
+  - **Final gates**, on `bdd2dfe` and still holding the lock:
+    - `pnpm lint`, `pnpm typecheck` and `pnpm build`: exit 0 (`s03-gate-*-final.log`).
+    - `pnpm e2e`: 187 passed, none failed (`s03-gate-e2e-final.log`).
+    - `pnpm test`: 125 + 15 + 734 passed and 1 failed (`s03-gate-test-final.log`). The failure was
+      the known flaky wallet test, "refuses a second correction with already_corrected" (201
+      instead of 409). Rerun alone, its file passed, 38 passed
+      (`s03-gate-test-final-rerun-wallet.log`). The slice does not touch the API. Reported, not
+      edited.
+  - **Close checks.**
+    - The criteria `grep`s on the three paths find no `uppercase`, `text-[…]`, `text-xs`, raw
+      colour or hex.
+    - Both locale files hold the same keys (the i18n test is green).
+    - `git diff --stat 9b98504 -- apps/web-spa-e2e` shows only `distribution-tablet.spec.ts`.
+  - **Processes.** The E2E stack was taken down with `e2e:down`. Nothing listens on 3060 or 5273.
+    The lock was released after each of my runs (slice 04 holds it now).
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — layout and search column: sweep and layout tests red, then the layout test green (sweep stays red until steps 2 and 3, on purpose)
 - [x] Step 2 — member page, order card, big actions: red, then green
 - [x] Step 3 — express sale, receipt, wallet components: red, then green
-- [ ] Step 4 — sweep green (done), five gates green (done, two flaky reruns), screenshots taken (Mason, not done), files formatted (done)
+- [x] Step 4 — sweep green, five gates green (flaky reruns logged), screenshots taken, files formatted
 
 ## Notes & Snippets
 
@@ -575,6 +622,95 @@ from the server; today's wording kept; the nearest theme sizes; no red inside th
 `DistributionNotice`, with its classes copied in the wallet's notice. The E2E lock is mandatory for
 every Playwright run.
 
+**Retro proposals** (Mason, 2026-11-25). None is applied; each waits for its owner.
+
+1. **Coding standards: larger sizes and tones belong in `packages/ui`.** Owner: the human.
+   - Slices 02 and 03 both typed by hand the same large-button sizes, money figures, squash fill,
+     straw pill and a kraft tint with an evening override.
+   - Proposal: once slices 03 and 04 are merged, add to `packages/ui`:
+     - a `xl` (64 px) and a `2xl` (72 px) Button size;
+     - a `warning` Button variant;
+     - a `straw` Badge variant;
+     - an `Amount` component;
+     - a `kraft-tint` theme token.
+   - The same task can fix the `Toaster`: its text is 13 px and its `richColors` come from outside
+     the theme.
+2. **Automated checks: screenshots catch cramped text that no test fails on.** Owner: the human.
+   - In both slices the screenshots found text squeezed into a narrow column, which no
+     overflow check could see.
+   - Proposal: the layout helper of slice 02's retro proposal 1 also reports a short word broken
+     across two lines (an element whose text wraps inside a word, or whose height is above
+     two lines at under 120 px wide).
+3. **Information access: the lock does not cover `pnpm test`.** Owner: the human.
+   - The API tests of the two worktrees can run at the same time. Two unrelated API tests failed
+     once each, and the Typist suspected the other worktree.
+   - Proposal: the brief for parallel worktrees says `pnpm test` also runs under the lock, or
+     each worktree uses its own test database.
+4. **AGENTS.md hygiene: the known flaky list.** Owner: the human.
+   - `admin-inventory-stock.spec.ts`, "received twice", failed once in a full run and passed
+     alone. It is not on the list.
+   - Proposal: watch it, and add it to the list if it fails again.
+
 ## Diff-Review Findings
 
-Written after `code-review`.
+`code-review` ran on `git diff 9b98504...HEAD` at `5c3e009`, with two fresh reviewers, 2026-11-25.
+Each finding has its fix or its answer, signed by the Mason. The fixes landed in `f62bb05`, and the
+screenshot fixes in `bdd2dfe`.
+
+**Standards axis:**
+
+- **Copied receipt notice.** The member page and the express sale held the same receipt notice
+  (Duplicated Code). Fixed: one `HandoverRecordedNotice` in
+  `features/distribution/components/handover-recorded-notice.tsx`.
+- **Unclear name.** `committed` in the search did not say what it held (Mysterious Name). Fixed:
+  `committedSearch`.
+- **Warning styles copied in the wallet.** `NegativeBalanceNotice` copies the warning classes of
+  `DistributionNotice`. Answered: kept. The Architect accepted it at the plan reading, so that the
+  wallet feature does not import from the distribution feature. A shared notice would belong in
+  `packages/ui` or `features/common`, and this slice may not touch either.
+- **Repeated sizes.** Some styling is repeated by hand:
+  - the large-button sizes (`h-18 px-6 text-lg`);
+  - the money figures (`font-serif … italic tabular-nums`);
+  - the squash fill on the payment button;
+  - the straw status pill, which could be a `Badge` variant.
+    Answered: each of these is a component size or variant in `packages/ui`, which the slice spec
+    puts out of bounds. This is retro proposal 1.
+- **`dark:bg-muted` on the kraft footers.** The reviewer read it as a theme token missing from the
+  screen. Answered: kept, for the contrast reason in the plan (the kraft tint over the evening
+  card gives 3.94:1). It is retro proposal 1 too: a "kraft tint" token in the theme.
+- **Folder layering.** `features/common/components/distribution-layout.tsx` imports from
+  `features/distribution`. Answered: the layout already lived in `common` before this slice, and
+  the slice spec names that path as its seam. Moving it would change `routes.ts`, which the spec
+  forbids.
+
+**Spec axis:**
+
+- **Toasts are 13 px**, under the 14 px floor of `readable-text`. The text walker skips
+  `[data-sonner-toaster]`. Answered: the `Toaster` lives in `packages/ui`, is shared by every
+  layout, and its `richColors` green is also a colour from outside the theme. Reported to the
+  Architect as an open point for a `packages/ui` change.
+- **16 px text against "body text at least 18 px".** Partly fixed: the not-ready reason is now
+  `text-base` (18 px), because the distributor reads it to the member. These stay `text-sm`
+  (16 px), as short notes next to a value, the rule approved in the plan:
+  - dates;
+  - member numbers;
+  - status pills;
+  - the balance under a search result;
+  - the "Corriger" button of the wallet panel.
+- **The balance block sits beside the name, not below it.** The spec says the page reads "from top
+  to bottom: the member's name … number, the balance in a block". Answered: the approved plan and
+  the mockup put the block on the right of the name. Below 1024 px it falls under the name when
+  the row is too narrow. Reported to the Architect.
+- **New keys in four places.** The keys sat in four places of each locale file, not "in one
+  block" as the spec's note asks. Fixed: they are now one `distribution.table` block
+  (`navigation`, `toHandOver`, `notHandedOver`, `ordersToHandOver`) in both files.
+- **French wording.** "Pas remise cette fois" agreed with nothing clear. Fixed: "Pas remis cette
+  fois", like "Déjà remis".
+- **Added without being asked:**
+  - the balance in the search results (a plan decision the Architect accepted);
+  - the wider refund dialog (`sm:max-w-lg`), which stops its confirm button sticking out;
+  - five new testids that the test needs;
+  - `min-w-80` on the validate button, measured in French only.
+    Answered: all kept.
+- **Settings icon-only, one validate button per order, the merged line list.** Answered: these
+  are Architect rulings 1, 3 and 2.
