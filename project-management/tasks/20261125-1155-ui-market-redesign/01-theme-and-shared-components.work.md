@@ -287,9 +287,21 @@ then a commit.
 - 2026-11-25 — Mason: read the reading list, both specs, the theme and the components that
   `apps/web-spa` imports; computed the contrast table; wrote this plan. No production code yet.
 
+- 2026-11-25 — Typist, step 1. `packages/ui` has Vitest (hoisted install, so the binary sits at the
+  repo root; `pnpm install` ran, lock committed). `theme.spec.ts` written first. Red, before any
+  production change: `AssertionError: expected 'OKLCH(0.9851 0 0)' to be '#F7F1E3'` (115 failed).
+  A first run failed earlier at collection time because the `@theme` block was read outside an
+  `it`; I moved the read inside the tests so the first red is the palette, as planned. Then
+  rewrote `globals.css`, removed the Host Grotesk import and dependency. Green: 115 passed.
+  Notes: (a) the lock diff also holds three `deprecated:` lines for opentelemetry packages that
+  `pnpm install` adds by itself; (b) the spec builds the font name in two parts so the plan's
+  `grep -ri "host.grotesk" packages` check does not match the spec itself; (c) the evening block
+  only lists tokens that differ from light, the others are inherited (the spec merges them the same
+  way); (d) `apps/web-spa/build/` (ignored build output) still holds an old CSS with the word.
+
 ## Implementation Checkboxes
 
-- [ ] Step 1 — Vitest in `packages/ui`, `theme.spec.ts` red then green, new `globals.css`, Host Grotesk gone
+- [x] Step 1 — Vitest in `packages/ui`, `theme.spec.ts` red then green, new `globals.css`, Host Grotesk gone
 - [ ] Step 2 — `market-theme.spec.ts` written and red on the heights
 - [ ] Step 3 — `component-rules.spec.ts` red then green, components restyled, browser test green
 - [ ] Step 4 — `awning-band.spec.tsx` red then green, `AwningBand` exported
@@ -308,7 +320,6 @@ then a commit.
 4. **Screens bigger before their layout is redone.** Ruled: accepted. The parent spec already says a
    space not yet redone keeps its old layout with the new theme; it must still work.
 5. **Vitest in `packages/ui`.** Ruled: accepted, set up as in `packages/i18n`.
-
 
 - Usage in `apps/web-spa` (import counts): button 53, input 31, app components 29, skeleton 24,
   badge 23, dialog 14, table 12, segmented control 8, form 6, textarea 5, tabs 3, native select 3,
