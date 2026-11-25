@@ -1,11 +1,11 @@
-import { Button } from '@grocery/ui/components/primitives/button'
 import { useMutation } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useSearchParams } from 'react-router'
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
+import { AuthTextLink } from '@/features/auth/components/auth-text-link'
 
 export default function AuthVerifyEmailPage() {
   const { t } = useTranslation()
@@ -69,13 +69,7 @@ export default function AuthVerifyEmailPage() {
           <Loader2 className="w-10 h-10 animate-spin" />
         </div>
         <div className="mt-4 text-center">
-          <Button
-            variant="link"
-            className="h-auto min-h-12 text-center whitespace-normal"
-            render={<Link to="/login" />}
-          >
-            {t('auth.verifyEmail.redirectNow')}
-          </Button>
+          <AuthTextLink to="/login">{t('auth.verifyEmail.redirectNow')}</AuthTextLink>
         </div>
       </div>
     )

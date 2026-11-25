@@ -67,7 +67,7 @@ async function findSmallOrCapitalText(page: Page): Promise<string[]> {
 }
 
 /** Passe en mode soir avant que l'application lise son réglage. */
-async function useEveningMode(page: Page): Promise<void> {
+async function setEveningModeBeforeLoad(page: Page): Promise<void> {
   await page.addInitScript(() => {
     localStorage.setItem('app-theme', 'dark')
   })
@@ -81,6 +81,7 @@ async function signInThroughForm(page: Page, email: string): Promise<void> {
   await page.getByTestId('auth-login-submit').click()
 }
 
+/** L'élément est assez haut pour un doigt : au moins 44 px. */
 async function expectTall(locator: Locator): Promise<void> {
   const box = await locator.boundingBox()
   expect(box, 'élément visible').not.toBeNull()
@@ -116,6 +117,7 @@ test.describe('barre d’onglets du téléphone', () => {
         await link.click()
         await expect(page).toHaveURL(tab.url)
         await expect(page.getByTestId(tab.page)).toBeVisible()
+        await expectNoHorizontalScroll(page)
 
         for (const other of TABS) {
           const otherLink = page.getByTestId(`tab-bar-${other.name}`)
@@ -229,10 +231,7 @@ test.describe('en-tête du téléphone et menu', () => {
     test.use({ storageState: SIGNED_OUT })
 
     test('se déconnecter depuis le menu mène à la connexion', async ({ page }) => {
-      await page.goto('/login')
-      await page.getByTestId('auth-login-identifier').fill(E2E_USERS.member)
-      await page.getByTestId('auth-login-password').fill(E2E_PASSWORD)
-      await page.getByTestId('auth-login-submit').click()
+      await signInThroughForm(page, E2E_USERS.member)
       await expect(page.getByTestId('page-shop')).toBeVisible()
 
       await page.getByTestId('phone-menu-trigger').click()
@@ -316,7 +315,7 @@ test.describe('boutique et panier à 390 px', () => {
 
   for (const mode of ['clair', 'soir'] as const) {
     test(`rien ne déborde à 390 px (mode ${mode})`, async ({ page }) => {
-      if (mode === 'soir') await useEveningMode(page)
+      if (mode === 'soir') await setEveningModeBeforeLoad(page)
 
       await page.goto('/shop')
       const grid = page.getByTestId('shop-product-grid')
@@ -365,7 +364,7 @@ test.describe('textes des écrans du membre à 390 px', () => {
     test(`les quatre onglets sont lisibles et ne débordent pas (mode ${mode})`, async ({
       page,
     }) => {
-      if (mode === 'soir') await useEveningMode(page)
+      if (mode === 'soir') await setEveningModeBeforeLoad(page)
 
       for (const tab of TABS) {
         await page.goto(`/${tab.name}`)

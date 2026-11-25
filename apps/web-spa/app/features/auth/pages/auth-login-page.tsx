@@ -1,13 +1,13 @@
-import { Button } from '@grocery/ui/components/primitives/button'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { normalizePhone, type IdentifierMode } from '@/features/auth/lib/identifier'
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
 import { AuthLoginForm, type AuthLoginFormData } from '../forms/auth-login-form'
+import { AuthTextLink } from '@/features/auth/components/auth-text-link'
 
 /** Only a same-page relative path — rejects `//evil.example` and absolute URLs in `?redirect=`. */
 function isSafeRedirectPath(path: string | null): path is string {
@@ -75,13 +75,9 @@ export default function Login() {
         ) : null}
       </div>
       <div className="text-center">
-        <Button
-          variant="link"
-          className="h-auto min-h-12 text-center whitespace-normal"
-          render={<Link to="/register" />}
-        >
+        <AuthTextLink to="/register">
           {t('auth.login.noAccount')} {t('auth.login.signUp')}
-        </Button>
+        </AuthTextLink>
       </div>
     </div>
   )

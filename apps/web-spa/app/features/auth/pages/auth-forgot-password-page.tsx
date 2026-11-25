@@ -4,7 +4,7 @@ import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { normalizePhone, type IdentifierMode } from '@/features/auth/lib/identifier'
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
@@ -12,6 +12,7 @@ import {
   AuthForgotPasswordForm,
   type AuthForgotPasswordFormData,
 } from '../forms/auth-forgot-password-form'
+import { AuthTextLink } from '@/features/auth/components/auth-text-link'
 
 type Step = 'form' | 'emailSent' | 'phoneReset'
 
@@ -132,13 +133,7 @@ export default function AuthForgotPasswordPage() {
       )}
 
       <div className="text-center">
-        <Button
-          variant="link"
-          className="h-auto min-h-12 text-center whitespace-normal"
-          render={<Link to="/login" />}
-        >
-          {t('auth.forgotPassword.backToLogin')}
-        </Button>
+        <AuthTextLink to="/login">{t('auth.forgotPassword.backToLogin')}</AuthTextLink>
       </div>
     </div>
   )

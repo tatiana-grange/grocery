@@ -96,7 +96,7 @@ export function TopupForm() {
         </Button>
       </form>
 
-      <p className="text-sm text-muted-foreground">{t('wallet.topup.note')}</p>
+      <p className="text-base text-muted-foreground">{t('wallet.topup.note')}</p>
     </section>
   )
 }

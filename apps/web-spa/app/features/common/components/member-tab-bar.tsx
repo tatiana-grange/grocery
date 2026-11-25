@@ -61,7 +61,6 @@ export function MemberTabBar(): ReactElement {
           <li key={testId}>
             <NavLink
               to={to}
-              end={false}
               data-testid={testId}
               className={({ isActive }) =>
                 cn(

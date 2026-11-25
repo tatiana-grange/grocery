@@ -4,7 +4,6 @@ import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
 import {
   normalizePhone,
   synthesizedEmailFor,
@@ -13,6 +12,7 @@ import {
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
 import { AuthRegisterForm, type AuthRegisterFormData } from '../forms/auth-register-form'
+import { AuthTextLink } from '@/features/auth/components/auth-text-link'
 
 type Step = 'form' | 'otp' | 'done'
 
@@ -103,13 +103,7 @@ export default function Register() {
           </Button>
         )}
         <div className="mt-4 text-center">
-          <Button
-            variant="link"
-            className="h-auto min-h-12 text-center whitespace-normal"
-            render={<Link to="/login" />}
-          >
-            {t('auth.register.backToLogin')}
-          </Button>
+          <AuthTextLink to="/login">{t('auth.register.backToLogin')}</AuthTextLink>
         </div>
       </div>
     )
@@ -167,13 +161,9 @@ export default function Register() {
         ) : null}
       </div>
       <div className="text-center">
-        <Button
-          variant="link"
-          className="h-auto min-h-12 text-center whitespace-normal"
-          render={<Link to="/login" />}
-        >
+        <AuthTextLink to="/login">
           {t('auth.register.hasAccount')} {t('auth.register.login')}
-        </Button>
+        </AuthTextLink>
       </div>
     </div>
   )

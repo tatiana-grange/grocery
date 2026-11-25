@@ -12,16 +12,14 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { AppSettingsItems } from '@/features/common/components/app-settings-items'
 
-/** The phone "Menu": settings, back office for admins, sign-out. What the tab bar does not hold. */
-export function PhoneMenu({
-  isAdmin,
-  isSignedIn,
-  onSignOut,
-}: {
+interface PhoneMenuProps {
   isAdmin: boolean
   isSignedIn: boolean
   onSignOut: () => void
-}): ReactElement {
+}
+
+/** The phone "Menu": settings, back office for admins, sign-out. What the tab bar does not hold. */
+export function PhoneMenu({ isAdmin, isSignedIn, onSignOut }: PhoneMenuProps): ReactElement {
   const { t } = useTranslation()
 
   return (
