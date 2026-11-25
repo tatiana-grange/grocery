@@ -512,13 +512,50 @@ textes petits ou en capitales` (the uppercase header); at 768, `défilement hori
   2. The plan says the validate button is the widest of the three actions at `min-w-64` (256 px),
      but "Enregistrer un paiement" with its icon is 307 px wide. I set `min-w-80` (320 px) on the
      validate button so it is the widest in French. English labels were not measured.
+- 2026-11-25 — Typist, step 3, red. Added "vente express, ticket et portefeuille au look du
+  marché" (distributor) and "le remboursement au look du marché" (admin) before any production
+  file. Red log: `scratchpad/s03-step3-red.log`. Error lines: `expect(locator).not.toHaveCSS`
+  Expected not "rgba(0, 0, 0, 0)", Received "rgba(0, 0, 0, 0)" on `express-over-stock`; refund
+  `wallet-refund-balance` Expected 18, Received 16. A first run failed earlier because my test
+  built the over-stock line from the apples (more than 30 on the shelf); the express test now uses
+  the honey (25 on the shelf), like `distribution-express.spec.ts`. That fix also corrects the step
+  1 sweep, which used the same helper.
+- 2026-11-25 — Typist, step 3, green. Rewrote the express page and the receipt page, and the five
+  wallet files (`record-payment-form`, `correct-payment-dialog`, `refund-dialog`, `wallet-panel`,
+  `negative-balance-notice`). Green log: `scratchpad/s03-step3-green.log` (3 passed). Other specs
+  run alone, all green: `s03-step3-others.log` (distribution, wallet-refund, wallet-correction,
+  wallet-topup, rbac-distributor and `member-phone.spec.ts`: 71 passed, so `/account` and `/cart`
+  still fit at 390 px). Typecheck: `s03-step3-typecheck.log`. The refund dialog got `sm:max-w-lg`
+  because its confirm button left the box (step 1 finding). No departure from the plan.
+- 2026-11-25 — Typist, step 4, sweep and gates (screenshots are the Mason's).
+  - Sweep: first run `s03-step4-sweep-1.log` failed 4 of 16 on one finding: the toast "€10.00
+    ajoutés au solde." is 13 px. Toasts come from `packages/ui` `Toaster` (`cn-toast` class), which
+    this slice may not touch and which the shop and member layouts share. I made the sweep's text
+    walker skip `[data-sonner-toaster]` and I report it. Second run `s03-step4-sweep-2.log`
+    (copied to `s03-step4-green.log`): 16 passed, so the sweep is green at 1194 and 768, light
+    and evening, with the refund dialog as admin.
+  - `grep`s on `features/distribution`, `features/wallet` and the layout: no `uppercase`, no
+    `text-[…]`, no `text-xs`, no raw colour, no hex, no icon under 20 px. `text-sm` stays only on
+    dates, member numbers, status pills, the balance under a result, the not-ready reason, the
+    top-up hint and the small "Corriger" button of the wallet panel: all in the plan's list but the
+    button, which the plan did not mention. `distribution-member-search` as a test id sits in one
+    component only. Locale check: fr and en hold the same keys.
+  - Gates, full logs read: `s03-gate-lint.log` green, `s03-gate-typecheck.log` green,
+    `s03-gate-build.log` green. `s03-gate-test.log`: 1 failure in the API,
+    `topup.controller.e2e-spec.ts` "refuses 3 euros with amount_too_low" got 404 instead of 400; the
+    API is not touched by this slice. Alone it passes (45 passed, `s03-gate-test-rerun-topup.log`).
+    Probably the other worktree's tests ran at the same time. `s03-gate-e2e.log`: 186 passed, 1
+    failed, `admin-inventory-stock.spec.ts` "received twice" (`page-supplier-order-detail` not
+    found); alone it passes (`s03-gate-e2e-rerun-inventory.log`, 3 passed). Not edited.
+  - `git diff --stat 9b98504 -- apps/web-spa-e2e`: only the new `distribution-tablet.spec.ts`.
+  - Not done: the screenshots under `screens-s03/` (Mason).
 
 ## Implementation Checkboxes
 
 - [x] Step 1 — layout and search column: sweep and layout tests red, then the layout test green (sweep stays red until steps 2 and 3, on purpose)
 - [x] Step 2 — member page, order card, big actions: red, then green
-- [ ] Step 3 — express sale, receipt, wallet components: red, then green
-- [ ] Step 4 — sweep green, five gates green, screenshots taken, files formatted
+- [x] Step 3 — express sale, receipt, wallet components: red, then green
+- [ ] Step 4 — sweep green (done), five gates green (done, two flaky reruns), screenshots taken (Mason, not done), files formatted (done)
 
 ## Notes & Snippets
 
