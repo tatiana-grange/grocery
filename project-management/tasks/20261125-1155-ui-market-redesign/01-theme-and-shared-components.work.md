@@ -337,6 +337,19 @@ page-title.tsx: uppercase"]` for capitals (3 of 4 failed; log `scratchpad/step3-
   placed in any layout. Tiny choice: the utility sits just before `@theme inline` in
   `globals.css`; `theme.spec.ts` still reads `:root`, `.dark` and `@theme` correctly.
 
+- 2026-11-25 — Typist, step 5, **not finished; its checkbox stays open.** Logs are in the
+  scratchpad (`gate-*.log`). `pnpm lint` exit 0 (warnings only, none in changed files),
+  `pnpm typecheck` exit 0, `pnpm build` exit 0. `pnpm test` was red once: `expenses.controller.
+e2e-spec.ts`, "rejects a label of 201 characters with 400", received 404 (`gate-test.log`); the
+  rerun was green, 125 + 15 + 735 tests (`gate-test-rerun.log`). A known-flaky family does not
+  cover this test, so it is reported. `pnpm e2e`, first full run: 148 passed, 2 failed
+  (`gate-e2e.log`): `accounting.spec.ts` period filter (`pnl-expenses-total` received 453.50 €
+  instead of 0.00 €) and `admin-inventory-stock.spec.ts` weighted average (`page-supplier-order-
+detail` not found). Both passed when run alone (`gate-e2e-rerun2.log`). A full rerun was started
+  beside that, on the same database, so it is not valid; I stopped it on the Mason's word. Not done:
+  a clean full E2E rerun, the screenshots (script `scratchpad/shots.mjs` is ready, no servers
+  started), and the E2E stack is down. No existing test file is in the diff.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — Vitest in `packages/ui`, `theme.spec.ts` red then green, new `globals.css`, Host Grotesk gone
