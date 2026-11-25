@@ -7,7 +7,7 @@ The parent spec, with the owner's decisions, is
 `AwningBand` component and the browser test `market-theme.spec.ts` come from slice 01; its work
 document is `01-theme-and-shared-components.work.md` in this folder.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect, 2026-11-25, with the rulings in Notes & Snippets.
 
 ## Program Design
 
@@ -522,6 +522,24 @@ The Typist stops any dev server it starts in the same step, by PID, or reports t
 - [ ] Step 6 — five gates green, screenshots taken, files formatted
 
 ## Notes & Snippets
+
+**Architect's rulings at the plan reading** (Architect, 2026-11-25, written by the Mason):
+
+1. **Phone shop grid: two columns.** The owner chose the grid over the Architect's advice, so it
+   stays. Each card's add button must still show "Ajouter" at 48 px or more, with no overflow at
+   390 px.
+2. **Icon-only controls: an accepted exception to `icon-with-label`.** The settings button and the
+   shop view switch stay icon-only, as secondary controls. Each carries an `aria-label` and a
+   `title`. On phones the settings sit inside the labelled "Menu" anyway.
+3. **Safe area: accepted.** `viewport-fit=cover` and the safe-area padding go in `root.tsx`. The
+   1440 px screenshots are checked for any change on the other layouts, and the worklog says so.
+4. **Inter: removed, in its own commit.** First a `grep` shows that nothing names Inter.
+5. **Wallet dialogs: left to slices 03 and 04.** `record-payment-form.tsx`,
+   `correct-payment-dialog.tsx` and `refund-dialog.tsx` serve the distribution table and the back
+   office; their small labels are restyled there.
+
+Also accepted: the visible "Retirer" label on the cart remove button, the link buttons that keep
+their testids, the shop card type from the mockup, and CSS breakpoints instead of `useIsMobile`.
 
 **Searches run on 2026-11-25** from `apps/web-spa/app`, over the files of the criteria
 (`F` = `features/shop features/cart features/account features/wallet features/participation
