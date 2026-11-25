@@ -36,7 +36,8 @@ the same day. Branch: `fix/reverse-reversal-500`, off `staging`.
 - [ ] ~~**reversal-of-reversal-refused** — reversing a reversal answers 409 every time, proven by
       the regression test run in a loop.~~
 - [ ] **reversal-of-reversal-refused** (amended 2026-11-24 by the Architect: the stray answer
-      comes about once in 4,500 calls, so no loop of one test can show it) — the test app owns
+      comes about once in 4,500 calls, so no loop of one test can show it; confirmed by the human
+      on 2026-11-25) — the test app owns
       its port on 127.0.0.1, pinned by a regression test; the test "refuses reversing a
       reversal" checks that its first reversal answers 201; and the work document shows the
       harness (stray answers before the fix, none after on the same number of calls) and three
