@@ -181,6 +181,15 @@ is the "retouch of a few lines" exception in `.agents/workflow.md` (step 5, Code
 - Commits: `2e5e23f` (fix, regression test, stricter test, Vitest include), `8714bae` (API
   testing guide paragraph).
 
+### 2026-11-25 — close
+
+Done by the Architect, Docker answering again. The human confirmed the amended criterion.
+
+- The reworked regression test and the distribution tests: 62 of 62 green.
+- `pnpm test`: exit 0, API 605 of 605, i18n 15 of 15. Full log read; the only error lines come
+  from tests that check error paths on purpose (negative balance notice, email connection).
+- Criteria ticked, documents archived, journal entry written. Retro proposals are in the spec.
+
 ## Implementation Checkboxes
 
 - [x] Repeatable check that goes red (the harness: about 1 call in 4,500 answered by a
@@ -192,8 +201,8 @@ is the "retouch of a few lines" exception in `.agents/workflow.md` (step 5, Code
 - [x] Gates: `pnpm lint`, `pnpm typecheck`, `pnpm test`
 - [x] API testing guide paragraph
 - [x] `code-review` on the diff since `origin/staging`, findings recorded
-- [ ] Reworked regression test and `pnpm test` rerun after the review edits (blocked: Docker)
-- [ ] Close: criteria ticked, documents archived, journal entry, `retro`
+- [x] Reworked regression test and `pnpm test` rerun after the review edits
+- [x] Close: criteria ticked, documents archived, journal entry, `retro`
 
 ## Notes & Snippets
 
@@ -303,4 +312,4 @@ reworked test has **not been run yet**: see the blocker below.
 regression test hung before its first test: the global setup starts a Postgres container,
 and `docker ps` and `docker info` gave no answer within 20 and 60 seconds. Restarting OrbStack
 would stop other projects' containers, so I did not. Left to do once Docker answers: run the
-reworked test, then `pnpm test`, then close.
+reworked test, then `pnpm test`, then close. Resolved 2026-11-25: Docker answered again.

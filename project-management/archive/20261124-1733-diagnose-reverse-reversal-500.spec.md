@@ -1,6 +1,6 @@
 # Diagnose: reversing a reversal answered 500 once
 
-**Status:** blocked — Docker does not answer; one test run and `pnpm test` left before the close (see the work document)
+**Status:** done
 
 ---
 
@@ -30,19 +30,19 @@ the same day. Branch: `fix/reverse-reversal-500`, off `staging`.
 
 ## Acceptance Criteria
 
-- [ ] **failure-reproduced** — a check makes the 500 appear on demand, or the work document
+- [x] **failure-reproduced** — a check makes the 500 appear on demand, or the work document
       says why it could not, and what was tried.
-- [ ] **cause-named** — the work document names the cause, with the evidence.
+- [x] **cause-named** — the work document names the cause, with the evidence.
 - [ ] ~~**reversal-of-reversal-refused** — reversing a reversal answers 409 every time, proven by
       the regression test run in a loop.~~
-- [ ] **reversal-of-reversal-refused** (amended 2026-11-24 by the Architect: the stray answer
+- [x] **reversal-of-reversal-refused** (amended 2026-11-24 by the Architect: the stray answer
       comes about once in 4,500 calls, so no loop of one test can show it; confirmed by the human
       on 2026-11-25) — the test app owns
       its port on 127.0.0.1, pinned by a regression test; the test "refuses reversing a
       reversal" checks that its first reversal answers 201; and the work document shows the
       harness (stray answers before the fix, none after on the same number of calls) and three
       green full API runs in a row.
-- [ ] **suite-green** — `pnpm lint`, `pnpm typecheck` and `pnpm test` pass.
+- [x] **suite-green** — `pnpm lint`, `pnpm typecheck` and `pnpm test` pass.
 
 ## Seams
 
@@ -82,7 +82,7 @@ once on 127.0.0.1. No product code changes.
 
 ## Deliverables
 
-- [ ] The fix and its regression test, or a written finding.
+- [x] The fix and its regression test, or a written finding.
 
 ## References
 
@@ -93,3 +93,15 @@ once on 127.0.0.1. No product code changes.
 ## Notes
 
 ## Retrospective
+
+Closed 2026-11-25. Proposals, all sent to the human, none applied:
+
+- A separate task: route ids that are not checked as UUIDs answer 500 on a bad id (about 46
+  plain string params against 12 UUID checks in `apps/api`).
+- Rewrite the "Known flaky tests" note in `AGENTS.md` once this branch is merged: a test that
+  fails once and then passes is now a real signal. Drop the sequential-calls advice and the
+  one-connection `ECONNRESET` note in the API testing guide, which came from the same cause.
+- Backend guide: check every route id as a UUID. Testing guide: check the status of each call a
+  test depends on.
+- API testing guide: a `console.log` in a passing Vitest test does not show; write to a file to
+  diagnose.
