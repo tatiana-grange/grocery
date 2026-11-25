@@ -11,11 +11,11 @@ import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 /** The table's member search, rendered once by the distribution layout beside every page. */
 export function DistributionMemberSearch(): ReactElement {
   const { t } = useTranslation()
-  const [committed, setCommitted] = useState('')
-  const { search, setSearch } = useDebouncedSearch('', (value) => setCommitted(value ?? ''))
+  const [committedSearch, setCommittedSearch] = useState('')
+  const { search, setSearch } = useDebouncedSearch('', (value) => setCommittedSearch(value ?? ''))
   const currentMemberId = useMatch('/distribution/members/:memberId/*')?.params.memberId
 
-  const { data, isLoading } = useQuery(distributionMemberSearchQueryOptions(committed))
+  const { data, isLoading } = useQuery(distributionMemberSearchQueryOptions(committedSearch))
   const rows = data?.data ?? []
 
   return (
@@ -36,8 +36,8 @@ export function DistributionMemberSearch(): ReactElement {
       />
 
       <div data-testid="distribution-search-results">
-        {isLoading && committed ? <Skeleton className="h-19 w-full" /> : null}
-        {committed && !isLoading && rows.length === 0 ? (
+        {isLoading && committedSearch ? <Skeleton className="h-19 w-full" /> : null}
+        {committedSearch && !isLoading && rows.length === 0 ? (
           <p className="text-base text-muted-foreground" data-testid="distribution-search-empty">
             {t('distribution.search.empty')}
           </p>
@@ -49,7 +49,7 @@ export function DistributionMemberSearch(): ReactElement {
                 to={`/distribution/members/${member.id}`}
                 aria-current={member.id === currentMemberId ? 'page' : undefined}
                 data-testid={`distribution-member-row-${member.id}`}
-                className="group flex min-h-19 w-full items-center gap-3 rounded-xl border-2 border-border bg-card p-4 text-left hover:bg-accent aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
+                className="group flex min-h-19 w-full items-center gap-3 rounded-xl border-2 border-border bg-card p-4 text-left hover:bg-accent aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground aria-[current=page]:hover:bg-primary/90"
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-lg font-bold">{member.name}</p>

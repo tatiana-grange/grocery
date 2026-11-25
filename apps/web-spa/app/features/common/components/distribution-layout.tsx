@@ -55,7 +55,7 @@ export default function DistributionLayout() {
           {t('distribution.title')}
         </Link>
         <nav
-          aria-label={t('distribution.nav.main')}
+          aria-label={t('distribution.table.navigation')}
           className="ml-auto flex flex-wrap items-center gap-2"
         >
           <Button

@@ -30,7 +30,7 @@ export default function DistributionHomePage() {
   return (
     <div className="space-y-6" data-testid="page-distribution-home">
       <div>
-        <PageTitle>{t('distribution.waiting.title')}</PageTitle>
+        <PageTitle>{t('distribution.table.ordersToHandOver')}</PageTitle>
         <p className="text-base text-muted-foreground">{t('distribution.subtitle')}</p>
       </div>
 

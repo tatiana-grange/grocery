@@ -8,6 +8,7 @@ import { Banknote, ShoppingBasket, Undo2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
+import { HandoverRecordedNotice } from '@/features/distribution/components/handover-recorded-notice'
 import { DistributionNotice } from '@/features/distribution/components/distribution-notice'
 import { HandoverForm } from '@/features/distribution/components/handover-form'
 import { InsufficientBalanceDialog } from '@/features/distribution/components/insufficient-balance-dialog'
@@ -62,25 +63,11 @@ export default function DistributionMemberPage() {
         </div>
       </div>
 
-      {recordedHandoverId ? (
-        <DistributionNotice tone="success" data-testid="handover-receipt">
-          <div className="flex flex-wrap items-center gap-2">
-            <span>{t('distribution.handover.receipt')}</span>
-            <Button
-              variant="link"
-              className="ml-auto"
-              data-testid="handover-receipt-link"
-              render={<Link to={`/distribution/handovers/${recordedHandoverId}`} />}
-            >
-              {t('distribution.waiting.open')}
-            </Button>
-          </div>
-        </DistributionNotice>
-      ) : null}
+      {recordedHandoverId ? <HandoverRecordedNotice handoverId={recordedHandoverId} /> : null}
 
       <section className="space-y-4" data-testid="distribution-to-hand-over">
         <div className="flex flex-wrap items-center gap-3">
-          <SectionTitle className="text-2xl">{t('distribution.member.toHandOver')}</SectionTitle>
+          <SectionTitle className="text-2xl">{t('distribution.table.toHandOver')}</SectionTitle>
           {data.orders.length > 0 ? (
             <span className="rounded-full bg-straw px-3 text-sm font-semibold text-straw-foreground">
               {t('distribution.search.outstanding', { count: data.orders.length })}

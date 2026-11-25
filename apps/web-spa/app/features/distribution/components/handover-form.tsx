@@ -104,7 +104,7 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
             <div className="min-w-48 flex-1">
               <p className="text-lg font-semibold">{line.productName}</p>
               {line.isReady ? null : (
-                <p className="text-sm text-destructive" data-testid="distribution-line-not-ready">
+                <p className="text-base text-destructive" data-testid="distribution-line-not-ready">
                   {t(`distribution.notReadyReason.${line.notReadyReason}`)}
                 </p>
               )}
@@ -149,7 +149,7 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
               <span className="text-base text-muted-foreground" data-testid="handover-excluded">
                 {line.isHandedOver
                   ? t('distribution.line.alreadyHandedOver')
-                  : t('distribution.line.notHandedOver')}
+                  : t('distribution.table.notHandedOver')}
               </span>
             )}
           </li>

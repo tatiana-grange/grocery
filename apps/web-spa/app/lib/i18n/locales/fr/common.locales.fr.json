@@ -534,8 +534,7 @@
     "subtitle": "Trouvez un adhérent, remettez ses commandes ou vendez depuis le rayon.",
     "nav": {
       "distribution": "Distribution",
-      "backToShop": "Retour à la boutique",
-      "main": "Navigation de la distribution"
+      "backToShop": "Retour à la boutique"
     },
     "accessDenied": "Il faut le rôle distributeur pour tenir une distribution.",
     "search": {
@@ -548,7 +547,6 @@
     },
     "member": {
       "balance": "Solde",
-      "toHandOver": "À remettre",
       "aboutToCharge": "À débiter",
       "shortfall": "Il manque {{amount}}",
       "nothingToCollect": "Rien à retirer.",
@@ -572,7 +570,6 @@
       "available": "En rayon",
       "handedOver": "Remis",
       "alreadyHandedOver": "Déjà remis",
-      "notHandedOver": "Pas remise cette fois",
       "unitPrice": "Prix unitaire",
       "lineTotal": "Total ligne",
       "negativeStock": "Le stock enregistré est négatif — un inventaire s'impose."
@@ -602,7 +599,6 @@
       "success": "Vendu. {{amount}} débités."
     },
     "waiting": {
-      "title": "Commandes à remettre",
       "preOrders": "Précommandes à remettre",
       "inStoreOrders": "Commandes sur stock à remettre",
       "empty": "Rien en attente.",
@@ -624,7 +620,13 @@
       "cannot_reverse_reversal": "Une annulation ne peut pas être annulée."
     },
     "eur": "€{{value}}",
-    "dismiss": "Annuler"
+    "dismiss": "Annuler",
+    "table": {
+      "navigation": "Navigation de la distribution",
+      "toHandOver": "À remettre",
+      "notHandedOver": "Pas remis cette fois",
+      "ordersToHandOver": "Commandes à remettre"
+    }
   },
   "wallet": {
     "title": "Compte",

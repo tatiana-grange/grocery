@@ -534,8 +534,7 @@
     "subtitle": "Find a member, hand over their orders, or sell from the shelf.",
     "nav": {
       "distribution": "Distribution",
-      "backToShop": "Back to shop",
-      "main": "Distribution navigation"
+      "backToShop": "Back to shop"
     },
     "accessDenied": "You need the distributor role to staff a distribution.",
     "search": {
@@ -548,7 +547,6 @@
     },
     "member": {
       "balance": "Balance",
-      "toHandOver": "To hand over",
       "aboutToCharge": "About to charge",
       "shortfall": "Short by {{amount}}",
       "nothingToCollect": "Nothing to collect.",
@@ -572,7 +570,6 @@
       "available": "On the shelf",
       "handedOver": "Handing over",
       "alreadyHandedOver": "Already handed over",
-      "notHandedOver": "Not handed over this time",
       "unitPrice": "Unit price",
       "lineTotal": "Line total",
       "negativeStock": "Recorded stock is negative — a count is due."
@@ -602,7 +599,6 @@
       "success": "Sold. {{amount}} charged."
     },
     "waiting": {
-      "title": "Orders to hand over",
       "preOrders": "Pre-orders to hand over",
       "inStoreOrders": "In-store orders to hand over",
       "empty": "Nothing waiting.",
@@ -624,7 +620,13 @@
       "cannot_reverse_reversal": "A reversal cannot itself be reversed."
     },
     "eur": "€{{value}}",
-    "dismiss": "Cancel"
+    "dismiss": "Cancel",
+    "table": {
+      "navigation": "Distribution navigation",
+      "toHandOver": "To hand over",
+      "notHandedOver": "Not handed over this time",
+      "ordersToHandOver": "Orders to hand over"
+    }
   },
   "wallet": {
     "title": "Account",

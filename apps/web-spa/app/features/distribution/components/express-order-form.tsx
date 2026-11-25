@@ -6,8 +6,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { toast } from 'sonner'
+import { HandoverRecordedNotice } from '@/features/distribution/components/handover-recorded-notice'
 import { DistributionNotice } from '@/features/distribution/components/distribution-notice'
 import {
   createExpressOrder,
@@ -93,21 +94,7 @@ export default function ExpressOrderForm() {
         ) : null}
       </div>
 
-      {recordedHandoverId ? (
-        <DistributionNotice tone="success" data-testid="handover-receipt">
-          <div className="flex flex-wrap items-center gap-2">
-            <span>{t('distribution.handover.receipt')}</span>
-            <Button
-              variant="link"
-              className="ml-auto"
-              data-testid="handover-receipt-link"
-              render={<Link to={`/distribution/handovers/${recordedHandoverId}`} />}
-            >
-              {t('distribution.waiting.open')}
-            </Button>
-          </div>
-        </DistributionNotice>
-      ) : null}
+      {recordedHandoverId ? <HandoverRecordedNotice handoverId={recordedHandoverId} /> : null}
 
       <div className="space-y-2">
         <Input
