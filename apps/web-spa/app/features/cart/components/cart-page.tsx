@@ -71,11 +71,13 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
   return (
     <TableRow
       data-testid={`cart-line-${line.id}`}
-      className="max-md:grid max-md:grid-cols-[1fr_auto] max-md:items-center max-md:gap-x-3 max-md:gap-y-2 max-md:py-4"
+      className="max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-center max-md:gap-x-3 max-md:gap-y-2 max-md:px-3 max-md:py-4"
     >
       {/* The pickup breakdown is a sentence, not a label: it has to wrap inside the column
-          rather than push the table wider than the page. */}
-      <TableCell className="font-medium whitespace-normal wrap-break-word max-md:col-span-2 max-md:block max-md:p-0">
+          rather than push the table wider than the page. On a phone the row is a two-column
+          grid: name across, then stepper and remove, then unit price and line total. The
+          `order` classes set that reading order without moving the cells, which a table needs. */}
+      <TableCell className="font-medium whitespace-normal wrap-break-word max-md:order-1 max-md:col-span-2 max-md:block max-md:p-0">
         {product.name}
         {/* The ordering mode is a catalogue detail the shopper has already acted on; what it
             means for them here is the pickup breakdown below. Only a problem with the line
@@ -110,7 +112,7 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
           </ul>
         )}
       </TableCell>
-      <TableCell className="max-md:block max-md:p-0">
+      <TableCell className="max-md:order-2 max-md:block max-md:min-w-0 max-md:p-0">
         {/* The line is there by definition, so this only ever renders as the stepper. Taking the
             amount down to nothing drops the line, exactly as it does in the shop. */}
         <AddToCartControl
@@ -127,15 +129,15 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
           }}
         />
       </TableCell>
-      <TableCell className="max-md:block max-md:p-0">
+      <TableCell className="max-md:order-4 max-md:block max-md:p-0 max-md:whitespace-normal">
         <span className="md:hidden">{t('cart.unitPrice')} </span>
         {line.unitPriceEur.toFixed(2)} €
       </TableCell>
-      <TableCell className="font-semibold max-md:block max-md:p-0 max-md:text-right">
+      <TableCell className="font-semibold max-md:order-5 max-md:block max-md:p-0 max-md:text-right max-md:whitespace-normal">
         <span className="md:hidden">{t('cart.lineTotal')} </span>
         {line.lineTotalEur.toFixed(2)} €
       </TableCell>
-      <TableCell className="max-md:block max-md:p-0 max-md:text-right">
+      <TableCell className="max-md:order-3 max-md:block max-md:p-0 max-md:text-right">
         <AlertDialog>
           <AlertDialogTrigger
             render={

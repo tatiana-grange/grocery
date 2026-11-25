@@ -22,14 +22,16 @@ async function expectNoHorizontalScroll(page: Page): Promise<void> {
 }
 
 /**
- * Les commandes (bouton, lien, champ) du contenu qui sortent de leur carte, ou de l'écran quand
- * elles n'ont pas de carte, ou dont le texte est coupé. Renvoie le testid ou le texte de chacune.
+ * Les commandes (bouton, lien, champ) du contenu qui sortent de leur carte ou du cadre de leur
+ * tableau, ou de l'écran quand elles n'ont ni l'un ni l'autre, ou dont le texte est coupé. Un
+ * tableau qui défile de côté dans son cadre ne fait pas défiler la page : seul ce cadre le voit.
+ * Renvoie le testid ou le texte de chacune.
  */
 async function findSpilledControls(page: Page, scope = 'main'): Promise<string[]> {
   return page.evaluate((root) => {
     const found: string[] = []
     const cardSelector =
-      '[data-slot="card"], [data-testid^="shop-product-card-"]:not([data-testid="shop-product-card-link"])'
+      '[data-slot="card"], [data-slot="table-container"], [data-testid^="shop-product-card-"]:not([data-testid="shop-product-card-link"])'
     const view = document.documentElement.clientWidth
     for (const el of document.querySelectorAll(`${root} button, ${root} a, ${root} input`)) {
       if (!(el as HTMLElement).checkVisibility()) continue
