@@ -1,4 +1,4 @@
-import { ListPagination, PageTitle } from '@grocery/ui/components/app'
+import { ListPagination } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -17,6 +17,9 @@ import {
   STOCK_PAGE_SIZE,
   stockListQueryOptions,
 } from '@/features/admin-inventory/utils/inventory-queries'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
+import { useBackOfficePaginationLabels } from '@/features/common/hooks/use-back-office-pagination-labels'
 import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
@@ -34,16 +37,14 @@ export default function StockListPage() {
 
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / STOCK_PAGE_SIZE))
+  const paginationLabels = useBackOfficePaginationLabels(page, pageCount)
 
   return (
     <div className="space-y-6" data-testid="page-stock-list">
-      <div>
-        <PageTitle>{t('inventory.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('inventory.subtitle')}</p>
-      </div>
+      <BackOfficePageHead title={t('inventory.title')} description={t('inventory.subtitle')} />
 
       <Input
-        className="w-64"
+        className="h-13 w-80"
         data-testid="stock-search"
         placeholder={t('inventory.searchPlaceholder')}
         value={search}
@@ -53,7 +54,7 @@ export default function StockListPage() {
         }}
       />
 
-      <div className="rounded-lg border border-border">
+      <BackOfficeTableFrame>
         <Table>
           <TableHeader>
             <TableRow>
@@ -94,7 +95,7 @@ export default function StockListPage() {
                 </TableCell>
                 <TableCell>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     data-testid="stock-row-open"
                     render={<Link to={`/admin/inventory/products/${row.product.id}`} />}
@@ -106,13 +107,14 @@ export default function StockListPage() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </BackOfficeTableFrame>
 
       <ListPagination
         page={page}
         pageCount={pageCount}
         onPageChange={(next) => updateParams({ page: String(next) })}
         testIdPrefix="stock"
+        {...paginationLabels}
       />
     </div>
   )

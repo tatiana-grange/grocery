@@ -19,7 +19,7 @@ export function PeriodPicker({ period, onChange }: PeriodPickerProps) {
 
   return (
     <div className="flex flex-wrap items-end gap-3" data-testid="period-picker">
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-base font-semibold">
         <span>{t('adminAccounting.period.from')}</span>
         <Input
           type="date"
@@ -30,7 +30,7 @@ export function PeriodPicker({ period, onChange }: PeriodPickerProps) {
           onChange={(event) => handleChange({ from: event.target.value, to: period.to })}
         />
       </label>
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-base font-semibold">
         <span>{t('adminAccounting.period.to')}</span>
         <Input
           type="date"

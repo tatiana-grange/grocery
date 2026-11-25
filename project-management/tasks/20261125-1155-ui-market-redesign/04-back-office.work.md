@@ -594,6 +594,25 @@ found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-curr
      Heading cells stay on one line. This touches every framed table, so steps 3 to 5 tests cover it.
      One run (`s04-step4-green-run1-hang.log`) had a browser session crash ("Protocol error ... session
      closed", 8.6 minutes) on two tests; the same file passed on rerun without changes (37 passed).
+- 2026-11-25 — Typist, step 5, red. Wrote case 4 first: accounting and expenses at four size and
+  mode pairs, and at 1440 light the purchasing journey (aggregate by the supplier tab, draft detail
+  with the skipped notice, send, reception form, the list), inventory (list and a stock detail
+  with its two figure cards), slots (list and a slot detail with its count card). Red log
+  `s04-step5-red.log` in the scratchpad: 11 red, 0 green (the setup passes). Error lines:
+  `Expected: "2px"  Received: "1px"` (table frame border, first check of each test). The first
+  check hides the later ones, so the `h1` and figure card checks are proven at the green run.
+- 2026-11-25 — Typist, step 5, green. Rewrote the purchasing (list, order detail, reception form),
+  inventory (list, detail with two figure cards), participation (list, detail with the count card,
+  two dialogs for small text) and accounting (profit and loss, expenses, period picker labels,
+  cancel dialog label) files as planned. Supplier order tones: draft neutral, sent attention,
+  received positive, closed neutral; reception lines none positive, short negative, over attention.
+  The skipped-lines notice uses `border-warning bg-straw-tint text-foreground`. Green log
+  `s04-step5-green.log`: 48 passed (setup, cases 1 to 4). Existing specs `admin-purchasing-aggregate`,
+  `admin-purchasing-reception`, `admin-inventory-stock`, `participation-admin`, `accounting` alone:
+  27 passed (`s04-step5-existing.log`). `pnpm typecheck` passes. Departures: `record-expense-dialog.tsx`,
+  `delete-slot-dialog.tsx` and `cancel-slot-dialog.tsx` needed no change, so they are untouched.
+  The slot detail count card shows the old text "0 / 3" under the label "Inscrits" (the existing
+  `adminParticipation.detail.signups` key).
 
 ## Implementation Checkboxes
 
@@ -601,7 +620,7 @@ found`; `Expected: "page"  Received: ""` on `back-office-nav-catalog` (aria-curr
 - [x] Step 2 — sidebar and layout: browser case 1 red, then green
 - [x] Step 3 — shared pieces and members screens: case 2 red, then green
 - [x] Step 4 — catalogue: case 3 red, then green
-- [ ] Step 5 — purchasing, inventory, participation, accounting: case 4 red, then green
+- [x] Step 5 — purchasing, inventory, participation, accounting: case 4 red, then green
 - [ ] Step 6 — five gates green, close checks, files formatted
 
 ## Notes & Snippets

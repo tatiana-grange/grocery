@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
+import { E2E_PURCHASING } from '../../api/src/seeders/e2e.fixtures'
 import { expect, test, withRole } from '../fixtures'
 
 /**
@@ -346,3 +347,87 @@ for (const size of SIZES) {
     })
   }
 }
+
+for (const size of SIZES) {
+  for (const mode of MODES) {
+    test.describe(`comptabilité à ${size.name}, mode ${mode}`, () => {
+      test.beforeEach(async ({ page, resetDb }) => {
+        await resetDb()
+        await page.setViewportSize({ width: size.width, height: size.height })
+        if (mode === 'soir') await setEveningModeBeforeLoad(page)
+      })
+
+      test('le compte de résultat', async ({ page }) => {
+        await page.goto('/admin/accounting')
+        await expect(page.getByTestId('pnl-result')).toBeVisible()
+
+        await expectTable(firstTableFrame(page))
+        await expectCleanPage(page)
+      })
+
+      test('les dépenses', async ({ page }) => {
+        await page.goto('/admin/accounting/expenses')
+        await expect(page.getByTestId('page-expenses')).toBeVisible()
+        await expect(firstTableFrame(page).locator('tbody tr').first()).toBeVisible()
+
+        await expectTable(firstTableFrame(page))
+        await expectCleanPage(page)
+      })
+    })
+  }
+}
+
+test.describe('achats, stock et créneaux à 1440 × 900, mode jour', () => {
+  test.beforeEach(async ({ page, resetDb }) => {
+    await resetDb()
+    await page.setViewportSize({ width: 1440, height: 900 })
+  })
+
+  test('achats : une commande fournisseur, son détail envoyé et la liste', async ({ page }) => {
+    await page.goto('/admin/catalog?tab=suppliers')
+    await page
+      .getByTestId(`supplier-row-${E2E_PURCHASING.supplierName}`)
+      .getByTestId('supplier-aggregate')
+      .click()
+    await expect(page.getByTestId('page-supplier-order-detail')).toBeVisible()
+    await expect(page.getByTestId('supplier-order-skipped')).toBeVisible()
+    await expectTable(firstTableFrame(page))
+    await expectCleanPage(page)
+
+    await page.getByTestId('supplier-order-send').click()
+    await expect(page.getByTestId('supplier-order-status')).toHaveText('Envoyée')
+    await expect(page.getByTestId('reception-submit')).toBeVisible()
+    await expectCleanPage(page)
+
+    await page.goto('/admin/purchasing')
+    await expect(page.getByTestId('page-supplier-orders-list')).toBeVisible()
+    await expect(page.locator('[data-testid^="supplier-orders-row-"]').first()).toBeVisible()
+    await expectTable(firstTableFrame(page))
+    await expectCleanPage(page)
+  })
+
+  test('stock : la liste et la fiche d’un produit', async ({ page }) => {
+    await page.goto('/admin/inventory')
+    await expect(page.getByTestId('stock-row-open').first()).toBeVisible()
+    await expectTable(firstTableFrame(page))
+    await expectCleanPage(page)
+
+    await page.getByTestId('stock-row-open').first().click()
+    await expect(page.getByTestId('page-stock-detail')).toBeVisible()
+    await expect(page.getByTestId('stock-detail-on-hand')).toHaveCSS('border-top-width', '2px')
+    await expect(page.getByTestId('stock-detail-cost')).toHaveCSS('border-top-width', '2px')
+    await expectCleanPage(page)
+  })
+
+  test('créneaux : la liste et la fiche d’un créneau', async ({ page }) => {
+    await page.goto('/admin/slots')
+    await expect(page.getByTestId('row-open').first()).toBeVisible()
+    await expectTable(firstTableFrame(page))
+    await expectCleanPage(page)
+
+    await page.getByTestId('row-open').first().click()
+    await expect(page.getByTestId('page-slot-detail')).toBeVisible()
+    await expect(page.getByTestId('slot-detail-count')).toHaveCSS('border-top-width', '2px')
+    await expectCleanPage(page)
+  })
+})

@@ -179,7 +179,7 @@ export function SlotFormDialog({ slot, onClose }: SlotFormDialogProps) {
               />
             </div>
             {isLocked ? (
-              <p className="text-sm text-muted-foreground" data-testid="slot-form-locked">
+              <p className="text-base text-muted-foreground" data-testid="slot-form-locked">
                 {t('adminParticipation.form.locked')}
               </p>
             ) : null}
@@ -205,7 +205,7 @@ export function SlotFormDialog({ slot, onClose }: SlotFormDialogProps) {
             />
 
             {refusal ? (
-              <p className="text-sm text-destructive" data-testid="slot-form-error">
+              <p className="text-base text-destructive" data-testid="slot-form-error">
                 {refusal}
               </p>
             ) : null}
