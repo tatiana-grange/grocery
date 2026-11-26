@@ -12,6 +12,8 @@ import { SupplierOrder } from './entities/supplier-order.entity'
 import { SupplierOrderLine } from './entities/supplier-order-line.entity'
 import { PurchasingMapper } from './purchasing.mapper'
 import { PurchasingService } from './purchasing.service'
+import { SupplierOrderScheduleJob } from './supplier-order-schedule.job'
+import { SupplierOrderScheduleService } from './supplier-order-schedule.service'
 import { SupplierOrderMailService } from './supplier-order-mail.service'
 import { SupplierOrderNoticeService } from './supplier-order-notice.service'
 
@@ -33,6 +35,8 @@ import { SupplierOrderNoticeService } from './supplier-order-notice.service'
     PurchasingMapper,
     SupplierOrderMailService,
     SupplierOrderNoticeService,
+    SupplierOrderScheduleService,
+    SupplierOrderScheduleJob,
   ],
   exports: [PurchasingService, SupplierOrderMailService, SupplierOrderNoticeService],
 })
