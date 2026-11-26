@@ -656,4 +656,12 @@ at once.
 - **Late switch-on:** confirmed. A schedule switched on or changed after this distribution's
   sending moment does nothing for it: no send, no alert.
 
+### Ruling during the work (Mason, 2026-11-26)
+
+- **Clearing the supplier e-mail.** The Typist found that `updateSupplier` drops null values,
+  so an emptied contact e-mail is never erased. Ruling: `contactEmail: null` in an update
+  clears the address (same handling as `referentId`); the supplier dialog sends `null` when the
+  field is emptied on an existing supplier. One API test and the browser test cover it. Typed in
+  step 6, before its own red test.
+
 ## Diff-Review Findings
