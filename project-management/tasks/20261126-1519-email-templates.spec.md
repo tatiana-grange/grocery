@@ -43,13 +43,15 @@ This task starts after the automatic supplier orders task
 
 - Templates edited by admins from the app.
 - Any change to who receives which mail, or when.
-- The SMS texts.
+- ~~The SMS texts.~~ The other SMS texts (sign-in codes). (Human, 2026-11-26: the four
+  membership SMS, which reuse the membership mails' text, turn French in this task.)
 
 ## Acceptance Criteria
 
 - [ ] **one-layout** — Every mail the API sends goes through the shared layout. A test lists
   the templates and renders each one with sample data.
-- [ ] **all-french** — No mail subject or body is in English. Checked by a test over the rendered
+- [ ] **all-french** — No mail subject or body is in English, and neither are the four
+  membership SMS (human, 2026-11-26). Checked by a test over the rendered
   templates for the English words the old mails used ("Hello", "your", "please").
 - [ ] **text-and-html** — Every sent mail carries both a text and an HTML version, and the text
   version holds the same links and figures as the HTML.
@@ -59,9 +61,13 @@ This task starts after the automatic supplier orders task
   existing auth tests and browser tests that read those mails in MailDev stay green.
 - [ ] **cooperative-name** — The header and the sender name show the cooperative's name from
   the setting, "Lay'picerie" by default.
-- [ ] **logo** — Every HTML mail shows the logo in its header, embedded in the mail itself (an
+- [ ] ~~**logo** — Every HTML mail shows the logo in its header, embedded in the mail itself (an
   inline attachment referenced by `cid:`), so it shows without loading anything from the web.
-  The text version does not carry it.
+  The text version does not carry it.~~
+- [ ] **logo** — Every HTML mail except the order to the supplier shows the logo in its header,
+  embedded in the mail itself (an inline attachment referenced by `cid:`). The supplier order
+  mail carries the CSV as its only attachment and no logo. The text version never carries it.
+  (Human, 2026-11-26: the browser test of the supplier order mail stays unchanged.)
 - [ ] **preview** — One documented command opens every template in the browser.
 - [ ] **csv-unchanged** — The supplier order mail still attaches the same CSV, byte for byte.
 - [ ] **suite-green** — lint, typecheck, API tests, build and the browser suite pass.
