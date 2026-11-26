@@ -754,6 +754,9 @@ export type CatalogSupplier = {
          * YYYY-MM-DD, a Paris calendar day
          */
         distributionDay: string;
+        /**
+         * The moment the order is sent
+         */
         sendingAt: string;
     } | null;
     archivedAt?: string | null;
