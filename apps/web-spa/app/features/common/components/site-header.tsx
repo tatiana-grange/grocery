@@ -12,7 +12,7 @@ import { authClient } from '@/lib/auth-client'
 /**
  * The one top bar for the shop and the member area. Both shells render it so the same
  * controls stay in the same order whether you are browsing the catalogue or reading your
- * cart: settings, shop, cart, back office for admins, account and sign-out once signed in.
+ * cart: shop, cart, back office for admins, account, sign-out once signed in, then settings.
  * The link of the current page carries `aria-current="page"` and keeps its hover look.
  */
 const CURRENT_PAGE_CLASS =
@@ -48,7 +48,6 @@ export function SiteHeader() {
         aria-label={t('shop.nav.mainNavigation')}
         className="hidden flex-wrap items-center justify-end gap-1 md:flex"
       >
-        <AppSettingsMenu />
         <Button
           variant="ghost"
           size="sm"
@@ -126,6 +125,7 @@ export function SiteHeader() {
             {t('shop.nav.signIn')}
           </Button>
         )}
+        <AppSettingsMenu />
       </nav>
     </header>
   )
