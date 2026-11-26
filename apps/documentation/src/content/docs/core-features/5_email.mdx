@@ -50,5 +50,8 @@ EMAIL_PASSWORD=<the Resend API key>
 EMAIL_FROM=<an address on the verified domain>
 ```
 
-Check the SMTP values against Resend's own SMTP page when setting it up. The key is a secret:
-it goes in the encrypted environment file (see the "Encrypt env" guide), never in the repo.
+Check the SMTP values against Resend's own SMTP page when setting it up. The key is a secret.
+The API reads it from its environment variables: set it in the production host's environment
+or secrets settings. Until the app is hosted, keep it in a password manager. Never commit it.
+`apps/api/.env` is ignored by git and may hold it for a local test of a real send; remove it
+afterwards, or every mail the local app sends will really leave.
