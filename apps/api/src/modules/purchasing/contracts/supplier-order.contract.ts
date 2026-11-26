@@ -59,6 +59,8 @@ export const supplierOrderSchema = z
     supplier: z.object({ id: z.string().uuid(), name: z.string() }),
     status: supplierOrderStatusSchema,
     sentAt: z.date().nullish(),
+    sentMode: supplierOrderSentModeSchema.nullish(),
+    sentTo: z.string().nullish(),
     closedAt: z.date().nullish(),
     estimatedTotalEur: z.number().nonnegative(),
     hasUnknownCostLines: z.boolean(),

@@ -136,8 +136,17 @@ export class CatalogService {
   async updateSupplier(id: string, input: UpdateSupplierInput): Promise<Supplier> {
     const supplier = await this.getSupplier(id)
     this.assertVersion(supplier.version, input.version)
-    const { version: _version, referentId, producerCategoryIds, orderSchedule, ...rest } = input
+    const {
+      version: _version,
+      referentId,
+      producerCategoryIds,
+      orderSchedule,
+      contactEmail,
+      ...rest
+    } = input
     wrap(supplier).assign(this.stripNullish(rest))
+    // `null` clears the address; leaving the field out keeps it.
+    if (contactEmail !== undefined) supplier.contactEmail = contactEmail ?? undefined
     if (orderSchedule) this.applyOrderSchedule(supplier, orderSchedule, new Date())
     if (referentId !== undefined) {
       supplier.referent = referentId ? this.em.getReference(Referent, referentId) : undefined

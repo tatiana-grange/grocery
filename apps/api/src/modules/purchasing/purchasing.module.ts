@@ -1,5 +1,6 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { Module } from '@nestjs/common'
+import { EmailModule } from '../email/email.module'
 import { InventoryModule } from '../inventory/inventory.module'
 import {
   AdminPurchasingController,
@@ -11,6 +12,8 @@ import { SupplierOrder } from './entities/supplier-order.entity'
 import { SupplierOrderLine } from './entities/supplier-order-line.entity'
 import { PurchasingMapper } from './purchasing.mapper'
 import { PurchasingService } from './purchasing.service'
+import { SupplierOrderMailService } from './supplier-order-mail.service'
+import { SupplierOrderNoticeService } from './supplier-order-notice.service'
 
 /**
  * Lot 3 purchasing: `SupplierOrder` / `SupplierOrderLine` aggregated from pending pre-orders,
@@ -22,9 +25,15 @@ import { PurchasingService } from './purchasing.service'
   imports: [
     MikroOrmModule.forFeature([SupplierOrder, SupplierOrderLine, Reception, ReceptionLine]),
     InventoryModule,
+    EmailModule,
   ],
   controllers: [AdminSupplierPurchasingController, AdminPurchasingController],
-  providers: [PurchasingService, PurchasingMapper],
-  exports: [PurchasingService],
+  providers: [
+    PurchasingService,
+    PurchasingMapper,
+    SupplierOrderMailService,
+    SupplierOrderNoticeService,
+  ],
+  exports: [PurchasingService, SupplierOrderMailService, SupplierOrderNoticeService],
 })
 export class PurchasingModule {}

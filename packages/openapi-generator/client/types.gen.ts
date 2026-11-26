@@ -1869,6 +1869,8 @@ export type SupplierOrderDetail = {
     };
     status: SupplierOrderStatus;
     sentAt?: string | null;
+    sentMode?: 'manual' | 'automatic' | null;
+    sentTo?: string | null;
     closedAt?: string | null;
     estimatedTotalEur: number;
     hasUnknownCostLines: boolean;
@@ -2001,6 +2003,8 @@ export type SupplierOrder = {
      */
     status: 'draft' | 'sent' | 'received' | 'closed';
     sentAt?: string | null;
+    sentMode?: 'manual' | 'automatic' | null;
+    sentTo?: string | null;
     closedAt?: string | null;
     estimatedTotalEur: number;
     hasUnknownCostLines: boolean;

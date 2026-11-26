@@ -2213,6 +2213,14 @@ export const zSupplierOrderDetail = z.object({
         z.string(),
         z.null()
     ])),
+    sentMode: z.optional(z.union([
+        z.enum(['manual', 'automatic']),
+        z.null()
+    ])),
+    sentTo: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     closedAt: z.optional(z.union([
         z.string(),
         z.null()
@@ -2255,6 +2263,14 @@ export const zSupplierOrder = z.object({
         'closed'
     ]),
     sentAt: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    sentMode: z.optional(z.union([
+        z.enum(['manual', 'automatic']),
+        z.null()
+    ])),
+    sentTo: z.optional(z.union([
         z.string(),
         z.null()
     ])),

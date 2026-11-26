@@ -490,6 +490,8 @@ The full list of cases per step is in the checkboxes below.
 ## Worklog
 
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
+- 2026-11-26, Typist, step 6 green: `step6-green.log` (purchasing and catalog, 9 files, 143 tests pass, the lot 3 send and aggregation cases unchanged) and `step6-typecheck.log` (whole repo clean). `pnpm generate` ran against a dev API on the E2E database (port 3060, real pid 63157, stopped; port free) and added only `sentMode` and `sentTo`. Notes: `SupplierOrderMailService.sendOrder` returns `{ sentTo: null, reason: 'no_address' }` as the plan says. The export route's attachment equals `mapper.toExport` (test compares it with the route). `PurchasingService.markSent` is public so the step 8 run can use it. `PurchasingModule` now imports `EmailModule`, provides and exports the mail and notice services. Because `send` now needs the mail service, `PurchasingService` takes `SupplierOrderMailService` and `SupplierOrderNoticeService` in its constructor. The attached test file's setup now overrides `EmailService` with a fake `sendEmail` for every case.
+- 2026-11-26, Typist, step 6 red: log `step6-red.log` (scratchpad), 5 of the new cases fail, first error line `AssertionError: expected undefined to be 'manual'` (no `sentMode` yet); the mail-error case fails with `expected 200 to be 502`. Before it, the ruling's clearing test went red then green: `step6-clear-red.log` (`AssertionError: expected 'commandes@ferme.example' to be null`) and `step6-clear-green.log` (catalog controller spec, 27 pass), with the fix in `CatalogService.updateSupplier`.
 - 2026-11-26, Typist, step 5 green: `step5-green.log` (new notice spec plus the unchanged `member-notice.service.spec.ts`: 20 pass) and `step5-api-all.log` (whole API suite, 43 files, 801 tests pass); typecheck clean. Small difference from the plan: `findAdminAddresses(em, onSkipped?)` takes an optional second argument, so `MemberNoticeService` keeps logging each admin it skips (same behaviour as before). `PurchasingModule` is not wired yet (no `EmailModule` import, no provider for `SupplierOrderNoticeService`): step 6 does it when the first caller exists. The failure alert loads the order to read its creation date, so it needs the order saved when it is called. oxlint shows two old warnings in files I did not write.
 - 2026-11-26, Typist, step 5 red: log `step5-red.log` (scratchpad), error line `Error: Cannot find module '../supplier-order-notice.service' imported from …/purchasing/tests/supplier-order-notice.service.spec.ts`. Written before `admin-addresses.ts` and the service.
 - 2026-11-26, Typist, step 4 green: `step4-green.log`, `email.service.spec.ts` 7 pass (the two old cases unchanged); typecheck clean.
@@ -549,20 +551,20 @@ The full list of cases per step is in the checkboxes below.
   - [x] `SupplierOrderNoticeService`: summary, failure alert, missed-distribution alert; banned
         and phone-only admins skipped; a mail rejection is logged, never thrown
   - [x] commit
-- [ ] **6. The order e-mail on the manual send**
-  - [ ] red first: the new `describe` in `purchasing.controller.e2e-spec.ts` (fake
+- [x] **6. The order e-mail on the manual send**
+  - [x] red first: the new `describe` in `purchasing.controller.e2e-spec.ts` (fake
         `EmailService` through `providers`)
-  - [ ] `SupplierOrderMailService` + `OrderMailError`; `PurchasingMapper.toExport` reused for
+  - [x] `SupplierOrderMailService` + `OrderMailError`; `PurchasingMapper.toExport` reused for
         the attachment; the attachment equals the export route's `content` in the test
-  - [ ] `PurchasingService.send` with the row lock, `markSent`, 502 `order_mail_failed`, the
+  - [x] `PurchasingService.send` with the row lock, `markSent`, 502 `order_mail_failed`, the
         admin alert; contract and mapper expose `sentMode`, `sentTo`
-  - [ ] cases: supplier and referent addresses (`manual-send-mails`); referent with no address
+  - [x] cases: supplier and referent addresses (`manual-send-mails`); referent with no address
         gets no copy; no supplier address → sent, `sentTo` null, no mail
         (`manual-send-without-address`); mail error → 502, still draft, one alert per admin
         (`manual-failure-alert`); the lot 3 send cases green unchanged
-  - [ ] aggregation split into `collectPendingLines` / `createDraft`; lot 3 aggregation cases
+  - [x] aggregation split into `collectPendingLines` / `createDraft`; lot 3 aggregation cases
         green unchanged
-  - [ ] `pnpm generate`; commit
+  - [x] `pnpm generate`; commit
 - [ ] **7. How the order was sent, in the SPA**
   - [ ] red first: `admin-purchasing-send-mail.spec.ts` (browser, maildev)
   - [ ] `E2E_ORDER_MAIL` fixtures and seeding

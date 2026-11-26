@@ -72,6 +72,8 @@ export class PurchasingMapper {
       supplier: { id: order.supplier.id, name: order.supplier.name },
       status: order.status,
       sentAt: order.sentAt ?? null,
+      sentMode: order.sentMode ?? null,
+      sentTo: order.sentTo ?? null,
       closedAt: order.closedAt ?? null,
       estimatedTotalEur: Math.round(estimatedTotalEur * 100) / 100,
       hasUnknownCostLines,

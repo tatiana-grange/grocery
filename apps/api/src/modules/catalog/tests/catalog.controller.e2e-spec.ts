@@ -276,6 +276,28 @@ describe('catalogController (e2e)', () => {
     expect(res.body.supplierCount).toBe(1)
   })
 
+  it('clears the contact e-mail when an update sends null, and keeps it when the field is left out', async () => {
+    const created = await request
+      .withSession(admin)
+      .post('/admin/suppliers')
+      .send({ name: 'Ferme mail', type: 'producer', contactEmail: 'commandes@ferme.example' })
+    expect(created.body.contactEmail).toBe('commandes@ferme.example')
+
+    const renamed = await request
+      .withSession(admin)
+      .put(`/admin/suppliers/${created.body.id}`)
+      .send({ name: 'Ferme mail 2', version: created.body.version })
+    expect(renamed.body.contactEmail).toBe('commandes@ferme.example')
+
+    const cleared = await request
+      .withSession(admin)
+      .put(`/admin/suppliers/${created.body.id}`)
+      .send({ contactEmail: null, version: renamed.body.version })
+    expect(cleared.status).toBe(200)
+    const read = await request.withSession(admin).get(`/admin/suppliers/${created.body.id}`)
+    expect(read.body.contactEmail ?? null).toBeNull()
+  })
+
   it('rejects a plain member and unauthenticated callers', async (context) => {
     const em: EntityManager = context.orm.em.fork()
     const { user: plain } = await createMemberData(em, { roles: ['member'], status: 'active' })
