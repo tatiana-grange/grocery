@@ -52,6 +52,10 @@ a spec touches carries a `data-testid` named `<feature>-<element>[-<variant>]`
 (`auth-login-submit`, `members-tab-pending`, `product-price-confirm`, …). Each route's root
 carries `page-<name>`; `root.tsx`'s error boundary carries `route-error-boundary`.
 
+The rule is for behaviour: what a spec clicks, fills or reads. A layout or style check (a size, a
+colour, an overflow, the order of blocks) may find elements by structure — `data-slot`, `h1`, `th` —
+because no test id names a layout.
+
 ### Test ids that share a prefix
 
 Lists are often found with a prefix, `page.locator('[data-testid^="thing-"]')`. A control inside
@@ -80,6 +84,9 @@ Call `resetDb()` (in a `beforeEach`) only in specs that mutate shared data.
 - **Never edit a source file while `pnpm e2e` runs.** The dev server reloads in the middle of the
   run and an unrelated spec times out. It looks exactly like a regression. If an existing spec
   fails and you edited anything during the run, rerun that spec alone before believing it.
+- **Never sign out a shared role session.** `withRole('member')` and the other roles replay one
+  saved session per role. Signing it out revokes it on the server, and every later spec of that
+  role fails. A logout case signs in through the form first, as `auth-logout.spec.ts` does.
 - **Check the ports first.** The stack binds Postgres on 5434 and the mail container on 1093 and 1043. Run `docker ps` before `pnpm e2e`, and never stop another project's container.
 
 ## Manual checks on the E2E stack
