@@ -490,23 +490,25 @@ The full list of cases per step is in the checkboxes below.
 ## Worklog
 
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
+- 2026-11-26, Typist, step 1 green: `step1-green.log`, 3 files, 61 tests pass (order-schedule, paris-time, period). `pnpm typecheck` (api) and oxlint clean. Note: `oxfmt` is not on the PATH here; run it as `node_modules/.bin/oxfmt`.
+- 2026-11-26, Typist, step 1 red: log `step1-red.log` (scratchpad), error line `Error: Cannot find module '../order-schedule.util' imported from …/catalog/tests/order-schedule.util.spec.ts` (and `./paris-time.util` for `common/paris-time.util.spec.ts`). Written before any production file.
 
 ## Implementation Checkboxes
 
-- [ ] **1. Paris time and the schedule rule** (pure, no database)
-  - [ ] red first: `order-schedule.util.spec.ts`, the flour example of `next-dates-shown`
-  - [ ] `common/paris-time.util.ts` (moved helpers + `parisInstantAt`); `period.util.ts` imports
-        them; `period.util.spec.ts` green unchanged; new `common/paris-time.util.spec.ts` for
+- [x] **1. Paris time and the schedule rule** (pure, no database)
+  - [x] red first: `order-schedule.util.spec.ts`, the flour example of `next-dates-shown`
+  - [x] `common/paris-time.util.ts` (moved helpers + `parisInstantAt`); `period.util.ts` imports
+        them (re-exported, so the accounting imports stay as they were); `period.util.spec.ts` green unchanged; new `common/paris-time.util.spec.ts` for
         `parisInstantAt` on the last Sundays of March and October 2026
-  - [ ] `order-schedule.util.ts` and its cases: weekly every week; even and odd weeks; ISO
+  - [x] `order-schedule.util.ts` and its cases: weekly every week; even and odd weeks; ISO
         week 53 of 2026 followed by week 1 of 2027 (two odd weeks in a row, named in the test
         title); monthly 1st…4th and last over the twelve months of 2027; a month whose first
         Friday is the 1st (sending Wednesday in the month before: January 2027, Friday the 1st,
         sending Wednesday 30 December 2026); sending weekday equal to the distribution weekday
         (a week earlier); a sending at 02:00 on the spring and autumn change days
-  - [ ] `findDueDistributions`: before the moment, at the moment, after handled, late before the
+  - [x] `findDueDistributions`: before the moment, at the moment, after handled, late before the
         distribution, after the distribution started, moment before `activeSince`
-  - [ ] commit
+  - [x] commit
 - [ ] **2. The schedule on the supplier, in the API**
   - [ ] red first: the new `describe` in `catalog.controller.e2e-spec.ts`
   - [ ] entity columns on `Supplier` and on `SupplierOrder` (`sentMode`, `sentTo`)
