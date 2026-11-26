@@ -1,9 +1,8 @@
 import { EntityManager } from '@mikro-orm/core'
 import { Injectable, Logger } from '@nestjs/common'
-import { User } from '../auth/auth.entity'
 import { EmailService } from '../email/email.service'
 import { Member } from '../members/entities/member.entity'
-import { PHONE_EMAIL_DOMAIN, parseRoles } from '../members/members.util'
+import { findAdminAddresses, realAddress } from '../members/admin-addresses'
 
 type Recipient = 'admin' | 'member'
 
@@ -125,30 +124,18 @@ export class MemberNoticeService {
   }
 
   private async adminNotices(subject: string, content: string): Promise<Notice[]> {
-    const users = await this.em.find(User, { banned: false, role: { $like: '%admin%' } })
-    const notices: Notice[] = []
-    for (const user of users) {
-      if (!parseRoles(user.role).includes('admin')) continue
-      const to = realAddress(user)
-      if (!to) {
-        this.logger.log(`Notice: admin ${user.id} has no e-mail address, skipped`)
-        continue
-      }
-      notices.push({
-        recipient: 'admin',
-        to,
-        subject,
-        content,
-        html: `<p>${escapeHtml(content)}</p>`,
-      })
-    }
+    const addresses = await findAdminAddresses(this.em, (user) =>
+      this.logger.log(`Notice: admin ${user.id} has no e-mail address, skipped`),
+    )
+    const notices: Notice[] = addresses.map((to) => ({
+      recipient: 'admin',
+      to,
+      subject,
+      content,
+      html: `<p>${escapeHtml(content)}</p>`,
+    }))
     return notices
   }
-}
-
-/** The address of a user, or null for the synthesised address of a phone-only account. */
-function realAddress(user: User): string | null {
-  return user.email && !user.email.endsWith(`@${PHONE_EMAIL_DOMAIN}`) ? user.email : null
 }
 
 function formatEuros(cents: number): string {

@@ -490,6 +490,8 @@ The full list of cases per step is in the checkboxes below.
 ## Worklog
 
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
+- 2026-11-26, Typist, step 5 green: `step5-green.log` (new notice spec plus the unchanged `member-notice.service.spec.ts`: 20 pass) and `step5-api-all.log` (whole API suite, 43 files, 801 tests pass); typecheck clean. Small difference from the plan: `findAdminAddresses(em, onSkipped?)` takes an optional second argument, so `MemberNoticeService` keeps logging each admin it skips (same behaviour as before). `PurchasingModule` is not wired yet (no `EmailModule` import, no provider for `SupplierOrderNoticeService`): step 6 does it when the first caller exists. The failure alert loads the order to read its creation date, so it needs the order saved when it is called. oxlint shows two old warnings in files I did not write.
+- 2026-11-26, Typist, step 5 red: log `step5-red.log` (scratchpad), error line `Error: Cannot find module '../supplier-order-notice.service' imported from …/purchasing/tests/supplier-order-notice.service.spec.ts`. Written before `admin-addresses.ts` and the service.
 - 2026-11-26, Typist, step 4 green: `step4-green.log`, `email.service.spec.ts` 7 pass (the two old cases unchanged); typecheck clean.
 - 2026-11-26, Typist, step 4 red: log `step4-red.log` (scratchpad), 1 failed, 6 passed; error line `AssertionError: expected "vi.fn()" to be called with arguments: [ { from: Any<String>, …(6) } ]` (the copy and the attachments are dropped today). The second new case (no `cc` or `attachments` key when empty) passes already, as expected: it guards the existing behaviour.
 - 2026-11-26, Typist, step 3 green: `step3-green.log` (new spec 3 tests plus `catalog-suppliers.spec.ts` 4 tests: 8 pass on the E2E stack) and `step3-green-2.log` (`admin-purchasing-aggregate`, `back-office-desktop`, `catalog-products`: 56 pass). `pnpm typecheck` of web-spa and web-spa-e2e clean; oxlint clean. The new spec's dates are read from the wall clock, so it asserts the shape (first Friday day 1 to 7, sent on a Wednesday at 8 h), not fixed dates. The schedule dialog closes on save; it shows the next-dates line from the supplier when opened, and the row shows it at once. Both E2E servers I started were stopped (ports 3060 and 5273 free).
@@ -541,12 +543,12 @@ The full list of cases per step is in the checkboxes below.
   - [x] red first: the new case in `email.service.spec.ts`
   - [x] `EmailOptions.cc`, `EmailOptions.attachments`; the two existing cases green unchanged
   - [x] commit
-- [ ] **5. Admin addresses and the purchasing notices**
-  - [ ] red first: `supplier-order-notice.service.spec.ts` (real test database, fake mail)
-  - [ ] `members/admin-addresses.ts`; `MemberNoticeService` uses it; its spec green unchanged
-  - [ ] `SupplierOrderNoticeService`: summary, failure alert, missed-distribution alert; banned
+- [x] **5. Admin addresses and the purchasing notices**
+  - [x] red first: `supplier-order-notice.service.spec.ts` (real test database, fake mail)
+  - [x] `members/admin-addresses.ts`; `MemberNoticeService` uses it; its spec green unchanged
+  - [x] `SupplierOrderNoticeService`: summary, failure alert, missed-distribution alert; banned
         and phone-only admins skipped; a mail rejection is logged, never thrown
-  - [ ] commit
+  - [x] commit
 - [ ] **6. The order e-mail on the manual send**
   - [ ] red first: the new `describe` in `purchasing.controller.e2e-spec.ts` (fake
         `EmailService` through `providers`)
