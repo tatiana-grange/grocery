@@ -1,6 +1,6 @@
 # Send supplier orders automatically, on each supplier's rhythm
 
-**Status:** ready — approved by the human on 2026-11-26, with the failure alert added
+**Status:** in-progress — spec approved by the human on 2026-11-26; Mason launched the same day
 
 ---
 
