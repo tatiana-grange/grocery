@@ -1,0 +1,129 @@
+# E-mail templates: one shared layout, every mail in French
+
+**Status:** draft
+
+---
+
+> 🧑 **REVIEW CAREFULLY** — human decision surface. Read it all before code.
+
+## Context
+
+Every e-mail the API sends is a string written inline in a service, wrapped at best in one
+`<p>`. There is no layout, no colours, no name of the cooperative, and several mails are still
+in English, left from the boilerplate. Production will send through Resend over SMTP (see
+`apps/documentation/src/content/docs/core-features/5_email.mdx`, "Production: Resend"), and
+the automatic supplier orders add mails that go outside the cooperative, to suppliers.
+
+Decided by the human on 2026-11-26: templates live in the code, written with React Email, and
+still leave through SMTP, so the provider can change without rewriting them. Resend's own
+dashboard templates are not used.
+
+This task starts after the automatic supplier orders task
+(`20261126-1505-automatic-supplier-orders`), on a branch stacked on
+`feat/supplier-order-schedule`, because it rewrites the mails that task adds.
+
+## Scope
+
+**Included:**
+
+- React Email in the API, with one shared layout: the cooperative's name in the header, the
+  market look's colours, a footer saying who sent it and that the mail is automatic.
+- Every mail the API sends today rewritten on that layout, in French:
+  - account: e-mail verification, password reset (`auth.module.ts`, English today);
+  - membership: approved, rejected, ended, reactivated (`members.service.ts`, English today);
+  - wallet: negative balance to the member and to the admins, underpaid top-up to the admins
+    (`member-notice.service.ts`);
+  - purchasing: the order to the supplier, the admin summary, the send-failure alert and the
+    missed-distribution alert (from the automatic supplier orders task).
+- Each mail keeps a plain-text version beside the HTML.
+- A preview of every template in the browser, by one command, with sample data.
+- The cooperative's name in one setting, read by the layout.
+
+**Not Included:**
+
+- A logo or images: the cooperative has none in the repo today. The layout leaves a place for
+  one, filled when the human gives it.
+- Templates edited by admins from the app.
+- Any change to who receives which mail, or when.
+- The SMS texts.
+
+## Acceptance Criteria
+
+- [ ] **one-layout** — Every mail the API sends goes through the shared layout. A test lists
+  the templates and renders each one with sample data.
+- [ ] **all-french** — No mail subject or body is in English. Checked by a test over the rendered
+  templates for the English words the old mails used ("Hello", "your", "please").
+- [ ] **text-and-html** — Every sent mail carries both a text and an HTML version, and the text
+  version holds the same links and figures as the HTML.
+- [ ] **escaped** — A name or a reason typed by a person (member name, supplier name, refusal
+  reason) is escaped in the HTML: a name holding `<b>` shows as text.
+- [ ] **links-kept** — The verification and reset mails still carry their working link; the
+  existing auth tests and browser tests that read those mails in MailDev stay green.
+- [ ] **cooperative-name** — The header and the sender name show the cooperative's name from
+  the setting.
+- [ ] **preview** — One documented command opens every template in the browser.
+- [ ] **csv-unchanged** — The supplier order mail still attaches the same CSV, byte for byte.
+- [ ] **suite-green** — lint, typecheck, API tests, build and the browser suite pass.
+
+## Seams
+
+- **Template rendering** — one function per mail: it takes typed data and returns
+  `{ subject, html, text }`. Tested by rendering, with no mail server.
+- **The services that send** — they call the template, then `EmailService.sendEmail`
+  unchanged in shape. Their tests keep asserting who gets what.
+
+## Architecture
+
+**System design:** a `templates/` folder in the email module holds the layout and one `.tsx`
+file per mail. React Email renders them to HTML and text on the server; nothing reaches the
+browser app. The services that send mail stop writing text inline and call their template.
+The colours are copied from the market look of `packages/ui/src/styles/globals.css` (page
+`#f7f1e3`, text `#2b241c`, primary `#4e6b4a`, accent `#ede4d0`): mail clients cannot read CSS
+variables, so the values are written in the layout, with a comment naming their source.
+
+---
+
+> 🧑 **REVIEW IF RELEVANT** — decisions, testing, slicing.
+
+## Implementation Decisions
+
+- Mail fonts: the system serif for titles and the system sans for text. Web fonts are not
+  loaded, since many mail clients block them.
+- The cooperative's name is a new setting in `env.config.ts`, also used as the sender's display
+  name (`"<name>" <EMAIL_FROM>`).
+- The API's TypeScript setup must accept `.tsx` in the email module only; the plan says how.
+
+## Testing Strategy
+
+- Render each template with sample data: French text, the escaped name, the link present in
+  both versions.
+- The existing tests of the sending services stay green; their expected text is updated where
+  the wording changed.
+- The browser tests that read mails in MailDev (account verification, supplier order) stay
+  green.
+
+## Slices & Dependencies
+
+- **Sizing:** one task, one pass.
+- **Blocked by:** the automatic supplier orders task, until it is closed.
+
+## Deliverables
+
+- [ ] Layout and templates, with the preview command
+- [ ] Every sending service moved to its template
+- [ ] The email documentation page updated (templates, preview)
+- [ ] Journal entry
+
+## References
+
+- `apps/documentation/src/content/docs/core-features/5_email.mdx` — the SMTP settings and the
+  choice of Resend.
+- `project-management/tasks/20261126-1505-automatic-supplier-orders.spec.md` — the supplier
+  and admin mails this task restyles.
+
+## Notes
+
+- 2026-11-26, Architect: open for the human, the cooperative's exact name as it should appear
+  in the mails, and a logo if there is one.
+
+## Retrospective
