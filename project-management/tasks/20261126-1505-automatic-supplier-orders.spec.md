@@ -83,8 +83,12 @@ Decisions taken by the human on 2026-11-26:
 - [ ] **auto-send** — At the sending moment, for a supplier whose schedule is on, the app
   gathers the pending pre-orders and e-mails the order. The order is marked sent
   automatically.
-- [ ] **auto-skips-when-done** — If an order to this supplier was already sent since the
-  previous sending moment, the automatic run sends nothing for this distribution.
+- [ ] ~~**auto-skips-when-done** — If an order to this supplier was already sent since the
+  previous sending moment, the automatic run sends nothing for this distribution.~~
+- [ ] **auto-skips-when-done** — If an order to this supplier was already sent since 00:00
+  Paris on the previous distribution day, the automatic run sends nothing for this
+  distribution. (Architect, 2026-11-26, at the plan reading: the old window caught the run's
+  own send for the previous distribution, so a supplier was sent to automatically only once.)
 - [ ] **auto-sends-existing-draft** — A draft already waiting for this supplier is sent by the
   automatic run, together with the newly gathered lines.
 - [ ] **auto-nothing-to-order** — No pending pre-order and no draft: nothing is sent, nothing is
@@ -159,9 +163,16 @@ Job tick (every few minutes) ──► Automatic run ─────────
 - **Paris time** everywhere a day or an hour is read, with the time zone constant of the
   accounting module (`COOPERATIVE_TIME_ZONE` in `apps/api/src/modules/accounting/period.util.ts`).
   Move it to a shared place if the plan needs it in two modules.
-- **"Already sent for this distribution"** means: an order of this supplier with a `sentAt`
+- ~~**"Already sent for this distribution"** means: an order of this supplier with a `sentAt`
   after the previous sending moment of the rule. Pre-orders made after a manual send wait for
-  the next distribution.
+  the next distribution.~~
+- **"Already sent for this distribution"** means: an order of this supplier with a `sentAt` at
+  or after 00:00 Paris on the previous distribution day. Pre-orders made after a manual send
+  wait for the next distribution. (Architect, 2026-11-26, at the plan reading, same reason as
+  `auto-skips-when-done`.)
+- **The supplier's contact e-mail is set from the supplier dialog** (the dialog only edited the
+  name and the type). The referent stays set outside the app for now; the copy goes when one
+  is set. (Architect, 2026-11-26, at the plan reading.)
 - **Several drafts** waiting for one supplier at the sending moment: each draft is a supplier
   order, and each is sent as its own e-mail. The plan may merge them only if lot 3's rules
   allow it without touching aggregation.

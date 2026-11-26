@@ -3,7 +3,7 @@
 Created by the Mason at the plan step, 2026-11-26. Spec:
 `project-management/tasks/20261126-1505-automatic-supplier-orders.spec.md`.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect on 2026-11-26, with the three rulings under "Rulings at the reading".
 
 ## Program Design
 
@@ -631,5 +631,17 @@ The full list of cases per step is in the checkboxes below.
 after this distribution's sending moment does nothing for this distribution, no send and no
 alert (`scheduleActiveSince`). Otherwise the first tick after the save would mail the supplier
 at once.
+
+### Rulings at the reading (Architect, 2026-11-26)
+
+- **"Already sent" window:** option 1. The window starts at 00:00 Paris on the previous
+  distribution day. The spec's criterion `auto-skips-when-done` and its Implementation
+  Decisions line are amended, signed, old text struck. Add a service test: the automatic send
+  for the previous distribution does not block this one, and a manual send after the previous
+  distribution day does.
+- **Supplier address:** option 1. The contact e-mail goes in the supplier dialog in step 3,
+  and the dialog moves to react-hook-form. No referent picker in this task.
+- **Late switch-on:** confirmed. A schedule switched on or changed after this distribution's
+  sending moment does nothing for it: no send, no alert.
 
 ## Diff-Review Findings
