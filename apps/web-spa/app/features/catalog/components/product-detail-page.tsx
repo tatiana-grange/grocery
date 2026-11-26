@@ -1,4 +1,4 @@
-import { PageTitle, SectionTitle } from '@grocery/ui/components/app'
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
@@ -24,6 +24,8 @@ import {
   setProductPrice,
   unarchiveProduct,
 } from '@/features/catalog/utils/catalog-queries'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
+import { BackOfficeStatusBadge } from '@/features/common/components/back-office-status-badge'
 
 export default function ProductDetailPage() {
   const { t } = useTranslation()
@@ -60,55 +62,57 @@ export default function ProductDetailPage() {
 
   return (
     <div className="space-y-6" data-testid="page-product-detail">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" render={<Link to="/admin/catalog" />}>
-          <ArrowLeft className="mr-2 size-4" />
+      <div>
+        <Button variant="outline" size="sm" render={<Link to="/admin/catalog" />}>
+          <ArrowLeft />
           {t('catalog.backToCatalogue')}
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          data-testid="product-detail-edit"
-          render={<Link to={`/admin/catalog/products/${productId}/edit`} />}
-        >
-          {t('catalog.edit')}
-        </Button>
       </div>
 
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <PageTitle data-testid="product-detail-name">{product.name}</PageTitle>
-          <p className="text-sm text-muted-foreground">
-            {product.supplier.name} · {product.category.name}
-          </p>
-          <div className="mt-2 flex gap-1">
-            <Badge variant="outline">{t(`catalog.saleMode.${product.saleMode}`)}</Badge>
-            {product.labels.map((label) => (
-              <Badge key={label} variant="secondary">
-                {t(`catalog.label.${label}`)}
-              </Badge>
-            ))}
-            {product.archivedAt && (
-              <Badge variant="destructive" data-testid="product-archived-badge">
-                {t('catalog.archived')}
-              </Badge>
-            )}
-          </div>
-        </div>
-        <Button
-          variant={product.archivedAt ? 'outline' : 'ghost'}
-          size="sm"
-          data-testid="product-detail-archive-toggle"
-          onClick={() => archiveMutation.mutate(Boolean(product.archivedAt))}
-        >
-          {product.archivedAt ? t('catalog.unarchive') : t('catalog.archive')}
-        </Button>
+      <BackOfficePageHead
+        title={product.name}
+        titleTestId="product-detail-name"
+        description={`${product.supplier.name} · ${product.category.name}`}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="product-detail-archive-toggle"
+              onClick={() => archiveMutation.mutate(Boolean(product.archivedAt))}
+            >
+              {product.archivedAt ? t('catalog.unarchive') : t('catalog.archive')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="product-detail-edit"
+              render={<Link to={`/admin/catalog/products/${productId}/edit`} />}
+            >
+              {t('catalog.edit')}
+            </Button>
+          </>
+        }
+      />
+
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline">{t(`catalog.saleMode.${product.saleMode}`)}</Badge>
+        {product.labels.map((label) => (
+          <Badge key={label} variant="secondary">
+            {t(`catalog.label.${label}`)}
+          </Badge>
+        ))}
+        {product.archivedAt && (
+          <BackOfficeStatusBadge tone="neutral" data-testid="product-archived-badge">
+            {t('catalog.archived')}
+          </BackOfficeStatusBadge>
+        )}
       </div>
 
-      <div className="rounded-lg border border-border p-4">
+      <div className="rounded-xl border-2 border-border bg-card p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-sm font-semibold text-muted-foreground">
               {t('catalog.products.currentPrice')}
             </p>
             <p className="text-xl font-bold" data-testid="product-current-price">
@@ -152,12 +156,12 @@ export default function ProductDetailPage() {
 
       <section className="space-y-2">
         <SectionTitle>{t('catalog.products.priceHistory')}</SectionTitle>
-        <ul className="space-y-1 text-sm" data-testid="product-price-history">
+        <ul className="space-y-1 text-base" data-testid="product-price-history">
           {[...product.priceHistory].reverse().map((window) => (
             <li
               key={window.id}
               data-testid="product-price-history-item"
-              className="flex justify-between border-b border-border py-1"
+              className="flex justify-between border-b border-rule py-1"
             >
               <span className="font-medium">
                 {window.amountEur.toFixed(2)} € / {unit}

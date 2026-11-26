@@ -1,11 +1,9 @@
-import { AppLayout, AppLayoutHeader, AppLoader } from '@grocery/ui/components/app'
+import { AppLayout, AppLayoutHeader, AppLoader, AwningBand } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -42,9 +40,6 @@ function BackOfficeSidebar() {
     { label: t('inventory.nav.inventory'), to: '/admin/inventory', icon: PackageSearch },
     { label: t('adminParticipation.nav.participation'), to: '/admin/slots', icon: CalendarDays },
     { label: t('adminAccounting.nav.accounting'), to: '/admin/accounting', icon: Calculator },
-    // The table itself lives outside the back office, behind its own layout — an admin holds
-    // the access implicitly, so this is just the way across.
-    { label: t('distribution.nav.distribution'), to: '/distribution', icon: HandCoins },
   ]
 
   const handleLogout = async () => {
@@ -53,67 +48,83 @@ function BackOfficeSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link to="/admin/members" />}>
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary">
-                <ShieldCheck className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
-              <span className="font-black tracking-tight text-foreground uppercase text-sm">
-                {t('adminMembers.backOffice')}
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar collapsible="offcanvas" className="border-border group-data-[side=left]:border-r-2">
+      <AwningBand />
+      <SidebarHeader className="gap-0 px-5 pt-5 pb-3">
+        <Link to="/admin/members" className="block rounded-md outline-hidden focus-visible:ring-2">
+          <span
+            data-testid="back-office-brand"
+            className="block font-serif text-3xl font-bold text-foreground"
+          >
+            {t('members.title')}
+          </span>
+          <span
+            data-testid="back-office-subtitle"
+            className="block text-base text-muted-foreground"
+          >
+            {t('backOffice.subtitle')}
+          </span>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>{t('adminMembers.nav.section')}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
+        <nav aria-label={t('backOffice.navigation')} className="px-3 py-2">
+          <SidebarMenu className="gap-1">
+            {navItems.map((item) => {
+              const isActive = location.pathname.startsWith(item.to)
+              return (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton
-                    tooltip={item.label}
                     data-testid={`back-office-nav-${item.to.split('/').pop()}`}
-                    isActive={location.pathname.startsWith(item.to)}
+                    isActive={isActive}
+                    aria-current={isActive ? 'page' : undefined}
+                    className="h-12 gap-3 px-3 font-semibold data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground hover:data-active:bg-sidebar-primary/90 [&_svg]:size-5"
                     render={<Link to={item.to} />}
                   >
-                    <item.icon className="h-4 w-4 shrink-0" />
+                    <item.icon />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+              )
+            })}
+          </SidebarMenu>
+        </nav>
       </SidebarContent>
 
-      <SidebarGroup className="mt-auto">
-        <SidebarGroupContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton render={<Link to="/account" />}>
-                <Users className="h-4 w-4" />
-                <span>{t('members.nav.myAccount')}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                data-testid="nav-logout"
-                onClick={handleLogout}
-                className="text-destructive"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>{t('members.nav.logOut')}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+      <SidebarFooter className="mt-auto gap-3 px-3 pb-5">
+        <SidebarMenu className="gap-1">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="h-12 gap-3 px-3 font-semibold [&_svg]:size-5"
+              render={<Link to="/account" />}
+            >
+              <Users />
+              <span>{t('members.nav.myAccount')}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              data-testid="nav-logout"
+              onClick={handleLogout}
+              className="h-12 gap-3 px-3 font-semibold text-destructive [&_svg]:size-5"
+            >
+              <LogOut />
+              <span>{t('members.nav.logOut')}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        {/* The table itself lives outside the back office, behind its own layout. An admin holds
+            the access implicitly, so this is just the way across. */}
+        <Button
+          size="lg"
+          data-testid="back-office-nav-distribution"
+          className="w-full border-border bg-straw text-straw-foreground hover:bg-straw/90"
+          render={<Link to="/distribution" />}
+        >
+          <HandCoins />
+          {t('backOffice.openDistribution')}
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   )
 }
@@ -140,8 +151,8 @@ export default function BackOfficeLayout() {
 
   return (
     <>
-      <AppLayout sidebar={<BackOfficeSidebar />}>
-        <AppLayoutHeader>
+      <AppLayout sidebar={<BackOfficeSidebar />} className="min-w-0">
+        <AppLayoutHeader className="border-b-2 border-rule bg-background">
           <div className="ml-auto flex items-center gap-2">
             <Button
               variant="ghost"
@@ -149,15 +160,15 @@ export default function BackOfficeLayout() {
               data-testid="back-office-nav-shop"
               render={<Link to="/shop" />}
             >
-              <Store className="mr-2 size-4" />
+              <Store />
               {t('shop.nav.backToShop')}
             </Button>
             <AppSettingsMenu />
           </div>
         </AppLayoutHeader>
-        <main className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto px-8 py-8">
           <Outlet />
-        </main>
+        </div>
       </AppLayout>
       <Toaster position="bottom-right" richColors />
     </>

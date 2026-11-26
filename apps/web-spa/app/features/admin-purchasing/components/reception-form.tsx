@@ -90,14 +90,14 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
 
   return (
     <form
-      className="space-y-4 rounded-lg border border-border p-4"
+      className="space-y-4 rounded-xl border-2 border-border bg-card p-4"
       data-testid="reception-form"
       onSubmit={(event) => {
         event.preventDefault()
         mutation.mutate()
       }}
     >
-      <h3 className="font-bold">{t('purchasing.reception.heading')}</h3>
+      <h3 className="font-serif text-xl font-semibold">{t('purchasing.reception.heading')}</h3>
 
       <div className="space-y-3">
         {order.lines.map((line) => {
@@ -110,7 +110,7 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
               className="grid grid-cols-[auto_1fr_auto_auto] items-end gap-3"
               data-testid={`reception-line-${line.product.id}`}
             >
-              <label className="flex items-center gap-2 pb-2 text-sm">
+              <label className="flex items-center gap-2 pb-2 text-base">
                 <Checkbox
                   checked={draft.include}
                   data-testid="reception-line-include"
@@ -120,7 +120,7 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
               </label>
 
               <div>
-                <Label className="text-xs text-muted-foreground">
+                <Label className="text-sm font-semibold text-muted-foreground">
                   {t('purchasing.reception.receivedQuantity')} ({t('purchasing.columns.ordered')}{' '}
                   {line.quantity})
                 </Label>
@@ -136,7 +136,7 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
               </div>
 
               <div>
-                <Label className="text-xs text-muted-foreground">
+                <Label className="text-sm font-semibold text-muted-foreground">
                   {t('purchasing.reception.unitCost')}
                 </Label>
                 <Input
@@ -152,7 +152,7 @@ export function ReceptionForm({ order }: { order: SupplierOrderDetail }) {
               </div>
 
               <span
-                className="pb-2 text-xs text-muted-foreground"
+                className="pb-2 text-sm text-muted-foreground"
                 data-testid="reception-line-hint"
               >
                 {missingCost(line)

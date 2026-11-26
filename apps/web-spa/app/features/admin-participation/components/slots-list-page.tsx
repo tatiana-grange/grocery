@@ -1,5 +1,4 @@
-import { ListPagination, PageTitle } from '@grocery/ui/components/app'
-import { Badge } from '@grocery/ui/components/primitives/badge'
+import { ListPagination } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Label } from '@grocery/ui/components/primitives/label'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -23,6 +22,10 @@ import {
   adminSlotsQueryOptions,
 } from '@/features/admin-participation/utils/admin-participation-queries'
 import { formatSlotDay, formatSlotTimes } from '@/features/participation/utils/participation-format'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
+import { BackOfficeStatusBadge } from '@/features/common/components/back-office-status-badge'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
+import { useBackOfficePaginationLabels } from '@/features/common/hooks/use-back-office-pagination-labels'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export default function SlotsListPage() {
@@ -34,33 +37,34 @@ export default function SlotsListPage() {
   const { data, isLoading } = useQuery(adminSlotsQueryOptions({ page, includePast }))
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / ADMIN_SLOTS_PAGE_SIZE))
+  const paginationLabels = useBackOfficePaginationLabels({ page, pageCount })
 
   return (
     <div className="space-y-6" data-testid="page-slots-list">
-      <div>
-        <PageTitle>{t('adminParticipation.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('adminParticipation.subtitle')}</p>
+      <BackOfficePageHead
+        title={t('adminParticipation.title')}
+        description={t('adminParticipation.subtitle')}
+        actions={
+          <Button size="sm" data-testid="slots-new" onClick={() => setIsCreating(true)}>
+            <Plus />
+            {t('adminParticipation.new')}
+          </Button>
+        }
+      />
+
+      <div className="flex items-center gap-2">
+        <Switch
+          id="slots-show-past"
+          data-testid="slots-show-past"
+          checked={includePast}
+          onCheckedChange={(checked) =>
+            updateParams({ past: checked ? '1' : undefined, page: undefined })
+          }
+        />
+        <Label htmlFor="slots-show-past">{t('adminParticipation.showPast')}</Label>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Switch
-            id="slots-show-past"
-            data-testid="slots-show-past"
-            checked={includePast}
-            onCheckedChange={(checked) =>
-              updateParams({ past: checked ? '1' : undefined, page: undefined })
-            }
-          />
-          <Label htmlFor="slots-show-past">{t('adminParticipation.showPast')}</Label>
-        </div>
-        <Button size="sm" data-testid="slots-new" onClick={() => setIsCreating(true)}>
-          <Plus className="mr-2 size-4" />
-          {t('adminParticipation.new')}
-        </Button>
-      </div>
-
-      <div className="rounded-lg border border-border">
+      <BackOfficeTableFrame>
         <Table>
           <TableHeader>
             <TableRow>
@@ -107,14 +111,14 @@ export default function SlotsListPage() {
                 </TableCell>
                 <TableCell>
                   {slot.isCancelled ? (
-                    <Badge variant="destructive" data-testid="row-cancelled-badge">
+                    <BackOfficeStatusBadge tone="negative" data-testid="row-cancelled-badge">
                       {t('participation.cancelled')}
-                    </Badge>
+                    </BackOfficeStatusBadge>
                   ) : null}
                 </TableCell>
                 <TableCell>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     data-testid="row-open"
                     render={<Link to={`/admin/slots/${slot.id}`} />}
@@ -126,7 +130,7 @@ export default function SlotsListPage() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </BackOfficeTableFrame>
 
       <ListPagination
         page={page}
@@ -134,6 +138,7 @@ export default function SlotsListPage() {
         onPageChange={(next) => updateParams({ page: String(next) })}
         testIdPrefix="slots"
         count={t('adminParticipation.count', { count: total })}
+        {...paginationLabels}
       />
 
       {isCreating ? <SlotFormDialog onClose={() => setIsCreating(false)} /> : null}

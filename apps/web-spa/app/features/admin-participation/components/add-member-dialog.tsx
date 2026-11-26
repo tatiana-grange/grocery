@@ -77,7 +77,7 @@ export function AddMemberDialog({ slot, onClose }: AddMemberDialogProps) {
                 onClick={() => mutation.mutate(member.id)}
               >
                 <span>{member.name}</span>
-                <span className="font-mono text-xs text-muted-foreground">
+                <span className="font-mono text-sm text-muted-foreground">
                   {member.membershipNumber}
                 </span>
               </Button>

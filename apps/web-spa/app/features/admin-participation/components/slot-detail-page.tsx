@@ -1,5 +1,4 @@
-import { PageTitle } from '@grocery/ui/components/app'
-import { Badge } from '@grocery/ui/components/primitives/badge'
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
@@ -12,6 +11,9 @@ import { AddMemberDialog } from '@/features/admin-participation/components/add-m
 import { CancelSlotDialog } from '@/features/admin-participation/components/cancel-slot-dialog'
 import { DeleteSlotDialog } from '@/features/admin-participation/components/delete-slot-dialog'
 import { SlotFormDialog } from '@/features/admin-participation/components/slot-form-dialog'
+import { BackOfficeFigureCard } from '@/features/common/components/back-office-figure-card'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
+import { BackOfficeStatusBadge } from '@/features/common/components/back-office-status-badge'
 import {
   invalidateParticipation,
   adminSlotDetailQueryOptions,
@@ -45,109 +47,122 @@ export default function SlotDetailPage() {
 
   return (
     <div className="space-y-6" data-testid="page-slot-detail">
-      <Button
-        variant="ghost"
-        size="sm"
-        data-testid="slot-detail-back"
-        render={<Link to="/admin/slots" />}
-      >
-        <ArrowLeft className="mr-2 size-4" />
-        {t('adminParticipation.backToList')}
-      </Button>
-
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <PageTitle>{slot.roleLabel}</PageTitle>
-          <p className="text-sm text-muted-foreground">
-            {formatSlotWhen(slot.startsAt, slot.endsAt, i18n.language)}
-          </p>
-          <div className="mt-2 flex items-center gap-3 text-sm">
-            <span className="tabular-nums" data-testid="slot-detail-count">
-              {t('adminParticipation.taken', { taken: slot.signedUpCount, places: slot.places })}
-            </span>
-            {slot.isCancelled ? (
-              <Badge variant="destructive" data-testid="slot-detail-cancelled">
-                {t('participation.cancelled')}
-              </Badge>
-            ) : null}
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {canChange ? (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                data-testid="slot-detail-edit"
-                onClick={() => setDialog('edit')}
-              >
-                <Pencil className="mr-2 size-4" />
-                {t('adminParticipation.detail.edit')}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                data-testid="slot-detail-cancel"
-                onClick={() => setDialog('cancel')}
-              >
-                {t('adminParticipation.detail.cancel')}
-              </Button>
-            </>
-          ) : null}
-          {slot.signedUpCount === 0 ? (
-            <Button
-              size="sm"
-              variant="destructive"
-              data-testid="slot-detail-delete"
-              onClick={() => setDialog('delete')}
-            >
-              <Trash2 className="mr-2 size-4" />
-              {t('adminParticipation.detail.delete')}
-            </Button>
-          ) : null}
-        </div>
+      <div>
+        <Button
+          variant="outline"
+          size="sm"
+          data-testid="slot-detail-back"
+          render={<Link to="/admin/slots" />}
+        >
+          <ArrowLeft />
+          {t('adminParticipation.backToList')}
+        </Button>
       </div>
+
+      <BackOfficePageHead
+        title={slot.roleLabel}
+        description={
+          <span className="text-lg">
+            {formatSlotWhen(slot.startsAt, slot.endsAt, i18n.language)}
+          </span>
+        }
+        figures={
+          <BackOfficeFigureCard
+            testId="slot-detail-count"
+            label={t('adminParticipation.detail.signups')}
+            value={t('adminParticipation.taken', {
+              taken: slot.signedUpCount,
+              places: slot.places,
+            })}
+          />
+        }
+        actions={
+          <>
+            {slot.isCancelled ? (
+              <BackOfficeStatusBadge
+                tone="negative"
+                className="self-center"
+                data-testid="slot-detail-cancelled"
+              >
+                {t('participation.cancelled')}
+              </BackOfficeStatusBadge>
+            ) : null}
+            {canChange ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  data-testid="slot-detail-edit"
+                  onClick={() => setDialog('edit')}
+                >
+                  <Pencil />
+                  {t('adminParticipation.detail.edit')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  data-testid="slot-detail-cancel"
+                  onClick={() => setDialog('cancel')}
+                >
+                  {t('adminParticipation.detail.cancel')}
+                </Button>
+              </>
+            ) : null}
+            {slot.signedUpCount === 0 ? (
+              <Button
+                size="sm"
+                variant="destructive"
+                data-testid="slot-detail-delete"
+                onClick={() => setDialog('delete')}
+              >
+                <Trash2 />
+                {t('adminParticipation.detail.delete')}
+              </Button>
+            ) : null}
+          </>
+        }
+      />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">{t('adminParticipation.detail.signups')}</h2>
+          <SectionTitle>{t('adminParticipation.detail.signups')}</SectionTitle>
           {canChange ? (
             <Button
               size="sm"
               data-testid="slot-detail-add-member"
               onClick={() => setDialog('add-member')}
             >
-              <UserPlus className="mr-2 size-4" />
+              <UserPlus />
               {t('adminParticipation.detail.addMember')}
             </Button>
           ) : null}
         </div>
         <ul className="space-y-2" data-testid="slot-detail-signups">
           {slot.signups.length === 0 ? (
-            <li className="text-sm text-muted-foreground" data-testid="slot-detail-no-signups">
+            <li className="text-base text-muted-foreground" data-testid="slot-detail-no-signups">
               {t('adminParticipation.detail.noSignups')}
             </li>
           ) : null}
           {slot.signups.map((signup) => (
             <li
               key={signup.memberId}
-              className="flex items-center gap-3 rounded-lg border border-border p-3"
+              className="flex items-center gap-3 rounded-xl border-2 border-border bg-card p-3"
               data-testid={`signup-row-${signup.memberId}`}
             >
               <span className="font-medium">{signup.memberName}</span>
-              <span className="font-mono text-xs text-muted-foreground">
+              <span className="font-mono text-sm text-muted-foreground">
                 {signup.membershipNumber}
               </span>
               {hasEnded ? null : (
                 <Button
                   size="sm"
-                  variant="ghost"
+                  variant="outline"
                   className="ml-auto"
                   data-testid="signup-remove"
                   disabled={removal.isPending}
                   onClick={() => removal.mutate(signup.memberId)}
                 >
-                  <X className="mr-2 size-4" />
+                  <X />
                   {t('adminParticipation.detail.remove')}
                 </Button>
               )}

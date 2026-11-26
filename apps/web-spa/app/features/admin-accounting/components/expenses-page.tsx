@@ -1,6 +1,5 @@
-import { ListPagination, PageTitle } from '@grocery/ui/components/app'
+import { ListPagination } from '@grocery/ui/components/app'
 import type { Expense } from '@grocery/openapi-generator/client/types.gen'
-import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import {
@@ -25,6 +24,10 @@ import {
   expensesQueryOptions,
 } from '@/features/admin-accounting/utils/admin-accounting-queries'
 import { periodSearch, usePeriod } from '@/features/admin-accounting/hooks/use-period'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
+import { BackOfficeStatusBadge } from '@/features/common/components/back-office-status-badge'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
+import { useBackOfficePaginationLabels } from '@/features/common/hooks/use-back-office-pagination-labels'
 import { useListSearchParams } from '@/hooks/use-list-search-params'
 
 export default function ExpensesPage() {
@@ -37,33 +40,34 @@ export default function ExpensesPage() {
   const { data, isLoading } = useQuery(expensesQueryOptions({ period, page }))
   const total = data?.meta.itemCount ?? 0
   const pageCount = Math.max(1, Math.ceil(total / EXPENSES_PAGE_SIZE))
+  const paginationLabels = useBackOfficePaginationLabels({ page, pageCount })
 
   return (
     <div className="space-y-6" data-testid="page-expenses">
-      <div>
-        <PageTitle>{t('adminAccounting.expenses.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('adminAccounting.expenses.subtitle')}</p>
-      </div>
+      <BackOfficePageHead
+        title={t('adminAccounting.expenses.title')}
+        description={t('adminAccounting.expenses.subtitle')}
+        actions={
+          <Button size="sm" data-testid="expenses-new" onClick={() => setIsRecording(true)}>
+            <Plus />
+            {t('adminAccounting.expenses.new')}
+          </Button>
+        }
+      />
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <PeriodPicker period={period} onChange={setPeriod} />
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            data-testid="expenses-to-profit-and-loss"
-            render={<Link to={`/admin/accounting${periodSearch(period)}`} />}
-          >
-            {t('adminAccounting.expenses.toProfitAndLoss')}
-          </Button>
-          <Button size="sm" data-testid="expenses-new" onClick={() => setIsRecording(true)}>
-            <Plus className="mr-2 size-4" />
-            {t('adminAccounting.expenses.new')}
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          data-testid="expenses-to-profit-and-loss"
+          render={<Link to={`/admin/accounting${periodSearch(period)}`} />}
+        >
+          {t('adminAccounting.expenses.toProfitAndLoss')}
+        </Button>
       </div>
 
-      <div className="rounded-lg border border-border">
+      <BackOfficeTableFrame>
         <Table>
           <TableHeader>
             <TableRow>
@@ -107,7 +111,7 @@ export default function ExpensesPage() {
                 <TableCell>
                   <div className="font-medium">{expense.label}</div>
                   {expense.kind === 'cancellation' ? (
-                    <div className="text-xs text-muted-foreground" data-testid="expense-reason">
+                    <div className="text-sm text-muted-foreground" data-testid="expense-reason">
                       {t('adminAccounting.expenses.cancellationOf')} {expense.reason}
                     </div>
                   ) : null}
@@ -119,13 +123,13 @@ export default function ExpensesPage() {
                 <TableCell>{expense.recordedByName}</TableCell>
                 <TableCell>
                   {expense.isCancelled ? (
-                    <Badge variant="destructive" data-testid="expense-cancelled-badge">
+                    <BackOfficeStatusBadge tone="negative" data-testid="expense-cancelled-badge">
                       {t('adminAccounting.expenses.cancelled')}
-                    </Badge>
+                    </BackOfficeStatusBadge>
                   ) : null}
                   {expense.kind === 'expense' && !expense.isCancelled ? (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       data-testid="expense-cancel"
                       onClick={() => setCancelling(expense)}
@@ -138,7 +142,7 @@ export default function ExpensesPage() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </BackOfficeTableFrame>
 
       <ListPagination
         page={page}
@@ -146,6 +150,7 @@ export default function ExpensesPage() {
         onPageChange={(next) => updateParams({ page: String(next) })}
         testIdPrefix="expenses"
         count={t('adminAccounting.expenses.count', { count: total })}
+        {...paginationLabels}
       />
 
       {isRecording ? <RecordExpenseDialog onClose={() => setIsRecording(false)} /> : null}

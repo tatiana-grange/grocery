@@ -62,7 +62,7 @@ export function CancelExpenseDialog({ expense, onClose }: CancelExpenseDialogPro
       onConfirm={() => mutation.mutate()}
       onClose={onClose}
     >
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-base font-semibold">
         <span>{t('adminAccounting.cancel.reason')}</span>
         <Textarea
           data-testid="cancel-expense-reason"

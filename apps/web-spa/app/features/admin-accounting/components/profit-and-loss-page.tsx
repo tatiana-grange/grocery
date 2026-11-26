@@ -1,4 +1,4 @@
-import { PageTitle, SectionTitle } from '@grocery/ui/components/app'
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
@@ -22,6 +22,8 @@ import {
   type ExportName,
   profitAndLossQueryOptions,
 } from '@/features/admin-accounting/utils/admin-accounting-queries'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
 import { periodSearch, usePeriod } from '@/features/admin-accounting/hooks/use-period'
 
 interface FigureRowProps {
@@ -57,15 +59,15 @@ export default function ProfitAndLossPage() {
 
   return (
     <div className="space-y-6" data-testid="page-profit-and-loss">
-      <div>
-        <PageTitle>{t('adminAccounting.pnl.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('adminAccounting.pnl.subtitle')}</p>
-      </div>
+      <BackOfficePageHead
+        title={t('adminAccounting.pnl.title')}
+        description={t('adminAccounting.pnl.subtitle')}
+      />
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <PeriodPicker period={period} onChange={setPeriod} />
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           data-testid="pnl-to-expenses"
           render={<Link to={`/admin/accounting/expenses${periodSearch(period)}`} />}
@@ -74,7 +76,7 @@ export default function ProfitAndLossPage() {
         </Button>
       </div>
 
-      <div className="rounded-lg border border-border">
+      <BackOfficeTableFrame>
         <Table>
           <TableHeader>
             <TableRow>
@@ -139,12 +141,14 @@ export default function ProfitAndLossPage() {
             )}
           </TableBody>
         </Table>
-      </div>
-      <p className="text-sm text-muted-foreground">{t('adminAccounting.pnl.walletNote')}</p>
+      </BackOfficeTableFrame>
+      <p className="text-base text-muted-foreground">{t('adminAccounting.pnl.walletNote')}</p>
 
       <section className="space-y-3" data-testid="pnl-exports">
         <SectionTitle>{t('adminAccounting.exports.title')}</SectionTitle>
-        <p className="text-sm text-muted-foreground">{t('adminAccounting.exports.description')}</p>
+        <p className="text-base text-muted-foreground">
+          {t('adminAccounting.exports.description')}
+        </p>
         <div className="flex flex-wrap gap-2">
           {EXPORT_NAMES.map((exportName) => (
             <Button
@@ -155,7 +159,7 @@ export default function ProfitAndLossPage() {
               disabled={exportMutation.isPending}
               onClick={() => exportMutation.mutate(exportName)}
             >
-              <Download className="mr-2 size-4" />
+              <Download />
               {t(`adminAccounting.exports.${exportName}`)}
             </Button>
           ))}

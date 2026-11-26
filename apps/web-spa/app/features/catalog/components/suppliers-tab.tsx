@@ -34,6 +34,8 @@ import {
   unarchiveSupplier,
   updateSupplier,
 } from '@/features/catalog/utils/catalog-queries'
+import { BackOfficeStatusBadge } from '@/features/common/components/back-office-status-badge'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
 import { isConflict } from '@/features/common/lib/api-error'
 
 export function SuppliersTab() {
@@ -92,7 +94,7 @@ export function SuppliersTab() {
         <SupplierDialog onSaved={invalidate} />
       </div>
 
-      <div className="rounded-lg border border-border">
+      <BackOfficeTableFrame>
         <Table>
           <TableHeader>
             <TableRow>
@@ -111,56 +113,65 @@ export function SuppliersTab() {
               </TableRow>
             )}
             {data?.data.map((supplier) => (
-              <TableRow
-                key={supplier.id}
-                data-testid={`supplier-row-${supplier.name}`}
-                className={supplier.archivedAt ? 'opacity-50' : ''}
-              >
-                <TableCell className="font-medium">{supplier.name}</TableCell>
+              <TableRow key={supplier.id} data-testid={`supplier-row-${supplier.name}`}>
+                <TableCell className="font-medium">
+                  {supplier.name}
+                  {supplier.archivedAt && (
+                    <BackOfficeStatusBadge
+                      tone="neutral"
+                      className="ml-2"
+                      data-testid="supplier-archived-badge"
+                    >
+                      {t('catalog.archived')}
+                    </BackOfficeStatusBadge>
+                  )}
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline" data-testid="supplier-row-type">
                     {t(`catalog.supplierType.${supplier.type}`)}
                   </Badge>
                 </TableCell>
                 <TableCell>{supplier.productCount}</TableCell>
-                <TableCell className="flex gap-1">
-                  <SupplierDialog supplier={supplier} onSaved={invalidate} />
-                  {!supplier.archivedAt && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      data-testid="supplier-aggregate"
-                      disabled={aggregate.isPending}
-                      onClick={() => aggregate.mutate(supplier.id)}
-                    >
-                      {t('purchasing.aggregate.action')}
-                    </Button>
-                  )}
-                  {supplier.archivedAt ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      data-testid="supplier-unarchive"
-                      onClick={() => unarchive.mutate(supplier.id)}
-                    >
-                      {t('catalog.unarchive')}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      data-testid="supplier-archive"
-                      onClick={() => archive.mutate({ id: supplier.id })}
-                    >
-                      {t('catalog.archive')}
-                    </Button>
-                  )}
+                <TableCell>
+                  <div className="flex flex-wrap gap-2">
+                    <SupplierDialog supplier={supplier} onSaved={invalidate} />
+                    {!supplier.archivedAt && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        data-testid="supplier-aggregate"
+                        disabled={aggregate.isPending}
+                        onClick={() => aggregate.mutate(supplier.id)}
+                      >
+                        {t('purchasing.aggregate.action')}
+                      </Button>
+                    )}
+                    {supplier.archivedAt ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        data-testid="supplier-unarchive"
+                        onClick={() => unarchive.mutate(supplier.id)}
+                      >
+                        {t('catalog.unarchive')}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        data-testid="supplier-archive"
+                        onClick={() => archive.mutate({ id: supplier.id })}
+                      >
+                        {t('catalog.archive')}
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
+      </BackOfficeTableFrame>
     </div>
   )
 }
@@ -187,7 +198,7 @@ function SupplierDialog({ supplier, onSaved }: { supplier?: Supplier; onSaved: (
       <DialogTrigger
         render={
           <Button
-            variant={supplier ? 'ghost' : 'default'}
+            variant={supplier ? 'outline' : 'default'}
             size="sm"
             data-testid={supplier ? 'supplier-edit' : 'supplier-new'}
           />

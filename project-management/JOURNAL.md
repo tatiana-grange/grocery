@@ -26,6 +26,21 @@ task — never generated.
     theme; fixing that needs `packages/ui`. Four retro proposals wait in the work document.
   - The parent spec stays open for slice 04.
 
+- UI redesign "neighbourhood market", slice 04, back office: built and reviewed on
+  `feat/ui-market-back-office`, in its own worktree beside slice 03. The sidebar is cream, with
+  the awning band, "Grocery" in Lora and a subtitle, six links with an icon and a label, the
+  current one in sage, and a straw "Ouvrir la distribution" button at the bottom. On a desktop it
+  now folds away whole instead of shrinking to icons. Every page opens with a 52 px Lora title and
+  its explanation; stock and slot details show their numbers in small cards. Tables sit in one
+  framed look, statuses are word badges in four tones, and rows waiting for review get a new
+  straw tint in the theme. `ListPagination` takes optional labels; the back office shows
+  "Précédent", "Suivant" and "Page 1 / 3". Forced capitals, a raw amber notice and faded archived
+  rows are gone. A new browser test at 1440 and 1194 px, light and evening, drove it in five
+  steps, each seen red first. The screenshots found cut search placeholders and a price on two
+  lines; both fixed. All five gates green (886 unit and API tests, 219 browser tests); the known
+  accounting period test failed once and passed alone. Six retro proposals and two open points
+  wait in the work document. The parent spec stays open.
+
 - UI redesign "neighbourhood market", slice 02, member space and sign-in: built and reviewed on
   `feat/ui-market-redesign`. Below 768 px the shop and member area now have a tab bar fixed at the
   bottom (Shop, Cart, Participation, My account; Sign in for visitors), with the current tab marked
