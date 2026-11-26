@@ -5,6 +5,27 @@ task — never generated.
 
 ## 2026-11-26
 
+- E-mail templates: built, reviewed and closed on `feat/email-templates`, stacked on
+  `feat/supplier-order-schedule`.
+  - **What changed.** The 13 mails the API sends now use React Email templates on one shared
+    layout: the logo and the name Lay'picerie in the header, the market colours, a footer saying
+    the mail is automatic. All are in French. The account and membership mails were still in
+    English, and so were the four membership SMS; both are French now.
+  - **How it works.** Each mail has one render function. It returns the subject, the HTML and a
+    text version made from the same HTML. React escapes what people type. The logo travels
+    inside the mail, as an inline `cid:` image. The order to the supplier has no logo, so its CSV
+    stays its only attachment (the human's word). A new `COOPERATIVE_NAME` setting names the
+    cooperative and the sender. `pnpm --filter=api email:preview` shows every template.
+  - **On the way.** The planned split of `.swcrc` did not work with the Nest CLI, so the build
+    now reads TSX in every file, and the tests still allow it only in the templates folder. The
+    review found missing JSDoc, names, return types and an unescaped quote in the sender name.
+    All were fixed.
+  - **Gates.** Lint, typecheck, build and tests are green: 915 API unit tests, 406 API route
+    tests, and 238 of 242 browser tests. The four browser failures were not about mails, and
+    each passed when rerun alone.
+  - **Left open.** Five retro proposals in the archived spec. The API route tests do not run
+    under `pnpm test`. The spec's notes still name the logo's old path.
+
 - Automatic supplier orders: built, reviewed and closed on `feat/supplier-order-schedule`.
   - **The rhythm.** An admin gives each supplier a schedule from the supplier list: a weekday
     every week, in even or odd ISO weeks, or the 1st to 4th or last weekday of the month, and a

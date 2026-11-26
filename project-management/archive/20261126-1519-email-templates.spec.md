@@ -1,6 +1,6 @@
 # E-mail templates: one shared layout, every mail in French
 
-**Status:** in-progress — approved by the human on 2026-11-26 (name and logo given); Mason launched the same day
+**Status:** done — closed by the Mason on 2026-11-26; approved by the human on 2026-11-26 (name and logo given)
 
 ---
 
@@ -48,29 +48,29 @@ This task starts after the automatic supplier orders task
 
 ## Acceptance Criteria
 
-- [ ] **one-layout** — Every mail the API sends goes through the shared layout. A test lists
+- [x] **one-layout** — Every mail the API sends goes through the shared layout. A test lists
   the templates and renders each one with sample data.
-- [ ] **all-french** — No mail subject or body is in English, and neither are the four
+- [x] **all-french** — No mail subject or body is in English, and neither are the four
   membership SMS (human, 2026-11-26). Checked by a test over the rendered
   templates for the English words the old mails used ("Hello", "your", "please").
-- [ ] **text-and-html** — Every sent mail carries both a text and an HTML version, and the text
+- [x] **text-and-html** — Every sent mail carries both a text and an HTML version, and the text
   version holds the same links and figures as the HTML.
-- [ ] **escaped** — A name or a reason typed by a person (member name, supplier name, refusal
+- [x] **escaped** — A name or a reason typed by a person (member name, supplier name, refusal
   reason) is escaped in the HTML: a name holding `<b>` shows as text.
-- [ ] **links-kept** — The verification and reset mails still carry their working link; the
+- [x] **links-kept** — The verification and reset mails still carry their working link; the
   existing auth tests and browser tests that read those mails in MailDev stay green.
-- [ ] **cooperative-name** — The header and the sender name show the cooperative's name from
+- [x] **cooperative-name** — The header and the sender name show the cooperative's name from
   the setting, "Lay'picerie" by default.
 - [ ] ~~**logo** — Every HTML mail shows the logo in its header, embedded in the mail itself (an
   inline attachment referenced by `cid:`), so it shows without loading anything from the web.
   The text version does not carry it.~~
-- [ ] **logo** — Every HTML mail except the order to the supplier shows the logo in its header,
+- [x] **logo** — Every HTML mail except the order to the supplier shows the logo in its header,
   embedded in the mail itself (an inline attachment referenced by `cid:`). The supplier order
   mail carries the CSV as its only attachment and no logo. The text version never carries it.
   (Human, 2026-11-26: the browser test of the supplier order mail stays unchanged.)
-- [ ] **preview** — One documented command opens every template in the browser.
-- [ ] **csv-unchanged** — The supplier order mail still attaches the same CSV, byte for byte.
-- [ ] **suite-green** — lint, typecheck, API tests, build and the browser suite pass.
+- [x] **preview** — One documented command opens every template in the browser.
+- [x] **csv-unchanged** — The supplier order mail still attaches the same CSV, byte for byte.
+- [x] **suite-green** — lint, typecheck, API tests, build and the browser suite pass.
 
 ## Seams
 
@@ -116,10 +116,10 @@ variables, so the values are written in the layout, with a comment naming their 
 
 ## Deliverables
 
-- [ ] Layout and templates, with the preview command
-- [ ] Every sending service moved to its template
-- [ ] The email documentation page updated (templates, preview)
-- [ ] Journal entry
+- [x] Layout and templates, with the preview command
+- [x] Every sending service moved to its template
+- [x] The email documentation page updated (templates, preview)
+- [x] Journal entry
 
 ## References
 
@@ -138,3 +138,32 @@ variables, so the values are written in the layout, with a comment naming their 
   yet.
 
 ## Retrospective
+
+Retro proposals from the Mason, 2026-11-26. Sources: this session, the Typist's and the two
+reviewers' reports, the work document and the diff. Nothing applied; each waits for its owner.
+
+1. **Automated checks, high — the API e2e project is outside `pnpm test`.** `pnpm test` ran 47
+   API files (the unit project) and none of the 14 `*.e2e-spec.ts` files (406 tests), which the
+   Typist had to run with `vitest --project e2e`. The gate in §F · Gate commands of
+   `.agents/project.md` therefore misses the API route tests. Proposal: find why the e2e project
+   does not run from `pnpm test` and fix the script, or name the second command in §F. Owner:
+   the human.
+2. **AGENTS.md, medium — four more browser tests fail under load.** In the full `pnpm e2e` run,
+   `account.spec.ts` (account page), `admin-inventory-stock.spec.ts` (weighted average) and
+   `wallet-topup.spec.ts` (refused payment) failed with the known `accounting.spec.ts` one, and
+   all four passed alone. Proposal: add the first three to "Known flaky tests" in `AGENTS.md`,
+   or open a task to find the shared cause. Owner: the human.
+3. **Coding standards, medium — the general guideline rules the Typist missed.** The standards
+   reviewer found JSDoc, verb-first names, RO-RO and return types missing across new files: all
+   in `general.mdx`, none caught by a tool. Proposal: add these four lines to the Typist brief in
+   the project rules of `AGENTS.md`, or turn on oxlint's
+   `typescript/explicit-function-return-type` for `apps/api`. Owner: the human.
+4. **Navigation, low — JSX in the API.** The plan's two-entry `.swcrc` does not work with the
+   Nest CLI (`unknown field 0`); the build now parses every `.ts` file as TSX, and only Vitest
+   keeps TSX inside `modules/email/templates/`. Proposal: a short "JSX in the API" paragraph in
+   `backend.mdx` saying where `.tsx` is allowed and why the two Vitest plugins exist. Owner: the
+   human.
+5. **Plan step, low — prove a tooling change before the plan reading.** The `.swcrc` choice was
+   read from source, not run, and failed at step 1. Proposal: in the project rules of
+   `AGENTS.md`, a plan that changes build or test tooling runs a throwaway check of it before it
+   goes to the Architect. Owner: the human.

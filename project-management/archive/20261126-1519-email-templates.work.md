@@ -364,6 +364,8 @@ line in the worklog, then the production files.
 - 2026-11-26, Typist, review fixes, red first (point 9): new `email.service.spec.ts` case with a sender name holding a quote and a backslash. Red log `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/review-red.log`. Error line: `AssertionError: expected '"La "Bonne" Coop\" <noreply@localhost…' to match /^"La \\"Bonne\\" Coop\\\\" <.+@.+>$/`.
 - 2026-11-26, Typist, review fixes done (Mason's list, points 1 to 9): JSDoc on every render function, template component and `RenderedEmail`; `brand` to `buildBrand`, `plural` to `formatCount` (RO-RO, in `_components/format-count.ts`, also used by `supplier-order.tsx`), `membershipSmsText` to `buildMembershipSmsText`, `hrefsOf` to `extractHrefs`; `members.service.ts` `send` takes one object; `: ReactElement` on the layout, button, paragraph, link fallback and every template; spec names `actualMail` and `actualWithReason`/`actualWithoutReason`, the spec reuses `emailSamples.supplierOrder.lines`; send-failed names `orderDaySuffix`, `sendModeText`, `failureReasonText`; the logo reason kept once on `renderSupplierOrderEmail`, the two restating comments removed; the sender name escapes `\` and `"`. The test for point 9 sets `config.cooperative.name` through a cast and restores it. Green: email, members, wallet, purchasing specs (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/review-green.log`, 296 tests), typecheck, `pnpm lint` exit 0, `pnpm --filter=api test` 47 files 915 tests (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/review-test-full.log`), e2e project 14 files 406 tests (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/review-e2e.log`).
 
+- 2026-11-26, Mason, step 6 gates. Before the review fixes: `pnpm lint` exit 0, old warnings only (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-lint.log`); `pnpm typecheck` green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-typecheck.log`); `pnpm build` green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-build.log`); `pnpm test` green, 914 API unit tests plus the i18n and ui packages (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-test.log`). `code-review` then ran (findings below) and the Typist fixed them in `ee012a3`, with the API unit project (915), the API e2e project (406), typecheck and lint green after. `docker ps`: the grocery E2E stack (`grocery-e2e-db`, `grocery-e2e-maildev`) was already up, no other project on 5434, 1043 or 1093, no E2E run in progress. `pnpm e2e` after the fixes (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-e2e.log`): 238 passed, 4 failed, none about mails: `account.spec.ts` (account page not shown in 10 s), `accounting.spec.ts` period picker (known flaky), `admin-inventory-stock.spec.ts` weighted average (element not found), `wallet-topup.spec.ts` refused payment (click timeout). Rerun once, alone: all four passed (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-e2e-rerun.log`). The three mail browser tests (supplier order with its CSV, reset password, wallet correction) passed in the full run. `pnpm build` again after the fixes: green, logo in `dist` (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-build2.log`). Nothing to stop: the E2E stack was up before this session and stays up; the Typist stopped its preview server by process id.
+
 ## Implementation Checkboxes
 
 - [x] Step 1 — toolchain, layout, account mails
@@ -371,7 +373,7 @@ line in the worklog, then the production files.
 - [x] Step 3 — wallet notices
 - [x] Step 4 — purchasing mails
 - [x] Step 5 — preview and documentation
-- [ ] Step 6 — gates
+- [x] Step 6 — gates
 
 ## Notes & Snippets
 
@@ -387,6 +389,62 @@ line in the worklog, then the production files.
   are skipped.
 
 ## Diff-Review Findings
+
+`code-review` on `git diff 5b80300...HEAD` (merge-base with `feat/supplier-order-schedule`), two
+fresh reviewers, 2026-11-26. Fixes by the Typist in `ee012a3`.
+
+**Standards**
+
+- JSDoc missing on the render functions, the template components and `RenderedEmail`
+  (general.mdx, "Use JSDoc to document public classes and methods"). Fixed.
+- Function names without a verb: `brand`, `plural`, `membershipSmsText`, `hrefsOf` (general.mdx,
+  "Start functions with a verb"). Fixed: `buildBrand`, `formatCount`, `buildMembershipSmsText`,
+  `extractHrefs`.
+- Positional parameters in `members.service.ts` `send` and in `plural` (general.mdx, RO-RO).
+  Fixed.
+- No return types on the React components (general.mdx, "declare the type of each … function").
+  Fixed: `: ReactElement`, as the web-spa does.
+- Test variable names in `email-templates.spec.ts` (general.mdx, inputX / actualX). Fixed, and
+  the copied supplier order lines fixture now reuses the samples.
+- Duplicated plural logic in `supplier-order.tsx`. Fixed: one `format-count.ts`.
+- Mysterious names `created`, `how`, `why` in `supplier-order-send-failed.tsx`. Fixed.
+- Comments repeating the code, and the "no logo" reason written three times. Fixed: kept once,
+  on `renderSupplierOrderEmail`.
+- Answered, not changed:
+  - The membership sentences live in the templates and again, shorter, in
+    `membership-sms.ts`. The human asked for a short SMS form; sharing sentence builders between
+    a React template and a one-line SMS would couple two texts meant to differ.
+  - The subject repeated as the inbox preview line: one string per template, side by side in
+    the same commit when it changes; a shared constant per template would add thirteen exports
+    for little.
+  - `{ subject, content: mail.text, html: mail.html }` repeated in the callers: the spec's
+    seam says `EmailService.sendEmail` stays unchanged in shape.
+  - Four files touched per new template: the folder-sync test catches a forgotten one.
+  - Dates passed as French text: a plan decision, the sending services own the Paris time zone.
+  - `I` prefix on interfaces (backend.mdx): the repo does not follow it; kept consistent with
+    the repo.
+
+**Spec**
+
+- Journal entry missing: written at the close.
+- Browser suite not yet run: run at step 6 (see the worklog).
+- Not asked for, accepted: the SMS name the cooperative (the short form of the mail sentence,
+  which names it); the button with a copy-the-link line on the verification, reset and send
+  failure mails; the email module README cut down to a pointer to `5_email.mdx` (the MailDev
+  setup it held is the docker-compose one, documented in `5_email.mdx`); two formatting-only
+  hunks in purchasing from `oxfmt`; `html.util.ts` deleted (no caller left).
+- A sender name holding `"` would break the address. Fixed: `\` and `"` are escaped, with a
+  test written red first.
+- `html: html || content` kept in `EmailService`: every caller passes HTML; answered, not
+  changed, since the spec keeps the service's shape.
+- The spec's Notes still name `email/assets/logo.jpg`; the file moved on the Architect's ruling.
+  Left for the Architect, who owns the spec's text.
+- `email-templates.ts`, `email-render.ts`, `email-logo.ts` sit outside `templates/`: they are
+  the seam's render functions, `.ts`, not templates. Within the spec's "Template rendering"
+  seam.
+- `.tsx` accepted by the build in all of `src` (the `.swcrc` fallback the plan named, taken in
+  step 1), not only in the email module as the spec's "Implementation Decisions" ask; Vitest
+  still restricts it to `templates/`. Reported to the Architect.
 
 ## Rulings at the reading (Architect, 2026-11-26)
 
