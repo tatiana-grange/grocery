@@ -1,6 +1,7 @@
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -8,6 +9,7 @@ import type {
   DistributionLine,
   DistributionOrder,
 } from '@grocery/openapi-generator/client/types.gen'
+import { DistributionNotice } from '@/features/distribution/components/distribution-notice'
 import { recordHandover } from '@/features/distribution/utils/distribution-queries'
 
 interface HandoverFormProps {
@@ -91,24 +93,41 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
   })
 
   return (
-    <div className="space-y-4 p-4">
-      <ul className="space-y-3">
+    <div>
+      <ul className="divide-y divide-rule">
         {order.lines.map((line) => (
           <li
             key={line.orderLineId}
             data-testid={`handover-line-${line.orderLineId}`}
-            className="flex flex-wrap items-center gap-3"
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
           >
-            <span className="min-w-40 flex-1 font-medium">{line.productName}</span>
-            <span className="text-sm text-muted-foreground">
-              {t('distribution.line.ordered')} {line.orderedQuantity}
+            <div className="min-w-40 flex-1">
+              <p className="text-lg font-semibold">{line.productName}</p>
+              {line.isReady ? null : (
+                <p className="text-base text-destructive" data-testid="distribution-line-not-ready">
+                  {t(`distribution.notReadyReason.${line.notReadyReason}`)}
+                </p>
+              )}
+            </div>
+            <span className="text-base">
+              <span className="text-muted-foreground">{t('distribution.line.ordered')} </span>
+              <span className="tabular-nums">{line.orderedQuantity}</span>
+            </span>
+            <span className="text-base">
+              <span className="text-muted-foreground">{t('distribution.line.available')} </span>
+              <span
+                className={`tabular-nums ${line.availableQuantity < 0 ? 'text-destructive' : ''}`}
+                data-testid="distribution-line-available"
+              >
+                {line.availableQuantity}
+              </span>
             </span>
             {isHandable(line) ? (
               <>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-base">
                   <span className="text-muted-foreground">{t('distribution.line.handedOver')}</span>
                   <Input
-                    className="w-28 text-base tabular-nums"
+                    className="h-12 w-28 text-lg tabular-nums"
                     data-testid="handover-qty"
                     type="number"
                     min={0}
@@ -122,32 +141,36 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
                     }
                   />
                 </label>
-                <span className="tabular-nums">{eur(quantityOf(line) * line.unitPriceEur)}</span>
+                <span className="text-lg tabular-nums">
+                  {eur(quantityOf(line) * line.unitPriceEur)}
+                </span>
               </>
             ) : (
-              <span className="text-sm text-muted-foreground" data-testid="handover-excluded">
+              <span className="text-base text-muted-foreground" data-testid="handover-excluded">
                 {line.isHandedOver
                   ? t('distribution.line.alreadyHandedOver')
-                  : t(`distribution.notReadyReason.${line.notReadyReason}`)}
+                  : t('distribution.table.notHandedOver')}
               </span>
             )}
           </li>
         ))}
       </ul>
 
-      <div className="flex flex-wrap items-center gap-4 border-t border-border pt-4">
-        <span className="text-sm text-muted-foreground">
-          {t('distribution.member.aboutToCharge')}
-        </span>
-        <span className="text-xl font-semibold tabular-nums" data-testid="handover-total">
+      <div className="flex flex-wrap items-center gap-4 border-t-2 border-rule bg-kraft/40 p-4 dark:bg-muted">
+        <span className="text-base">{t('distribution.member.aboutToCharge')}</span>
+        <span
+          className="font-serif text-3xl font-bold italic tabular-nums"
+          data-testid="handover-total"
+        >
           {eur(totalEur)}
         </span>
         <Button
-          className="ml-auto"
+          className="ml-auto h-18 min-w-80 px-8 text-lg"
           data-testid="handover-submit"
           disabled={!order.hasHandableLine || mutation.isPending}
           onClick={() => mutation.mutate()}
         >
+          <Check />
           {mutation.isPending
             ? t('distribution.handover.validating')
             : t('distribution.handover.validate')}
@@ -155,12 +178,12 @@ export function HandoverForm({ order, onRecorded, onInsufficientBalance }: Hando
       </div>
 
       {refusal ? (
-        <p className="text-sm text-destructive" data-testid="handover-refusal">
+        <DistributionNotice tone="warning" className="m-4" data-testid="handover-refusal">
           {t(`distribution.refusal.${refusal.code ?? 'order_not_pending'}`, {
             amount: refusal.shortfallEur == null ? '' : eur(refusal.shortfallEur),
             productName: refusal.productName ?? '',
           })}
-        </p>
+        </DistributionNotice>
       ) : null}
     </div>
   )

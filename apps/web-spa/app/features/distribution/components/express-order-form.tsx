@@ -3,11 +3,13 @@ import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import type { DistributionProduct } from '@grocery/openapi-generator/client/types.gen'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react'
+import { AlertTriangle, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { toast } from 'sonner'
+import { HandoverRecordedNotice } from '@/features/distribution/components/handover-recorded-notice'
+import { DistributionNotice } from '@/features/distribution/components/distribution-notice'
 import {
   createExpressOrder,
   distributionMemberScreenQueryOptions,
@@ -86,46 +88,31 @@ export default function ExpressOrderForm() {
       <div>
         <PageTitle>{t('distribution.express.title')}</PageTitle>
         {member ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             {member.name} — {t('distribution.member.balance')} {eur(member.balanceEur)}
           </p>
         ) : null}
       </div>
 
-      {recordedHandoverId ? (
-        <div
-          className="flex items-center gap-2 rounded-lg border border-border bg-accent/40 p-3 text-sm"
-          data-testid="handover-receipt"
-        >
-          <CheckCircle2 className="size-4 shrink-0" />
-          <span>{t('distribution.handover.receipt')}</span>
-          <Link
-            className="ml-auto underline"
-            to={`/distribution/handovers/${recordedHandoverId}`}
-            data-testid="handover-receipt-link"
-          >
-            {t('distribution.waiting.open')}
-          </Link>
-        </div>
-      ) : null}
+      {recordedHandoverId ? <HandoverRecordedNotice handoverId={recordedHandoverId} /> : null}
 
       <div className="space-y-2">
         <Input
-          className="max-w-md text-base"
+          className="h-16 max-w-xl text-xl"
           data-testid="express-product-search"
           placeholder={t('distribution.express.searchPlaceholder')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
         {products && products.data.length > 0 ? (
-          <ul className="max-w-md space-y-1">
+          <ul className="max-w-xl space-y-2">
             {products.data.map((product) => (
               <li key={product.id}>
                 <button
                   type="button"
                   data-testid={`express-product-option-${product.id}`}
                   onClick={() => addProduct(product)}
-                  className="flex w-full items-center gap-3 rounded-md border border-border p-2 text-left hover:bg-accent"
+                  className="flex min-h-14 w-full items-center gap-3 rounded-xl border-2 border-border bg-card px-4 text-left text-lg hover:bg-accent"
                 >
                   <span className="flex-1">{product.name}</span>
                   <span className="tabular-nums">{eur(product.unitPriceEur)}</span>
@@ -137,20 +124,20 @@ export default function ExpressOrderForm() {
       </div>
 
       {lines.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('distribution.express.empty')}</p>
+        <p className="text-base text-muted-foreground">{t('distribution.express.empty')}</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y divide-rule rounded-xl border-2 border-border bg-card">
           {lines.map((line) => {
             const overStock = quantityOf(line) > line.product.quantityOnHand
             return (
               <li
                 key={line.product.id}
                 data-testid={`express-line-${line.product.id}`}
-                className="flex flex-wrap items-center gap-3"
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
               >
-                <span className="min-w-40 flex-1 font-medium">{line.product.name}</span>
+                <span className="min-w-40 flex-1 text-lg font-semibold">{line.product.name}</span>
                 <Input
-                  className="w-28 text-base tabular-nums"
+                  className="h-12 w-28 text-lg tabular-nums"
                   data-testid="express-qty"
                   type="number"
                   min={0}
@@ -166,15 +153,15 @@ export default function ExpressOrderForm() {
                     )
                   }
                 />
-                <span className="tabular-nums">
+                <span className="text-lg tabular-nums">
                   {eur(quantityOf(line) * line.product.unitPriceEur)}
                 </span>
                 {overStock ? (
                   <span
-                    className="flex items-center gap-1 text-sm text-amber-600"
+                    className="flex items-center gap-1 rounded-full bg-warning px-3 py-1 text-sm font-semibold text-warning-foreground"
                     data-testid="express-over-stock"
                   >
-                    <AlertTriangle className="size-4" />
+                    <AlertTriangle className="size-5" />
                     {t('distribution.express.overStock', {
                       available: line.product.quantityOnHand,
                     })}
@@ -182,7 +169,6 @@ export default function ExpressOrderForm() {
                 ) : null}
                 <Button
                   variant="ghost"
-                  size="sm"
                   data-testid="express-remove"
                   onClick={() =>
                     setLines((current) =>
@@ -190,7 +176,8 @@ export default function ExpressOrderForm() {
                     )
                   }
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 />
+                  {t('distribution.express.remove')}
                 </Button>
               </li>
             )
@@ -198,13 +185,16 @@ export default function ExpressOrderForm() {
         </ul>
       )}
 
-      <div className="flex flex-wrap items-center gap-4 border-t border-border pt-4">
-        <span className="text-sm text-muted-foreground">{t('distribution.order.total')}</span>
-        <span className="text-xl font-semibold tabular-nums" data-testid="express-total">
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border-2 border-rule bg-kraft/40 p-4 dark:bg-muted">
+        <span className="text-base">{t('distribution.order.total')}</span>
+        <span
+          className="font-serif text-3xl font-bold italic tabular-nums"
+          data-testid="express-total"
+        >
           {eur(totalEur)}
         </span>
         <Button
-          className="ml-auto"
+          className="ml-auto h-18 min-w-64 px-8 text-lg"
           data-testid="express-submit"
           disabled={lines.length === 0 || mutation.isPending}
           onClick={() => mutation.mutate()}
@@ -214,12 +204,12 @@ export default function ExpressOrderForm() {
       </div>
 
       {refusal ? (
-        <p className="text-sm text-destructive" data-testid="express-refusal">
+        <DistributionNotice tone="warning" data-testid="express-refusal">
           {t(`distribution.refusal.${refusal.code ?? 'order_not_pending'}`, {
             amount: refusal.shortfallEur == null ? '' : eur(refusal.shortfallEur),
             productName: refusal.productName ?? '',
           })}
-        </p>
+        </DistributionNotice>
       ) : null}
     </div>
   )

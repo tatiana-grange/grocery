@@ -620,7 +620,13 @@
       "cannot_reverse_reversal": "A reversal cannot itself be reversed."
     },
     "eur": "€{{value}}",
-    "dismiss": "Cancel"
+    "dismiss": "Cancel",
+    "table": {
+      "navigation": "Distribution navigation",
+      "toHandOver": "To hand over",
+      "notHandedOver": "Not handed over this time",
+      "ordersToHandOver": "Orders to hand over"
+    }
   },
   "wallet": {
     "title": "Account",

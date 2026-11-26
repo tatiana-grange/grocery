@@ -620,7 +620,13 @@
       "cannot_reverse_reversal": "Une annulation ne peut pas être annulée."
     },
     "eur": "€{{value}}",
-    "dismiss": "Annuler"
+    "dismiss": "Annuler",
+    "table": {
+      "navigation": "Navigation de la distribution",
+      "toHandOver": "À remettre",
+      "notHandedOver": "Pas remis cette fois",
+      "ordersToHandOver": "Commandes à remettre"
+    }
   },
   "wallet": {
     "title": "Compte",
