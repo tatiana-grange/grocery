@@ -272,7 +272,47 @@
       "products": "Produits",
       "new": "Nouveau fournisseur",
       "edit": "Modifier le fournisseur",
-      "cascadeConfirm": "Ce fournisseur a {{count}} produit(s) actif(s). Les archiver également ?"
+      "cascadeConfirm": "Ce fournisseur a {{count}} produit(s) actif(s). Les archiver également ?",
+      "contactEmail": "Adresse e-mail des commandes",
+      "contactEmailPlaceholder": "commandes@fournisseur.fr",
+      "nextOrder": "Prochaine commande",
+      "errors": {
+        "name": "Le nom est obligatoire",
+        "contactEmail": "Cette adresse e-mail n'est pas valide"
+      },
+      "schedule": {
+        "action": "Envoi automatique",
+        "title": "Envoi automatique des commandes — {{name}}",
+        "description": "L'application envoie elle-même la commande au fournisseur, à l'heure de Paris, avant chaque distribution.",
+        "enabled": "Envoyer les commandes automatiquement",
+        "choose": "Choisir…",
+        "weekly": "Chaque semaine",
+        "monthly": "Chaque mois",
+        "fields": {
+          "frequency": "Fréquence",
+          "distributionWeekday": "Jour de distribution",
+          "weekParity": "Semaines",
+          "monthWeek": "Semaine du mois",
+          "sendingWeekday": "Jour d'envoi",
+          "sendingHour": "Heure d'envoi"
+        },
+        "parity": {
+          "every": "Toutes les semaines",
+          "even": "Semaines paires",
+          "odd": "Semaines impaires"
+        },
+        "monthWeek": {
+          "first": "1er",
+          "second": "2e",
+          "third": "3e",
+          "fourth": "4e",
+          "last": "Dernier"
+        },
+        "hourOption": "{{hour}} h",
+        "missing": "Il manque : {{fields}}",
+        "nextOrder": "Distribution {{distribution}} · envoi {{sending}} à {{hour}} h",
+        "saved": "Envoi automatique enregistré"
+      }
     },
     "categories": {
       "name": "Nom",

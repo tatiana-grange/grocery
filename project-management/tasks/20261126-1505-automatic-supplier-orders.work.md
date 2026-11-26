@@ -490,6 +490,8 @@ The full list of cases per step is in the checkboxes below.
 ## Worklog
 
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
+- 2026-11-26, Typist, step 3 green: `step3-green.log` (new spec 3 tests plus `catalog-suppliers.spec.ts` 4 tests: 8 pass on the E2E stack) and `step3-green-2.log` (`admin-purchasing-aggregate`, `back-office-desktop`, `catalog-products`: 56 pass). `pnpm typecheck` of web-spa and web-spa-e2e clean; oxlint clean. The new spec's dates are read from the wall clock, so it asserts the shape (first Friday day 1 to 7, sent on a Wednesday at 8 h), not fixed dates. The schedule dialog closes on save; it shows the next-dates line from the supplier when opened, and the row shows it at once. Both E2E servers I started were stopped (ports 3060 and 5273 free).
+- 2026-11-26, Typist, step 3 red: first run `step3-red.log` (scratchpad): 3 tests fail. The two e-mail tests fail with `waiting for getByTestId('supplier-contact-email')`. The schedule test timed out in `beforeEach` on a cold start (`waiting for getByTestId('catalog-tab-suppliers')`), so I reran it alone with the servers already warm: `step3-red-1.log`, error line `Error: element(s) not found … waiting for getByTestId('supplier-row-Ferme des Prés').getByTestId('supplier-next-order')`. No production file touched before this. For the step I started the E2E API (`nest start`, pid in `api-e2e.pid`) and the SPA dev server (pid in `spa-e2e.pid`) by hand on ports 3060 and 5273 to avoid cold starts; I stop both at the end of my run.
 - 2026-11-26, Typist, step 2 red: log `step2-red.log` (scratchpad), 12 cases fail in the new `describe('supplier order schedule')`, first error line `AssertionError: expected undefined to match object { enabled: false }` (no `orderSchedule` in the answer yet); the 400 cases fail with `expected 200 to be 400`.
 - 2026-11-26, Typist, step 2 green: `step2-green.log` (catalog tests, 5 files, 87 pass) and `step2-api-all.log` (whole API suite, 42 files, 791 tests pass). `pnpm typecheck` at the root clean.
 - 2026-11-26, Typist, step 2 migration: `Migration20261126142205.ts`. Generated on a scratch database `grocery_migrate_scratch` created inside the existing disposable E2E Postgres container `grocery-e2e-db` (port 5434; I did not start that container, it was already running; the scratch database is dropped). All earlier migrations were applied first. Generated SQL held, besides my two `alter table` lines, eight `drop index` lines (`category_name_search_idx`, `user_email_search_idx`, `user_name_search_idx`, `user_phoneNumber_search_idx`, `product_barcode_search_idx`, `product_description_search_idx`, `product_name_search_idx`, `member_membershipNumber_search_idx`) and the eight matching `CREATE INDEX` lines in `down`. I removed all sixteen. Up, down and up again ran clean; `schema:update --dump` afterwards showed only the search-index drops and `normalize_search`. MikroORM also wrote a `.snapshot-grocery_migrate_scratch.json` (named after the scratch database); I deleted it. The tracked `.snapshot-grocery.json` is stale already (no `expense` table), so I left it alone.
@@ -526,14 +528,13 @@ The full list of cases per step is in the checkboxes below.
         partial schedule is accepted; switching on sets `scheduleActiveSince`; an unrelated edit
         does not move it
   - [x] `pnpm generate`; commit
-- [ ] **3. The schedule on the supplier, in the SPA**
-  - [ ] red first: `supplier-order-schedule.spec.ts` (browser)
-  - [ ] supplier dialog on react-hook-form with the contact e-mail (pending the Architect's
-        ruling on the address question)
-  - [ ] `supplier-schedule-dialog.tsx`, the "Prochaine commande" column, i18n fr and en
-  - [ ] the browser test also shows a refused incomplete schedule (the save stays disabled and
+- [x] **3. The schedule on the supplier, in the SPA**
+  - [x] red first: `supplier-order-schedule.spec.ts` (browser)
+  - [x] supplier dialog on react-hook-form with the contact e-mail (ruling: contact e-mail goes in the dialog)
+  - [x] `supplier-schedule-dialog.tsx`, the "Prochaine commande" column, i18n fr and en
+  - [x] the browser test also shows a refused incomplete schedule (the save stays disabled and
         names the missing field)
-  - [ ] commit
+  - [x] commit
 - [ ] **4. E-mail copies and attachments**
   - [ ] red first: the new case in `email.service.spec.ts`
   - [ ] `EmailOptions.cc`, `EmailOptions.attachments`; the two existing cases green unchanged

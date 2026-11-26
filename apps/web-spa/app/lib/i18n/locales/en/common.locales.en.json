@@ -272,7 +272,47 @@
       "products": "Products",
       "new": "New supplier",
       "edit": "Edit supplier",
-      "cascadeConfirm": "This supplier has {{count}} active product(s). Archive them too?"
+      "cascadeConfirm": "This supplier has {{count}} active product(s). Archive them too?",
+      "contactEmail": "Order e-mail address",
+      "contactEmailPlaceholder": "orders@supplier.com",
+      "nextOrder": "Next order",
+      "errors": {
+        "name": "The name is required",
+        "contactEmail": "This e-mail address is not valid"
+      },
+      "schedule": {
+        "action": "Automatic sending",
+        "title": "Automatic order sending — {{name}}",
+        "description": "The app sends the order to the supplier by itself, in Paris time, before each distribution.",
+        "enabled": "Send orders automatically",
+        "choose": "Choose…",
+        "weekly": "Every week",
+        "monthly": "Every month",
+        "fields": {
+          "frequency": "Frequency",
+          "distributionWeekday": "Distribution day",
+          "weekParity": "Weeks",
+          "monthWeek": "Week of the month",
+          "sendingWeekday": "Sending day",
+          "sendingHour": "Sending hour"
+        },
+        "parity": {
+          "every": "Every week",
+          "even": "Even weeks",
+          "odd": "Odd weeks"
+        },
+        "monthWeek": {
+          "first": "1st",
+          "second": "2nd",
+          "third": "3rd",
+          "fourth": "4th",
+          "last": "Last"
+        },
+        "hourOption": "{{hour}}:00",
+        "missing": "Missing: {{fields}}",
+        "nextOrder": "Distribution {{distribution}} · sent {{sending}} at {{hour}}:00",
+        "saved": "Automatic sending saved"
+      }
     },
     "categories": {
       "name": "Name",
