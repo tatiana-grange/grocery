@@ -448,6 +448,23 @@ export const zExpenseList = z.object({
 });
 
 /**
+ * ExpensesByCategoryItem
+ *
+ * The expenses of one category in the period, in cents.
+ */
+export const zExpensesByCategoryItem = z.object({
+    category: z.enum([
+        'rent',
+        'insurance',
+        'utilities',
+        'equipment',
+        'bank_fees',
+        'other'
+    ]),
+    amountCents: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
  * ProfitAndLoss
  *
  * The profit-and-loss account for a period. Wallet money (top-ups, payment corrections, refunds) is not on it: it belongs to the members. All amounts are in cents.
@@ -459,10 +476,7 @@ export const zProfitAndLoss = z.object({
     costOfGoodsSoldCents: z.int().gte(-9007199254740991).lte(9007199254740991),
     grossMarginCents: z.int().gte(-9007199254740991).lte(9007199254740991),
     membershipFeesCents: z.int().gte(-9007199254740991).lte(9007199254740991),
-    expensesByCategory: z.array(z.object({
-        category: zExpenseCategory,
-        amountCents: z.int().gte(-9007199254740991).lte(9007199254740991)
-    })),
+    expensesByCategory: z.array(zExpensesByCategoryItem),
     expensesTotalCents: z.int().gte(-9007199254740991).lte(9007199254740991),
     resultCents: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
@@ -594,6 +608,46 @@ export const zCreateSupplier = z.object({
     producerCategoryIds: z.optional(z.union([
         z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         z.null()
+    ])),
+    orderSchedule: z.optional(z.union([
+        z.object({
+            enabled: z.boolean(),
+            frequency: z.optional(z.union([
+                z.enum(['weekly', 'monthly']),
+                z.null()
+            ])),
+            weekParity: z.optional(z.union([
+                z.enum([
+                    'every',
+                    'even',
+                    'odd'
+                ]),
+                z.null()
+            ])),
+            monthWeek: z.optional(z.union([
+                z.enum([
+                    'first',
+                    'second',
+                    'third',
+                    'fourth',
+                    'last'
+                ]),
+                z.null()
+            ])),
+            distributionWeekday: z.optional(z.union([
+                z.int().gte(1).lte(7),
+                z.null()
+            ])),
+            sendingWeekday: z.optional(z.union([
+                z.int().gte(1).lte(7),
+                z.null()
+            ])),
+            sendingHour: z.optional(z.union([
+                z.int().gte(0).lte(23),
+                z.null()
+            ]))
+        }),
+        z.null()
     ]))
 });
 
@@ -633,7 +687,90 @@ export const zUpdateSupplier = z.object({
         z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
         z.null()
     ])),
+    orderSchedule: z.optional(z.union([
+        z.object({
+            enabled: z.boolean(),
+            frequency: z.optional(z.union([
+                z.enum(['weekly', 'monthly']),
+                z.null()
+            ])),
+            weekParity: z.optional(z.union([
+                z.enum([
+                    'every',
+                    'even',
+                    'odd'
+                ]),
+                z.null()
+            ])),
+            monthWeek: z.optional(z.union([
+                z.enum([
+                    'first',
+                    'second',
+                    'third',
+                    'fourth',
+                    'last'
+                ]),
+                z.null()
+            ])),
+            distributionWeekday: z.optional(z.union([
+                z.int().gte(1).lte(7),
+                z.null()
+            ])),
+            sendingWeekday: z.optional(z.union([
+                z.int().gte(1).lte(7),
+                z.null()
+            ])),
+            sendingHour: z.optional(z.union([
+                z.int().gte(0).lte(23),
+                z.null()
+            ]))
+        }),
+        z.null()
+    ])),
     version: z.int().gte(-9007199254740991).lte(9007199254740991)
+});
+
+/**
+ * SupplierOrderSchedule
+ *
+ * When the app sends this supplier its order by itself: the distribution rhythm, the weekday the order leaves (the last such weekday before the distribution) and the hour (Paris time)
+ */
+export const zSupplierOrderSchedule = z.object({
+    enabled: z.boolean(),
+    frequency: z.optional(z.union([
+        z.enum(['weekly', 'monthly']),
+        z.null()
+    ])),
+    weekParity: z.optional(z.union([
+        z.enum([
+            'every',
+            'even',
+            'odd'
+        ]),
+        z.null()
+    ])),
+    monthWeek: z.optional(z.union([
+        z.enum([
+            'first',
+            'second',
+            'third',
+            'fourth',
+            'last'
+        ]),
+        z.null()
+    ])),
+    distributionWeekday: z.optional(z.union([
+        z.int().gte(1).lte(7),
+        z.null()
+    ])),
+    sendingWeekday: z.optional(z.union([
+        z.int().gte(1).lte(7),
+        z.null()
+    ])),
+    sendingHour: z.optional(z.union([
+        z.int().gte(0).lte(23),
+        z.null()
+    ]))
 });
 
 /**
@@ -680,6 +817,14 @@ export const zCatalogSupplier = z.object({
         id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
         name: z.string()
     })),
+    orderSchedule: zSupplierOrderSchedule,
+    nextOrder: z.optional(z.union([
+        z.object({
+            distributionDay: z.string(),
+            sendingAt: z.string()
+        }),
+        z.null()
+    ])),
     archivedAt: z.optional(z.union([
         z.string(),
         z.null()
@@ -3071,6 +3216,46 @@ export const zAdminSuppliersControllerCreateData = z.object({
         producerCategoryIds: z.optional(z.union([
             z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
             z.null()
+        ])),
+        orderSchedule: z.optional(z.union([
+            z.object({
+                enabled: z.boolean(),
+                frequency: z.optional(z.union([
+                    z.enum(['weekly', 'monthly']),
+                    z.null()
+                ])),
+                weekParity: z.optional(z.union([
+                    z.enum([
+                        'every',
+                        'even',
+                        'odd'
+                    ]),
+                    z.null()
+                ])),
+                monthWeek: z.optional(z.union([
+                    z.enum([
+                        'first',
+                        'second',
+                        'third',
+                        'fourth',
+                        'last'
+                    ]),
+                    z.null()
+                ])),
+                distributionWeekday: z.optional(z.union([
+                    z.int().gte(1).lte(7),
+                    z.null()
+                ])),
+                sendingWeekday: z.optional(z.union([
+                    z.int().gte(1).lte(7),
+                    z.null()
+                ])),
+                sendingHour: z.optional(z.union([
+                    z.int().gte(0).lte(23),
+                    z.null()
+                ]))
+            }),
+            z.null()
         ]))
     }),
     path: z.optional(z.never()),
@@ -3125,6 +3310,46 @@ export const zAdminSuppliersControllerUpdateData = z.object({
         ])),
         producerCategoryIds: z.optional(z.union([
             z.array(z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)),
+            z.null()
+        ])),
+        orderSchedule: z.optional(z.union([
+            z.object({
+                enabled: z.boolean(),
+                frequency: z.optional(z.union([
+                    z.enum(['weekly', 'monthly']),
+                    z.null()
+                ])),
+                weekParity: z.optional(z.union([
+                    z.enum([
+                        'every',
+                        'even',
+                        'odd'
+                    ]),
+                    z.null()
+                ])),
+                monthWeek: z.optional(z.union([
+                    z.enum([
+                        'first',
+                        'second',
+                        'third',
+                        'fourth',
+                        'last'
+                    ]),
+                    z.null()
+                ])),
+                distributionWeekday: z.optional(z.union([
+                    z.int().gte(1).lte(7),
+                    z.null()
+                ])),
+                sendingWeekday: z.optional(z.union([
+                    z.int().gte(1).lte(7),
+                    z.null()
+                ])),
+                sendingHour: z.optional(z.union([
+                    z.int().gte(0).lte(23),
+                    z.null()
+                ]))
+            }),
             z.null()
         ])),
         version: z.int().gte(-9007199254740991).lte(9007199254740991)

@@ -490,6 +490,11 @@ The full list of cases per step is in the checkboxes below.
 ## Worklog
 
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
+- 2026-11-26, Typist, step 2 red: log `step2-red.log` (scratchpad), 12 cases fail in the new `describe('supplier order schedule')`, first error line `AssertionError: expected undefined to match object { enabled: false }` (no `orderSchedule` in the answer yet); the 400 cases fail with `expected 200 to be 400`.
+- 2026-11-26, Typist, step 2 green: `step2-green.log` (catalog tests, 5 files, 87 pass) and `step2-api-all.log` (whole API suite, 42 files, 791 tests pass). `pnpm typecheck` at the root clean.
+- 2026-11-26, Typist, step 2 migration: `Migration20261126142205.ts`. Generated on a scratch database `grocery_migrate_scratch` created inside the existing disposable E2E Postgres container `grocery-e2e-db` (port 5434; I did not start that container, it was already running; the scratch database is dropped). All earlier migrations were applied first. Generated SQL held, besides my two `alter table` lines, eight `drop index` lines (`category_name_search_idx`, `user_email_search_idx`, `user_name_search_idx`, `user_phoneNumber_search_idx`, `product_barcode_search_idx`, `product_description_search_idx`, `product_name_search_idx`, `member_membershipNumber_search_idx`) and the eight matching `CREATE INDEX` lines in `down`. I removed all sixteen. Up, down and up again ran clean; `schema:update --dump` afterwards showed only the search-index drops and `normalize_search`. MikroORM also wrote a `.snapshot-grocery_migrate_scratch.json` (named after the scratch database); I deleted it. The tracked `.snapshot-grocery.json` is stale already (no `expense` table), so I left it alone.
+- 2026-11-26, Typist, step 2 generate: the API had to run with `NODE_ENV=development` (the OpenAPI route exists only there), on the E2E database, port 3060 (`E2E=false`, because `E2E=` empty fails the env check). I stopped it after (started with `nest start`, pid in `api-dev.pid`, port 3060 free again). The E2E database was rebuilt by `e2e:setup` so it carries the new columns. The generated client also picked up an older drift, `expensesByCategory` (the committed client was behind the accounting contract); not mine, kept because it is what `pnpm generate` outputs.
+- 2026-11-26, Typist, plan clarification: the contract field `sentMode`/`sentTo` on `supplierOrderSchema` and the mapper are left to step 6 as the step 6 box says; step 2 only adds the entity columns and the `supplierOrderSentModeSchema` enum (the entity needs the type). Also: `PUT /admin/suppliers/:id` ignores a null `contactEmail` (existing `stripNullish`), so an address cannot be cleared from the form. The plan does not answer this; see the open questions at the end of the report. (Typist, 2026-11-26)
 - 2026-11-26, Typist, step 1 green: `step1-green.log`, 3 files, 61 tests pass (order-schedule, paris-time, period). `pnpm typecheck` (api) and oxlint clean. Note: `oxfmt` is not on the PATH here; run it as `node_modules/.bin/oxfmt`.
 - 2026-11-26, Typist, step 1 red: log `step1-red.log` (scratchpad), error line `Error: Cannot find module '../order-schedule.util' imported from …/catalog/tests/order-schedule.util.spec.ts` (and `./paris-time.util` for `common/paris-time.util.spec.ts`). Written before any production file.
 
@@ -509,18 +514,18 @@ The full list of cases per step is in the checkboxes below.
   - [x] `findDueDistributions`: before the moment, at the moment, after handled, late before the
         distribution, after the distribution started, moment before `activeSince`
   - [x] commit
-- [ ] **2. The schedule on the supplier, in the API**
-  - [ ] red first: the new `describe` in `catalog.controller.e2e-spec.ts`
-  - [ ] entity columns on `Supplier` and on `SupplierOrder` (`sentMode`, `sentTo`)
-  - [ ] one migration on the disposable E2E database; SQL read; search-index lines and anything
+- [x] **2. The schedule on the supplier, in the API**
+  - [x] red first: the new `describe` in `catalog.controller.e2e-spec.ts`
+  - [x] entity columns on `Supplier` and on `SupplierOrder` (`sentMode`, `sentTo`)
+  - [x] one migration on the disposable E2E database; SQL read; search-index lines and anything
         else outside the two tables removed and listed in the worklog
-  - [ ] contracts (`orderSchedule`, `nextOrder`, `requireCompleteWhenEnabled`)
-  - [ ] `CatalogService` writes the schedule and `scheduleActiveSince`; `CatalogMapper` reads
+  - [x] contracts (`orderSchedule`, `nextOrder`, `requireCompleteWhenEnabled`)
+  - [x] `CatalogService` writes the schedule and `scheduleActiveSince`; `CatalogMapper` reads
         it and computes `nextOrder`; `catalog.mapper.spec.ts` case with a fixed `now`
-  - [ ] cases: round trip; 400 for an enabled schedule missing each required field; a disabled
+  - [x] cases: round trip; 400 for an enabled schedule missing each required field; a disabled
         partial schedule is accepted; switching on sets `scheduleActiveSince`; an unrelated edit
         does not move it
-  - [ ] `pnpm generate`; commit
+  - [x] `pnpm generate`; commit
 - [ ] **3. The schedule on the supplier, in the SPA**
   - [ ] red first: `supplier-order-schedule.spec.ts` (browser)
   - [ ] supplier dialog on react-hook-form with the contact e-mail (pending the Architect's

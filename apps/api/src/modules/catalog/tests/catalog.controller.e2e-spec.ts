@@ -11,6 +11,7 @@ import {
 } from '../../../test/helpers/test-auth.helper'
 import { createMemberData } from '../../members/members.factory'
 import { CatalogModule } from '../catalog.module'
+import { Supplier } from '../entities/supplier.entity'
 
 describe('catalogController (e2e)', () => {
   let request: TestRequest
@@ -283,5 +284,158 @@ describe('catalogController (e2e)', () => {
     expect(
       (await request.withSession(createSessionFromUser(plain)).get('/admin/suppliers')).status,
     ).toBe(403)
+  })
+
+  describe('supplier order schedule', () => {
+    const flourSchedule = {
+      enabled: true,
+      frequency: 'monthly',
+      monthWeek: 'first',
+      distributionWeekday: 5,
+      sendingWeekday: 3,
+      sendingHour: 8,
+    }
+
+    async function putSchedule(
+      supplier: { id: string; version: number },
+      orderSchedule: Record<string, unknown>,
+    ) {
+      return request
+        .withSession(admin)
+        .put(`/admin/suppliers/${supplier.id}`)
+        .send({ orderSchedule, version: supplier.version })
+    }
+
+    it('schedule-on-supplier: a supplier without a schedule reads as switched off, with no next order', async () => {
+      const supplier = await makeSupplier()
+
+      const res = await request.withSession(admin).get(`/admin/suppliers/${supplier.id}`)
+
+      expect(res.body.orderSchedule).toMatchObject({ enabled: false })
+      expect(res.body.nextOrder).toBeNull()
+    })
+
+    it('schedule-on-supplier: a monthly schedule round-trips and shows the next dates', async () => {
+      const supplier = await makeSupplier()
+
+      const saved = await putSchedule(supplier, flourSchedule)
+      const read = await request.withSession(admin).get(`/admin/suppliers/${supplier.id}`)
+
+      expect(saved.status).toBe(200)
+      expect(read.body.orderSchedule).toMatchObject(flourSchedule)
+      const { distributionDay, sendingAt } = read.body.nextOrder
+      const distribution = new Date(`${distributionDay}T12:00:00Z`)
+      expect(distribution.getUTCDay()).toBe(5)
+      expect(distribution.getUTCDate()).toBeLessThanOrEqual(7)
+      expect(new Date(sendingAt).getTime()).toBeLessThan(distribution.getTime())
+      expect(new Date(sendingAt).getTime()).toBeGreaterThan(Date.now() - 86_400_000)
+    })
+
+    it('schedule-on-supplier: a weekly schedule can be set when the supplier is created', async () => {
+      const res = await request
+        .withSession(admin)
+        .post('/admin/suppliers')
+        .send({
+          name: 'Ferme hebdo',
+          type: 'producer',
+          orderSchedule: {
+            enabled: true,
+            frequency: 'weekly',
+            weekParity: 'even',
+            distributionWeekday: 5,
+            sendingWeekday: 3,
+            sendingHour: 8,
+          },
+        })
+
+      expect(res.status).toBe(201)
+      expect(res.body.orderSchedule).toMatchObject({ enabled: true, weekParity: 'even' })
+      expect(res.body.nextOrder.distributionDay).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    })
+
+    it.each([
+      ['frequency', { frequency: undefined }],
+      ['distributionWeekday', { distributionWeekday: undefined }],
+      ['sendingWeekday', { sendingWeekday: undefined }],
+      ['sendingHour', { sendingHour: undefined }],
+      ['monthWeek', { monthWeek: undefined }],
+    ])(
+      'schedule-on-supplier: an enabled schedule without %s answers 400',
+      async (_name, missing) => {
+        const supplier = await makeSupplier()
+
+        const res = await putSchedule(supplier, { ...flourSchedule, ...missing })
+
+        expect(res.status).toBe(400)
+      },
+    )
+
+    it('schedule-on-supplier: an enabled weekly schedule without a parity answers 400', async () => {
+      const supplier = await makeSupplier()
+
+      const res = await putSchedule(supplier, {
+        enabled: true,
+        frequency: 'weekly',
+        distributionWeekday: 5,
+        sendingWeekday: 3,
+        sendingHour: 8,
+      })
+
+      expect(res.status).toBe(400)
+    })
+
+    it('schedule-on-supplier: an hour out of 0-23 answers 400', async () => {
+      const supplier = await makeSupplier()
+
+      const res = await putSchedule(supplier, { ...flourSchedule, sendingHour: 24 })
+
+      expect(res.status).toBe(400)
+    })
+
+    it('schedule-on-supplier: a disabled schedule may be partial and keeps its values', async () => {
+      const supplier = await makeSupplier()
+
+      const res = await putSchedule(supplier, {
+        enabled: false,
+        frequency: 'monthly',
+        distributionWeekday: 5,
+      })
+
+      expect(res.status).toBe(200)
+      expect(res.body.orderSchedule).toMatchObject({
+        enabled: false,
+        frequency: 'monthly',
+        distributionWeekday: 5,
+      })
+      expect(res.body.nextOrder).toBeNull()
+    })
+
+    it('switching the schedule on sets its start moment, and an unrelated edit does not move it', async (context) => {
+      const supplier = await makeSupplier()
+      const activeSince = async () => {
+        const em: EntityManager = context.orm.em.fork()
+        const row = await em.findOneOrFail(Supplier, supplier.id)
+        return row.scheduleActiveSince?.getTime()
+      }
+      expect(await activeSince()).toBeUndefined()
+
+      const switchedOn = await putSchedule(supplier, flourSchedule)
+      const first = await activeSince()
+      expect(first).toBeGreaterThan(Date.now() - 60_000)
+
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      const renamed = await request
+        .withSession(admin)
+        .put(`/admin/suppliers/${supplier.id}`)
+        .send({ name: 'Autre nom', version: switchedOn.body.version })
+      expect(await activeSince()).toBe(first)
+
+      const same = await putSchedule(renamed.body, flourSchedule)
+      expect(await activeSince()).toBe(first)
+
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      await putSchedule(same.body, { ...flourSchedule, sendingHour: 9 })
+      expect(await activeSince()).toBeGreaterThan(first!)
+    })
   })
 })

@@ -21,6 +21,13 @@ export const supplierOrderStatusSchema = z.enum(SUPPLIER_ORDER_STATUSES).meta({
 })
 export type SupplierOrderStatus = z.infer<typeof supplierOrderStatusSchema>
 
+export const SUPPLIER_ORDER_SENT_MODES = ['manual', 'automatic'] as const
+export const supplierOrderSentModeSchema = z.enum(SUPPLIER_ORDER_SENT_MODES).meta({
+  title: 'SupplierOrderSentMode',
+  description: 'manual: staff pressed "Send". automatic: the schedule sent it.',
+})
+export type SupplierOrderSentMode = z.infer<typeof supplierOrderSentModeSchema>
+
 export { discrepancyKindSchema } from './reception.contract'
 export type { DiscrepancyKind } from './reception.contract'
 

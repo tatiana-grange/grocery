@@ -41,6 +41,15 @@ export type CreateSupplier = {
     deliveryMode?: 'delivery' | 'pickup' | null;
     referentId?: string | null;
     producerCategoryIds?: Array<string> | null;
+    orderSchedule?: {
+        enabled: boolean;
+        frequency?: 'weekly' | 'monthly' | null;
+        weekParity?: 'every' | 'even' | 'odd' | null;
+        monthWeek?: 'first' | 'second' | 'third' | 'fourth' | 'last' | null;
+        distributionWeekday?: number | null;
+        sendingWeekday?: number | null;
+        sendingHour?: number | null;
+    } | null;
 };
 
 /**
@@ -58,6 +67,15 @@ export type UpdateSupplier = {
     deliveryMode?: 'delivery' | 'pickup' | null;
     referentId?: string | null;
     producerCategoryIds?: Array<string> | null;
+    orderSchedule?: {
+        enabled: boolean;
+        frequency?: 'weekly' | 'monthly' | null;
+        weekParity?: 'every' | 'even' | 'odd' | null;
+        monthWeek?: 'first' | 'second' | 'third' | 'fourth' | 'last' | null;
+        distributionWeekday?: number | null;
+        sendingWeekday?: number | null;
+        sendingHour?: number | null;
+    } | null;
     version: number;
 };
 
@@ -576,12 +594,24 @@ export type ProfitAndLoss = {
     costOfGoodsSoldCents: number;
     grossMarginCents: number;
     membershipFeesCents: number;
-    expensesByCategory: Array<{
-        category: ExpenseCategory;
-        amountCents: number;
-    }>;
+    expensesByCategory: Array<ExpensesByCategoryItem>;
     expensesTotalCents: number;
     resultCents: number;
+};
+
+/**
+ * ExpensesByCategoryItem
+ *
+ * The expenses of one category in the period, in cents.
+ */
+export type ExpensesByCategoryItem = {
+    /**
+     * ExpenseCategory
+     *
+     * The fixed list of association expense categories.
+     */
+    category: 'rent' | 'insurance' | 'utilities' | 'equipment' | 'bank_fees' | 'other';
+    amountCents: number;
 };
 
 /**
@@ -718,6 +748,14 @@ export type CatalogSupplier = {
         id: string;
         name: string;
     }>;
+    orderSchedule: SupplierOrderSchedule;
+    nextOrder?: {
+        /**
+         * YYYY-MM-DD, a Paris calendar day
+         */
+        distributionDay: string;
+        sendingAt: string;
+    } | null;
     archivedAt?: string | null;
     productCount: number;
     version: number;
@@ -737,6 +775,21 @@ export const SupplierType = { PRODUCER: 'producer', WHOLESALER: 'wholesaler' } a
  * Whether the supplier is a producer or a wholesaler
  */
 export type SupplierType = typeof SupplierType[keyof typeof SupplierType];
+
+/**
+ * SupplierOrderSchedule
+ *
+ * When the app sends this supplier its order by itself: the distribution rhythm, the weekday the order leaves (the last such weekday before the distribution) and the hour (Paris time)
+ */
+export type SupplierOrderSchedule = {
+    enabled: boolean;
+    frequency?: 'weekly' | 'monthly' | null;
+    weekParity?: 'every' | 'even' | 'odd' | null;
+    monthWeek?: 'first' | 'second' | 'third' | 'fourth' | 'last' | null;
+    distributionWeekday?: number | null;
+    sendingWeekday?: number | null;
+    sendingHour?: number | null;
+};
 
 /**
  * CatalogReferentsList
@@ -2832,6 +2885,15 @@ export type AdminSuppliersControllerCreateData = {
         deliveryMode?: 'delivery' | 'pickup' | null;
         referentId?: string | null;
         producerCategoryIds?: Array<string> | null;
+        orderSchedule?: {
+            enabled: boolean;
+            frequency?: 'weekly' | 'monthly' | null;
+            weekParity?: 'every' | 'even' | 'odd' | null;
+            monthWeek?: 'first' | 'second' | 'third' | 'fourth' | 'last' | null;
+            distributionWeekday?: number | null;
+            sendingWeekday?: number | null;
+            sendingHour?: number | null;
+        } | null;
     };
     path?: never;
     query?: never;
@@ -2886,6 +2948,15 @@ export type AdminSuppliersControllerUpdateData = {
         deliveryMode?: 'delivery' | 'pickup' | null;
         referentId?: string | null;
         producerCategoryIds?: Array<string> | null;
+        orderSchedule?: {
+            enabled: boolean;
+            frequency?: 'weekly' | 'monthly' | null;
+            weekParity?: 'every' | 'even' | 'odd' | null;
+            monthWeek?: 'first' | 'second' | 'third' | 'fourth' | 'last' | null;
+            distributionWeekday?: number | null;
+            sendingWeekday?: number | null;
+            sendingHour?: number | null;
+        } | null;
         version: number;
     };
     path: {

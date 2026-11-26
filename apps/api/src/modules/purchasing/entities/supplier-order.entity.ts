@@ -8,7 +8,10 @@ import {
   PrimaryKey,
   Property,
 } from '@mikro-orm/decorators/legacy'
-import type { SupplierOrderStatus } from '../contracts/supplier-order.contract'
+import type {
+  SupplierOrderSentMode,
+  SupplierOrderStatus,
+} from '../contracts/supplier-order.contract'
 import { Supplier } from '../../catalog/entities/supplier.entity'
 import { Reception } from './reception.entity'
 import { SupplierOrderLine } from './supplier-order-line.entity'
@@ -33,6 +36,14 @@ export class SupplierOrder {
   /** Set once, by the "send" action. */
   @Property({ nullable: true })
   sentAt?: Date
+
+  /** How it was sent. Null for orders sent before the automatic schedule existed. */
+  @Property({ type: 'text', nullable: true })
+  sentMode?: SupplierOrderSentMode
+
+  /** The supplier address the e-mail went to. Null when no e-mail left. */
+  @Property({ type: 'text', nullable: true })
+  sentTo?: string
 
   /** Set once, by the "close" action or automatically alongside `status = 'received'`. */
   @Property({ nullable: true })
