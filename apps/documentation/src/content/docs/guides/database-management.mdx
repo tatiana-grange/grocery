@@ -93,6 +93,17 @@ Then, you can run the migration to test it:
 pnpm --filter=api db:migrate:up
 ```
 
+Read the generated SQL before anything else. MikroORM adds a `drop index` and a `create index`
+line for each of the eight `*_search_idx` search indexes, which no entity declares; remove every
+line that is not part of your change (`AGENTS.md`, "Generated migrations").
+
+#### A local database built with `schema:fresh`
+
+A database built with `schema:fresh` (as `db:fresh:seed` does) has every table already, but its
+`mikro_orm_migrations` table does not list the migrations. `db:migrate:up` then tries to replay
+them and fails with "column … already exists". On such a database, apply only your change by hand
+with `psql`. The migration file stays right for CI and production.
+
 #### Deploying a new migration
 
 Migrations are tricky because they order of execution matters. If another developer made some changes to the database, remember to pull their changes and **apply their migrations first**.

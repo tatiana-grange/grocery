@@ -1,5 +1,5 @@
 import type { MySignup } from '@grocery/openapi-generator/client/types.gen'
-import { PageTitle } from '@grocery/ui/components/app'
+import { PageTitle, SectionTitle } from '@grocery/ui/components/app'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -34,14 +34,14 @@ export default function ParticipationPage() {
     <div className="space-y-8" data-testid="page-participation">
       <div>
         <PageTitle>{t('participation.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('participation.subtitle')}</p>
+        <p className="text-base text-muted-foreground">{t('participation.subtitle')}</p>
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-bold">{t('participation.mine.title')}</h2>
+        <SectionTitle>{t('participation.mine.title')}</SectionTitle>
         {mine.isLoading ? <Skeleton className="h-16 w-full" /> : null}
         {mine.data?.data.length === 0 ? (
-          <p className="text-sm text-muted-foreground" data-testid="my-signups-empty">
+          <p className="text-base text-muted-foreground" data-testid="my-signups-empty">
             {t('participation.mine.empty')}
           </p>
         ) : null}
@@ -53,10 +53,10 @@ export default function ParticipationPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-bold">{t('participation.coming.title')}</h2>
+        <SectionTitle>{t('participation.coming.title')}</SectionTitle>
         {coming.isLoading ? <Skeleton className="h-16 w-full" /> : null}
         {coming.data?.data.length === 0 ? (
-          <p className="text-sm text-muted-foreground" data-testid="coming-slots-empty">
+          <p className="text-base text-muted-foreground" data-testid="coming-slots-empty">
             {t('participation.coming.empty')}
           </p>
         ) : null}

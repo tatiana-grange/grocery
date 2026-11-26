@@ -46,7 +46,7 @@ function Row({
       aria-current={active ? 'true' : undefined}
       onClick={onSelect}
       className={cn(
-        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+        'flex min-h-11 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-base transition-colors',
         indent && 'pl-4',
         active
           ? 'bg-accent font-medium text-accent-foreground'
@@ -54,9 +54,7 @@ function Row({
       )}
     >
       <span className="min-w-0 wrap-break-word">{label}</span>
-      <span className="ml-auto shrink-0 text-xs text-muted-foreground/70 tabular-nums">
-        {count}
-      </span>
+      <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">{count}</span>
     </button>
   )
 }
@@ -118,7 +116,7 @@ export function CategoryRail({ categories, selectedCategoryId, onSelect }: Categ
             <AccordionItem key={family.id} value={family.id} className="border-b-0">
               <AccordionTrigger className="gap-2 rounded-md border-0 px-2 py-1.5 font-normal text-muted-foreground hover:bg-accent/50 hover:text-foreground hover:no-underline">
                 <span className="min-w-0 flex-1 wrap-break-word">{family.name}</span>
-                <span className="shrink-0 text-xs text-muted-foreground/70 tabular-nums">
+                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                   {familyTotal(family)}
                 </span>
               </AccordionTrigger>
@@ -163,7 +161,7 @@ export function CategoryRailSheet(props: CategoryRailProps) {
     <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetTrigger
         data-testid="shop-category-sheet-trigger"
-        className="inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
+        className="inline-flex h-11 items-center gap-2 rounded-md border-2 border-input bg-card px-3 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
       >
         <SlidersHorizontal className="size-4" />
         {currentName ?? t('shop.categories.heading')}

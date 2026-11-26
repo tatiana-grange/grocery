@@ -52,6 +52,7 @@
 - [lot-4-distribution.mdx](./src/content/docs/project/lot-4-distribution.mdx) - What the distribution and wallet modules deliver, and how they are shaped
 - [lot-5-wallet.mdx](./src/content/docs/project/lot-5-wallet.mdx) - What lot 5 adds to the member account: online top-up through HelloAsso, payment correction and recorded refund
 - [lot-6-participation.mdx](./src/content/docs/project/lot-6-participation.mdx) - What lot 6 adds: slots the cooperative needs people for, sign-ups with places, a 7-day leave notice and admin overrides
+- [lot-7-accounting.mdx](./src/content/docs/project/lot-7-accounting.mdx) - What lot 7 adds: association expenses, a profit-and-loss account for a chosen period, and five CSV exports for the accountant
 - [monepi-features.mdx](./src/content/docs/project/monepi-features.mdx) - Every feature found on the MonÉpi wiki, grouped by area
 
 ## References

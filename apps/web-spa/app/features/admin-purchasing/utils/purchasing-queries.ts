@@ -10,6 +10,7 @@ import {
 import type { AdminPurchasingControllerRecordReceptionData } from '@grocery/openapi-generator/client/types.gen'
 import type { AdminPurchasingControllerListData } from '@grocery/openapi-generator/client/types.gen'
 import { FilterRule } from '@lonestone/nzoth/client'
+import { downloadFile } from '@/features/common/lib/download-file'
 import { unwrap } from '@/lib/api-client'
 
 export const SUPPLIER_ORDERS_PAGE_SIZE = 20
@@ -75,10 +76,5 @@ export const recordReception = async (id: string, body: RecordReceptionBody) =>
 /** Fetches the CSV summary and hands it to the browser as a download. */
 export async function downloadSupplierOrderExport(id: string) {
   const { filename, content } = unwrap(await adminPurchasingControllerExport({ path: { id } }))
-  const url = URL.createObjectURL(new Blob([content], { type: 'text/csv' }))
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  URL.revokeObjectURL(url)
+  downloadFile(filename, content, 'text/csv')
 }

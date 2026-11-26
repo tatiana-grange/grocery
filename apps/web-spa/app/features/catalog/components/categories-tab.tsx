@@ -30,6 +30,8 @@ import {
   unarchiveCategory,
   updateCategory,
 } from '@/features/catalog/utils/catalog-queries'
+import { BackOfficeStatusBadge } from '@/features/common/components/back-office-status-badge'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
 
 export function CategoriesTab() {
   const { t } = useTranslation()
@@ -58,7 +60,7 @@ export function CategoriesTab() {
       <div className="flex justify-end">
         <CategoryDialog onSaved={invalidate} />
       </div>
-      <div className="rounded-lg border border-border">
+      <BackOfficeTableFrame>
         <Table>
           <TableHeader>
             <TableRow>
@@ -76,40 +78,49 @@ export function CategoriesTab() {
               </TableRow>
             )}
             {data?.map((category) => (
-              <TableRow
-                key={category.id}
-                data-testid={`category-row-${category.name}`}
-                className={category.archivedAt ? 'opacity-50' : ''}
-              >
-                <TableCell className="font-medium">{category.name}</TableCell>
-                <TableCell>{category.productCount}</TableCell>
-                <TableCell className="flex gap-1">
-                  <CategoryDialog category={category} onSaved={invalidate} />
-                  {category.archivedAt ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      data-testid="category-unarchive"
-                      onClick={() => unarchive.mutate(category.id)}
+              <TableRow key={category.id} data-testid={`category-row-${category.name}`}>
+                <TableCell className="font-medium">
+                  {category.name}
+                  {category.archivedAt && (
+                    <BackOfficeStatusBadge
+                      tone="neutral"
+                      className="ml-2"
+                      data-testid="category-archived-badge"
                     >
-                      {t('catalog.unarchive')}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      data-testid="category-archive"
-                      onClick={() => archive.mutate(category.id)}
-                    >
-                      {t('catalog.archive')}
-                    </Button>
+                      {t('catalog.archived')}
+                    </BackOfficeStatusBadge>
                   )}
+                </TableCell>
+                <TableCell>{category.productCount}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-2">
+                    <CategoryDialog category={category} onSaved={invalidate} />
+                    {category.archivedAt ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        data-testid="category-unarchive"
+                        onClick={() => unarchive.mutate(category.id)}
+                      >
+                        {t('catalog.unarchive')}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        data-testid="category-archive"
+                        onClick={() => archive.mutate(category.id)}
+                      >
+                        {t('catalog.archive')}
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
+      </BackOfficeTableFrame>
     </div>
   )
 }
@@ -135,7 +146,7 @@ function CategoryDialog({ category, onSaved }: { category?: Category; onSaved: (
       <DialogTrigger
         render={
           <Button
-            variant={category ? 'ghost' : 'default'}
+            variant={category ? 'outline' : 'default'}
             size="sm"
             data-testid={category ? 'category-edit' : 'category-new'}
           />

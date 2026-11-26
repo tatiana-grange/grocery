@@ -4,7 +4,7 @@ import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { normalizePhone, type IdentifierMode } from '@/features/auth/lib/identifier'
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
@@ -12,6 +12,7 @@ import {
   AuthForgotPasswordForm,
   type AuthForgotPasswordFormData,
 } from '../forms/auth-forgot-password-form'
+import { AuthTextLink } from '@/features/auth/components/auth-text-link'
 
 type Step = 'form' | 'emailSent' | 'phoneReset'
 
@@ -84,7 +85,7 @@ export default function AuthForgotPasswordPage() {
             isPending={request.isPending}
           />
           {request.error ? (
-            <p className="text-sm font-medium text-red-500">
+            <p className="text-base font-medium text-destructive">
               {t('auth.forgotPassword.failedToSend')}
             </p>
           ) : null}
@@ -93,7 +94,7 @@ export default function AuthForgotPasswordPage() {
 
       {step === 'emailSent' && (
         <div className="space-y-3 text-center" data-testid="auth-forgot-sent">
-          <p className="text-sm text-muted-foreground">{t('auth.forgotPassword.emailSent')}</p>
+          <p className="text-base text-muted-foreground">{t('auth.forgotPassword.emailSent')}</p>
           <Button
             variant="ghost"
             className="w-full"
@@ -131,10 +132,8 @@ export default function AuthForgotPasswordPage() {
         </div>
       )}
 
-      <div className="text-center text-sm">
-        <Link to="/login" className="font-medium transition-colors">
-          {t('auth.forgotPassword.backToLogin')}
-        </Link>
+      <div className="text-center">
+        <AuthTextLink to="/login">{t('auth.forgotPassword.backToLogin')}</AuthTextLink>
       </div>
     </div>
   )

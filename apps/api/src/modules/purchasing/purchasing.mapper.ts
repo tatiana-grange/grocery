@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { toCsvLines } from '../../common/csv.util'
 import { centsToEur } from '../catalog/catalog.util'
 import type { StockLevel } from '../inventory/inventory.util'
 import type {
@@ -25,17 +26,6 @@ import { discrepancyFor } from './purchasing.util'
  * weighted average cost price if it has ever been received, else `null` (research.md §8).
  */
 export type CostLevels = Map<string, StockLevel>
-
-/**
- * Renders one CSV cell: defuses spreadsheet formula injection, then quotes. A value starting
- * with `=`, `+`, `-`, `@`, or a control character is treated as a formula by Excel / Google
- * Sheets when the file is opened, so such a value is prefixed with a single quote first —
- * a product or supplier name is attacker-influenced text.
- */
-function csvCell(value: string): string {
-  const guarded = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
-  return `"${guarded.replace(/"/g, '""')}"`
-}
 
 @Injectable()
 export class PurchasingMapper {
@@ -131,15 +121,17 @@ export class PurchasingMapper {
   /** A CSV summary a staffer can send to the supplier (FR-009). */
   toExport(order: SupplierOrder): SupplierOrderExportContract {
     const lines = order.lines.isInitialized() ? order.lines.getItems() : []
-    const rows = [
-      ['product', 'quantity', 'unit'],
-      ...lines.map((line) => [
-        line.product.name,
-        String(Number(line.quantity)),
-        line.product.saleMode === 'weight' ? 'kg' : 'piece',
-      ]),
-    ]
-    const content = rows.map((row) => row.map(csvCell).join(',')).join('\n')
+    const content = toCsvLines(
+      {
+        header: ['product', 'quantity', 'unit'],
+        rows: lines.map((line) => [
+          line.product.name,
+          String(Number(line.quantity)),
+          line.product.saleMode === 'weight' ? 'kg' : 'piece',
+        ]),
+      },
+      { alwaysQuote: true },
+    ).join('\n')
     const stamp = order.createdAt.toISOString().slice(0, 10)
     return {
       filename: `supplier-order-${order.supplier.name.replace(/[^\w-]+/g, '-')}-${stamp}.csv`,

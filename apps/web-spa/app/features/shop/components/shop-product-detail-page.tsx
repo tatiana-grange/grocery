@@ -36,9 +36,9 @@ export default function ShopProductDetailPage() {
           title={t('shop.productNotFound')}
         />
         <div className="text-center">
-          <Link to="/shop" className="text-sm font-medium underline">
+          <Button variant="link" render={<Link to="/shop" />}>
             {t('shop.backToShop')}
-          </Link>
+          </Button>
         </div>
       </div>
     )
@@ -47,7 +47,7 @@ export default function ShopProductDetailPage() {
   if (error || !product) {
     return (
       <div className="space-y-4 text-center" data-testid="shop-product-load-error">
-        <p className="text-sm text-muted-foreground">{t('shop.loadError')}</p>
+        <p className="text-base text-muted-foreground">{t('shop.loadError')}</p>
         <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
           {t('common.retry')}
         </Button>
@@ -101,7 +101,7 @@ export default function ShopProductDetailPage() {
           </div>
 
           {product.description && (
-            <p className="text-sm text-muted-foreground" data-testid="shop-product-description">
+            <p className="text-base text-muted-foreground" data-testid="shop-product-description">
               {product.description}
             </p>
           )}

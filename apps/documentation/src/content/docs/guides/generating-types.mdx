@@ -67,3 +67,22 @@ for the enum to be namely exported.
 
 - Don't forget to commit your generated types to the repository, as they will be used for production builds.
 - If your type do not refresh, check out for API errors in your console. If the API is not running, the types generation can't occur.
+- The API serves the OpenAPI document only when `NODE_ENV` is `development`, and `E2E` must be unset.
+- `unwrap()` does not check answers against `zod.gen.ts` at run time. A client generated from an
+  old API shows up as `undefined` fields, not as an error.
+
+### A reliable way to regenerate
+
+The `pnpm dev` API watcher sometimes hangs (two watchers, an old process holding port 3000). Start a
+throwaway API on another port instead, generate, then stop it by its PID:
+
+```bash
+pnpm --filter=api build
+cd apps/api && NODE_ENV=development API_PORT=3999 node dist/main.js &   # E2E unset
+cd packages/openapi-generator && API_URL=http://localhost:3999/api pnpm generate
+kill <pid of the throwaway API>
+```
+
+The throwaway API needs a database. Point it at the disposable E2E database (port 5434, see
+[the E2E guide](/grocery/guides/web-spa-e2e)) rather than the dev port, which belongs to another
+project on the main machine. Commit `client/` and `tmp/openapi.json`, in a commit of their own.

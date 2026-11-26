@@ -59,10 +59,10 @@ export function RecordPaymentForm({
 
   return (
     <div className="space-y-3" data-testid="wallet-record-payment-form">
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-base font-semibold">
         <span>{t('wallet.amount')}</span>
         <Input
-          className="w-40 text-base tabular-nums"
+          className="h-12 w-44 text-lg tabular-nums"
           data-testid="wallet-payment-amount"
           type="number"
           min={0}
@@ -72,14 +72,13 @@ export function RecordPaymentForm({
         />
       </label>
 
-      <fieldset className="space-y-1 text-sm">
+      <fieldset className="space-y-1 text-base font-semibold">
         <legend>{t('wallet.method')}</legend>
         <div className="flex gap-2">
           {PAYMENT_METHODS.map((candidate) => (
             <Button
               key={candidate}
               type="button"
-              size="sm"
               variant={method === candidate ? 'default' : 'outline'}
               data-testid={`wallet-payment-method-${candidate}`}
               onClick={() => setMethod(candidate)}
@@ -90,10 +89,10 @@ export function RecordPaymentForm({
         </div>
       </fieldset>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-base font-semibold">
         <span>{t('wallet.note')}</span>
         <Input
-          className="max-w-sm"
+          className="max-w-md"
           data-testid="wallet-payment-note"
           placeholder={t('wallet.noteHint')}
           value={note}
@@ -102,6 +101,7 @@ export function RecordPaymentForm({
       </label>
 
       <Button
+        className="h-16 min-w-48 text-lg"
         data-testid="wallet-payment-submit"
         disabled={!(Number(amount) > 0) || mutation.isPending}
         onClick={() => mutation.mutate()}

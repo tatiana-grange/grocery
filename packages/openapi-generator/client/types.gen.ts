@@ -5,6 +5,28 @@ export type ClientOptions = {
 };
 
 /**
+ * RecordExpenseInput
+ *
+ * An expense to record. The amount is a whole number of cents, at least 1. The label is 1 to 200 characters. Any other field is ignored.
+ */
+export type RecordExpenseInput = {
+    spentOn: CalendarDay;
+    amountCents: number;
+    category: ExpenseCategory;
+    paymentMethod: ExpensePaymentMethod;
+    label: string;
+};
+
+/**
+ * CancelExpenseInput
+ *
+ * Why the expense is cancelled, 1 to 500 characters.
+ */
+export type CancelExpenseInput = {
+    reason: string;
+};
+
+/**
  * CreateSupplier
  *
  * Create a supplier
@@ -443,6 +465,123 @@ export type TestSettlePayment = {
         providerPaymentId: string;
         paidAmountCents: number;
     };
+};
+
+/**
+ * ExpenseList
+ *
+ * A paginated page of expense rows, newest day first.
+ */
+export type ExpenseList = {
+    data: Array<Expense>;
+    meta: {
+        offset: number;
+        pageSize: number;
+        itemCount: number;
+        hasMore: boolean;
+    };
+};
+
+/**
+ * Expense
+ *
+ * An association expense, or the negative row that cancels one. Rows are never edited or deleted.
+ */
+export type Expense = {
+    id: string;
+    spentOn: CalendarDay;
+    amountCents: number;
+    category: ExpenseCategory;
+    label: string;
+    paymentMethod: ExpensePaymentMethod;
+    kind: ExpenseKind;
+    cancelsExpenseId: string | null;
+    cancelledByExpenseId: string | null;
+    isCancelled: boolean;
+    reason: string | null;
+    recordedByName: string;
+    createdAt: string;
+};
+
+/**
+ * CalendarDay
+ *
+ * A calendar day written YYYY-MM-DD, with no time and no time zone.
+ */
+export type CalendarDay = string;
+
+/**
+ * ExpenseCategory
+ *
+ * The fixed list of association expense categories.
+ */
+export const ExpenseCategory = {
+    RENT: 'rent',
+    INSURANCE: 'insurance',
+    UTILITIES: 'utilities',
+    EQUIPMENT: 'equipment',
+    BANK_FEES: 'bank_fees',
+    OTHER: 'other'
+} as const;
+
+/**
+ * ExpenseCategory
+ *
+ * The fixed list of association expense categories.
+ */
+export type ExpenseCategory = typeof ExpenseCategory[keyof typeof ExpenseCategory];
+
+/**
+ * ExpensePaymentMethod
+ *
+ * How an association expense was paid.
+ */
+export const ExpensePaymentMethod = {
+    CASH: 'cash',
+    CHEQUE: 'cheque',
+    TRANSFER: 'transfer',
+    CARD: 'card'
+} as const;
+
+/**
+ * ExpensePaymentMethod
+ *
+ * How an association expense was paid.
+ */
+export type ExpensePaymentMethod = typeof ExpensePaymentMethod[keyof typeof ExpensePaymentMethod];
+
+/**
+ * ExpenseKind
+ *
+ * A plain expense, or the reversing row that cancels one.
+ */
+export const ExpenseKind = { EXPENSE: 'expense', CANCELLATION: 'cancellation' } as const;
+
+/**
+ * ExpenseKind
+ *
+ * A plain expense, or the reversing row that cancels one.
+ */
+export type ExpenseKind = typeof ExpenseKind[keyof typeof ExpenseKind];
+
+/**
+ * ProfitAndLoss
+ *
+ * The profit-and-loss account for a period. Wallet money (top-ups, payment corrections, refunds) is not on it: it belongs to the members. All amounts are in cents.
+ */
+export type ProfitAndLoss = {
+    from: CalendarDay;
+    to: CalendarDay;
+    salesCents: number;
+    costOfGoodsSoldCents: number;
+    grossMarginCents: number;
+    membershipFeesCents: number;
+    expensesByCategory: Array<{
+        category: ExpenseCategory;
+        amountCents: number;
+    }>;
+    expensesTotalCents: number;
+    resultCents: number;
 };
 
 /**
@@ -2025,6 +2164,26 @@ export type TestSeedResetResponse = {
 };
 
 /**
+ * PeriodQuery
+ *
+ * A period of calendar days in Europe/Paris, both days included. `from` must not be after `to`.
+ */
+export type PeriodQuery = {
+    /**
+     * CalendarDay
+     *
+     * A calendar day written YYYY-MM-DD, with no time and no time zone.
+     */
+    from: string;
+    /**
+     * CalendarDay
+     *
+     * A calendar day written YYYY-MM-DD, with no time and no time zone.
+     */
+    to: string;
+};
+
+/**
  * PaginationQuerySchema
  *
  * Schema for pagination query
@@ -2039,6 +2198,26 @@ export type PaginationQuerySchema = {
      */
     pageSize: number;
 };
+
+/**
+ * ExportName
+ *
+ * Which CSV export to download.
+ */
+export const ExportName = {
+    WALLET_MOVEMENTS: 'wallet-movements',
+    SALES: 'sales',
+    PURCHASES: 'purchases',
+    MEMBERSHIP_FEES: 'membership-fees',
+    EXPENSES: 'expenses'
+} as const;
+
+/**
+ * ExportName
+ *
+ * Which CSV export to download.
+ */
+export type ExportName = typeof ExportName[keyof typeof ExportName];
 
 /**
  * FilterQueryStringSchema
@@ -4412,3 +4591,172 @@ export type MemberSlotsControllerListMineResponses = {
 };
 
 export type MemberSlotsControllerListMineResponse = MemberSlotsControllerListMineResponses[keyof MemberSlotsControllerListMineResponses];
+
+export type AdminExpensesControllerListData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Starting position of the query
+         */
+        offset: number;
+        /**
+         * Number of items to return
+         */
+        pageSize: number;
+        /**
+         * CalendarDay
+         *
+         * A calendar day written YYYY-MM-DD, with no time and no time zone.
+         */
+        from: string;
+        /**
+         * CalendarDay
+         *
+         * A calendar day written YYYY-MM-DD, with no time and no time zone.
+         */
+        to: string;
+    };
+    url: '/api/admin/expenses';
+};
+
+export type AdminExpensesControllerListResponses = {
+    /**
+     * A paginated page of expense rows, newest day first.
+     */
+    200: ExpenseList;
+};
+
+export type AdminExpensesControllerListResponse = AdminExpensesControllerListResponses[keyof AdminExpensesControllerListResponses];
+
+export type AdminExpensesControllerRecordData = {
+    /**
+     * RecordExpenseInput
+     *
+     * An expense to record. The amount is a whole number of cents, at least 1. The label is 1 to 200 characters. Any other field is ignored.
+     */
+    body: {
+        /**
+         * CalendarDay
+         *
+         * A calendar day written YYYY-MM-DD, with no time and no time zone.
+         */
+        spentOn: string;
+        amountCents: number;
+        /**
+         * ExpenseCategory
+         *
+         * The fixed list of association expense categories.
+         */
+        category: 'rent' | 'insurance' | 'utilities' | 'equipment' | 'bank_fees' | 'other';
+        /**
+         * ExpensePaymentMethod
+         *
+         * How an association expense was paid.
+         */
+        paymentMethod: 'cash' | 'cheque' | 'transfer' | 'card';
+        label: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/admin/expenses';
+};
+
+export type AdminExpensesControllerRecordResponses = {
+    /**
+     * An association expense, or the negative row that cancels one. Rows are never edited or deleted.
+     */
+    200: Expense;
+};
+
+export type AdminExpensesControllerRecordResponse = AdminExpensesControllerRecordResponses[keyof AdminExpensesControllerRecordResponses];
+
+export type AdminExpensesControllerCancelData = {
+    /**
+     * CancelExpenseInput
+     *
+     * Why the expense is cancelled, 1 to 500 characters.
+     */
+    body: {
+        reason: string;
+    };
+    path: {
+        expenseId: string;
+    };
+    query?: never;
+    url: '/api/admin/expenses/{expenseId}/cancel';
+};
+
+export type AdminExpensesControllerCancelResponses = {
+    /**
+     * An association expense, or the negative row that cancels one. Rows are never edited or deleted.
+     */
+    200: Expense;
+};
+
+export type AdminExpensesControllerCancelResponse = AdminExpensesControllerCancelResponses[keyof AdminExpensesControllerCancelResponses];
+
+export type AdminAccountingControllerGetProfitAndLossData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * CalendarDay
+         *
+         * A calendar day written YYYY-MM-DD, with no time and no time zone.
+         */
+        from: string;
+        /**
+         * CalendarDay
+         *
+         * A calendar day written YYYY-MM-DD, with no time and no time zone.
+         */
+        to: string;
+    };
+    url: '/api/admin/accounting/profit-and-loss';
+};
+
+export type AdminAccountingControllerGetProfitAndLossResponses = {
+    /**
+     * The profit-and-loss account for a period. Wallet money (top-ups, payment corrections, refunds) is not on it: it belongs to the members. All amounts are in cents.
+     */
+    200: ProfitAndLoss;
+};
+
+export type AdminAccountingControllerGetProfitAndLossResponse = AdminAccountingControllerGetProfitAndLossResponses[keyof AdminAccountingControllerGetProfitAndLossResponses];
+
+export type AdminAccountingControllerDownloadExportData = {
+    body?: never;
+    path: {
+        /**
+         * ExportName
+         *
+         * Which CSV export to download.
+         */
+        exportName: 'wallet-movements' | 'sales' | 'purchases' | 'membership-fees' | 'expenses';
+    };
+    query: {
+        /**
+         * CalendarDay
+         *
+         * A calendar day written YYYY-MM-DD, with no time and no time zone.
+         */
+        from: string;
+        /**
+         * CalendarDay
+         *
+         * A calendar day written YYYY-MM-DD, with no time and no time zone.
+         */
+        to: string;
+    };
+    url: '/api/admin/accounting/exports/{exportName}';
+};
+
+export type AdminAccountingControllerDownloadExportResponses = {
+    /**
+     * The CSV file, with a header row. UTF-8, comma separated, CRLF line ends.
+     */
+    200: string;
+};
+
+export type AdminAccountingControllerDownloadExportResponse = AdminAccountingControllerDownloadExportResponses[keyof AdminAccountingControllerDownloadExportResponses];

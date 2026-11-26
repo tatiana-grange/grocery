@@ -20,8 +20,8 @@ export function SlotCard({ slot, isPending, onSignUp }: SlotCardProps) {
       className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-4"
       data-testid={`slot-card-${slot.id}`}
     >
-      <div className="min-w-0 flex-1">
-        <p className="font-medium">{slot.roleLabel}</p>
+      <div className="min-w-0 flex-1 basis-60">
+        <p className="text-lg font-semibold">{slot.roleLabel}</p>
         <p className="text-sm text-muted-foreground">
           {formatSlotWhen(slot.startsAt, slot.endsAt, i18n.language)}
         </p>

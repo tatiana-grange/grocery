@@ -1,4 +1,4 @@
-import { EmptyState, PageTitle } from '@grocery/ui/components/app'
+import { EmptyState, PageTitle, SectionTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { NativeSelect } from '@grocery/ui/components/primitives/native-select'
@@ -24,8 +24,8 @@ const SORT_OPTIONS = [
 ]
 
 const LAYOUT_BY_VIEW = {
-  large: 'grid grid-cols-2 gap-4 sm:grid-cols-3',
-  compact: 'grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5',
+  large: 'grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4',
+  compact: 'grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
   list: 'flex flex-col gap-2',
 } as const
 
@@ -80,7 +80,7 @@ export default function ShopPage() {
     <div className="space-y-6" data-testid="page-shop">
       <div>
         <PageTitle data-testid="shop-title">{t('shop.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('shop.subtitle')}</p>
+        <p className="text-base text-muted-foreground">{t('shop.subtitle')}</p>
         <Input
           className="mt-4 w-full sm:max-w-md"
           data-testid="shop-search"
@@ -96,9 +96,9 @@ export default function ShopPage() {
       <div className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
         {hasCategories && (
           <aside className="hidden self-start lg:sticky lg:top-6 lg:block">
-            <p className="mb-2 px-2 text-xs font-medium tracking-widest text-muted-foreground uppercase">
+            <SectionTitle className="mb-2 px-2 text-lg">
               {t('shop.categories.heading')}
-            </p>
+            </SectionTitle>
             <CategoryRail
               categories={categories!}
               selectedCategoryId={categoryId}
@@ -179,7 +179,7 @@ export default function ShopPage() {
                   {t('shop.pagination.loadMore')}
                 </Button>
               )}
-              <span className="text-xs text-muted-foreground tabular-nums">
+              <span className="text-sm text-muted-foreground tabular-nums">
                 {t('shop.pagination.showing', { shown: products.length, total })}
               </span>
             </div>

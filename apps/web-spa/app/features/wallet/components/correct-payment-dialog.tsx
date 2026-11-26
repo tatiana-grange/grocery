@@ -64,14 +64,14 @@ export function CorrectPaymentDialog({ memberId, entry, onClose }: CorrectPaymen
           <DialogTitle>{t('wallet.correct.title')}</DialogTitle>
           <DialogDescription>{t('wallet.correct.description')}</DialogDescription>
         </DialogHeader>
-        <p className="text-sm" data-testid="wallet-correct-payment">
+        <p className="text-base" data-testid="wallet-correct-payment">
           {t('wallet.correct.payment', {
             date: new Date(entry.createdAt).toLocaleDateString(),
             amount,
             method: entry.paymentMethod ? t(`wallet.method_.${entry.paymentMethod}`) : '',
           })}
         </p>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-base font-semibold">
           <span>{t('wallet.correct.reason')}</span>
           <Textarea
             data-testid="wallet-correct-reason"

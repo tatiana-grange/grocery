@@ -63,7 +63,7 @@ export function DatePicker({
   }
 
   return (
-    <InputGroup className={cn('w-full h-full min-h-10', className)}>
+    <InputGroup className={cn('w-full h-full min-h-12', className)}>
       <InputGroupInput
         value={inputValue}
         placeholder={placeholder ?? 'Pick a date'}

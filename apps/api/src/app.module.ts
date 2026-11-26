@@ -7,6 +7,7 @@ import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup'
 import { LoggerModule } from 'nestjs-pino'
 import { AppController } from './app.controller'
 import { config } from './config/env.config'
+import { AccountingModule } from './modules/accounting/accounting.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { DbModule } from './modules/db/db.module'
 import { CatalogModule } from './modules/catalog/catalog.module'
@@ -111,6 +112,7 @@ interface ExpressResponse extends ServerResponse<IncomingMessage> {
     PaymentsModule,
     DistributionModule,
     ParticipationModule,
+    AccountingModule,
     // Test-only fixtures endpoints (`/api/test/seed/*`). Gated on the dedicated `E2E` flag
     // (set only by the Playwright web-spa e2e run), not `NODE_ENV`, so it never mounts during
     // the API's own vitest suites.

@@ -1,11 +1,12 @@
-import { AppLoader } from '@grocery/ui/components/app'
+import { AppLoader, AwningBand } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Toaster } from '@grocery/ui/components/primitives/sonner'
-import { HandCoins, LogOut, ShieldCheck, Store, Users } from 'lucide-react'
+import { LogOut, ShieldCheck, Store, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useNavigate } from 'react-router'
 import { AppSettingsMenu } from '@/features/common/components/app-settings-menu'
 import { useRoles } from '@/features/common/hooks/use-session'
+import { DistributionMemberSearch } from '@/features/distribution/components/distribution-member-search'
 import { authClient } from '@/lib/auth-client'
 
 /**
@@ -13,8 +14,8 @@ import { authClient } from '@/lib/auth-client'
  *
  * Deliberately not folded into the back office: that layout gates on `isAdmin` alone, and
  * widening it would mean one layout enforcing two different access rules. Keeping them apart
- * also lets this screen stay sparse — no sidebar, few controls. It is used standing at a
- * table with a queue behind it.
+ * also lets this screen stay sparse — a search column and the page, few controls. It is used
+ * standing at a table with a queue behind it.
  */
 export default function DistributionLayout() {
   const { t } = useTranslation()
@@ -44,42 +45,58 @@ export default function DistributionLayout() {
 
   return (
     <div className="min-h-svh bg-background" data-testid="distribution-layout">
-      <header className="flex h-14 items-center gap-2 border-b px-4">
+      <AwningBand />
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b-2 border-border bg-card px-6 py-3">
         <Link
           to="/distribution"
-          className="flex items-center gap-2 text-sm font-black tracking-tight uppercase"
+          className="font-serif text-3xl font-bold"
           data-testid="distribution-home-link"
         >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary">
-            <HandCoins className="h-3.5 w-3.5 text-primary-foreground" />
-          </span>
           {t('distribution.title')}
         </Link>
-        <div className="ml-auto flex items-center gap-1">
-          <Button variant="ghost" size="sm" render={<Link to="/shop" />}>
-            <Store className="mr-2 size-4" />
+        <nav
+          aria-label={t('distribution.table.navigation')}
+          className="ml-auto flex flex-wrap items-center gap-2"
+        >
+          <Button
+            variant="outline"
+            data-testid="distribution-nav-shop"
+            render={<Link to="/shop" />}
+          >
+            <Store />
             {t('distribution.nav.backToShop')}
           </Button>
-          <Button variant="ghost" size="sm" render={<Link to="/account" />}>
-            <Users className="mr-2 size-4" />
+          <Button
+            variant="ghost"
+            data-testid="distribution-nav-account"
+            render={<Link to="/account" />}
+          >
+            <User />
             {t('members.nav.myAccount')}
           </Button>
           <Button
             variant="ghost"
-            size="sm"
             data-testid="nav-logout"
             onClick={handleLogout}
             className="text-destructive"
           >
-            <LogOut className="mr-2 size-4" />
+            <LogOut />
             {t('members.nav.logOut')}
           </Button>
           <AppSettingsMenu />
-        </div>
+        </nav>
       </header>
-      <main className="mx-auto max-w-5xl p-6">
-        <Outlet />
-      </main>
+      <div className="lg:grid lg:grid-cols-[400px_minmax(0,1fr)]">
+        <aside
+          aria-label={t('distribution.search.label')}
+          className="border-b-2 border-border bg-card p-6 lg:sticky lg:top-0 lg:max-h-svh lg:self-start lg:overflow-y-auto lg:border-r-2 lg:border-b-0"
+        >
+          <DistributionMemberSearch />
+        </aside>
+        <main className="min-w-0 p-6 lg:p-8">
+          <Outlet />
+        </main>
+      </div>
       <Toaster position="bottom-right" richColors />
     </div>
   )

@@ -4,6 +4,7 @@ import { Button } from '@grocery/ui/components/primitives/button'
 import { Input } from '@grocery/ui/components/primitives/input'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Undo2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
@@ -55,7 +56,7 @@ export default function HandoverReceiptPage() {
       <div className="flex flex-wrap items-start gap-3">
         <div className="flex-1">
           <PageTitle>{t('distribution.handover.receipt')}</PageTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             {new Date(data.createdAt).toLocaleString()}
             {data.recordedBy
               ? ` — ${t('distribution.handover.recordedBy', { name: data.recordedBy })}`
@@ -72,14 +73,17 @@ export default function HandoverReceiptPage() {
             {t('distribution.handover.reversed')}
           </Badge>
         ) : null}
-        <span className="text-2xl font-semibold tabular-nums" data-testid="handover-total">
+        <span
+          className="font-serif text-4xl font-bold italic tabular-nums"
+          data-testid="handover-total"
+        >
           {eur(data.totalEur)}
         </span>
       </div>
 
-      <ul className="divide-y divide-border rounded-lg border border-border">
+      <ul className="divide-y divide-rule rounded-xl border-2 border-border bg-card">
         {data.lines.map((line) => (
-          <li key={line.id} className="flex flex-wrap items-center gap-4 p-3 text-sm">
+          <li key={line.id} className="flex flex-wrap items-center gap-4 p-4 text-base">
             <span className="min-w-40 flex-1 font-medium">{line.productName}</span>
             <span className="text-muted-foreground">
               {t('distribution.line.ordered')} {line.orderedQuantity}
@@ -89,7 +93,10 @@ export default function HandoverReceiptPage() {
               <span className="tabular-nums">{line.handedQuantity}</span>
             </span>
             {line.differenceQuantity !== 0 ? (
-              <span className="text-amber-600" data-testid="handover-line-difference">
+              <span
+                className="rounded-full bg-warning px-3 py-1 text-sm font-semibold text-warning-foreground"
+                data-testid="handover-line-difference"
+              >
                 {t('distribution.handover.difference')} {line.differenceQuantity}
               </span>
             ) : null}
@@ -98,15 +105,15 @@ export default function HandoverReceiptPage() {
         ))}
       </ul>
 
-      {data.note ? <p className="text-sm text-muted-foreground">{data.note}</p> : null}
+      {data.note ? <p className="text-base text-muted-foreground">{data.note}</p> : null}
 
       {!isReversal && !data.isReversed ? (
         confirming ? (
-          <div className="space-y-3 rounded-lg border border-destructive/50 bg-destructive/5 p-4">
-            <label className="flex flex-col gap-1 text-sm">
+          <div className="space-y-3 rounded-xl border-2 border-destructive bg-card p-4">
+            <label className="flex flex-col gap-1 text-base font-semibold">
               <span>{t('distribution.handover.reverseReason')}</span>
               <Input
-                className="max-w-md"
+                className="max-w-xl"
                 data-testid="handover-reverse-reason"
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
@@ -132,6 +139,7 @@ export default function HandoverReceiptPage() {
             data-testid="handover-reverse"
             onClick={() => setConfirming(true)}
           >
+            <Undo2 />
             {t('distribution.handover.reverse')}
           </Button>
         )
