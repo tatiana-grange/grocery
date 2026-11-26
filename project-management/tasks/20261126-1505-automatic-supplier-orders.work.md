@@ -673,3 +673,68 @@ at once.
   step 6, before its own red test.
 
 ## Diff-Review Findings
+
+`code-review` on `staging...HEAD` at `f8221f0`, 2026-11-26, two fresh reviewers (Standards and
+Spec). Each finding has its answer. "Fix" items are typed in one follow-up commit, ticked below
+when done.
+
+### Standards
+
+- [ ] **Schedule enums declared twice in the API** (`order-schedule.util.ts` redefines
+      `WeekParity`, `MonthWeek`, the frequency). Constitution §I: enums live in contracts. Fix:
+      the util imports the contract types.
+- [ ] **Frontend copies the enums by hand** (`supplier-form.ts`, `supplier-dialog.tsx`).
+      frontend.mdx: use `@grocery/openapi-generator`. Fix: take the values from the generated
+      client (`zod.gen.ts` or `types.gen.ts`), if it exports them; otherwise answer here.
+- [ ] **Positional parameters** (`alreadySent`, `sendDue`, four each). general.mdx RO-RO. Fix:
+      one input object each. `markSent(order, mode, sentTo)` and `toSupplier(…, now)` stay
+      (three values, read clearly).
+- [ ] **Sentences at `text-sm`** in `supplier-schedule-dialog.tsx` (missing fields, next order).
+      frontend.mdx: body text at least `text-base`. Fix.
+- [ ] **Loose typing**: untyped `let result` in `send()`, `(due ?? missed)!` in `runSupplier`,
+      `handledDayOf` casting through `unknown` because the `date` column may come back as a
+      `Date`. Fix: type `result`; remove the non-null assertion by narrowing; declare the column
+      so the entity type is honest (string) and drop the cast.
+- [ ] **Duplicated helpers**: `escapeHtml` three times, `FRENCH_PARIS_DAY` twice, the
+      "error message or unknown" pattern four times, the e-mail populate list twice. Fix:
+      `common/html.util.ts` (`escapeHtml`), `common/error.util.ts` (`describeError`), the Paris
+      day formatter in `common/paris-time.util.ts`, one exported populate constant beside
+      `SupplierOrderMailService` (the service's input contract). The SPA's `'Europe/Paris'`
+      constant stays one constant in the SPA.
+- [ ] **Failure reason repeated** (`'no_address' | 'mail_error'` in three places). Fix: one
+      exported `SendFailureReason` type.
+- [ ] **Names**: the job's field `run` (reads `this.run.runDue`) becomes `scheduleRun`.
+- [ ] **Middle Man**: `period.util.ts` re-exports the moved Paris helpers. Fix: callers import
+      from `common/paris-time.util.ts`; the re-exports go.
+- [ ] **`supplier-form.ts` mixes two forms and date formatting.** Fix: the date formatting moves
+      to `catalog/utils/next-order-format.ts`.
+- [ ] **Missing `.meta()`** on `isoWeekdaySchema` and the schedule fields, no `examples` on the
+      new schemas. Fix: add them.
+- **Data Clumps** (the six schedule fields travel together): answered. The plan chose typed
+  columns; `SupplierScheduleColumns` and `OrderScheduleRule` already gather them in the code; an
+  embeddable would change the migration for no behaviour. Not fixed.
+- **`send()` nests two try/catch and a mutable `failure`**: answered with the fix above on
+  typing; the Typist may flatten it if it stays readable, no behaviour change.
+- **French e-mail text hardcoded in the API**: answered. The API has no i18n; the wallet notices
+  do the same. Not fixed.
+
+### Spec
+
+- **Journal entry missing**: answered, it is written at the close.
+- **Two Resend documentation commits are outside the scope**: answered, the Architect made them
+  on this branch on purpose.
+- **A missed-distribution alert fires even when nothing was to order**: answered, the spec says
+  "the admins are alerted" without condition, and the run cannot know what would have been
+  ordered at the moment. Kept.
+- **`nextOrder` can show a sending moment already past** (between the sending moment and the
+  distribution day): answered. It is the approved plan's choice (the pair of the next
+  distribution and its own sending moment), and the spec's example pairs them the same way.
+  Raised to the Architect in the close report.
+- **A database error after an e-mail left rolls back the handled day, so the next tick mails
+  again**: answered. Same class as the crash limit already on the docs page; writing the handled
+  day in an earlier transaction would turn a duplicate into a silently lost order, which is the
+  failure the spec was written against. Fix: the docs page names the database error too.
+- **"Late switch-on" (`scheduleActiveSince`) is not in the spec**: answered. The Architect
+  confirmed it at the reading; the spec's 🧑 zone should carry it, signed. Left to the
+  Architect, raised in the close report.
+
