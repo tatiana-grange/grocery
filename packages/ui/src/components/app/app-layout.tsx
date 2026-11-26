@@ -5,7 +5,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@grocery/ui/components/primitives/sidebar'
-import { Separator } from '@grocery/ui/components/primitives/separator'
 
 interface AppLayoutProps {
   sidebar: ReactNode
@@ -60,7 +59,6 @@ export function AppLayoutHeader({ children, className, showTrigger = true }: App
         <>
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
-            {children ? <Separator orientation="vertical" className="mr-2 h-4" /> : null}
           </div>
         </>
       ) : null}
