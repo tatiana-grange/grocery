@@ -607,8 +607,12 @@ The full list of cases per step is in the checkboxes below.
   - [x] new page `apps/documentation/src/content/docs/project/automatic-supplier-orders.mdx`
         (the rule, the run, the lock, the alerts, the known duplicate-mail limit), linked from
         `lot-3-purchasing.mdx`; `generate:index`; documentation build (91 pages, in `pnpm build`)
-  - [ ] glossary: "distribution day" and "sending moment" — not added. The Architect was not
-        asked during the work; left for its ruling at the close (see the close report).
+  - [x] glossary: "order schedule", "distribution day" and "sending moment" added by the
+        Architect at the close, 2026-11-26, in a new "Purchasing" section.
+  - Architect's rulings at the close, 2026-11-26: the next sending moment shown may be in the
+        past between it and its distribution day; kept, it is the moment of the distribution
+        shown. The late switch-on rule is now written, signed, under `auto-late-catch-up` in
+        the spec.
   - [x] gates: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm e2e` (after
         `docker ps`), each in the background with its full log read
   - [x] commit

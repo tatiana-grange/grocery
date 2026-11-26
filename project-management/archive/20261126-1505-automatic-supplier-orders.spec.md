@@ -98,6 +98,10 @@ Decisions taken by the human on 2026-11-26:
 - [x] **auto-late-catch-up** — If the API was down at the sending moment, the run happens when
   it comes back, as long as the distribution has not started. After that, nothing is sent and
   the admins are alerted.
+  Narrowed by the Architect, 2026-11-26, at the close: a schedule switched on or changed after
+  this distribution's sending moment does nothing for that distribution, no send and no alert.
+  Otherwise the first tick after saving would mail the supplier at once, at a moment nobody
+  chose. The rule is the plan's `scheduleActiveSince`, ruled at the plan reading.
 - [x] **auto-failure-alert** — No supplier address, or an e-mail error: the order stays a draft
   and every admin gets one alert e-mail naming the supplier, the order and the reason. A failed
   send is never retried on its own; this alert is how the admins learn they must resend it.
