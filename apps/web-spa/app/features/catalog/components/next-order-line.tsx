@@ -1,6 +1,6 @@
 import type { CatalogSupplier } from '@grocery/openapi-generator/client/types.gen'
 import { useTranslation } from 'react-i18next'
-import { formatDistributionDay, formatSendingMoment } from '@/features/catalog/utils/supplier-form'
+import { formatDistributionDay, formatSendingMoment } from '@/features/catalog/utils/next-order-format'
 
 /** "Distribution ven. 4 déc. · envoi mer. 2 déc. à 8 h", every moment read in Paris time. */
 export function NextOrderLine({

@@ -3,9 +3,11 @@ import type {
   SupplierOrderSchedule,
 } from '@grocery/openapi-generator/client/types.gen'
 import type { TFunction } from 'i18next'
+import { zCatalogSupplier, zSupplierOrderSchedule } from '@grocery/openapi-generator/client/zod.gen'
 import { z } from 'zod'
 
-const SUPPLIER_TYPES = ['producer', 'wholesaler'] as const
+export const SUPPLIER_TYPES = zCatalogSupplier.shape.type.options
+const scheduleShape = zSupplierOrderSchedule.shape
 
 /** The supplier form holds plain text, as the inputs do. */
 export interface SupplierFormValues {
@@ -50,15 +52,16 @@ export const SCHEDULE_FIELDS = [
 ] as const
 export type ScheduleField = (typeof SCHEDULE_FIELDS)[number]
 
-export const WEEK_PARITIES = ['every', 'even', 'odd'] as const
-export const MONTH_WEEKS = ['first', 'second', 'third', 'fourth', 'last'] as const
+// The enum values come from the generated client, so the form follows the API.
+export const WEEK_PARITIES = scheduleShape.weekParity.unwrap().options[0].options
+export const MONTH_WEEKS = scheduleShape.monthWeek.unwrap().options[0].options
 export const ISO_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const
 export const SENDING_HOURS = Array.from({ length: 24 }, (_, hour) => hour)
 
 /** Every select holds text; an empty text means "not chosen yet". */
 export interface ScheduleFormValues {
   enabled: boolean
-  frequency: '' | 'weekly' | 'monthly'
+  frequency: '' | NonNullable<SupplierOrderSchedule['frequency']>
   weekParity: '' | (typeof WEEK_PARITIES)[number]
   monthWeek: '' | (typeof MONTH_WEEKS)[number]
   distributionWeekday: string
@@ -70,7 +73,7 @@ export interface ScheduleFormValues {
 export const scheduleFormSchema: z.ZodType<ScheduleFormValues, ScheduleFormValues> = z
   .object({
     enabled: z.boolean(),
-    frequency: z.enum(['', 'weekly', 'monthly']),
+    frequency: z.enum(['', ...scheduleShape.frequency.unwrap().options[0].options]),
     weekParity: z.enum(['', ...WEEK_PARITIES]),
     monthWeek: z.enum(['', ...MONTH_WEEKS]),
     distributionWeekday: z.string(),
@@ -123,51 +126,4 @@ export function toSchedulePayload(values: ScheduleFormValues): SupplierOrderSche
     sendingWeekday: number(values.sendingWeekday) as SupplierOrderSchedule['sendingWeekday'],
     sendingHour: number(values.sendingHour),
   }
-}
-
-// Dates ----------------------------------------------------------------------------------------
-
-const PARIS = 'Europe/Paris'
-
-/** A short weekday name such as "ven." for an ISO weekday, 1 Monday … 7 Sunday. */
-export function weekdayName(
-  weekday: number,
-  locale: string,
-  style: 'long' | 'short' = 'long',
-): string {
-  // 2026-11-23 is a Monday.
-  const date = new Date(Date.UTC(2026, 10, 22 + weekday))
-  return new Intl.DateTimeFormat(locale, { weekday: style, timeZone: 'UTC' }).format(date)
-}
-
-/** "ven. 4 déc." for a Paris calendar day written `YYYY-MM-DD`. */
-export function formatDistributionDay(day: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(`${day}T12:00:00Z`))
-}
-
-/** "mer. 2 déc." and the whole Paris hour (8) of the sending moment. */
-export function formatSendingMoment(
-  sendingAt: Date | string,
-  locale: string,
-): { day: string; hour: number } {
-  const instant = new Date(sendingAt)
-  const day = new Intl.DateTimeFormat(locale, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    timeZone: PARIS,
-  }).format(instant)
-  const hourPart = new Intl.DateTimeFormat('en', {
-    hour: 'numeric',
-    hourCycle: 'h23',
-    timeZone: PARIS,
-  })
-    .formatToParts(instant)
-    .find((part) => part.type === 'hour')
-  return { day, hour: Number(hourPart?.value ?? 0) }
 }

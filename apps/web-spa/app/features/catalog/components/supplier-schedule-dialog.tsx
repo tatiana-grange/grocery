@@ -36,8 +36,8 @@ import {
   scheduleFormSchema,
   toSchedulePayload,
   WEEK_PARITIES,
-  weekdayName,
 } from '@/features/catalog/utils/supplier-form'
+import { weekdayName } from '@/features/catalog/utils/next-order-format'
 
 interface SupplierScheduleDialogProps {
   supplier: Supplier
@@ -249,7 +249,7 @@ function ScheduleForm({ supplier, onCancel, onSaved }: ScheduleFormProps) {
         )}
 
         {values.enabled && missing.length > 0 && (
-          <p className="text-sm text-destructive" data-testid="schedule-missing">
+          <p className="text-base text-destructive" data-testid="schedule-missing">
             {t('catalog.suppliers.schedule.missing', {
               fields: missing
                 .map((field) => t(`catalog.suppliers.schedule.fields.${field}`))
@@ -259,7 +259,7 @@ function ScheduleForm({ supplier, onCancel, onSaved }: ScheduleFormProps) {
         )}
 
         {supplier.nextOrder && (
-          <p className="text-sm text-muted-foreground" data-testid="schedule-next-order">
+          <p className="text-base text-muted-foreground" data-testid="schedule-next-order">
             <NextOrderLine nextOrder={supplier.nextOrder} />
           </p>
         )}

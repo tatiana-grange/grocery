@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next'
 import { createSupplier, updateSupplier } from '@/features/catalog/utils/catalog-queries'
 import {
   createSupplierFormSchema,
+  SUPPLIER_TYPES,
   type SupplierFormValues,
   supplierFormDefaults,
 } from '@/features/catalog/utils/supplier-form'
@@ -137,7 +138,7 @@ function SupplierForm({ supplier, onCancel, onSaved }: SupplierFormProps) {
               <SegmentedControl
                 value={field.value}
                 onChange={field.onChange}
-                options={(['producer', 'wholesaler'] as const).map((option) => ({
+                options={SUPPLIER_TYPES.map((option) => ({
                   value: option,
                   label: t(`catalog.supplierType.${option}`),
                   testId: `supplier-type-${option}`,

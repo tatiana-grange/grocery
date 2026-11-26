@@ -680,35 +680,39 @@ when done.
 
 ### Standards
 
-- [ ] **Schedule enums declared twice in the API** (`order-schedule.util.ts` redefines
+- [x] **Schedule enums declared twice in the API** (`order-schedule.util.ts` redefines
       `WeekParity`, `MonthWeek`, the frequency). Constitution §I: enums live in contracts. Fix:
       the util imports the contract types.
-- [ ] **Frontend copies the enums by hand** (`supplier-form.ts`, `supplier-dialog.tsx`).
+- [x] **Frontend copies the enums by hand** (`supplier-form.ts`, `supplier-dialog.tsx`).
       frontend.mdx: use `@grocery/openapi-generator`. Fix: take the values from the generated
       client (`zod.gen.ts` or `types.gen.ts`), if it exports them; otherwise answer here.
-- [ ] **Positional parameters** (`alreadySent`, `sendDue`, four each). general.mdx RO-RO. Fix:
+      Answer (Typist, 2026-11-26): the client exports the enum values only inside
+      `zSupplierOrderSchedule` and `zCatalogSupplier`, not as named constants. The form now reads
+      them from those schemas (`.shape.weekParity.unwrap().options[0].options`, and the same for
+      `monthWeek`, `frequency` and the supplier type), so no value is typed by hand.
+- [x] **Positional parameters** (`alreadySent`, `sendDue`, four each). general.mdx RO-RO. Fix:
       one input object each. `markSent(order, mode, sentTo)` and `toSupplier(…, now)` stay
       (three values, read clearly).
-- [ ] **Sentences at `text-sm`** in `supplier-schedule-dialog.tsx` (missing fields, next order).
+- [x] **Sentences at `text-sm`** in `supplier-schedule-dialog.tsx` (missing fields, next order).
       frontend.mdx: body text at least `text-base`. Fix.
-- [ ] **Loose typing**: untyped `let result` in `send()`, `(due ?? missed)!` in `runSupplier`,
+- [x] **Loose typing**: untyped `let result` in `send()`, `(due ?? missed)!` in `runSupplier`,
       `handledDayOf` casting through `unknown` because the `date` column may come back as a
       `Date`. Fix: type `result`; remove the non-null assertion by narrowing; declare the column
       so the entity type is honest (string) and drop the cast.
-- [ ] **Duplicated helpers**: `escapeHtml` three times, `FRENCH_PARIS_DAY` twice, the
+- [x] **Duplicated helpers**: `escapeHtml` three times, `FRENCH_PARIS_DAY` twice, the
       "error message or unknown" pattern four times, the e-mail populate list twice. Fix:
       `common/html.util.ts` (`escapeHtml`), `common/error.util.ts` (`describeError`), the Paris
       day formatter in `common/paris-time.util.ts`, one exported populate constant beside
       `SupplierOrderMailService` (the service's input contract). The SPA's `'Europe/Paris'`
       constant stays one constant in the SPA.
-- [ ] **Failure reason repeated** (`'no_address' | 'mail_error'` in three places). Fix: one
+- [x] **Failure reason repeated** (`'no_address' | 'mail_error'` in three places). Fix: one
       exported `SendFailureReason` type.
-- [ ] **Names**: the job's field `run` (reads `this.run.runDue`) becomes `scheduleRun`.
-- [ ] **Middle Man**: `period.util.ts` re-exports the moved Paris helpers. Fix: callers import
+- [x] **Names**: the job's field `run` (reads `this.run.runDue`) becomes `scheduleRun`.
+- [x] **Middle Man**: `period.util.ts` re-exports the moved Paris helpers. Fix: callers import
       from `common/paris-time.util.ts`; the re-exports go.
-- [ ] **`supplier-form.ts` mixes two forms and date formatting.** Fix: the date formatting moves
+- [x] **`supplier-form.ts` mixes two forms and date formatting.** Fix: the date formatting moves
       to `catalog/utils/next-order-format.ts`.
-- [ ] **Missing `.meta()`** on `isoWeekdaySchema` and the schedule fields, no `examples` on the
+- [x] **Missing `.meta()`** on `isoWeekdaySchema` and the schedule fields, no `examples` on the
       new schemas. Fix: add them.
 - **Data Clumps** (the six schedule fields travel together): answered. The plan chose typed
   columns; `SupplierScheduleColumns` and `OrderScheduleRule` already gather them in the code; an
