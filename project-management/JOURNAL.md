@@ -5,6 +5,28 @@ task — never generated.
 
 ## 2026-11-26
 
+- Automatic supplier orders: built, reviewed and closed on `feat/supplier-order-schedule`.
+  - **The rhythm.** An admin gives each supplier a schedule from the supplier list: a weekday
+    every week, in even or odd ISO weeks, or the 1st to 4th or last weekday of the month, and a
+    sending moment "the last [weekday] before, at [hour]", all in Paris time. The list shows the
+    next distribution and its sending moment. The supplier form also gained the contact e-mail,
+    which no screen could set before.
+  - **The e-mail.** "Send" now e-mails the supplier, with the export CSV attached and the
+    referent in copy. With no address the order is marked sent and the screen says so; when the
+    e-mail fails the order stays a draft and every admin is alerted. The order detail says
+    whether it was sent by hand or automatically, and to which address.
+  - **The run.** A job ticks every five minutes and sends each distribution at most once, under a
+    row lock with `SKIP LOCKED`, catching up late until the distribution day starts. Admins get a
+    summary after each send and an alert on each failure or missed distribution. Nothing is
+    retried on its own.
+  - **On the way.** The plan found that the spec's "already sent" window would have blocked every
+    send after the first; the Architect moved it to 00:00 on the previous distribution day. The
+    review led to one refactor commit (shared helpers, enums from the contracts).
+  - **Gates.** All five green: 826 API tests, 242 browser tests, no flaky rerun.
+  - **Left open.** The glossary words, whether the supplier list should show the next sending
+    moment still to come, and the "late switch-on" rule to sign into the spec. Five retro
+    proposals wait in the archived spec.
+
 - UI redesign "neighbourhood market": closed. PR #24 brought the four slices to `staging` in one
   squash, together with lot 7 (accounting and exports), which the branch was built on. Slices 03
   and 04 were merged into the parent branch first, with one conflict in this journal; on the merged

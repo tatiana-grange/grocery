@@ -1,6 +1,6 @@
 # Send supplier orders automatically, on each supplier's rhythm
 
-**Status:** in-progress — spec approved by the human on 2026-11-26; Mason launched the same day
+**Status:** done — closed by the Mason on 2026-11-26; spec approved by the human on 2026-11-26
 
 ---
 
@@ -60,55 +60,55 @@ Decisions taken by the human on 2026-11-26:
 
 ## Acceptance Criteria
 
-- [ ] **schedule-on-supplier** — An admin turns the schedule on for a supplier and sets the
+- [x] **schedule-on-supplier** — An admin turns the schedule on for a supplier and sets the
   distribution rule, the sending weekday and the hour. The API refuses an incomplete schedule
   that is turned on.
-- [ ] **next-dates-shown** — The supplier shows its next distribution date and its next
+- [x] **next-dates-shown** — The supplier shows its next distribution date and its next
   sending moment, both in Paris time. Example: flour, first Friday of the month, sent the last
   Wednesday before at 8:00. From Thursday 26 November 2026 the next distribution is Friday
   4 December and the next sending is Wednesday 2 December at 8:00.
-- [ ] **monthly-rule** — "The 1st … 4th or last [weekday] of the month" gives the right dates
+- [x] **monthly-rule** — "The 1st … 4th or last [weekday] of the month" gives the right dates
   over a year of months, including a month where the first Friday is the 1st (the sending
   Wednesday then falls in the month before).
-- [ ] **even-odd-weeks** — "Even weeks" and "odd weeks" follow the ISO week number. A year
+- [x] **even-odd-weeks** — "Even weeks" and "odd weeks" follow the ISO week number. A year
   with a week 53 is followed by week 1: the rule follows the numbers, so two odd weeks can
   come in a row. The test names that case.
-- [ ] **sending-day-before** — The sending day is strictly before the distribution day: a
+- [x] **sending-day-before** — The sending day is strictly before the distribution day: a
   Friday distribution with sending on Friday is sent the Friday a week earlier.
-- [ ] **manual-send-mails** — Pressing "Send" on a draft order e-mails the supplier's address,
+- [x] **manual-send-mails** — Pressing "Send" on a draft order e-mails the supplier's address,
   the referent in copy when the referent has an address, with the CSV attached. When the
   e-mail fails, the order stays a draft and the admin sees an error.
-- [ ] **manual-send-without-address** — A supplier with no address: "Send" marks the order
+- [x] **manual-send-without-address** — A supplier with no address: "Send" marks the order
   sent, as today, and says that no e-mail left.
-- [ ] **auto-send** — At the sending moment, for a supplier whose schedule is on, the app
+- [x] **auto-send** — At the sending moment, for a supplier whose schedule is on, the app
   gathers the pending pre-orders and e-mails the order. The order is marked sent
   automatically.
 - [ ] ~~**auto-skips-when-done** — If an order to this supplier was already sent since the
   previous sending moment, the automatic run sends nothing for this distribution.~~
-- [ ] **auto-skips-when-done** — If an order to this supplier was already sent since 00:00
+- [x] **auto-skips-when-done** — If an order to this supplier was already sent since 00:00
   Paris on the previous distribution day, the automatic run sends nothing for this
   distribution. (Architect, 2026-11-26, at the plan reading: the old window caught the run's
   own send for the previous distribution, so a supplier was sent to automatically only once.)
-- [ ] **auto-sends-existing-draft** — A draft already waiting for this supplier is sent by the
+- [x] **auto-sends-existing-draft** — A draft already waiting for this supplier is sent by the
   automatic run, together with the newly gathered lines.
-- [ ] **auto-nothing-to-order** — No pending pre-order and no draft: nothing is sent, nothing is
+- [x] **auto-nothing-to-order** — No pending pre-order and no draft: nothing is sent, nothing is
   mailed.
-- [ ] **auto-once-per-distribution** — The automatic run handles each distribution of a
+- [x] **auto-once-per-distribution** — The automatic run handles each distribution of a
   supplier at most once, even when the job ticks again or two API processes run.
-- [ ] **auto-late-catch-up** — If the API was down at the sending moment, the run happens when
+- [x] **auto-late-catch-up** — If the API was down at the sending moment, the run happens when
   it comes back, as long as the distribution has not started. After that, nothing is sent and
   the admins are alerted.
-- [ ] **auto-failure-alert** — No supplier address, or an e-mail error: the order stays a draft
+- [x] **auto-failure-alert** — No supplier address, or an e-mail error: the order stays a draft
   and every admin gets one alert e-mail naming the supplier, the order and the reason. A failed
   send is never retried on its own; this alert is how the admins learn they must resend it.
   (Human, 2026-11-26.)
-- [ ] **manual-failure-alert** — A manual "Send" whose e-mail fails also sends that alert to
+- [x] **manual-failure-alert** — A manual "Send" whose e-mail fails also sends that alert to
   every admin, besides the error on screen. (Human, 2026-11-26.)
-- [ ] **admin-summary** — After each automatic send, the admins get one e-mail naming the
+- [x] **admin-summary** — After each automatic send, the admins get one e-mail naming the
   supplier, the distribution date and the number of lines.
-- [ ] **sent-how-shown** — The order detail shows "sent by hand" or "sent automatically", and
+- [x] **sent-how-shown** — The order detail shows "sent by hand" or "sent automatically", and
   the address it went to, or that no e-mail left.
-- [ ] **suite-green** — lint, typecheck, API tests, build and the browser suite pass.
+- [x] **suite-green** — lint, typecheck, API tests, build and the browser suite pass.
 
 ## Seams
 
@@ -206,12 +206,12 @@ Job tick (every few minutes) ──► Automatic run ─────────
 
 ## Deliverables
 
-- [ ] Supplier schedule (columns, contract, form, next dates)
-- [ ] Order e-mail on manual send
-- [ ] Automatic run and its job
-- [ ] Admin summary and alert
-- [ ] A documentation page for the automatic sending, linked from the lot 3 page
-- [ ] Journal entry
+- [x] Supplier schedule (columns, contract, form, next dates)
+- [x] Order e-mail on manual send
+- [x] Automatic run and its job
+- [x] Admin summary and alert
+- [x] A documentation page for the automatic sending, linked from the lot 3 page
+- [x] Journal entry
 
 ## References
 
@@ -236,3 +236,32 @@ Job tick (every few minutes) ──► Automatic run ─────────
   The human asked that every failed send, automatic or manual, alert every admin by e-mail.
 
 ## Retrospective
+
+Written by the Mason at the close, 2026-11-26, with the `retro` skill. The sources were this
+session's own thread, the reports of the two Typists and the two reviewers, the work document
+and the diff; the subagents' full transcripts were not read back (they are too long to load).
+Nothing is applied: each proposal waits for its owner.
+
+1. **Coding standards — a recurring job's skip rule must not match its own last run.** (High.)
+   The spec's first "already sent" window would have blocked every automatic send after the
+   first, because the run's own previous send fell inside it. The plan step caught it; the spec
+   step did not. Proposal: one line in `AGENTS.md`, "Working with chisel in this repo": "When a
+   spec makes an automatic action skip on some condition, check that the action's own last run
+   cannot meet that condition." Owner: the human.
+2. **Navigation — check that the screens can set every field a feature reads.** (Medium.) The
+   feature mails `Supplier.contactEmail`, which no screen could set; found at the plan, ruled at
+   the reading. Proposal: a line in the spec template's Scope guidance: "List every stored value
+   the feature reads, and where a user sets it." Owner: the human (template).
+3. **Automated checks — the generated client drifted.** (Medium.) `pnpm generate` in step 2
+   picked up an older drift (`expensesByCategory`), and after the review a contract-only change
+   was not regenerated until the Mason asked. Proposal: a CI step that boots the API, runs
+   `pnpm generate` and fails on a diff in `packages/openapi-generator/client/`. Owner: the human.
+4. **AGENTS.md hygiene — `oxfmt` is not on the PATH.** (Low.) AGENTS.md says `oxfmt <file>…`;
+   both Typists had to find `node_modules/.bin/oxfmt` (or `pnpm exec oxfmt`). Proposal: write
+   the command as `pnpm exec oxfmt <file> <file>…` in "Formatting". Owner: the human.
+5. **Coding standards — look for a shared helper before writing one.** (Low.) The review found
+   `escapeHtml` three times and the "error message or unknown" pattern four times. Proposal: a
+   line in the Typist brief of `.agents/workflow.md` (or in `backend.mdx`): "Before writing a
+   small helper, search `apps/api/src/common/` and the module's `*.util.ts`." Owner: the human.
+6. **No-op this session.** The "Known flaky tests" rule changed nothing: no flaky test failed in
+   any run.

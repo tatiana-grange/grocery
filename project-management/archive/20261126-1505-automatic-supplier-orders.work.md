@@ -489,6 +489,13 @@ The full list of cases per step is in the checkboxes below.
 
 ## Worklog
 
+- 2026-11-26, Mason, close: after the review fixes (`1f088ea`, `91ebec7`) and the client refresh
+  (`4457d1e`), the five gates ran one after the other on `4457d1e`, logs `final-*.log` in the
+  scratchpad, each read in full and each exit 0. Lint: warnings only, all in files this task did
+  not touch. Typecheck clean. Tests: API 826 of 826 (45 files), ui 136, i18n 15. Build: every
+  app, documentation 91 pages. Browser: 242 passed in 5.6 min. No flaky test failed, so no rerun.
+  `docker ps` before the browser suite: `grocery-e2e-db` and `grocery-e2e-maildev` were already
+  up (not started by this task) and were left running; no other project on 5434, 1093, 1043.
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
 - 2026-11-26, Typist, step 9 red: log `step9-red.log` (scratchpad), error line `Error: Cannot find module '../supplier-order-schedule.job' imported from …/purchasing/tests/supplier-order-schedule.job.spec.ts`.
 - 2026-11-26, Typist, step 9 green: `step9-green.log` (job spec, 2 tests pass: `tick` calls `runDue` with a `Date`; it resolves and logs when `runDue` throws); `step9-api-all.log` (whole API suite `pnpm test` in the API: 45 files, 826 tests pass, no flaky rerun needed); `pnpm typecheck` of the API clean. `step9-boot.log`: the full `AppModule` boots with `ScheduleModule.forRoot()` under `E2E=true` (new send-mail spec and `smoke` pass; ports free after), which shows the job, disabled there, does not get in the way. Not shown by any test: that the cron runs in a real, non-E2E process (no test waits on the clock, as the plan says).
@@ -596,15 +603,15 @@ The full list of cases per step is in the checkboxes below.
   - [x] `SupplierOrderScheduleJob`, `ScheduleModule.forRoot()` in `AppModule`, providers in
         `PurchasingModule`; `disabled: config.e2e`
   - [x] commit
-- [ ] **10. Documentation and gates**
-  - [ ] new page `apps/documentation/src/content/docs/project/automatic-supplier-orders.mdx`
+- [x] **10. Documentation and gates**
+  - [x] new page `apps/documentation/src/content/docs/project/automatic-supplier-orders.mdx`
         (the rule, the run, the lock, the alerts, the known duplicate-mail limit), linked from
-        `lot-3-purchasing.mdx`; `generate:index`; documentation build
-  - [ ] glossary: "distribution day" and "sending moment" if the Architect agrees they are
-        domain words
-  - [ ] gates: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm e2e` (after
+        `lot-3-purchasing.mdx`; `generate:index`; documentation build (91 pages, in `pnpm build`)
+  - [ ] glossary: "distribution day" and "sending moment" — not added. The Architect was not
+        asked during the work; left for its ruling at the close (see the close report).
+  - [x] gates: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm e2e` (after
         `docker ps`), each in the background with its full log read
-  - [ ] commit
+  - [x] commit
 
 ## Notes & Snippets
 
