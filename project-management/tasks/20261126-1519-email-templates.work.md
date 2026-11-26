@@ -385,3 +385,32 @@ line in the worklog, then the production files.
   the helper that kept the English SMS text.
 - **Logo location:** option (a). The Architect moved the file to
   `apps/api/src/modules/email/templates/static/logo.jpg` so the preview shows it.
+
+### How the rulings change the plan (Mason, 2026-11-26)
+
+These lines win over the Program Design above where they differ.
+
+- **No logo in the supplier order mail.** `EmailBrand.logoSrc` becomes `string | null`. The
+  layout shows the `Img` only when `logoSrc` is set; the header then keeps the name alone.
+  `renderSupplierOrderEmail` passes `logoSrc: null`, every other render function passes
+  `EMAIL_LOGO_SRC`. `EmailService` still keys the inline logo on `cid:` in the HTML, so the
+  supplier order mail leaves with the CSV as its only attachment. Tests: the catalogue's logo
+  case expects `cid:logo@grocery` in every template's HTML except `supplier-order`, whose HTML
+  must hold no `cid:` at all (step 4). The supplier order sample in `email-samples.ts` still
+  gets the preview brand without a logo, so the preview matches the real mail.
+- **French membership SMS.** A new pure function in
+  `apps/api/src/modules/members/membership-sms.ts`:
+  `membershipSmsText(input: { outcome: 'validated' | 'rejected' | 'terminated' |
+  'reactivated'; cooperativeName: string; reason?: string }): string`, giving:
+  - validated: « Votre adhésion à {coop} est confirmée. Vous pouvez maintenant vous connecter. »
+  - rejected: « Votre demande d'adhésion à {coop} n'a pas été acceptée. » + « Motif : {reason} »
+    when given
+  - terminated: « Votre adhésion à {coop} a pris fin. » + « Motif : {reason} » when given
+  - reactivated: « Votre adhésion à {coop} est de nouveau active. Vous pouvez vous connecter à
+    nouveau. »
+
+  `members.service.ts` sends the rendered mail when the member has a real address, else this
+  SMS text. No English string stays. First failing test of that part (step 2):
+  `apps/api/src/modules/members/tests/membership-sms.spec.ts` — each outcome is French (none of
+  "Hello", "your", "please", "Reason"), names the cooperative, and the reason appears only when
+  given.
