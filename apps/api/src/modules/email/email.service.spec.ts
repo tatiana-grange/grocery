@@ -81,6 +81,56 @@ describe('emailService', () => {
     })
   })
 
+  describe('sendEmail with copies and attachments', () => {
+    function useMockTransport(): ReturnType<typeof vi.fn> {
+      const mockSendMail = vi.fn().mockResolvedValue({ messageId: 'test-message-id' })
+      mockTransporter.sendMail = mockSendMail
+      Object.defineProperty(service, 'transporter', { value: mockTransporter, writable: true })
+      return mockSendMail
+    }
+
+    it('passes the copies and the attachments to the transport as they are', async () => {
+      const mockSendMail = useMockTransport()
+      const attachments = [
+        { filename: 'commande.csv', content: 'a;b\n1;2', contentType: 'text/csv' },
+      ]
+
+      await service.sendEmail({
+        to: 'supplier@example.com',
+        cc: ['referent@example.com'],
+        subject: 'Commande',
+        content: 'Bonjour',
+        attachments,
+      })
+
+      expect(mockSendMail).toHaveBeenCalledWith({
+        from: expect.any(String),
+        to: 'supplier@example.com',
+        cc: ['referent@example.com'],
+        subject: 'Commande',
+        text: 'Bonjour',
+        html: 'Bonjour',
+        attachments,
+      })
+    })
+
+    it('leaves the copy and the attachments out of the message when there are none', async () => {
+      const mockSendMail = useMockTransport()
+
+      await service.sendEmail({
+        to: 'a@example.com',
+        cc: [],
+        subject: 'S',
+        content: 'C',
+        attachments: [],
+      })
+
+      const sent = mockSendMail.mock.calls[0][0]
+      expect(sent).not.toHaveProperty('cc')
+      expect(sent).not.toHaveProperty('attachments')
+    })
+  })
+
   describe('verifyConnection', () => {
     it('should return true when connection is verified', async () => {
       const mockVerify = vi.fn().mockResolvedValue(true)

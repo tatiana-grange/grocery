@@ -490,6 +490,8 @@ The full list of cases per step is in the checkboxes below.
 ## Worklog
 
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
+- 2026-11-26, Typist, step 4 green: `step4-green.log`, `email.service.spec.ts` 7 pass (the two old cases unchanged); typecheck clean.
+- 2026-11-26, Typist, step 4 red: log `step4-red.log` (scratchpad), 1 failed, 6 passed; error line `AssertionError: expected "vi.fn()" to be called with arguments: [ { from: Any<String>, …(6) } ]` (the copy and the attachments are dropped today). The second new case (no `cc` or `attachments` key when empty) passes already, as expected: it guards the existing behaviour.
 - 2026-11-26, Typist, step 3 green: `step3-green.log` (new spec 3 tests plus `catalog-suppliers.spec.ts` 4 tests: 8 pass on the E2E stack) and `step3-green-2.log` (`admin-purchasing-aggregate`, `back-office-desktop`, `catalog-products`: 56 pass). `pnpm typecheck` of web-spa and web-spa-e2e clean; oxlint clean. The new spec's dates are read from the wall clock, so it asserts the shape (first Friday day 1 to 7, sent on a Wednesday at 8 h), not fixed dates. The schedule dialog closes on save; it shows the next-dates line from the supplier when opened, and the row shows it at once. Both E2E servers I started were stopped (ports 3060 and 5273 free).
 - 2026-11-26, Typist, step 3 red: first run `step3-red.log` (scratchpad): 3 tests fail. The two e-mail tests fail with `waiting for getByTestId('supplier-contact-email')`. The schedule test timed out in `beforeEach` on a cold start (`waiting for getByTestId('catalog-tab-suppliers')`), so I reran it alone with the servers already warm: `step3-red-1.log`, error line `Error: element(s) not found … waiting for getByTestId('supplier-row-Ferme des Prés').getByTestId('supplier-next-order')`. No production file touched before this. For the step I started the E2E API (`nest start`, pid in `api-e2e.pid`) and the SPA dev server (pid in `spa-e2e.pid`) by hand on ports 3060 and 5273 to avoid cold starts; I stop both at the end of my run.
 - 2026-11-26, Typist, step 2 red: log `step2-red.log` (scratchpad), 12 cases fail in the new `describe('supplier order schedule')`, first error line `AssertionError: expected undefined to match object { enabled: false }` (no `orderSchedule` in the answer yet); the 400 cases fail with `expected 200 to be 400`.
@@ -535,10 +537,10 @@ The full list of cases per step is in the checkboxes below.
   - [x] the browser test also shows a refused incomplete schedule (the save stays disabled and
         names the missing field)
   - [x] commit
-- [ ] **4. E-mail copies and attachments**
-  - [ ] red first: the new case in `email.service.spec.ts`
-  - [ ] `EmailOptions.cc`, `EmailOptions.attachments`; the two existing cases green unchanged
-  - [ ] commit
+- [x] **4. E-mail copies and attachments**
+  - [x] red first: the new case in `email.service.spec.ts`
+  - [x] `EmailOptions.cc`, `EmailOptions.attachments`; the two existing cases green unchanged
+  - [x] commit
 - [ ] **5. Admin addresses and the purchasing notices**
   - [ ] red first: `supplier-order-notice.service.spec.ts` (real test database, fake mail)
   - [ ] `members/admin-addresses.ts`; `MemberNoticeService` uses it; its spec green unchanged

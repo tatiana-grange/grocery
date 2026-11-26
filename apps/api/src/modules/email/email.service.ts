@@ -3,11 +3,21 @@ import { Injectable, Logger } from '@nestjs/common'
 import { createTransport, Transporter } from 'nodemailer'
 import { config } from '../../config/env.config'
 
+export interface EmailAttachment {
+  filename: string
+  content: string
+  contentType: string
+}
+
 export interface EmailOptions {
   to: string
+  /** Addresses that get a copy. Left out of the message when empty. */
+  cc?: string[]
   subject: string
   content: string
   html?: string
+  /** Files attached to the message. Left out of the message when empty. */
+  attachments?: EmailAttachment[]
 }
 
 interface SmtpConfig {
@@ -44,7 +54,7 @@ export class EmailService {
     this.transporter = createTransport(transportConfig)
   }
 
-  async sendEmail({ to, subject, content, html }: EmailOptions): Promise<void> {
+  async sendEmail({ to, cc, subject, content, html, attachments }: EmailOptions): Promise<void> {
     try {
       const mailOptions = {
         from: config.email.from,
@@ -52,6 +62,8 @@ export class EmailService {
         subject,
         text: content,
         html: html || content,
+        ...(cc?.length ? { cc } : {}),
+        ...(attachments?.length ? { attachments } : {}),
       }
 
       const info = await this.transporter.sendMail(mailOptions)
