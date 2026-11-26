@@ -116,6 +116,14 @@ export async function initializeTestApp(
 
     await app.init()
 
+    // Listen on 127.0.0.1 before any request. Left alone, supertest starts the server on a random
+    // port open on every address, then calls 127.0.0.1 on that port: macOS can hand out a port
+    // another program holds on 127.0.0.1 only, and that program answers instead of the app (a
+    // stray 404, or ECONNRESET). Bound here, the kernel refuses such a port, and supertest uses
+    // this one instead of starting and stopping the server around each request. `app.close()`
+    // in the e2e `afterEach` stops it.
+    await app.listen(0, '127.0.0.1')
+
     return {
       orm: options.orm,
       app,

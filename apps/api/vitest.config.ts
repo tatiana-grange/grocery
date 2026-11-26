@@ -55,7 +55,9 @@ export default defineConfig({
           name: 'e2e',
           globals: true,
           environment: 'node',
-          include: ['../**/*.e2e-spec.ts'],
+          // `../**` does not reach back into the root (`src/test`), so the helpers' own
+          // specs need the second pattern.
+          include: ['../**/*.e2e-spec.ts', '**/*.e2e-spec.ts'],
           setupFiles: [
             resolve(__dirname, './src/test/setup/test.setup.ts'),
             resolve(__dirname, './src/test/setup/test.e2e-setup.ts'),

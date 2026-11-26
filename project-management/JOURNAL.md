@@ -16,6 +16,14 @@ task — never generated.
 
 ## 2026-11-25
 
+- Diagnosis of the 500 on reversing a reversal: fixed on `fix/reverse-reversal-500`. The cause was
+  in the test setup, not the app. Supertest started the app on a random port for each request,
+  and macOS could hand out a port another local program held on 127.0.0.1, which then answered
+  instead. A harness showed 4 stray answers and 2 connection resets in 18,000 calls before the
+  fix, none after. The test app now listens once on 127.0.0.1, pinned by a regression test. This
+  also explains the wallet and distribution tests that failed now and then since lot 5. All
+  gates green (605 API tests). Proposed: check route ids as UUIDs, since a bad id answers 500.
+
 - UI redesign "neighbourhood market", slice 03, distribution table: built and reviewed on
   `feat/ui-market-distribution`, in its own worktree beside slice 04.
   - **The table.** The member search now lives in the layout, once. From 1024 px it is a

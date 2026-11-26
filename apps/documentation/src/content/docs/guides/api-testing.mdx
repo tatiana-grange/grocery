@@ -83,6 +83,18 @@ afterAll(async () => {
 })
 ```
 
+### The test app listens on 127.0.0.1
+
+`initializeTestApp` starts the app's HTTP server on `127.0.0.1`, on a port the system picks,
+before any request. Do not remove this. Without it, supertest starts the server on a random port
+open on every address, then sends the request to `127.0.0.1` on that port. macOS can hand out a
+port that another local program already holds on `127.0.0.1` only, and that program then answers
+in the app's place: a stray 404, a response with no body, or `ECONNRESET`. It happened about once
+in 4,500 calls on a developer's machine, and showed up as tests that failed once in a full run
+and passed on the rerun. A server bound to `127.0.0.1` cannot take such a port, so the clash is
+gone. The `afterEach` of `test.e2e-setup.ts` closes the app, and the server with it, so set
+`context.app` to every app you build.
+
 ## Service mocking
 
 You can mock some services or external services by using the `vi.mock` function.
