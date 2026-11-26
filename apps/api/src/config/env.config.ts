@@ -67,6 +67,8 @@ export const configValidationSchema = z.object({
   EMAIL_USER: z.string().optional(),
   EMAIL_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().default('noreply@grocery.example'),
+  // The cooperative's name: the sender's display name and the header of every mail.
+  COOPERATIVE_NAME: z.string().min(1).default("Lay'picerie"),
 
   // SMS (phone-number one-time codes). No provider => codes are logged to the console.
   SMS_PROVIDER: z.string().optional(),
@@ -124,6 +126,9 @@ export const config = {
     user: configParsed.data.EMAIL_USER,
     password: configParsed.data.EMAIL_PASSWORD,
     from: configParsed.data.EMAIL_FROM,
+  },
+  cooperative: {
+    name: configParsed.data.COOPERATIVE_NAME,
   },
   sms: {
     provider: configParsed.data.SMS_PROVIDER,

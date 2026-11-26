@@ -8,6 +8,7 @@ import { APIError, createAuthMiddleware } from 'better-auth/api'
 import { toNodeHandler } from 'better-auth/node'
 import { config } from '../../config/env.config'
 import { EmailModule } from '../email/email.module'
+import { renderEmailVerificationEmail, renderPasswordResetEmail } from '../email/email-templates'
 import { EmailService } from '../email/email.service'
 import { ensurePendingMember, isMembershipIntakeOpen } from '../members/members.util'
 import { BetterAuthType, createBetterAuth } from './auth.config'
@@ -51,19 +52,23 @@ import { SmsService } from './sms.service'
             })
           },
           sendResetPassword: async (data) => {
-            const webUrl = `${config.clients.webApp.url}/reset-password?token=${data.token}`
+            const url = `${config.clients.webApp.url}/reset-password?token=${data.token}`
+            const mail = await renderPasswordResetEmail({ name: data.user.name, url })
             return emailService.sendEmail({
               to: data.user.email,
-              subject: 'Reset your password',
-              content: `Hello ${data.user.name}, please reset your password with the link below:<br/>Web app: <a href="${webUrl}">${webUrl}</a>`,
+              subject: mail.subject,
+              content: mail.text,
+              html: mail.html,
             })
           },
           sendVerificationEmail: async (data) => {
             const url = `${config.clients.webApp.url}/verify-email?token=${data.token}`
+            const mail = await renderEmailVerificationEmail({ name: data.user.name, url })
             return emailService.sendEmail({
               to: data.user.email,
-              subject: 'Verify your email',
-              content: `Hello ${data.user.name}, please verify your email by clicking on the link below: <a href="${url}">${url}</a>`,
+              subject: mail.subject,
+              content: mail.text,
+              html: mail.html,
             })
           },
           databaseHooks: {

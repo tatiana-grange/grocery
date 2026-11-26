@@ -131,6 +131,59 @@ describe('emailService', () => {
     })
   })
 
+  describe('sender and inline logo', () => {
+    function useMockTransport(): ReturnType<typeof vi.fn> {
+      const mockSendMail = vi.fn().mockResolvedValue({ messageId: 'test-message-id' })
+      mockTransporter.sendMail = mockSendMail
+      Object.defineProperty(service, 'transporter', { value: mockTransporter, writable: true })
+      return mockSendMail
+    }
+
+    it("sends from the cooperative's name", async () => {
+      const mockSendMail = useMockTransport()
+
+      await service.sendEmail({ to: 'a@example.com', subject: 'S', content: 'C' })
+
+      expect(mockSendMail.mock.calls[0][0].from).toMatch(/^"Lay'picerie" <.+@.+>$/)
+    })
+
+    it('adds the logo after the attachments of the caller when the HTML shows it', async () => {
+      const mockSendMail = useMockTransport()
+      const csv = { filename: 'commande.csv', content: 'a;b', contentType: 'text/csv' }
+
+      await service.sendEmail({
+        to: 'a@example.com',
+        subject: 'S',
+        content: 'C',
+        html: '<img src="cid:logo@grocery" alt="x">',
+        attachments: [csv],
+      })
+
+      const { attachments } = mockSendMail.mock.calls[0][0]
+      expect(attachments).toHaveLength(2)
+      expect(attachments[0]).toBe(csv)
+      expect(attachments[1]).toEqual({
+        filename: 'logo.jpg',
+        path: expect.stringMatching(/templates[\\/]static[\\/]logo\.jpg$/),
+        cid: 'logo@grocery',
+        contentType: 'image/jpeg',
+      })
+    })
+
+    it('adds no logo when the HTML does not show it', async () => {
+      const mockSendMail = useMockTransport()
+
+      await service.sendEmail({
+        to: 'a@example.com',
+        subject: 'S',
+        content: 'C',
+        html: '<p>Bonjour</p>',
+      })
+
+      expect(mockSendMail.mock.calls[0][0]).not.toHaveProperty('attachments')
+    })
+  })
+
   describe('verifyConnection', () => {
     it('should return true when connection is verified', async () => {
       const mockVerify = vi.fn().mockResolvedValue(true)

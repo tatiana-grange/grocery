@@ -2,10 +2,19 @@ import { Traceable } from '@amplication/opentelemetry-nestjs'
 import { Injectable, Logger } from '@nestjs/common'
 import { createTransport, Transporter } from 'nodemailer'
 import { config } from '../../config/env.config'
+import { EMAIL_LOGO_CID, EMAIL_LOGO_PATH, EMAIL_LOGO_SRC } from './email-logo'
 
 export interface EmailAttachment {
   filename: string
   content: string
+  contentType: string
+}
+
+/** The logo, attached inline: the HTML points at it with `cid:`. */
+interface InlineLogoAttachment {
+  filename: string
+  path: string
+  cid: string
   contentType: string
 }
 
@@ -56,14 +65,28 @@ export class EmailService {
 
   async sendEmail({ to, cc, subject, content, html, attachments }: EmailOptions): Promise<void> {
     try {
+      // The logo goes after the caller's attachments, and only when the HTML shows it.
+      const allAttachments: Array<EmailAttachment | InlineLogoAttachment> = [
+        ...(attachments ?? []),
+        ...(html?.includes(EMAIL_LOGO_SRC)
+          ? [
+              {
+                filename: 'logo.jpg',
+                path: EMAIL_LOGO_PATH,
+                cid: EMAIL_LOGO_CID,
+                contentType: 'image/jpeg',
+              },
+            ]
+          : []),
+      ]
       const mailOptions = {
-        from: config.email.from,
+        from: `"${config.cooperative.name}" <${config.email.from}>`,
         to,
         subject,
         text: content,
         html: html || content,
         ...(cc?.length ? { cc } : {}),
-        ...(attachments?.length ? { attachments } : {}),
+        ...(allAttachments.length ? { attachments: allAttachments } : {}),
       }
 
       const info = await this.transporter.sendMail(mailOptions)
