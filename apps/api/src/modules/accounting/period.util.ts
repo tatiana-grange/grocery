@@ -1,13 +1,6 @@
 import type { PeriodQuery } from './contracts/period.contract'
 
-import {
-  COOPERATIVE_TIME_ZONE,
-  isCalendarDay,
-  startOfParisDay,
-  toParisDay,
-} from '../../common/paris-time.util'
-
-export { COOPERATIVE_TIME_ZONE, isCalendarDay, startOfParisDay, toParisDay }
+import { startOfParisDay } from '../../common/paris-time.util'
 
 export interface PeriodBounds {
   startsAt: Date

@@ -2,7 +2,7 @@ import { EntityManager } from '@mikro-orm/core'
 import { Seeder } from '@mikro-orm/seeder'
 import { hashPassword } from 'better-auth/crypto'
 import { Expense } from '../modules/accounting/entities/expense.entity'
-import { toParisDay } from '../modules/accounting/period.util'
+import { toParisDay } from '../common/paris-time.util'
 import { Account } from '../modules/auth/auth.entity'
 import {
   createCategoryData,

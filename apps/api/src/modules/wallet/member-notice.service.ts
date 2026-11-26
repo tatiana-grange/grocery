@@ -1,5 +1,6 @@
 import { EntityManager } from '@mikro-orm/core'
 import { Injectable, Logger } from '@nestjs/common'
+import { escapeHtml } from '../../common/html.util'
 import { EmailService } from '../email/email.service'
 import { Member } from '../members/entities/member.entity'
 import { findAdminAddresses, realAddress } from '../members/admin-addresses'
@@ -140,8 +141,4 @@ export class MemberNoticeService {
 
 function formatEuros(cents: number): string {
   return `${(cents / 100).toFixed(2).replace('.', ',')} €`
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }

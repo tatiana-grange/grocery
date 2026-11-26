@@ -8,7 +8,8 @@ import type {
   RecordExpenseInput,
 } from './contracts/expense.contract'
 import { Expense } from './entities/expense.entity'
-import { type Period, toParisDay } from './period.util'
+import { toParisDay } from '../../common/paris-time.util'
+import type { Period } from './period.util'
 
 /** An expense row, with the cancellation row that points at it, if any. */
 export interface ExpenseRow {

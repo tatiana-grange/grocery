@@ -42,7 +42,11 @@ export const monthWeekSchema = z.enum(MONTH_WEEKS).meta({
 export type MonthWeek = z.infer<typeof monthWeekSchema>
 
 /** ISO weekday: 1 Monday … 7 Sunday. */
-const isoWeekdaySchema = z.number().int().min(1).max(7)
+const isoWeekdaySchema = z.number().int().min(1).max(7).meta({
+  title: 'IsoWeekday',
+  description: 'ISO weekday: 1 Monday … 7 Sunday',
+  examples: [5],
+})
 
 /** An enabled schedule must say everything the rule needs; a disabled one may be partial. */
 function requireCompleteWhenEnabled(
@@ -76,11 +80,27 @@ export const supplierOrderScheduleSchema = z
     monthWeek: monthWeekSchema.nullish(),
     distributionWeekday: isoWeekdaySchema.nullish(),
     sendingWeekday: isoWeekdaySchema.nullish(),
-    sendingHour: z.number().int().min(0).max(23).nullish(),
+    sendingHour: z
+      .number()
+      .int()
+      .min(0)
+      .max(23)
+      .meta({ description: 'Whole hour of the day, Paris time', examples: [8] })
+      .nullish(),
   })
   .superRefine(requireCompleteWhenEnabled)
   .meta({
     title: 'SupplierOrderSchedule',
+    examples: [
+      {
+        enabled: true,
+        frequency: 'monthly',
+        monthWeek: 'first',
+        distributionWeekday: 5,
+        sendingWeekday: 3,
+        sendingHour: 8,
+      },
+    ],
     description:
       'When the app sends this supplier its order by itself: the distribution rhythm, the weekday ' +
       'the order leaves (the last such weekday before the distribution) and the hour (Paris time)',
@@ -89,11 +109,14 @@ export type SupplierOrderSchedule = z.infer<typeof supplierOrderScheduleSchema>
 
 export const supplierNextOrderSchema = z
   .object({
-    distributionDay: z.string().meta({ description: 'YYYY-MM-DD, a Paris calendar day' }),
-    sendingAt: z.date(),
+    distributionDay: z
+      .string()
+      .meta({ description: 'YYYY-MM-DD, a Paris calendar day', examples: ['2026-12-04'] }),
+    sendingAt: z.date().meta({ description: 'The moment the order is sent' }),
   })
   .meta({
     title: 'SupplierNextOrder',
+    examples: [{ distributionDay: '2026-12-04', sendingAt: '2026-12-02T07:00:00.000Z' }],
     description: 'The next distribution of a supplier and the moment its order is sent',
   })
 export type SupplierNextOrder = z.infer<typeof supplierNextOrderSchema>

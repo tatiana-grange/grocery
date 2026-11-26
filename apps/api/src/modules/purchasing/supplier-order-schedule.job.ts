@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
+import { describeError } from '../../common/error.util'
 import { config } from '../../config/env.config'
 import { SupplierOrderScheduleService } from './supplier-order-schedule.service'
 
@@ -13,7 +14,7 @@ import { SupplierOrderScheduleService } from './supplier-order-schedule.service'
 export class SupplierOrderScheduleJob {
   private readonly logger = new Logger(SupplierOrderScheduleJob.name)
 
-  constructor(private readonly run: SupplierOrderScheduleService) {}
+  constructor(private readonly scheduleRun: SupplierOrderScheduleService) {}
 
   @Cron(CronExpression.EVERY_5_MINUTES, {
     name: 'supplier-order-schedule',
@@ -22,10 +23,10 @@ export class SupplierOrderScheduleJob {
   })
   async tick(): Promise<void> {
     try {
-      await this.run.runDue(new Date())
+      await this.scheduleRun.runDue(new Date())
     } catch (error) {
       this.logger.error(
-        `Automatic supplier order run failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+        `Automatic supplier order run failed: ${describeError(error)}`,
       )
     }
   }

@@ -73,9 +73,9 @@ nothing and alerts the admins once.
 moment does nothing for this distribution: no send and no alert. It starts with the next one.
 
 **Known limit.** If the API process dies, or the database fails, after an e-mail has left but
-before its transaction commits, the order is still a draft and the distribution is not marked handled. The next tick
-then e-mails the supplier a second time. Ruling this out would need an outbox, which this task
-did not build. When the mail server itself is down, the alerts cannot leave either: the run
+before its transaction commits, the order is still a draft and the distribution is not marked
+handled. The next tick then e-mails the supplier a second time. Ruling this out would need an
+outbox, which this task did not build. When the mail server itself is down, the alerts cannot leave either: the run
 logs the failure, and the order stays a draft, visible in the list.
 
 **Tests stay off the clock.** The tests call `runDue` with fixed instants. The API test apps

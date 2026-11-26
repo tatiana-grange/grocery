@@ -78,3 +78,15 @@ export function parisInstantAt(day: string, hour: number): Date {
   if (hour === 23) throw new RangeError(`No Paris instant found for ${day} ${hour}:00`)
   return parisInstantAt(day, hour + 1)
 }
+
+const FRENCH_PARIS_DAY = new Intl.DateTimeFormat('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: COOPERATIVE_TIME_ZONE,
+})
+
+/** "4 décembre 2026": the Paris calendar day of an instant, written in French. */
+export function formatParisDayInFrench(instant: Date): string {
+  return FRENCH_PARIS_DAY.format(instant)
+}

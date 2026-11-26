@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { isCalendarDay, readPeriod, startOfParisDay, toParisDay } from '../period.util'
+import { isCalendarDay, startOfParisDay, toParisDay } from '../../../common/paris-time.util'
+import { readPeriod } from '../period.util'
 
 describe('readPeriod', () => {
   it('reads a summer day as starting at 22:00 UTC the day before', () => {

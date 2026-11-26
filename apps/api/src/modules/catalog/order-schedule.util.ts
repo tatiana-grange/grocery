@@ -1,8 +1,8 @@
+import type { MonthWeek, ScheduleFrequency, WeekParity } from './contracts/supplier.contract'
 import { parisInstantAt, startOfParisDay, toParisDay } from '../../common/paris-time.util'
 
 export type IsoWeekday = 1 | 2 | 3 | 4 | 5 | 6 | 7
-export type WeekParity = 'every' | 'even' | 'odd'
-export type MonthWeek = 'first' | 'second' | 'third' | 'fourth' | 'last'
+export type { MonthWeek, ScheduleFrequency, WeekParity }
 
 export type DistributionRule =
   | { frequency: 'weekly'; weekday: IsoWeekday; parity: WeekParity }
@@ -26,7 +26,7 @@ export interface ScheduledDistribution {
 
 /** The supplier columns the rule is read from. */
 export interface SupplierScheduleColumns {
-  scheduleFrequency?: 'weekly' | 'monthly' | null
+  scheduleFrequency?: ScheduleFrequency | null
   scheduleWeekParity?: WeekParity | null
   scheduleMonthWeek?: MonthWeek | null
   scheduleDistributionWeekday?: number | null

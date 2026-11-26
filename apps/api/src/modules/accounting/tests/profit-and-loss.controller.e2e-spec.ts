@@ -19,7 +19,7 @@ import { createMemberData } from '../../members/members.factory'
 import { WalletModule } from '../../wallet/wallet.module'
 import { AccountingModule } from '../accounting.module'
 import type { ProfitAndLoss } from '../contracts/accounting.contract'
-import { toParisDay } from '../period.util'
+import { toParisDay } from '../../../common/paris-time.util'
 import {
   insertExpense,
   insertExpenseCancellation,

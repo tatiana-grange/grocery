@@ -1,25 +1,28 @@
 import { Injectable } from '@nestjs/common'
-import { COOPERATIVE_TIME_ZONE } from '../../common/paris-time.util'
+import { describeError } from '../../common/error.util'
+import { escapeHtml } from '../../common/html.util'
+import { formatParisDayInFrench } from '../../common/paris-time.util'
 import { EmailService } from '../email/email.service'
 import { realAddress } from '../members/admin-addresses'
 import type { SupplierOrder } from './entities/supplier-order.entity'
 import { PurchasingMapper } from './purchasing.mapper'
 
-export type OrderMailResult = { sentTo: string } | { sentTo: null; reason: 'no_address' }
+/** Why an order did not leave: the supplier has no address, or the mail server refused it. */
+export type SendFailureReason = 'no_address' | 'mail_error'
+
+/** What `sendOrder` needs loaded on the order. The caller populates exactly this. */
+export const ORDER_MAIL_POPULATE = [
+  'supplier',
+  'supplier.referent',
+  'supplier.referent.user',
+  'lines',
+  'lines.product',
+] as const
+
+export type OrderMailResult = { sentTo: string } | { sentTo: null; reason: Extract<SendFailureReason, 'no_address'> }
 
 /** The mail server refused the order e-mail. */
 export class OrderMailError extends Error {}
-
-const FRENCH_PARIS_DAY = new Intl.DateTimeFormat('fr-FR', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: COOPERATIVE_TIME_ZONE,
-})
-
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
 
 /**
  * The only place that knows what the order e-mail says. Sent to the supplier's address, with
@@ -47,7 +50,7 @@ export class SupplierOrderMailService {
       const unit = line.product.saleMode === 'weight' ? 'kg' : quantity > 1 ? 'pièces' : 'pièce'
       return `${line.product.name} : ${quantity} ${unit}`
     })
-    const day = FRENCH_PARIS_DAY.format(order.createdAt)
+    const day = formatParisDayInFrench(order.createdAt)
     const intro =
       `Bonjour,\n\nVoici la commande de la coopérative Grocery du ${day} ` +
       `(${lines.length} ${lines.length === 1 ? 'ligne' : 'lignes'}).`
@@ -76,7 +79,7 @@ export class SupplierOrderMailService {
         ],
       })
     } catch (error) {
-      throw new OrderMailError(error instanceof Error ? error.message : 'Unknown mail error')
+      throw new OrderMailError(describeError(error))
     }
     return { sentTo: to }
   }

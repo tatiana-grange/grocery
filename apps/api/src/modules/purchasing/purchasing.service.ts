@@ -23,7 +23,12 @@ import { ReceptionLine } from './entities/reception-line.entity'
 import { SupplierOrder } from './entities/supplier-order.entity'
 import { SupplierOrderLine } from './entities/supplier-order-line.entity'
 import { checkTransition, coversOrdered, sumQuantities } from './purchasing.util'
-import { OrderMailError, SupplierOrderMailService } from './supplier-order-mail.service'
+import {
+  ORDER_MAIL_POPULATE,
+  OrderMailError,
+  type OrderMailResult,
+  SupplierOrderMailService,
+} from './supplier-order-mail.service'
 import { SupplierOrderNoticeService } from './supplier-order-notice.service'
 
 export interface SkippedLine {
@@ -164,15 +169,9 @@ export class PurchasingService {
         )
         if (!order) throw new NotFoundException('Supplier order not found')
         this.assertTransition(order, version, 'draft')
-        await em.populate(order, [
-          'supplier',
-          'supplier.referent',
-          'supplier.referent.user',
-          'lines',
-          'lines.product',
-        ])
+        await em.populate(order, [...ORDER_MAIL_POPULATE])
 
-        let result
+        let result: OrderMailResult
         try {
           result = await this.orderMail.sendOrder(order)
         } catch (error) {

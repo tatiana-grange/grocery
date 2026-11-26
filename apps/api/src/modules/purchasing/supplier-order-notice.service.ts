@@ -1,11 +1,14 @@
 import { EntityManager } from '@mikro-orm/core'
 import { Injectable, Logger } from '@nestjs/common'
 import { config } from '../../config/env.config'
-import { COOPERATIVE_TIME_ZONE } from '../../common/paris-time.util'
+import { describeError } from '../../common/error.util'
+import { escapeHtml } from '../../common/html.util'
+import { formatParisDayInFrench } from '../../common/paris-time.util'
 import { EmailService } from '../email/email.service'
 import { findAdminAddresses } from '../members/admin-addresses'
 import type { SupplierOrderSentMode } from './contracts/supplier-order.contract'
 import { SupplierOrder } from './entities/supplier-order.entity'
+import type { SendFailureReason } from './supplier-order-mail.service'
 
 interface Notice {
   subject: string
@@ -18,12 +21,6 @@ const FRENCH_DAY = new Intl.DateTimeFormat('fr-FR', {
   year: 'numeric',
   timeZone: 'UTC',
 })
-const FRENCH_PARIS_DAY = new Intl.DateTimeFormat('fr-FR', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: COOPERATIVE_TIME_ZONE,
-})
 
 /** "4 décembre 2026" for a calendar day written `YYYY-MM-DD`. */
 function formatDay(day: string): string {
@@ -32,10 +29,6 @@ function formatDay(day: string): string {
 
 function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 /**
@@ -75,13 +68,13 @@ export class SupplierOrderNoticeService {
     supplierName: string
     orderId: string
     mode: SupplierOrderSentMode
-    reason: 'no_address' | 'mail_error'
+    reason: SendFailureReason
   }): Promise<void> {
     await this.run(
       `Send failure alert for ${input.supplierName}, order ${input.orderId}`,
       async () => {
         const order = await this.em.findOne(SupplierOrder, { id: input.orderId })
-        const created = order ? ` du ${FRENCH_PARIS_DAY.format(order.createdAt)}` : ''
+        const created = order ? ` du ${formatParisDayInFrench(order.createdAt)}` : ''
         const how = input.mode === 'automatic' ? "l'envoi automatique" : "l'envoi à la main"
         const why =
           input.reason === 'no_address'
@@ -137,7 +130,7 @@ export class SupplierOrderNoticeService {
       }
     } catch (error) {
       this.logger.error(
-        `${label} failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+        `${label} failed: ${describeError(error)}`,
       )
     }
   }

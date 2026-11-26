@@ -1,7 +1,8 @@
 import { EntityManager, LockMode } from '@mikro-orm/core'
 import { EnsureRequestContext } from '@mikro-orm/decorators/legacy'
 import { Injectable, Logger } from '@nestjs/common'
-import { startOfParisDay, toParisDay } from '../../common/paris-time.util'
+import { describeError } from '../../common/error.util'
+import { startOfParisDay } from '../../common/paris-time.util'
 import { Supplier } from '../catalog/entities/supplier.entity'
 import {
   findDueDistributions,
@@ -12,7 +13,12 @@ import {
 } from '../catalog/order-schedule.util'
 import { SupplierOrder } from './entities/supplier-order.entity'
 import { PurchasingService } from './purchasing.service'
-import { OrderMailError, SupplierOrderMailService } from './supplier-order-mail.service'
+import {
+  ORDER_MAIL_POPULATE,
+  OrderMailError,
+  type SendFailureReason,
+  SupplierOrderMailService,
+} from './supplier-order-mail.service'
 import { SupplierOrderNoticeService } from './supplier-order-notice.service'
 
 export interface ScheduleRunOutcome {
@@ -31,7 +37,7 @@ export interface ScheduleRunOutcome {
 /** The admin mails of one supplier's pass. They leave after the transaction has committed. */
 interface AfterCommit {
   summary?: { distributionDay: string; lineCount: number; orderCount: number }
-  failures: { orderId: string; reason: 'no_address' | 'mail_error' }[]
+  failures: { orderId: string; reason: SendFailureReason }[]
   missedDay?: string
 }
 
@@ -68,7 +74,7 @@ export class SupplierOrderScheduleService {
       )
       supplierIds = suppliers.map((supplier) => supplier.id)
     } catch (error) {
-      this.logger.error(`Automatic run: could not list the suppliers: ${describe(error)}`)
+      this.logger.error(`Automatic run: could not list the suppliers: ${describeError(error)}`)
       return outcomes
     }
 
@@ -76,7 +82,7 @@ export class SupplierOrderScheduleService {
       try {
         outcomes.push(await this.runSupplier(supplierId, now))
       } catch (error) {
-        this.logger.error(`Automatic run failed for supplier ${supplierId}: ${describe(error)}`)
+        this.logger.error(`Automatic run failed for supplier ${supplierId}: ${describeError(error)}`)
       }
     }
     return outcomes
@@ -109,28 +115,30 @@ export class SupplierOrderScheduleService {
       const { missed, due } = findDueDistributions({
         rule,
         now,
-        handledDay: handledDayOf(supplier),
+        handledDay: supplier.scheduleHandledDay ?? null,
         activeSince: supplier.scheduleActiveSince,
       })
       if (!missed && !due) return { supplierId, result: 'not_due' }
 
       // A handled distribution is never tried again, whatever happens next.
-      supplier.scheduleHandledDay = (due ?? missed)!.distributionDay
+      const handled = due ?? missed
+      if (!handled) return { supplierId, result: 'not_due' }
+      supplier.scheduleHandledDay = handled.distributionDay
       await em.flush()
 
       let outcome: ScheduleRunOutcome | null = null
-      if (missed && !(await this.alreadySent(em, supplier, rule, missed))) {
+      if (missed && !(await this.alreadySent({ em, supplier, rule, distribution: missed }))) {
         after.missedDay = missed.distributionDay
         outcome = { supplierId, result: 'missed', distributionDay: missed.distributionDay }
       }
       if (!due) return outcome ?? { supplierId, result: 'already_sent' }
 
-      if (await this.alreadySent(em, supplier, rule, due)) {
+      if (await this.alreadySent({ em, supplier, rule, distribution: due })) {
         return (
           outcome ?? { supplierId, result: 'already_sent', distributionDay: due.distributionDay }
         )
       }
-      return this.sendDue(em, supplier, due, after)
+      return this.sendDue({ em, supplier, due, after })
     })
 
     await this.notifyAfterCommit(supplierName, after)
@@ -138,12 +146,17 @@ export class SupplierOrderScheduleService {
   }
 
   /** An order of this supplier sent since 00:00 Paris on the previous distribution day. */
-  private async alreadySent(
-    em: EntityManager,
-    supplier: Supplier,
-    rule: OrderScheduleRule,
-    distribution: ScheduledDistribution,
-  ): Promise<boolean> {
+  private async alreadySent({
+    em,
+    supplier,
+    rule,
+    distribution,
+  }: {
+    em: EntityManager
+    supplier: Supplier
+    rule: OrderScheduleRule
+    distribution: ScheduledDistribution
+  }): Promise<boolean> {
     const previous = previousDistribution(rule, distribution.distributionDay)
     const count = await em.count(SupplierOrder, {
       supplier: supplier.id,
@@ -153,12 +166,17 @@ export class SupplierOrderScheduleService {
   }
 
   /** Gathers the pending lines, then mails every draft of the supplier, one e-mail each. */
-  private async sendDue(
-    em: EntityManager,
-    supplier: Supplier,
-    due: ScheduledDistribution,
-    after: AfterCommit,
-  ): Promise<ScheduleRunOutcome> {
+  private async sendDue({
+    em,
+    supplier,
+    due,
+    after,
+  }: {
+    em: EntityManager
+    supplier: Supplier
+    due: ScheduledDistribution
+    after: AfterCommit
+  }): Promise<ScheduleRunOutcome> {
     const { orderable } = await this.purchasing.collectPendingLines(em, supplier)
     if (orderable.length > 0) {
       this.purchasing.createDraft(em, supplier, orderable)
@@ -177,13 +195,7 @@ export class SupplierOrderScheduleService {
         distributionDay: due.distributionDay,
       }
     }
-    await em.populate(drafts, [
-      'supplier',
-      'supplier.referent',
-      'supplier.referent.user',
-      'lines',
-      'lines.product',
-    ])
+    await em.populate(drafts, [...ORDER_MAIL_POPULATE])
 
     let sentOrders = 0
     let sentLines = 0
@@ -241,14 +253,4 @@ export class SupplierOrderScheduleService {
       })
     }
   }
-}
-
-function handledDayOf(supplier: Supplier): string | null {
-  const value: unknown = supplier.scheduleHandledDay
-  if (!value) return null
-  return value instanceof Date ? toParisDay(value) : String(value).slice(0, 10)
-}
-
-function describe(error: unknown): string {
-  return error instanceof Error ? error.message : 'unknown error'
 }
