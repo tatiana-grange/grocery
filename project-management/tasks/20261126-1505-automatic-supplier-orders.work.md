@@ -490,6 +490,8 @@ The full list of cases per step is in the checkboxes below.
 ## Worklog
 
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
+- 2026-11-26, Typist, step 8 green: `step8-green.log` (new spec, 17 tests, three runs in a row all pass) and `step8-modules.log` (purchasing, catalog, wallet: 14 files, 253 tests pass); `pnpm typecheck` of the API clean, oxlint clean on the purchasing folder. Choices the plan left open, all small: (a) a `missed` distribution is also checked against the "already sent" window, so a manual send in the window raises no alert; (b) when a pass finds both a missed distribution and a due one, the due one is handled and the missed alert is also sent; (c) the supplier with no row under `SKIP LOCKED` reads as `locked_elsewhere`, also when the supplier was deleted meanwhile; (d) a pass where nothing was sent and an order failed is `partly_failed`; (e) the test supplier's `scheduleActiveSince` is 10 November 2026, after the previous sending moment, or the previous distribution would count as missed (this is the late-switch-on ruling at work). Extra cases beyond the plan's list: the previous distribution day itself counts for this distribution; one failing draft does not stop the next; the referent is copied on the automatic mail. The service is not yet a provider in `PurchasingModule`: step 9 does it with the job.
+- 2026-11-26, Typist, step 8 red: log `step8-red.log` (scratchpad), error line `Error: Cannot find module '../supplier-order-schedule.service' imported from …/purchasing/tests/supplier-order-schedule.service.spec.ts`. The whole spec file (all cases, including the ruling's two window cases) was written before the service.
 - 2026-11-26, Typist, step 7 green: `step7-green.log` (new spec, 3 tests pass) and `step7-green-all.log` (new spec, `supplier-order-schedule`, `admin-purchasing-reception`, `admin-inventory-stock`, `back-office-desktop`, `catalog-suppliers`, `admin-purchasing-aggregate`: 69 pass, no flaky rerun). `pnpm typecheck` clean for web-spa and web-spa-e2e. Playwright started and stopped its own API and SPA servers (ports 3060 and 5273 free after). The ruling's dialog part is done here: the supplier dialog sends `contactEmail: null` when the field is emptied on an existing supplier; red `step7-clear-red.log` (`expect(locator).toHaveValue` failed: the old address came back), then green in the run above (new case `l'admin efface l'adresse e-mail d'un fournisseur` in `supplier-order-schedule.spec.ts`, a new case, no old case touched). The old `purchasing.send.done` i18n key is replaced by three keys (`doneSentTo`, `doneNoMail`, `mailFailed`); the 502 toast has no browser test (maildev cannot be made to refuse a message), it is covered by the API test and reads the `order_mail_failed` code through `refusalMessage`.
 - 2026-11-26, Typist, step 7 red: log `step7-red.log` (scratchpad), error line `SyntaxError: Named export 'E2E_ORDER_MAIL' not found. The requested module '../../api/src/seeders/e2e.fixtures' is a CommonJS module` then `Error: No tests found.` (the fixture is missing). Test infrastructure written before: `readAttachmentText` and the `cc`/`attachments` fields in `web-spa-e2e/maildev.ts` (additive; no existing test touched).
 - 2026-11-26, Typist, step 6 green: `step6-green.log` (purchasing and catalog, 9 files, 143 tests pass, the lot 3 send and aggregation cases unchanged) and `step6-typecheck.log` (whole repo clean). `pnpm generate` ran against a dev API on the E2E database (port 3060, real pid 63157, stopped; port free) and added only `sentMode` and `sentTo`. Notes: `SupplierOrderMailService.sendOrder` returns `{ sentTo: null, reason: 'no_address' }` as the plan says. The export route's attachment equals `mapper.toExport` (test compares it with the route). `PurchasingService.markSent` is public so the step 8 run can use it. `PurchasingModule` now imports `EmailModule`, provides and exports the mail and notice services. Because `send` now needs the mail service, `PurchasingService` takes `SupplierOrderMailService` and `SupplierOrderNoticeService` in its constructor. The attached test file's setup now overrides `EmailService` with a fake `sendEmail` for every case.
@@ -572,10 +574,10 @@ The full list of cases per step is in the checkboxes below.
   - [x] `E2E_ORDER_MAIL` fixtures and seeding
   - [x] the "sent how" line on the detail; the three send toasts; i18n fr and en
   - [x] commit
-- [ ] **8. The automatic run**
-  - [ ] red first: `supplier-order-schedule.service.spec.ts`, the `auto-send` case
-  - [ ] `SupplierOrderScheduleService.runDue(now)`
-  - [ ] cases, each by passing instants: before the moment (nothing); at the moment (sent,
+- [x] **8. The automatic run**
+  - [x] red first: `supplier-order-schedule.service.spec.ts`, the `auto-send` case
+  - [x] `SupplierOrderScheduleService.runDue(now)`
+  - [x] cases, each by passing instants: before the moment (nothing); at the moment (sent,
         `automatic`, summary to each admin with supplier, distribution day, line count); a
         second pass (nothing); already sent by hand in the window (nothing,
         `auto-skips-when-done`); an older draft plus new pre-orders (two e-mails, both sent,
@@ -586,7 +588,7 @@ The full list of cases per step is in the checkboxes below.
         error (draft, alert, and a later pass does not retry, `auto-failure-alert`); archived
         supplier (skipped); schedule switched on after the moment (nothing); two `runDue` at
         once on two forks of the ORM (one e-mail, `auto-once-per-distribution`)
-  - [ ] commit
+  - [x] commit
 - [ ] **9. The job**
   - [ ] red first: `supplier-order-schedule.job.spec.ts`
   - [ ] `SupplierOrderScheduleJob`, `ScheduleModule.forRoot()` in `AppModule`, providers in
