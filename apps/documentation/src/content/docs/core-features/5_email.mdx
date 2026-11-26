@@ -9,6 +9,8 @@ The API sends every e-mail through SMTP, with nodemailer, from one service:
 `apps/api/src/modules/email/email.service.ts`. No code depends on a provider. Changing provider
 means changing the settings below, nothing else.
 
+Every mail is written in French, on one shared layout, with React Email. See "Templates" below.
+
 ## Settings
 
 | Variable | Meaning |
@@ -19,6 +21,48 @@ means changing the settings below, nothing else.
 | `EMAIL_USER` | SMTP user name |
 | `EMAIL_PASSWORD` | SMTP password |
 | `EMAIL_FROM` | The sender address. It must belong to the verified domain in production. |
+| `COOPERATIVE_NAME` | The cooperative's name, "Lay'picerie" by default. It is the sender's display name (`"Lay'picerie" <EMAIL_FROM>`) and the title in the header of every mail. Not in `.env.example`: the default covers local, tests and the browser suite. |
+
+## Templates
+
+Each mail is a React Email component under `apps/api/src/modules/email/templates/`, with the
+shared layout in `_components/email-layout.tsx`: the logo and the name in the header, a white
+card for the body, and a footer that says the mail is automatic. The colours and fonts are in
+`_components/email-theme.ts`, copied from the market look of `packages/ui/src/styles/globals.css`
+(mail clients cannot read CSS variables).
+
+Sending a mail takes two steps. First, call the render function of that mail in
+`apps/api/src/modules/email/email-templates.ts`. It takes typed data and returns
+`{ subject, html, text }`. Then pass the result to `EmailService.sendEmail`. The text version is
+derived from the HTML, so the links and figures are the same in both.
+
+- Text typed by a person (member name, supplier name, refusal reason) is escaped by React. Do not
+  use `dangerouslySetInnerHTML` in a template.
+- The templates are pure components and never read the API's settings. The render functions add
+  the cooperative's name and the logo.
+- A new template needs a sample in `templates/email-samples.ts` and an entry in
+  `tests/email-catalogue.ts`. A test fails when a `.tsx` file in `templates/` has no entry.
+- JSX is allowed only under `modules/email/templates/`. The build, the type check and the tests
+  are set up for `.tsx` there and nowhere else.
+
+### The logo
+
+The logo (`templates/static/logo.jpg`) is sent as an inline attachment and the HTML points at it
+with `cid:logo@grocery`. Gmail blocks images written into the HTML as data, and the app has no
+public address to host the image. `EmailService` adds the attachment, after the caller's own,
+whenever the HTML holds that `cid:`. The order to the supplier has no logo, so its CSV stays the
+only attachment. The text version never carries the logo. The build copies `templates/static/` to
+`dist/`.
+
+### Preview
+
+```
+pnpm --filter=api email:preview
+```
+
+Then open `http://localhost:3090`. Every template is listed with its sample data, and the page
+reloads when you save a file. The folder `templates/static/` is served at `/static/`, so the logo
+shows. The command needs no database and no mail server.
 
 ## Local and tests
 
