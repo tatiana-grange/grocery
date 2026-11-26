@@ -7,6 +7,8 @@ interface MaildevMessage {
   text?: string
   html?: string
   to: { address: string; name?: string }[]
+  cc?: { address: string; name?: string }[]
+  attachments?: { generatedFileName: string; fileName?: string; contentType?: string }[]
 }
 
 async function fetchMessages(): Promise<MaildevMessage[]> {
@@ -66,4 +68,16 @@ export async function readResetPasswordToken(email: string): Promise<string> {
     throw new Error(`Pas de token de réinitialisation dans le mail pour ${email}`)
   }
   return token
+}
+
+/** Lit le texte de la pièce jointe n° `index` d'un message déjà reçu. */
+export async function readAttachmentText(message: MaildevMessage, index: number): Promise<string> {
+  const attachment = message.attachments?.[index]
+  if (!attachment)
+    throw new Error(`Le message « ${message.subject} » n'a pas de pièce jointe ${index}`)
+  const response = await fetch(
+    `${E2E.maildevUrl}/email/${message.id}/attachment/${encodeURIComponent(attachment.generatedFileName)}`,
+  )
+  if (!response.ok) throw new Error(`maildev a répondu ${response.status} pour la pièce jointe`)
+  return response.text()
 }

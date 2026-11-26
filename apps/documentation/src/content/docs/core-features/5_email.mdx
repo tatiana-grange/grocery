@@ -1,10 +1,102 @@
 ---
 title: Email
-description: Email explanation
+description: How the API sends e-mail, and which provider it uses in production
 ---
-
-🚧 TODO
 
 # Email
 
-## MailerSend
+The API sends every e-mail through SMTP, with nodemailer, from one service:
+`apps/api/src/modules/email/email.service.ts`. No code depends on a provider. Changing provider
+means changing the settings below, nothing else.
+
+Every mail is written in French, on one shared layout, with React Email. See "Templates" below.
+
+## Settings
+
+| Variable | Meaning |
+|---|---|
+| `EMAIL_HOST` | SMTP server |
+| `EMAIL_PORT` | SMTP port |
+| `EMAIL_SECURE` | `true` for a TLS connection from the start (port 465) |
+| `EMAIL_USER` | SMTP user name |
+| `EMAIL_PASSWORD` | SMTP password |
+| `EMAIL_FROM` | The sender address. It must belong to the verified domain in production. |
+| `COOPERATIVE_NAME` | The cooperative's name, "Lay'picerie" by default. It is the sender's display name (`"Lay'picerie" <EMAIL_FROM>`) and the title in the header of every mail. Not in `.env.example`: the default covers local, tests and the browser suite. |
+
+## Templates
+
+Each mail is a React Email component under `apps/api/src/modules/email/templates/`, with the
+shared layout in `_components/email-layout.tsx`: the logo and the name in the header, a white
+card for the body, and a footer that says the mail is automatic. The colours and fonts are in
+`_components/email-theme.ts`, copied from the market look of `packages/ui/src/styles/globals.css`
+(mail clients cannot read CSS variables).
+
+Sending a mail takes two steps. First, call the render function of that mail in
+`apps/api/src/modules/email/email-templates.ts`. It takes typed data and returns
+`{ subject, html, text }`. Then pass the result to `EmailService.sendEmail`. The text version is
+derived from the HTML, so the links and figures are the same in both.
+
+- Text typed by a person (member name, supplier name, refusal reason) is escaped by React. Do not
+  use `dangerouslySetInnerHTML` in a template.
+- The templates are pure components and never read the API's settings. The render functions add
+  the cooperative's name and the logo.
+- A new template needs a sample in `templates/email-samples.ts` and an entry in
+  `tests/email-catalogue.ts`. A test fails when a `.tsx` file in `templates/` has no entry.
+- JSX belongs only under `modules/email/templates/`. The tests accept `.tsx` there and nowhere
+  else. The build reads TSX in any file, because the Nest CLI refused an SWC setup split by
+  folder; the tests are the guard.
+
+### The logo
+
+The logo (`templates/static/logo.jpg`) is sent as an inline attachment and the HTML points at it
+with `cid:logo@grocery`. Gmail blocks images written into the HTML as data, and the app has no
+public address to host the image. `EmailService` adds the attachment, after the caller's own,
+whenever the HTML holds that `cid:`. The order to the supplier has no logo, so its CSV stays the
+only attachment. The text version never carries the logo. The build copies `templates/static/` to
+`dist/`.
+
+### Preview
+
+```
+pnpm --filter=api email:preview
+```
+
+Then open `http://localhost:3090`. Every template is listed with its sample data, and the page
+reloads when you save a file. The folder `templates/static/` is served at `/static/`, so the logo
+shows. The command needs no database and no mail server.
+
+## Local and tests
+
+Locally and in the E2E stack, the settings point at MailDev, a fake SMTP server that keeps the
+mails so they can be read without sending them (`docker-compose.yml`,
+`docker-compose.e2e.yml`). This is the default of `apps/api/.env.example`.
+
+## Production: Resend
+
+Decided on 2026-11-26: production sends through [Resend](https://resend.com). Its free plan
+(3,000 mails a month, 100 a day, checked in November 2026) covers the cooperative's volume: a
+few supplier orders a week, plus admin notices.
+
+To set it up:
+
+1. Create a Resend account for the association and add the association's domain.
+2. Add the DNS records Resend gives (SPF, DKIM) at the domain's registrar, and wait until
+   Resend shows the domain as verified. Without them, suppliers receive the mails as spam or
+   not at all.
+3. Create an API key with the "sending access" permission only.
+4. Set the API's production environment:
+
+```
+EMAIL_HOST=smtp.resend.com
+EMAIL_PORT=465
+EMAIL_SECURE=true
+EMAIL_USER=resend
+EMAIL_PASSWORD=<the Resend API key>
+EMAIL_FROM=<an address on the verified domain>
+```
+
+Check the SMTP values against Resend's own SMTP page when setting it up. The key is a secret.
+The API reads it from its environment variables: set it in the production host's environment
+or secrets settings. Until the app is hosted, keep it in a password manager. Never commit it.
+`apps/api/.env` is ignored by git and may hold it for a local test of a real send; remove it
+afterwards, or every mail the local app sends will really leave.

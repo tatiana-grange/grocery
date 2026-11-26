@@ -1,4 +1,10 @@
-import type { SupplierDeliveryMode, SupplierType } from '../contracts/supplier.contract'
+import type {
+  MonthWeek,
+  ScheduleFrequency,
+  SupplierDeliveryMode,
+  SupplierType,
+  WeekParity,
+} from '../contracts/supplier.contract'
 import type { Rel } from '@mikro-orm/core'
 import { Collection } from '@mikro-orm/core'
 import {
@@ -41,6 +47,39 @@ export class Supplier {
   /** How goods move from this supplier to the épicerie. Unset until someone picks one. */
   @Property({ nullable: true })
   deliveryMode?: SupplierDeliveryMode
+
+  /** The automatic sending schedule is on. The other `schedule*` columns keep their values when off. */
+  @Property({ default: false })
+  scheduleEnabled: boolean = false
+
+  @Property({ type: 'text', nullable: true })
+  scheduleFrequency?: ScheduleFrequency
+
+  @Property({ type: 'text', nullable: true })
+  scheduleWeekParity?: WeekParity
+
+  @Property({ type: 'text', nullable: true })
+  scheduleMonthWeek?: MonthWeek
+
+  /** ISO weekday of the distribution, 1 Monday … 7 Sunday. */
+  @Property({ type: 'smallint', nullable: true })
+  scheduleDistributionWeekday?: number
+
+  /** ISO weekday of the sending. */
+  @Property({ type: 'smallint', nullable: true })
+  scheduleSendingWeekday?: number
+
+  /** Whole hour of the sending, Paris time, 0 to 23. */
+  @Property({ type: 'smallint', nullable: true })
+  scheduleSendingHour?: number
+
+  /** Set when the schedule is switched on or its rule changes: earlier moments are ignored. */
+  @Property({ nullable: true })
+  scheduleActiveSince?: Date
+
+  /** The last distribution day (`YYYY-MM-DD`) the automatic run handled. Never written by the form. */
+  @Property({ type: 'date', nullable: true })
+  scheduleHandledDay?: string
 
   @ManyToOne(() => Referent, { fieldName: 'referentId', nullable: true })
   @Index()

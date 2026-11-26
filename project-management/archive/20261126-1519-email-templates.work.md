@@ -1,0 +1,487 @@
+# E-mail templates: one shared layout, every mail in French — work
+
+Created by the Mason at the plan step, 2026-11-26. Spec:
+`project-management/tasks/20261126-1519-email-templates.spec.md`.
+
+**Plan:** approved by the Architect on 2026-11-26, with the rulings under "Rulings at the reading".
+
+## Program Design
+
+Read before writing it: the reading list of §C · Reading list of `.agents/project.md` (README,
+documentation index, general, backend and constitution pages, `CONTRIBUTING.md`,
+`.cursor/rules/`, the journal), the spec and what it links to, the archived automatic supplier
+orders task, and `apps/documentation/src/content/docs/core-features/5_email.mdx`.
+
+### Every place the API sends mail today
+
+Thirteen mails, from four places. Nothing else calls `EmailService.sendEmail` or nodemailer
+(checked with a search over `apps/api/src`).
+
+| Mail | Sent from | Language today | To |
+|---|---|---|---|
+| E-mail verification | `auth/auth.module.ts`, `sendVerificationEmail` | English | the new user |
+| Password reset | `auth/auth.module.ts`, `sendResetPassword` | English | the user |
+| Membership approved | `members/members.service.ts`, `notifyDecision` | English | the member (SMS when no real address) |
+| Membership rejected (optional reason) | same | English | same |
+| Membership ended (optional reason) | `members/members.service.ts`, `notifyLifecycle` | English | same |
+| Membership reactivated | same | English | same |
+| Negative balance, to the member | `wallet/member-notice.service.ts` | French | the member |
+| Negative balance, to the admins | same | French | each admin |
+| Underpaid top-up, to the admins | same | French | each admin |
+| Supplier order (CSV attached, referent in copy) | `purchasing/supplier-order-mail.service.ts` | French | the supplier |
+| Automatic send summary | `purchasing/supplier-order-notice.service.ts` | French | each admin |
+| Send failure alert | same | French | each admin |
+| Missed distribution alert | same | French | each admin |
+
+### Files
+
+```
+apps/api/src/modules/email/
+  email.module.ts                      unchanged
+  email.service.ts                     sender display name; inline logo attachment
+  email.service.spec.ts                new cases (see step 1)
+  email-logo.ts                        EMAIL_LOGO_CID, EMAIL_LOGO_SRC, EMAIL_LOGO_PATH
+  email-render.ts                      RenderedEmail type, renderEmail()
+  email-templates.ts                   one render function per mail (the seam)
+  README.md                            rewritten short: points at 5_email.mdx
+  templates/
+    static/logo.jpg                    moved from assets/logo.jpg (see decision "logo place")
+    _components/email-layout.tsx       the shared layout
+    _components/email-button.tsx       the call-to-action link styled as a button
+    _components/email-theme.ts         colours and fonts, with their source
+    _components/format-euros.ts        "5,00 €" from cents, moved from member-notice.service.ts
+    email-samples.ts                   sample data of every template (preview and tests)
+    email-verification.tsx
+    password-reset.tsx
+    membership-approved.tsx
+    membership-rejected.tsx
+    membership-ended.tsx
+    membership-reactivated.tsx
+    negative-balance-member.tsx
+    negative-balance-admin.tsx
+    underpaid-topup-admin.tsx
+    supplier-order.tsx
+    supplier-order-auto-sent.tsx
+    supplier-order-send-failed.tsx
+    missed-distribution.tsx
+  tests/
+    email-templates.spec.ts            renders every template (the criteria tests)
+    email-catalogue.ts                 the list of templates with their sample render
+apps/api/src/common/html.util.ts       deleted: React escapes, no caller left
+```
+
+The `_components` folder starts with `_` and `static` is named `static` because the React Email
+preview skips both when it lists templates (read in the CLI source of `react-email` 6.11.16,
+`getEmailsDirectoryMetadata`). Only files under `templates/` are `.tsx`.
+
+### React Email in the API
+
+**Packages** (checked on npm on 2026-11-26). `@react-email/components` and the single component
+packages are deprecated: the components now ship in `react-email` itself, which also holds the
+`email` CLI.
+
+- dependencies: `react-email` `6.11.16` (components), `@react-email/render` `2.3.1` (`render`,
+  HTML and plain text), `react` and `react-dom` from `catalog:frontend`.
+- devDependencies: `@types/react` from `catalog:frontend`, `@react-email/ui` `6.11.16` (the preview
+  app; the CLI refuses a version that differs from `react-email`'s, so both are pinned exact).
+- Cost: `react-email` is a runtime dependency and brings the CLI's own dependencies (esbuild,
+  tailwindcss, babel parser) into the API image. Next.js comes only with `@react-email/ui`, a
+  dev dependency. Accepted: there is no other maintained package for the components.
+- `pnpm-workspace.yaml` sets `strictPeerDependencies: true`. If the install fails on a peer of
+  Next.js, the Typist stops and reports; no peer rule is added without the Architect.
+
+**How `.tsx` compiles, three tools, one rule: JSX only under `modules/email/templates/`.**
+
+1. `apps/api/tsconfig.json`: add `"jsx": "react-jsx"` (tsc decides by extension, so `.ts` files
+   are not affected) and add `.react-email` to `exclude` (the preview writes a Next.js app
+   there). `tsc --noEmit` then typechecks the templates.
+2. Build and `nest start` (the browser suite runs the API with `nest start`): the Nest CLI's SWC
+   builder only picks `.js` and `.ts` files by default (`swc-defaults.js` of `@nestjs/cli`
+   11.0.24). `nest-cli.json` sets `"builder": { "type": "swc", "options": { "extensions":
+   [".js", ".ts", ".tsx"] } }`. `.swcrc` becomes an array of two configs: the present one with
+   `"test": "\\.ts$"`, and a copy with `"test": "modules/email/templates/.+\\.tsx$"`,
+   `"parser": { "tsx": true }` and `"transform": { "react": { "runtime": "automatic" } }`. A
+   `.tsx` elsewhere matches no config and fails the build.
+3. Vitest (`unplugin-swc` 1.5.10): it reads `jsx` from the nearest tsconfig and then parses
+   **every** `.ts` file as TSX, which breaks `const fakeCollection = <T>(items: T[]) =>` in
+   `purchasing/tests/purchasing.mapper.spec.ts`. So `vitest.config.ts` uses two plugin
+   instances: the present one with `exclude: [/node_modules/, /\.tsx$/]` and
+   `jsc: { parser: { tsx: false } }` (its options win over the tsconfig ones), and a second one
+   with `include: /modules\/email\/templates\/.+\.tsx$/` and
+   `jsc: { transform: { react: { runtime: 'automatic' } } }`. Both go in each test project.
+4. oxlint and oxfmt read `.tsx` as they are. `.react-email` goes into `.gitignore`, the oxlint
+   `ignorePatterns` and the oxfmt ignore list.
+
+Fallback, if the `.swcrc` array does not merge with the Nest CLI's options: `"tsx": true` for all
+files in `.swcrc` and `<T,>` in the one test above. The Typist reports before taking it.
+
+### The seam: one render function per mail
+
+```ts
+// email-render.ts
+export interface RenderedEmail { subject: string; html: string; text: string }
+/** Renders a template to HTML and to the plain text derived from that same HTML. */
+export async function renderEmail(input: { subject: string; element: ReactElement }): Promise<RenderedEmail>
+// html: await render(element); text: await render(element, { plainText: true })
+
+// email-templates.ts, one per mail, e.g.
+export function renderPasswordResetEmail(data: PasswordResetEmailData): Promise<RenderedEmail>
+```
+
+- The render functions add the brand: `{ cooperativeName: config.cooperative.name, logoSrc:
+  EMAIL_LOGO_SRC }`. The templates never import `config` (the preview runs them without the
+  API's environment). They are pure components: props in, markup out.
+- Each template's props are `{ brand: EmailBrand } & <Mail>EmailData`. The data interface is
+  exported from its template file; the default export is the component, with its
+  `PreviewProps` set from `email-samples.ts` and the preview brand (`logoSrc:
+  '/static/logo.jpg'`).
+- The subject is written in the render function. The plain text is derived from the HTML by
+  React Email (`html-to-text` with `wordwrap: false`, images skipped, a link written as its
+  text followed by its address), so links and figures cannot differ between the two versions.
+- The services call the render function, then `EmailService.sendEmail({ to, cc?, subject,
+  content: mail.text, html: mail.html, attachments? })`. `EmailOptions` is unchanged.
+
+Data of each template. Dates arrive as French text already formatted by the service that sends
+(the services own the Paris time zone); amounts arrive in cents and the template formats them.
+
+| Template | Data |
+|---|---|
+| `email-verification` | `name`, `url` |
+| `password-reset` | `name`, `url` |
+| `membership-approved` | `name` |
+| `membership-rejected` | `name`, `reason?` |
+| `membership-ended` | `name`, `reason?` |
+| `membership-reactivated` | `name` |
+| `negative-balance-member` | `name` |
+| `negative-balance-admin` | `memberName`, `membershipNumber`, `balanceCents` |
+| `underpaid-topup-admin` | `memberName`, `membershipNumber`, `requestedCents`, `paidCents`, `topupId` |
+| `supplier-order` | `supplierName`, `orderDay`, `lines: { productName, quantity, unit }[]` |
+| `supplier-order-auto-sent` | `supplierName`, `distributionDay`, `lineCount`, `orderCount` |
+| `supplier-order-send-failed` | `supplierName`, `orderId`, `orderDay?`, `mode`, `reason`, `orderUrl` |
+| `missed-distribution` | `supplierName`, `distributionDay` |
+
+### The layout
+
+`EmailLayout({ brand, preview, children })`, from `react-email` components (`Html lang="fr"`,
+`Head`, `Preview`, `Body`, `Container`, `Section`, `Img`, `Heading`, `Text`, `Hr`).
+
+- Page background `#f7f1e3`, text `#2b241c`, primary `#4e6b4a` (button, links), accent
+  `#ede4d0` (header band and footer rule). Written in `email-theme.ts` with a comment naming
+  `packages/ui/src/styles/globals.css`, market look, as their source.
+- Titles in the system serif (`Georgia, 'Times New Roman', serif`), text in the system sans
+  (`-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`). No web font.
+- Header: the logo, `src={brand.logoSrc}`, 120 px wide, `alt={brand.cooperativeName}`, then the
+  name in the serif.
+- A white card (max 560 px) holds the body.
+- Footer, in small muted text: « Message envoyé automatiquement par l'application de
+  {cooperativeName}. »
+- `EmailButton({ href, children })`: a `Link` styled as a primary button. The account mails also
+  print the address under it: « Si le bouton ne fonctionne pas, copiez ce lien dans votre
+  navigateur : {url} ».
+
+### French wording
+
+Subjects already in French keep their exact text (the API tests and browser tests compare them).
+Bodies already in French keep their sentences, cut into paragraphs. The English ones become:
+
+| Mail | Subject | Body |
+|---|---|---|
+| Verification | Confirmez votre adresse e-mail | Bonjour {name}, / Pour confirmer votre adresse e-mail, cliquez sur le bouton ci-dessous. / [Confirmer mon adresse] / fallback link / Si vous n'avez pas créé de compte, ignorez ce message. |
+| Reset | Réinitialisez votre mot de passe | Bonjour {name}, / Vous avez demandé à changer votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau. / [Choisir un nouveau mot de passe] / fallback link / Si vous n'avez rien demandé, ignorez ce message : votre mot de passe reste le même. |
+| Approved | Votre adhésion est confirmée | Bonjour {name}, / Votre adhésion à {coop} est confirmée. Vous pouvez maintenant vous connecter. |
+| Rejected | Votre demande d'adhésion | Bonjour {name}, / Votre demande d'adhésion à {coop} n'a pas été acceptée. / Motif : {reason} (only when given) |
+| Ended | Votre adhésion a pris fin | Bonjour {name}, / Votre adhésion à {coop} a pris fin. / Motif : {reason} (only when given) |
+| Reactivated | Votre adhésion est de nouveau active | Bonjour {name}, / Votre adhésion à {coop} est de nouveau active. Vous pouvez vous connecter à nouveau. |
+
+The supplier order says « Voici la commande de {coop} du {orderDay} » and its subject becomes
+« Commande de {coop} — {supplierName} »: the hard-coded "coopérative Grocery" goes. The send
+failure alert shows a « Voir la commande » link, its address written in full in both versions.
+
+### The cooperative's name
+
+`COOPERATIVE_NAME` in `env.config.ts`, `z.string().min(1).default("Lay'picerie")`, read as
+`config.cooperative.name`. Used by the brand and by the sender: `from: "\"<name>\"
+<EMAIL_FROM>"`, a string so the existing `from: expect.any(String)` assertions hold; nodemailer
+encodes a non-ASCII name itself. Documented in the settings table of `5_email.mdx`; not added to
+`.env.example`, the default covers local, tests and the browser suite.
+
+### The logo
+
+- `email-logo.ts`: `EMAIL_LOGO_CID = 'logo@grocery'`, `EMAIL_LOGO_SRC = 'cid:logo@grocery'`,
+  `EMAIL_LOGO_PATH = join(__dirname, 'templates', 'static', 'logo.jpg')`.
+- `EmailService.sendEmail` appends `{ filename: 'logo.jpg', path: EMAIL_LOGO_PATH, cid:
+  EMAIL_LOGO_CID, contentType: 'image/jpeg' }` after the caller's attachments when `html`
+  contains `EMAIL_LOGO_SRC`, and only then. The caller's attachments are passed as they are, so
+  the CSV is untouched (csv-unchanged), and a mail without the layout gets no logo (the present
+  `email.service.spec.ts` cases stay as they are). Nodemailer reads the file at send time and
+  puts it in a `multipart/related` part.
+- The build copies it: `nest-cli.json` `"assets": [{ "include":
+  "modules/email/templates/static/**/*", "outDir": "dist" }]`, `"watchAssets": true`. It lands in
+  `dist/modules/email/templates/static/logo.jpg`, beside the compiled `email-logo.js`, and the
+  Docker image keeps it (`files: ["dist"]`).
+- The text version has no image: React Email skips `img` in plain text.
+
+### The preview
+
+`apps/api/package.json`: `"email:preview": "email dev --dir src/modules/email/templates --port
+3090"`, run as `pnpm --filter=api email:preview`, then open `http://localhost:3090`. It lists
+every template with its `PreviewProps`, reloads on save, and serves `templates/static/` at
+`/static/`, so the logo shows. Port 3090 is free in the repo's settings (API 3000 and 3060,
+databases 5112 and 5434, MailDev 1025, 1043, 1080, 1093). Documented in `5_email.mdx`.
+
+### Escaping
+
+React escapes every text child and attribute, so a name holding `<b>` arrives as
+`&lt;b&gt;`. The hand-written `escapeHtml` and `common/html.util.ts` go. No template uses
+`dangerouslySetInnerHTML`; the review checks it. Note for the tests: React writes an apostrophe as
+`&#x27;`, so a phrase with an apostrophe is asserted on the text version, not on the HTML.
+
+### Keeping the present tests green
+
+- `email.service.spec.ts`: present cases unchanged (no layout HTML, so no logo).
+- `member-notice.service.spec.ts`, `supplier-order-notice.service.spec.ts`,
+  `supplier-order-schedule.service.spec.ts`, `purchasing.controller.e2e-spec.ts`,
+  `topup.*.spec.ts`: they read `subject`, `content`, `html`, `to`, `cc` and `attachments` of the
+  `sendEmail` call. Subjects and sentences stay the same, `content` is now the derived text,
+  the CSV attachment is the same object. Expected to pass unchanged. The member notice test
+  asserts the member mail holds no amount and no "correct": the layout carries no figure and no
+  such word.
+- Browser tests reading MailDev: `auth-reset-password.spec.ts` reads the token from the HTML with
+  `reset-password\?token=…`: the link is still there. `wallet-correction.spec.ts` asserts the
+  member mail has no `7,00` and no `-7` in text and HTML: the layout carries no figure.
+  `admin-purchasing-send-mail.spec.ts`: see the open question "logo in the supplier order
+  mail" below; it is the one test this plan expects to fail.
+
+### SMS
+
+`members.service.ts` sends `${subject}: ${body}` by SMS to a member with no real address. The
+SMS texts are out of scope, so the SMS keeps its present English text, now held in its own small
+helper (`membershipSmsText(outcome, name, reason?)`) since the mail no longer builds a body
+string. See the open question "SMS of the membership mails".
+
+### Decisions taken in this plan (the spec left them open)
+
+- **logo place** — the logo moves from `email/assets/logo.jpg` to
+  `email/templates/static/logo.jpg`. The React Email preview serves only `<templates
+  dir>/static/`, and one file in one place beats a copy. The spec names the old path only in a
+  note; the brief named it too, so the Architect may rule otherwise (option kept: leave it in
+  `assets/` and accept a preview without the logo).
+- **text derived from HTML** — not written by hand, so the two cannot drift.
+- **dates as text, amounts as cents** in the template data.
+- **logo attached by `EmailService`**, keyed on the `cid:` in the HTML, so no service knows about
+  it.
+- **SMS unchanged**, English kept (see the question).
+
+### Test order and first failing test per step
+
+Each step: write the named test file first, run it red, write the red log name and its error
+line in the worklog, then the production files.
+
+1. **Toolchain, layout, account mails.** First failing test:
+   `email/tests/email-templates.spec.ts` with the catalogue holding `email-verification` and
+   `password-reset`. Cases: every catalogue template renders; the templates folder and the
+   catalogue list the same names (a new `.tsx` without an entry fails); subject, text and HTML
+   hold none of "Hello", "your", "please", "Reason" (case-insensitive, whole words); every
+   `href` of the HTML appears in the text; the HTML shows `cid:logo@grocery` and the text holds
+   no `cid:`; the text shows "Lay'picerie"; the reset and verification links are in both
+   versions. Red: the template modules do not exist. Then `email.service.spec.ts` new cases:
+   the sender is `"Lay'picerie" <…>`; a layout HTML gets the logo attachment after the CSV; an
+   HTML without the cid gets none. Then the production files: dependencies, tsconfig, `.swcrc`,
+   `nest-cli.json`, `vitest.config.ts`, `COOPERATIVE_NAME`, logo move, `email-logo.ts`, theme,
+   layout, button, the two templates, samples, `email-render.ts`, `email-templates.ts`,
+   `EmailService`, `auth.module.ts`. Checks before the commit: `pnpm --filter=api test`,
+   `pnpm --filter=api typecheck`, `pnpm --filter=api build`, then
+   `ls apps/api/dist/modules/email/templates/static/logo.jpg` and
+   `node -e "require('./apps/api/dist/modules/email/templates/password-reset.js')"`, and
+   `pnpm lint`.
+2. **Membership mails.** First failing test: four catalogue entries in
+   `email-templates.spec.ts`, plus the escaped case (a member named `<b>Mia</b>` and a reason
+   `<script>x</script>` show as `&lt;b&gt;` and `&lt;script&gt;` in the HTML, never as tags) and
+   the reason shown only when given. Red: the modules do not exist. Then the four templates and
+   `members.service.ts` (mail through the templates, SMS through `membershipSmsText`).
+3. **Wallet notices.** First failing test: three catalogue entries, plus the figures case (the
+   negative balance shows « -5,00 € » and the underpaid top-up « 15,00 € » and « 20,00 € » in
+   both versions; the member mail holds no figure). Red: missing modules. Then the templates,
+   `format-euros.ts` and `member-notice.service.ts`. `member-notice.service.spec.ts` must stay
+   green unchanged.
+4. **Purchasing mails.** First failing test: four catalogue entries, plus the supplier order
+   lists every line in both versions, a supplier named `<b>Moulin</b>` is escaped, and the send
+   failure link is in both versions. Red: missing modules. Then the templates and the two
+   purchasing services; `html.util.ts` deleted. `purchasing.controller.e2e-spec.ts` (CSV
+   attachment `toEqual`) and the notice and schedule specs must stay green unchanged.
+5. **Preview and documentation.** No unit test fits a dev server: the check is to run
+   `pnpm --filter=api email:preview`, fetch `http://localhost:3090` and one template page, see
+   the thirteen templates and the logo, and stop it; the worklog records it. Then `.gitignore`,
+   oxlint and oxfmt ignores, `5_email.mdx` (templates, setting, preview, inline logo),
+   `email/README.md`.
+6. **Gates.** `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` and, after `docker ps`,
+   `pnpm e2e`, each in the background with its full log, read in full.
+
+### Open questions for the Architect
+
+1. **Logo in the supplier order mail.**
+   - Fact: MailDev lists inline (`cid:`) images among a message's `attachments` (MailDev 2.2.1,
+     `lib/mailserver.js`, which only filters them by `contentId` to rewrite the HTML).
+     Nodemailer puts the inline logo in the `multipart/related` part, before the CSV in the
+     message, so it likely comes first.
+   - Problem: `admin-purchasing-send-mail.spec.ts` asserts `mail.attachments` has length 1 and
+     reads attachment 0 as the CSV. With the logo, it will fail, and the project rule forbids
+     editing a browser test to make it pass without the human.
+   - Options: (a) the human allows changing that test to look for the CSV among the attachments
+     that have no `contentId` (the test keeps its intent: one CSV, with the product in it);
+     (b) the supplier order mail goes without the logo, against the `logo` criterion;
+     (c) the logo as a web address, against the spec (no public address).
+   - Recommendation: (a). The Typist runs that test at step 4 to confirm the failure before
+     anyone changes it.
+2. **SMS of the membership mails.**
+   - Fact: the same subject and body feed the SMS sent to a member without a real address.
+   - Problem: the spec puts the SMS texts out of scope, so they stay English while the mails
+     turn French.
+   - Options: (a) keep the SMS text exactly as today (this plan); (b) give the SMS the French
+     sentences of the mails, one line each, at no extra cost.
+   - Recommendation: (a) as the spec says, and a follow-up task for the SMS texts, unless the
+     human says (b) now.
+3. **Logo place.** See the decision "logo place" above: confirm the move to
+   `templates/static/`.
+
+## Worklog
+
+- 2026-11-26, Mason: read the reading list, the spec, the archived automatic supplier orders
+  task and the email page; found the thirteen mails; checked the React Email packages on npm and
+  read the CLI, render and MailDev sources to settle the toolchain and the attachment question;
+  wrote this plan. No production code.
+- 2026-11-26, Typist, step 1 red: wrote `email/tests/email-templates.spec.ts`, `email/tests/email-catalogue.ts` and three new cases in `email.service.spec.ts` before any production file. Red log: `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step1-red.log`. Error lines: `Error: Cannot find module '../email-templates' imported from .../email/tests/email-catalogue.ts`; `expected 'noreply@localhost.com' to match /^"Lay'picerie" <.+@.+>$/`; `expected [ { filename: 'commande.csv', …(2) } ] to have a length of 2 but got 1`.
+- 2026-11-26, Typist, step 1 green. Packages installed with `pnpm install` (no peer failure; lockfile committed). Email specs green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step1-green-email.log`, 21 tests). `pnpm --filter=api test`: 46 files, 840 tests green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step1-test-full2.log`). `typecheck` green. `build` green. `dist/modules/email/templates/static/logo.jpg` exists; `require('./apps/api/dist/modules/email/templates/password-reset.js')` loads; a render of the reset mail from `dist` escapes `<b>` and holds `cid:logo@grocery`. `pnpm lint` exit 0, only warnings that were already there.
+- 2026-11-26, Typist, DEVIATION step 1, the plan's own fallback taken: the `.swcrc` array does NOT merge with the Nest CLI. `nest build` with the array failed on every file with `unknown field `0` at line 1 column ...` (log `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step1-build.log` of that first run was overwritten; the baseline build without my change passes). I took the fallback the plan names: `.swcrc` is back to one object, with `"tsx": true` and `"transform.react.runtime": "automatic"` for all files. The `<T,>` change in `purchasing.mapper.spec.ts` was NOT needed: the build does not compile spec files, so that file is untouched. `nest-cli.json` keeps the `.tsx` extension and the assets copy. The Vitest two-plugin setup stays (tsconfig `jsx` would make `unplugin-swc` read `.ts` as TSX otherwise). Vitest filters had to be glob strings (`'**/*.tsx'`), since the plugin's types reject a RegExp.
+- 2026-11-26, Typist, step 1 small choices the plan left implicit: `EmailBrand` and the layout helpers `EmailParagraph` and `EmailLinkFallback` live in `email-layout.tsx`; `PREVIEW_BRAND` lives in `email-samples.ts`; `email-templates.ts` stays `.ts` and builds elements with `createElement` (JSX is allowed only under `templates/`). Plan says `logoSrc: string | null`: done now.
+- 2026-11-26, Typist, step 2 red: wrote the four catalogue entries, the escaped and reason cases in `email/tests/email-templates.spec.ts`, and `members/tests/membership-sms.spec.ts` before any production file. Red log: `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step2-red.log`. Error lines: `Error: Cannot find module '../membership-sms' imported from .../members/tests/membership-sms.spec.ts`; `TypeError: renderMembershipApprovedEmail is not a function` (24 failed tests in all); `expected [ 'email-verification', …(5) ] to deeply equal [ 'email-verification', …(1) ]` (the catalogue holds entries with no template file yet).
+- 2026-11-26, Typist, step 2 green: four membership templates, `membership-sms.ts`, `members.service.ts` (mail through the templates, SMS through `membershipSmsText`; the SMS is now the short French sentence alone, no subject prefix). Email and members specs green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step2-green.log`, 85 tests); `pnpm --filter=api test` 47 files, 871 tests green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step2-test-full.log`); typecheck green.
+- 2026-11-26, Typist, step 3 red: wrote the three catalogue entries and the figures, no-figure and escaped cases in `email/tests/email-templates.spec.ts` before any production file. Red log: `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step3-red.log`. Error lines: `TypeError: renderNegativeBalanceMemberEmail is not a function` (20 failed tests); `expected [ 'email-verification', …(8) ] to deeply equal [ 'email-verification', …(5) ]`.
+- 2026-11-26, Typist, step 3 green: three wallet templates, `format-euros.ts`, `member-notice.service.ts` (one render per notice, shared by all admins). `member-notice.service.spec.ts` untouched and green. Email and wallet specs green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step3-green.log`); `pnpm --filter=api test` 47 files, 890 tests green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step3-test-full.log`); typecheck green. Note: the member mail now reads « Bonjour {name}, » then « Il y a un problème sur votre compte. » (capital I, since it starts its own paragraph).
+- 2026-11-26, Typist, step 4 red: wrote the four catalogue entries (supplier order with `carriesLogo: false`) and the lines, escaped and failure link cases in `email/tests/email-templates.spec.ts` before any production file. Red log: `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step4-red.log`. Error line: `TypeError: Cannot read properties of undefined (reading 'orderUrl')` (the sample does not exist yet; the file loads no test at all).
+- 2026-11-26, Typist, step 4 green: four purchasing templates; `supplier-order-mail.service.ts` and `supplier-order-notice.service.ts` call them; `common/html.util.ts` deleted (no caller left). The supplier order passes `logoSrc: null`, so `EmailService` adds no logo and the CSV stays the only attachment. Email and purchasing specs green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step4-green.log`); `pnpm --filter=api test` 47 files, 914 tests green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step4-test-full.log`); the e2e project of the API (`vitest --project e2e`, which includes `purchasing.controller.e2e-spec.ts` with its CSV `toEqual`) 14 files, 406 tests green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step4-e2e.log`). Note: `pnpm test` of the API only reports the unit project (47 files) on this machine; I ran the e2e project by name. Typecheck, build and `pnpm lint` (exit 0) green. The browser test `admin-purchasing-send-mail.spec.ts` was not run (it needs the E2E stack, step 6); it is unedited.
+- 2026-11-26, Typist, step 5 (no unit test fits a dev server; the plan's check was run instead). `pnpm --filter=api email:preview` started on port 3090 (log `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step5-preview.log`), port free before. `curl http://localhost:3090` returned 200 and its page names all thirteen templates (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/preview-home.html`); `/static/logo.jpg` returned 200 `image/jpeg`; `/preview/password-reset` returned 200 and its page holds « Bonjour » and `/static/logo.jpg` (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/preview-page.html`). The server was then stopped by its process ids (the pnpm process 13744 and the node listener 13776); port 3090 is free again. The preview wrote no `.react-email` folder in the repo; the ignore entries are added anyway as the plan says. Then: `.react-email` in `.gitignore`, `.oxlintrc.json` and `.oxfmtrc.json`; `5_email.mdx` (templates, `COOPERATIVE_NAME`, inline logo, preview); `email/README.md` rewritten short. `astro build` of the documentation passes (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/step5-docs-build.log`); no page was added, so no index change. I looked at the preview only through HTTP, not in a browser, so the look of the layout is not judged here.
+- 2026-11-26, Typist, review fixes, red first (point 9): new `email.service.spec.ts` case with a sender name holding a quote and a backslash. Red log `/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/review-red.log`. Error line: `AssertionError: expected '"La "Bonne" Coop\" <noreply@localhost…' to match /^"La \\"Bonne\\" Coop\\\\" <.+@.+>$/`.
+- 2026-11-26, Typist, review fixes done (Mason's list, points 1 to 9): JSDoc on every render function, template component and `RenderedEmail`; `brand` to `buildBrand`, `plural` to `formatCount` (RO-RO, in `_components/format-count.ts`, also used by `supplier-order.tsx`), `membershipSmsText` to `buildMembershipSmsText`, `hrefsOf` to `extractHrefs`; `members.service.ts` `send` takes one object; `: ReactElement` on the layout, button, paragraph, link fallback and every template; spec names `actualMail` and `actualWithReason`/`actualWithoutReason`, the spec reuses `emailSamples.supplierOrder.lines`; send-failed names `orderDaySuffix`, `sendModeText`, `failureReasonText`; the logo reason kept once on `renderSupplierOrderEmail`, the two restating comments removed; the sender name escapes `\` and `"`. The test for point 9 sets `config.cooperative.name` through a cast and restores it. Green: email, members, wallet, purchasing specs (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/review-green.log`, 296 tests), typecheck, `pnpm lint` exit 0, `pnpm --filter=api test` 47 files 915 tests (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/review-test-full.log`), e2e project 14 files 406 tests (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/review-e2e.log`).
+
+- 2026-11-26, Mason, step 6 gates. Before the review fixes: `pnpm lint` exit 0, old warnings only (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-lint.log`); `pnpm typecheck` green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-typecheck.log`); `pnpm build` green (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-build.log`); `pnpm test` green, 914 API unit tests plus the i18n and ui packages (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-test.log`). `code-review` then ran (findings below) and the Typist fixed them in `ee012a3`, with the API unit project (915), the API e2e project (406), typecheck and lint green after. `docker ps`: the grocery E2E stack (`grocery-e2e-db`, `grocery-e2e-maildev`) was already up, no other project on 5434, 1043 or 1093, no E2E run in progress. `pnpm e2e` after the fixes (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-e2e.log`): 238 passed, 4 failed, none about mails: `account.spec.ts` (account page not shown in 10 s), `accounting.spec.ts` period picker (known flaky), `admin-inventory-stock.spec.ts` weighted average (element not found), `wallet-topup.spec.ts` refused payment (click timeout). Rerun once, alone: all four passed (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-e2e-rerun.log`). The three mail browser tests (supplier order with its CSV, reset password, wallet correction) passed in the full run. `pnpm build` again after the fixes: green, logo in `dist` (`/private/tmp/claude-501/-Users-tatiana-Workspace-perso-grocery/da80bf5c-75e8-450b-96b8-58b2c4a5a925/scratchpad/gate-build2.log`). Nothing to stop: the E2E stack was up before this session and stays up; the Typist stopped its preview server by process id.
+
+## Implementation Checkboxes
+
+- [x] Step 1 — toolchain, layout, account mails
+- [x] Step 2 — membership mails
+- [x] Step 3 — wallet notices
+- [x] Step 4 — purchasing mails
+- [x] Step 5 — preview and documentation
+- [x] Step 6 — gates
+
+## Notes & Snippets
+
+- `unplugin-swc` 1.5.10, `dist/index.js`: when the tsconfig has `jsx`, it sets `parser.tsx =
+  true` for every `.ts` file and merges `options.jsc` over its own with `defu`, so the plugin
+  options win.
+- `@nestjs/cli` 11.0.24, `lib/compiler/defaults/swc-defaults.js`: `extensions: ['.js', '.ts']`,
+  `swcrc: true`, builder options spread over the CLI options.
+- `@react-email/render` 2.3.1: `render(node, { plainText: true })` uses `html-to-text` with
+  `wordwrap: false`, skips `img` and `[data-skip-in-text=true]`, writes links without brackets.
+- `react-email` CLI: `getUiLocation` refuses an `@react-email/ui` whose version differs from its
+  own; templates are `.tsx`/`.jsx`/`.js` files with a default export; `_*` and `static` folders
+  are skipped.
+
+## Diff-Review Findings
+
+`code-review` on `git diff 5b80300...HEAD` (merge-base with `feat/supplier-order-schedule`), two
+fresh reviewers, 2026-11-26. Fixes by the Typist in `ee012a3`.
+
+**Standards**
+
+- JSDoc missing on the render functions, the template components and `RenderedEmail`
+  (general.mdx, "Use JSDoc to document public classes and methods"). Fixed.
+- Function names without a verb: `brand`, `plural`, `membershipSmsText`, `hrefsOf` (general.mdx,
+  "Start functions with a verb"). Fixed: `buildBrand`, `formatCount`, `buildMembershipSmsText`,
+  `extractHrefs`.
+- Positional parameters in `members.service.ts` `send` and in `plural` (general.mdx, RO-RO).
+  Fixed.
+- No return types on the React components (general.mdx, "declare the type of each … function").
+  Fixed: `: ReactElement`, as the web-spa does.
+- Test variable names in `email-templates.spec.ts` (general.mdx, inputX / actualX). Fixed, and
+  the copied supplier order lines fixture now reuses the samples.
+- Duplicated plural logic in `supplier-order.tsx`. Fixed: one `format-count.ts`.
+- Mysterious names `created`, `how`, `why` in `supplier-order-send-failed.tsx`. Fixed.
+- Comments repeating the code, and the "no logo" reason written three times. Fixed: kept once,
+  on `renderSupplierOrderEmail`.
+- Answered, not changed:
+  - The membership sentences live in the templates and again, shorter, in
+    `membership-sms.ts`. The human asked for a short SMS form; sharing sentence builders between
+    a React template and a one-line SMS would couple two texts meant to differ.
+  - The subject repeated as the inbox preview line: one string per template, side by side in
+    the same commit when it changes; a shared constant per template would add thirteen exports
+    for little.
+  - `{ subject, content: mail.text, html: mail.html }` repeated in the callers: the spec's
+    seam says `EmailService.sendEmail` stays unchanged in shape.
+  - Four files touched per new template: the folder-sync test catches a forgotten one.
+  - Dates passed as French text: a plan decision, the sending services own the Paris time zone.
+  - `I` prefix on interfaces (backend.mdx): the repo does not follow it; kept consistent with
+    the repo.
+
+**Spec**
+
+- Journal entry missing: written at the close.
+- Browser suite not yet run: run at step 6 (see the worklog).
+- Not asked for, accepted: the SMS name the cooperative (the short form of the mail sentence,
+  which names it); the button with a copy-the-link line on the verification, reset and send
+  failure mails; the email module README cut down to a pointer to `5_email.mdx` (the MailDev
+  setup it held is the docker-compose one, documented in `5_email.mdx`); two formatting-only
+  hunks in purchasing from `oxfmt`; `html.util.ts` deleted (no caller left).
+- A sender name holding `"` would break the address. Fixed: `\` and `"` are escaped, with a
+  test written red first.
+- `html: html || content` kept in `EmailService`: every caller passes HTML; answered, not
+  changed, since the spec keeps the service's shape.
+- The spec's Notes still name `email/assets/logo.jpg`; the file moved on the Architect's ruling.
+  Left for the Architect, who owns the spec's text.
+- `email-templates.ts`, `email-render.ts`, `email-logo.ts` sit outside `templates/`: they are
+  the seam's render functions, `.ts`, not templates. Within the spec's "Template rendering"
+  seam.
+- `.tsx` accepted by the build in all of `src` (the `.swcrc` fallback the plan named, taken in
+  step 1), not only in the email module as the spec's "Implementation Decisions" ask; Vitest
+  still restricts it to `templates/`. Reported to the Architect.
+
+## Rulings at the reading (Architect, 2026-11-26)
+
+- **Logo and the supplier order browser test (human's word):** the supplier order mail is sent
+  without the logo; its CSV stays the only attachment and `admin-purchasing-send-mail.spec.ts`
+  is not edited. Every other HTML mail carries the logo. The spec's `logo` criterion is amended.
+- **Membership SMS (human's word):** the four membership SMS turn French in this task, with the
+  short form of the French mail sentences. The spec's scope and `all-french` are amended. Drop
+  the helper that kept the English SMS text.
+- **Logo location:** option (a). The Architect moved the file to
+  `apps/api/src/modules/email/templates/static/logo.jpg` so the preview shows it.
+
+### How the rulings change the plan (Mason, 2026-11-26)
+
+These lines win over the Program Design above where they differ.
+
+- **No logo in the supplier order mail.** `EmailBrand.logoSrc` becomes `string | null`. The
+  layout shows the `Img` only when `logoSrc` is set; the header then keeps the name alone.
+  `renderSupplierOrderEmail` passes `logoSrc: null`, every other render function passes
+  `EMAIL_LOGO_SRC`. `EmailService` still keys the inline logo on `cid:` in the HTML, so the
+  supplier order mail leaves with the CSV as its only attachment. Tests: the catalogue's logo
+  case expects `cid:logo@grocery` in every template's HTML except `supplier-order`, whose HTML
+  must hold no `cid:` at all (step 4). The supplier order sample in `email-samples.ts` still
+  gets the preview brand without a logo, so the preview matches the real mail.
+- **French membership SMS.** A new pure function in
+  `apps/api/src/modules/members/membership-sms.ts`:
+  `membershipSmsText(input: { outcome: 'validated' | 'rejected' | 'terminated' |
+  'reactivated'; cooperativeName: string; reason?: string }): string`, giving:
+  - validated: « Votre adhésion à {coop} est confirmée. Vous pouvez maintenant vous connecter. »
+  - rejected: « Votre demande d'adhésion à {coop} n'a pas été acceptée. » + « Motif : {reason} »
+    when given
+  - terminated: « Votre adhésion à {coop} a pris fin. » + « Motif : {reason} » when given
+  - reactivated: « Votre adhésion à {coop} est de nouveau active. Vous pouvez vous connecter à
+    nouveau. »
+
+  `members.service.ts` sends the rendered mail when the member has a real address, else this
+  SMS text. No English string stays. First failing test of that part (step 2):
+  `apps/api/src/modules/members/tests/membership-sms.spec.ts` — each outcome is French (none of
+  "Hello", "your", "please", "Reason"), names the cooperative, and the reason appears only when
+  given.

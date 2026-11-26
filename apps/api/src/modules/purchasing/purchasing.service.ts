@@ -1,11 +1,18 @@
 import type { FilterQuery } from '@mikro-orm/core'
 import { EntityManager, LockMode, QueryOrder } from '@mikro-orm/core'
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadGatewayException,
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { conflict } from '../../common/refusal'
 import { eurToCents } from '../catalog/catalog.util'
 import { Supplier } from '../catalog/entities/supplier.entity'
 import { InventoryService } from '../inventory/inventory.service'
 import { OrderLine } from '../orders/entities/order-line.entity'
+import type { SupplierOrderSentMode } from './contracts/supplier-order.contract'
 import type { RecordReceptionInput } from './contracts/reception.contract'
 import type {
   SupplierOrderFiltering,
@@ -16,6 +23,13 @@ import { ReceptionLine } from './entities/reception-line.entity'
 import { SupplierOrder } from './entities/supplier-order.entity'
 import { SupplierOrderLine } from './entities/supplier-order-line.entity'
 import { checkTransition, coversOrdered, sumQuantities } from './purchasing.util'
+import {
+  ORDER_MAIL_POPULATE,
+  OrderMailError,
+  type OrderMailResult,
+  SupplierOrderMailService,
+} from './supplier-order-mail.service'
+import { SupplierOrderNoticeService } from './supplier-order-notice.service'
 
 export interface SkippedLine {
   productName: string
@@ -32,6 +46,8 @@ export class PurchasingService {
   constructor(
     private readonly em: EntityManager,
     private readonly inventory: InventoryService,
+    private readonly orderMail: SupplierOrderMailService,
+    private readonly notices: SupplierOrderNoticeService,
   ) {}
 
   /**
@@ -45,59 +61,75 @@ export class PurchasingService {
       const supplier = await em.findOne(Supplier, { id: supplierId })
       if (!supplier) throw new NotFoundException('Supplier not found')
 
-      const candidateLines = await em.find(
-        OrderLine,
-        {
-          order: { orderingMode: 'pre_order', status: 'pending' },
-          product: { supplier: supplierId },
-          supplierOrderLine: null,
-        },
-        { populate: ['product', 'product.supplier'] },
-      )
-
-      const skippedLines: SkippedLine[] = []
-      const orderable: OrderLine[] = []
-      for (const line of candidateLines) {
-        const product = line.product
-        if (product.archivedAt) {
-          skippedLines.push({ productName: product.name, reason: 'product_archived' })
-        } else if (product.supplier.archivedAt) {
-          skippedLines.push({ productName: product.name, reason: 'supplier_archived' })
-        } else if (product.orderingMode === 'in_store') {
-          skippedLines.push({ productName: product.name, reason: 'no_longer_pre_orderable' })
-        } else {
-          orderable.push(line)
-        }
-      }
-
+      const { orderable, skippedLines } = await this.collectPendingLines(em, supplier)
       if (orderable.length === 0) {
         throw conflict('Nothing pending to aggregate for this supplier', { skippedLines })
       }
 
-      const byProduct = new Map<string, OrderLine[]>()
-      for (const line of orderable) {
-        const bucket = byProduct.get(line.product.id)
-        if (bucket) bucket.push(line)
-        else byProduct.set(line.product.id, [line])
-      }
-
-      const supplierOrder = new SupplierOrder()
-      supplierOrder.supplier = supplier
-      supplierOrder.status = 'draft'
-      em.persist(supplierOrder)
-
-      for (const [, lines] of byProduct) {
-        const soLine = new SupplierOrderLine()
-        soLine.supplierOrder = supplierOrder
-        soLine.product = lines[0].product
-        soLine.quantity = sumQuantities(lines.map((l) => l.quantity))
-        em.persist(soLine)
-        for (const orderLine of lines) orderLine.supplierOrderLine = soLine
-      }
-
+      const supplierOrder = this.createDraft(em, supplier, orderable)
       await em.flush()
       return { supplierOrder, skippedLines }
     })
+  }
+
+  /**
+   * Every still-pending, not-yet-aggregated pre-order line of the supplier's products, split
+   * into the lines that can be ordered and the ones skipped with their reason (FR-003).
+   */
+  async collectPendingLines(
+    em: EntityManager,
+    supplier: Supplier,
+  ): Promise<{ orderable: OrderLine[]; skippedLines: SkippedLine[] }> {
+    const candidateLines = await em.find(
+      OrderLine,
+      {
+        order: { orderingMode: 'pre_order', status: 'pending' },
+        product: { supplier: supplier.id },
+        supplierOrderLine: null,
+      },
+      { populate: ['product', 'product.supplier'] },
+    )
+
+    const skippedLines: SkippedLine[] = []
+    const orderable: OrderLine[] = []
+    for (const line of candidateLines) {
+      const product = line.product
+      if (product.archivedAt) {
+        skippedLines.push({ productName: product.name, reason: 'product_archived' })
+      } else if (product.supplier.archivedAt) {
+        skippedLines.push({ productName: product.name, reason: 'supplier_archived' })
+      } else if (product.orderingMode === 'in_store') {
+        skippedLines.push({ productName: product.name, reason: 'no_longer_pre_orderable' })
+      } else {
+        orderable.push(line)
+      }
+    }
+    return { orderable, skippedLines }
+  }
+
+  /** Persists a draft supplier order for the given lines, quantities summed per product. */
+  createDraft(em: EntityManager, supplier: Supplier, orderable: OrderLine[]): SupplierOrder {
+    const byProduct = new Map<string, OrderLine[]>()
+    for (const line of orderable) {
+      const bucket = byProduct.get(line.product.id)
+      if (bucket) bucket.push(line)
+      else byProduct.set(line.product.id, [line])
+    }
+
+    const supplierOrder = new SupplierOrder()
+    supplierOrder.supplier = supplier
+    supplierOrder.status = 'draft'
+    em.persist(supplierOrder)
+
+    for (const [, lines] of byProduct) {
+      const soLine = new SupplierOrderLine()
+      soLine.supplierOrder = supplierOrder
+      soLine.product = lines[0].product
+      soLine.quantity = sumQuantities(lines.map((l) => l.quantity))
+      em.persist(soLine)
+      for (const orderLine of lines) orderLine.supplierOrderLine = soLine
+    }
+    return supplierOrder
   }
 
   async listSupplierOrders(
@@ -127,11 +159,54 @@ export class PurchasingService {
    * created.
    */
   async send(id: string, version: number): Promise<SupplierOrder> {
-    const order = await this.loadForTransition(id, version, 'draft')
+    const failure: { supplierName: string | null } = { supplierName: null }
+    try {
+      return await this.em.transactional(async (em) => {
+        const order = await em.findOne(
+          SupplierOrder,
+          { id },
+          { lockMode: LockMode.PESSIMISTIC_WRITE },
+        )
+        if (!order) throw new NotFoundException('Supplier order not found')
+        this.assertTransition(order, version, 'draft')
+        await em.populate(order, [...ORDER_MAIL_POPULATE])
+
+        let result: OrderMailResult
+        try {
+          result = await this.orderMail.sendOrder(order)
+        } catch (error) {
+          if (error instanceof OrderMailError) failure.supplierName = order.supplier.name
+          throw error
+        }
+        this.markSent(order, 'manual', result.sentTo)
+        await em.flush()
+        return order
+      })
+    } catch (error) {
+      if (error instanceof OrderMailError && failure.supplierName) {
+        // The transaction is rolled back: the order is still a draft. Alert after that.
+        await this.notices.notifySendFailed({
+          supplierName: failure.supplierName,
+          orderId: id,
+          mode: 'manual',
+          reason: 'mail_error',
+        })
+        throw new BadGatewayException({
+          statusCode: HttpStatus.BAD_GATEWAY,
+          message: 'The e-mail to the supplier did not leave. The order is still a draft.',
+          code: 'order_mail_failed',
+        })
+      }
+      throw error
+    }
+  }
+
+  /** The one place an order becomes `sent`: the status, the moment, how and to whom. */
+  markSent(order: SupplierOrder, mode: SupplierOrderSentMode, sentTo: string | null): void {
     order.status = 'sent'
     order.sentAt = new Date()
-    await this.em.flush()
-    return order
+    order.sentMode = mode
+    order.sentTo = sentTo ?? undefined
   }
 
   /**
@@ -148,13 +223,7 @@ export class PurchasingService {
     return order
   }
 
-  private async loadForTransition(
-    id: string,
-    version: number,
-    from: 'draft' | 'sent',
-  ): Promise<SupplierOrder> {
-    const order = await this.em.findOne(SupplierOrder, { id })
-    if (!order) throw new NotFoundException('Supplier order not found')
+  private assertTransition(order: SupplierOrder, version: number, from: 'draft' | 'sent'): void {
     const refusal = checkTransition(order, from, version)
     if (refusal === 'wrong_status') {
       throw new ConflictException(`This supplier order is ${order.status}, not ${from}`)
@@ -164,6 +233,16 @@ export class PurchasingService {
         'This supplier order changed since you opened it — reload and try again',
       )
     }
+  }
+
+  private async loadForTransition(
+    id: string,
+    version: number,
+    from: 'draft' | 'sent',
+  ): Promise<SupplierOrder> {
+    const order = await this.em.findOne(SupplierOrder, { id })
+    if (!order) throw new NotFoundException('Supplier order not found')
+    this.assertTransition(order, version, from)
     return order
   }
 

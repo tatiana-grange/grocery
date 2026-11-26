@@ -2,8 +2,19 @@ import { resolve } from 'node:path'
 import swc from 'unplugin-swc'
 import { defineConfig } from 'vitest/config'
 
+// `apps/api/tsconfig.json` sets `jsx`, and the plugin would then parse every `.ts` file as TSX
+// (a generic arrow such as `<T>(items: T[]) =>` breaks). So the first instance reads `.ts`
+// files only, without TSX, and the second one reads the e-mail templates only, with TSX.
 const swcPlugin = swc.vite({
   module: { type: 'es6' },
+  exclude: ['**/node_modules/**', '**/*.tsx'],
+  jsc: { parser: { syntax: 'typescript', tsx: false } },
+})
+
+const swcTemplatesPlugin = swc.vite({
+  module: { type: 'es6' },
+  include: ['**/modules/email/templates/**/*.tsx'],
+  jsc: { transform: { react: { runtime: 'automatic' } } },
 })
 
 const resolveAlias = {
@@ -19,7 +30,7 @@ export default defineConfig({
       strict: false,
     },
   },
-  plugins: [swcPlugin],
+  plugins: [swcPlugin, swcTemplatesPlugin],
   resolve: {
     alias: resolveAlias,
   },
@@ -31,7 +42,7 @@ export default defineConfig({
     globalSetup: resolve(__dirname, './src/test/setup/test.global-setup.ts'),
     projects: [
       {
-        plugins: [swcPlugin],
+        plugins: [swcPlugin, swcTemplatesPlugin],
         resolve: { alias: resolveAlias },
         test: {
           name: 'unit',
@@ -49,7 +60,7 @@ export default defineConfig({
         },
       },
       {
-        plugins: [swcPlugin],
+        plugins: [swcPlugin, swcTemplatesPlugin],
         resolve: { alias: resolveAlias },
         test: {
           name: 'e2e',

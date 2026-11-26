@@ -14,7 +14,8 @@ import {
 } from './accounting.queries'
 import type { ExportName } from './contracts/accounting.contract'
 import { type CsvCell, toCsv } from '../../common/csv.util'
-import { type Period, toParisDay } from './period.util'
+import { toParisDay } from '../../common/paris-time.util'
+import type { Period } from './period.util'
 
 type Instant = string | Date
 

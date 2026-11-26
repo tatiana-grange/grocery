@@ -49,3 +49,13 @@ Words the project uses with one precise meaning. Add a word here when a task int
 - **Profit-and-loss account** — for a period: sales, cost of goods sold, gross margin, membership
   fees, expenses by category, and the result. Wallet money is not on it.
 - **Period** — a start day and an end day, both included, read in Paris time.
+
+## Purchasing
+
+- **Order schedule** — a supplier's rhythm, set by an admin: when its distributions happen
+  (a weekday every week, in even or odd ISO weeks, or the 1st to 4th or last weekday of the
+  month), and on which weekday and hour its order is sent.
+- **Distribution day** — a day the supplier's goods are handed over to members, given by the
+  order schedule and read in Paris time.
+- **Sending moment** — the hour, on the last chosen weekday strictly before a distribution day,
+  when the order for that distribution is e-mailed to the supplier if nobody sent it already.

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { CatalogMapper } from '../catalog.mapper'
 import type { ProductPrice } from '../entities/product-price.entity'
 import type { Product } from '../entities/product.entity'
+import type { Supplier } from '../entities/supplier.entity'
 
 function fakeProduct(overrides: Partial<Product> = {}): Product {
   const product = {
@@ -55,5 +56,62 @@ describe('CatalogMapper.toProduct', () => {
       } as unknown as Collection<ProductPrice>,
     })
     expect(mapper.toProduct(noOpen).currentPriceEur).toBeNull()
+  })
+})
+
+describe('CatalogMapper.toSupplier', () => {
+  const mapper = new CatalogMapper()
+
+  function fakeSupplier(overrides: Record<string, unknown> = {}): Supplier {
+    return {
+      id: 's1',
+      name: 'Moulin',
+      type: 'producer',
+      producerCategories: { isInitialized: () => true, getItems: () => [] },
+      scheduleEnabled: false,
+      version: 1,
+      createdAt: new Date('2026-01-01T00:00:00Z'),
+      ...overrides,
+    } as unknown as Supplier
+  }
+
+  const flour = {
+    scheduleEnabled: true,
+    scheduleFrequency: 'monthly',
+    scheduleMonthWeek: 'first',
+    scheduleDistributionWeekday: 5,
+    scheduleSendingWeekday: 3,
+    scheduleSendingHour: 8,
+  }
+
+  it('shows the next distribution and sending moment of the flour schedule at a fixed now', () => {
+    const contract = mapper.toSupplier(fakeSupplier(flour), 0, new Date('2026-11-26T10:00:00Z'))
+
+    expect(contract.orderSchedule).toMatchObject({ enabled: true, frequency: 'monthly' })
+    expect(contract.nextOrder).toEqual({
+      distributionDay: '2026-12-04',
+      sendingAt: new Date('2026-12-02T07:00:00Z'),
+    })
+  })
+
+  it('has no next order when the schedule is off, even with values kept', () => {
+    const contract = mapper.toSupplier(
+      fakeSupplier({ ...flour, scheduleEnabled: false }),
+      0,
+      new Date('2026-11-26T10:00:00Z'),
+    )
+
+    expect(contract.nextOrder).toBeNull()
+    expect(contract.orderSchedule.frequency).toBe('monthly')
+  })
+
+  it('has no next order when the schedule is on but incomplete', () => {
+    const contract = mapper.toSupplier(
+      fakeSupplier({ ...flour, scheduleSendingHour: null }),
+      0,
+      new Date('2026-11-26T10:00:00Z'),
+    )
+
+    expect(contract.nextOrder).toBeNull()
   })
 })

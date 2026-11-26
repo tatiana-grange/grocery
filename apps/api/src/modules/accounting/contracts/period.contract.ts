@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { isCalendarDay } from '../period.util'
+import { isCalendarDay } from '../../../common/paris-time.util'
 
 /** A real calendar day written `YYYY-MM-DD`. Shared by the expense date and the period. */
 export const calendarDaySchema = z

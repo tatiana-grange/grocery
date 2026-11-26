@@ -80,3 +80,6 @@ apps/api/src/seeders/*.local.seeder.ts
 # Claude Code personal settings (the skills/ folder is shared and committed)
 .claude/settings.local.json
 .worktrees/
+
+# React Email preview build (apps/api, `pnpm --filter=api email:preview`)
+.react-email

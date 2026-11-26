@@ -12,6 +12,7 @@
   },
   "ignorePatterns": [
     "**/.react-router/**",
+    "**/.react-email/**",
     "**/*.gen.ts",
     "**/dist/**",
     "**/temp/**",

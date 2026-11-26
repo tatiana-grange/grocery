@@ -5,6 +5,18 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": false,
-    "builder": "swc"
+    "builder": {
+      "type": "swc",
+      "options": {
+        "extensions": [".js", ".ts", ".tsx"]
+      }
+    },
+    "assets": [
+      {
+        "include": "modules/email/templates/static/**/*",
+        "outDir": "dist"
+      }
+    ],
+    "watchAssets": true
   }
 }

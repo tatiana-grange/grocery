@@ -1,5 +1,5 @@
 import type { EntityManager } from '@mikro-orm/core'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 /**
  * E2E tests for the back-office purchasing endpoints (all `@AdminOnly()`): aggregation, the
  * supplier-order list/detail reads, and — added by later phases — send, receptions, and
@@ -11,7 +11,12 @@ import {
   createSessionFromUser,
   type TestRequest,
 } from '../../../test/helpers/test-auth.helper'
-import { createProductData, createSupplierData } from '../../catalog/catalog.factory'
+import {
+  createProductData,
+  createReferentData,
+  createSupplierData,
+} from '../../catalog/catalog.factory'
+import { EmailService } from '../../email/email.service'
 import { CatalogModule } from '../../catalog/catalog.module'
 import { InventoryModule } from '../../inventory/inventory.module'
 import { createMemberData } from '../../members/members.factory'
@@ -19,23 +24,31 @@ import { Member } from '../../members/entities/member.entity'
 import { OrderLine } from '../../orders/entities/order-line.entity'
 import { Order } from '../../orders/entities/order.entity'
 import { Product } from '../../catalog/entities/product.entity'
+import { Supplier } from '../../catalog/entities/supplier.entity'
 import { PurchasingModule } from '../purchasing.module'
 
 describe('purchasingController (e2e)', () => {
   let em: EntityManager
   let request: TestRequest
   let admin: ReturnType<typeof createSessionFromUser>
+  let sendEmail: ReturnType<typeof vi.fn>
+  let adminEmail: string
 
   beforeEach(async (context) => {
+    sendEmail = vi.fn().mockResolvedValue(undefined)
     const { orm, app } = await initializeTestApp(
       { orm: context.orm },
-      { imports: [PurchasingModule, InventoryModule, CatalogModule] },
+      {
+        imports: [PurchasingModule, InventoryModule, CatalogModule],
+        providers: [{ provide: EmailService, useValue: { sendEmail } }],
+      },
     )
     context.app = app
     em = orm.em.fork()
     request = createRequest(app)
+    adminEmail = `admin-${Math.random().toString(36).slice(2)}@example.com`
     const { user } = await createMemberData(em, {
-      user: { name: 'Admin', email: `admin-${Math.random().toString(36).slice(2)}@example.com` },
+      user: { name: 'Admin', email: adminEmail },
       roles: ['member', 'admin'],
       status: 'active',
     })
@@ -279,6 +292,130 @@ describe('purchasingController (e2e)', () => {
         .get(`/admin/purchasing/supplier-orders/${order.id}`)
       expect(original.body.status).toBe('sent')
       expect(original.body.lines).toHaveLength(2)
+    })
+  })
+
+  describe('send e-mails the supplier', () => {
+    const SUPPLIER_ADDRESS = 'commandes@fournisseur.example'
+    const orderMails = () =>
+      sendEmail.mock.calls
+        .map(([options]) => options)
+        .filter((options) => options.to === SUPPLIER_ADDRESS)
+    const alerts = () =>
+      sendEmail.mock.calls
+        .map(([options]) => options)
+        .filter((options) => String(options.subject).startsWith('Commande non envoyée'))
+
+    async function giveAddresses(
+      supplierId: string,
+      addresses: { supplier?: string; referent?: string; referentAccount?: string },
+    ) {
+      const supplier = await em.findOneOrFail(Supplier, { id: supplierId })
+      if (addresses.supplier) supplier.contactEmail = addresses.supplier
+      if (addresses.referent !== undefined || addresses.referentAccount) {
+        const referent = await createReferentData(em, { lastName: 'Grolleau' })
+        if (addresses.referent) referent.contactEmail = addresses.referent
+        if (addresses.referentAccount) {
+          const { user } = await createMemberData(em, {
+            user: { email: addresses.referentAccount },
+            status: 'active',
+          })
+          referent.user = user
+        }
+        supplier.referent = referent
+      }
+      await em.flush()
+    }
+
+    const send = (order: { id: string; version: number }) =>
+      request
+        .withSession(admin)
+        .post(`/admin/purchasing/supplier-orders/${order.id}/send`)
+        .send({ version: order.version })
+
+    it('manual-send-mails: mails the supplier, the referent in copy, with the export attached', async () => {
+      const { supplier, order } = await aggregateDraft()
+      await giveAddresses(supplier.id, {
+        supplier: SUPPLIER_ADDRESS,
+        referent: 'referent@fournisseur.example',
+      })
+
+      const res = await send(order)
+
+      expect(res.status).toBe(200)
+      expect(res.body.status).toBe('sent')
+      expect(res.body.sentMode).toBe('manual')
+      expect(res.body.sentTo).toBe(SUPPLIER_ADDRESS)
+      expect(orderMails()).toHaveLength(1)
+      const mail = orderMails()[0]
+      expect(mail.cc).toEqual(['referent@fournisseur.example'])
+      expect(mail.content).toContain('Carrots')
+      expect(mail.content).toContain('Apples')
+      const exported = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${order.id}/export`)
+      expect(mail.attachments).toEqual([
+        {
+          filename: exported.body.filename,
+          content: exported.body.content,
+          contentType: 'text/csv',
+        },
+      ])
+    })
+
+    it('copies the address of the referent account when the referent has no address of its own', async () => {
+      const { supplier, order } = await aggregateDraft()
+      await giveAddresses(supplier.id, {
+        supplier: SUPPLIER_ADDRESS,
+        referent: '',
+        referentAccount: 'compte-referent@example.com',
+      })
+
+      await send(order)
+
+      expect(orderMails()[0].cc).toEqual(['compte-referent@example.com'])
+    })
+
+    it('sends no copy when the referent has no address at all', async () => {
+      const { supplier, order } = await aggregateDraft()
+      await giveAddresses(supplier.id, { supplier: SUPPLIER_ADDRESS, referent: '' })
+
+      await send(order)
+
+      expect(orderMails()).toHaveLength(1)
+      expect(orderMails()[0].cc ?? []).toEqual([])
+    })
+
+    it('manual-send-without-address: marks the order sent, sentTo is null, no mail leaves', async () => {
+      const { order } = await aggregateDraft()
+
+      const res = await send(order)
+
+      expect(res.status).toBe(200)
+      expect(res.body.status).toBe('sent')
+      expect(res.body.sentMode).toBe('manual')
+      expect(res.body.sentTo ?? null).toBeNull()
+      expect(sendEmail).not.toHaveBeenCalled()
+    })
+
+    it('manual-failure-alert: a mail error answers 502, keeps the draft and alerts each admin once', async () => {
+      const { supplier, order } = await aggregateDraft()
+      await giveAddresses(supplier.id, { supplier: SUPPLIER_ADDRESS })
+      sendEmail.mockImplementation(async (options: { to: string }) => {
+        if (options.to === SUPPLIER_ADDRESS) throw new Error('Failed to send email: refused')
+      })
+
+      const res = await send(order)
+
+      expect(res.status).toBe(502)
+      expect(res.body.code).toBe('order_mail_failed')
+      const detail = await request
+        .withSession(admin)
+        .get(`/admin/purchasing/supplier-orders/${order.id}`)
+      expect(detail.body.status).toBe('draft')
+      expect(detail.body.sentAt ?? null).toBeNull()
+      expect(alerts()).toHaveLength(1)
+      expect(alerts()[0].to).toBe(adminEmail)
     })
   })
 

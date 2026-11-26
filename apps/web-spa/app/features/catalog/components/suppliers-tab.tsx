@@ -1,17 +1,5 @@
-import type { CatalogSupplier as Supplier } from '@grocery/openapi-generator/client/types.gen'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@grocery/ui/components/primitives/dialog'
-import { Input } from '@grocery/ui/components/primitives/input'
-import { SegmentedControl } from '@grocery/ui/components/primitives/segmented-control'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import {
@@ -23,17 +11,17 @@ import {
   TableRow,
 } from '@grocery/ui/components/primitives/table'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { aggregateSupplierPreOrders } from '@/features/admin-purchasing/utils/purchasing-queries'
 import {
   archiveSupplier,
-  createSupplier,
   suppliersQueryOptions,
   unarchiveSupplier,
-  updateSupplier,
 } from '@/features/catalog/utils/catalog-queries'
+import { NextOrderLine } from '@/features/catalog/components/next-order-line'
+import { SupplierDialog } from '@/features/catalog/components/supplier-dialog'
+import { SupplierScheduleDialog } from '@/features/catalog/components/supplier-schedule-dialog'
 import { BackOfficeStatusBadge } from '@/features/common/components/back-office-status-badge'
 import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
 import { isConflict } from '@/features/common/lib/api-error'
@@ -101,13 +89,14 @@ export function SuppliersTab() {
               <TableHead>{t('catalog.suppliers.name')}</TableHead>
               <TableHead>{t('catalog.suppliers.type')}</TableHead>
               <TableHead>{t('catalog.suppliers.products')}</TableHead>
+              <TableHead>{t('catalog.suppliers.nextOrder')}</TableHead>
               <TableHead className="w-0" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={5}>
                   <Skeleton className="h-5 w-full" />
                 </TableCell>
               </TableRow>
@@ -132,9 +121,15 @@ export function SuppliersTab() {
                   </Badge>
                 </TableCell>
                 <TableCell>{supplier.productCount}</TableCell>
+                <TableCell data-testid="supplier-next-order">
+                  {supplier.nextOrder ? <NextOrderLine nextOrder={supplier.nextOrder} /> : '—'}
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-2">
                     <SupplierDialog supplier={supplier} onSaved={invalidate} />
+                    {!supplier.archivedAt && (
+                      <SupplierScheduleDialog supplier={supplier} onSaved={invalidate} />
+                    )}
                     {!supplier.archivedAt && (
                       <Button
                         variant="outline"
@@ -173,73 +168,5 @@ export function SuppliersTab() {
         </Table>
       </BackOfficeTableFrame>
     </div>
-  )
-}
-
-function SupplierDialog({ supplier, onSaved }: { supplier?: Supplier; onSaved: () => void }) {
-  const { t } = useTranslation()
-  const [name, setName] = useState(supplier?.name ?? '')
-  const [type, setType] = useState<'producer' | 'wholesaler'>(supplier?.type ?? 'producer')
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      supplier
-        ? updateSupplier(supplier.id, { name, type, version: supplier.version })
-        : createSupplier({ name, type }),
-    onSuccess: () => {
-      toast.success(t('catalog.toasts.saved'))
-      onSaved()
-    },
-    onError: () => toast.error(t('catalog.toasts.error')),
-  })
-
-  return (
-    <Dialog>
-      <DialogTrigger
-        render={
-          <Button
-            variant={supplier ? 'outline' : 'default'}
-            size="sm"
-            data-testid={supplier ? 'supplier-edit' : 'supplier-new'}
-          />
-        }
-      >
-        {supplier ? t('catalog.edit') : t('catalog.suppliers.new')}
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {supplier ? t('catalog.suppliers.edit') : t('catalog.suppliers.new')}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <Input
-            data-testid="supplier-name"
-            placeholder={t('catalog.suppliers.name')}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-          <SegmentedControl
-            value={type}
-            onChange={setType}
-            options={(['producer', 'wholesaler'] as const).map((option) => ({
-              value: option,
-              label: t(`catalog.supplierType.${option}`),
-              testId: `supplier-type-${option}`,
-            }))}
-          />
-        </div>
-        <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
-          <DialogClose
-            render={<Button data-testid="supplier-save" />}
-            disabled={!name.trim() || mutation.isPending}
-            onClick={() => mutation.mutate()}
-          >
-            {t('catalog.save')}
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }

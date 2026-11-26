@@ -6,6 +6,7 @@ import {
   quantityStepGramsFor,
   selectionUnitFor,
 } from './catalog.util'
+import { readOrderScheduleRule, nextDistribution } from './order-schedule.util'
 import type { Category as CategoryContract } from './contracts/category.contract'
 import type { PriceWindow } from './contracts/product-price.contract'
 import type {
@@ -35,7 +36,9 @@ import type { ProductsListResult, ShopCategoryEntry } from './catalog.service'
 
 @Injectable()
 export class CatalogMapper {
-  toSupplier(supplier: Supplier, productCount: number): SupplierContract {
+  toSupplier(supplier: Supplier, productCount: number, now = new Date()): SupplierContract {
+    const rule = supplier.scheduleEnabled ? readOrderScheduleRule(supplier) : null
+    const next = rule ? nextDistribution(rule, now) : null
     return {
       id: supplier.id,
       name: supplier.name,
@@ -58,6 +61,16 @@ export class CatalogMapper {
             name: category.name,
           }))
         : [],
+      orderSchedule: {
+        enabled: supplier.scheduleEnabled,
+        frequency: supplier.scheduleFrequency ?? null,
+        weekParity: supplier.scheduleWeekParity ?? null,
+        monthWeek: supplier.scheduleMonthWeek ?? null,
+        distributionWeekday: supplier.scheduleDistributionWeekday ?? null,
+        sendingWeekday: supplier.scheduleSendingWeekday ?? null,
+        sendingHour: supplier.scheduleSendingHour ?? null,
+      },
+      nextOrder: next ? { distributionDay: next.distributionDay, sendingAt: next.sendingAt } : null,
       archivedAt: supplier.archivedAt ?? null,
       productCount,
       version: supplier.version,

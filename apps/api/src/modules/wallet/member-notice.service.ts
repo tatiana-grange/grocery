@@ -1,18 +1,21 @@
 import { EntityManager } from '@mikro-orm/core'
 import { Injectable, Logger } from '@nestjs/common'
-import { User } from '../auth/auth.entity'
+import type { RenderedEmail } from '../email/email-render'
+import {
+  renderNegativeBalanceAdminEmail,
+  renderNegativeBalanceMemberEmail,
+  renderUnderpaidTopupAdminEmail,
+} from '../email/email-templates'
 import { EmailService } from '../email/email.service'
 import { Member } from '../members/entities/member.entity'
-import { PHONE_EMAIL_DOMAIN, parseRoles } from '../members/members.util'
+import { findAdminAddresses, realAddress } from '../members/admin-addresses'
 
 type Recipient = 'admin' | 'member'
 
 interface Notice {
   recipient: Recipient
   to: string
-  subject: string
-  content: string
-  html: string
+  mail: RenderedEmail
 }
 
 /**
@@ -33,11 +36,13 @@ export class MemberNoticeService {
   async notifyNegativeBalance(memberId: string, balanceCents: number): Promise<void> {
     await this.run('Negative balance notice', memberId, async (member) => [
       ...(await this.adminNotices(
-        `Solde négatif : ${member.user.name}`,
-        `${member.user.name} (adhérent n° ${member.membershipNumber}) a un solde négatif : ` +
-          `${formatEuros(balanceCents)}.`,
+        await renderNegativeBalanceAdminEmail({
+          memberName: member.user.name,
+          membershipNumber: member.membershipNumber,
+          balanceCents,
+        }),
       )),
-      ...this.memberNotices(member),
+      ...(await this.memberNotices(member)),
     ])
   }
 
@@ -54,12 +59,13 @@ export class MemberNoticeService {
   }): Promise<void> {
     await this.run(`Underpaid top-up ${input.topupId} notice`, input.memberId, async (member) =>
       this.adminNotices(
-        `Paiement incomplet : ${member.user.name}`,
-        `${member.user.name} (adhérent n° ${member.membershipNumber}) a payé ` +
-          `${formatEuros(input.paidCents)} pour un rechargement de ` +
-          `${formatEuros(input.requestedCents)}. Rien n'a été crédité et le rechargement reste ` +
-          `en attente (${input.topupId}). Il faut le suivre avec le payeur et dans l'espace ` +
-          `HelloAsso.`,
+        await renderUnderpaidTopupAdminEmail({
+          memberName: member.user.name,
+          membershipNumber: member.membershipNumber,
+          requestedCents: input.requestedCents,
+          paidCents: input.paidCents,
+          topupId: input.topupId,
+        }),
       ),
     )
   }
@@ -81,9 +87,9 @@ export class MemberNoticeService {
         notices.map((notice) =>
           this.email.sendEmail({
             to: notice.to,
-            subject: notice.subject,
-            content: notice.content,
-            html: notice.html,
+            subject: notice.mail.subject,
+            content: notice.mail.text,
+            html: notice.mail.html,
           }),
         ),
       )
@@ -103,58 +109,20 @@ export class MemberNoticeService {
     }
   }
 
-  private memberNotices(member: Member): Notice[] {
+  private async memberNotices(member: Member): Promise<Notice[]> {
     const to = realAddress(member.user)
     if (!to) {
       this.logger.log(`Notice: member ${member.id} has no e-mail address, no mail sent`)
       return []
     }
-    const content =
-      `Bonjour ${member.user.name}, il y a un problème sur votre compte. ` +
-      `Vos achats sont suspendus pour le moment. Vous pouvez recharger votre compte ` +
-      `ou contacter la coopérative.`
-    return [
-      {
-        recipient: 'member',
-        to,
-        subject: 'Un problème sur votre compte',
-        content,
-        html: `<p>${escapeHtml(content)}</p>`,
-      },
-    ]
+    const mail = await renderNegativeBalanceMemberEmail({ name: member.user.name })
+    return [{ recipient: 'member', to, mail }]
   }
 
-  private async adminNotices(subject: string, content: string): Promise<Notice[]> {
-    const users = await this.em.find(User, { banned: false, role: { $like: '%admin%' } })
-    const notices: Notice[] = []
-    for (const user of users) {
-      if (!parseRoles(user.role).includes('admin')) continue
-      const to = realAddress(user)
-      if (!to) {
-        this.logger.log(`Notice: admin ${user.id} has no e-mail address, skipped`)
-        continue
-      }
-      notices.push({
-        recipient: 'admin',
-        to,
-        subject,
-        content,
-        html: `<p>${escapeHtml(content)}</p>`,
-      })
-    }
-    return notices
+  private async adminNotices(mail: RenderedEmail): Promise<Notice[]> {
+    const addresses = await findAdminAddresses(this.em, (user) =>
+      this.logger.log(`Notice: admin ${user.id} has no e-mail address, skipped`),
+    )
+    return addresses.map((to) => ({ recipient: 'admin', to, mail }))
   }
-}
-
-/** The address of a user, or null for the synthesised address of a phone-only account. */
-function realAddress(user: User): string | null {
-  return user.email && !user.email.endsWith(`@${PHONE_EMAIL_DOMAIN}`) ? user.email : null
-}
-
-function formatEuros(cents: number): string {
-  return `${(cents / 100).toFixed(2).replace('.', ',')} €`
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }

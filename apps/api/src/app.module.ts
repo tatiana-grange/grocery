@@ -3,6 +3,7 @@ import { OpenTelemetryModule } from '@amplication/opentelemetry-nestjs'
 import { Module } from '@nestjs/common'
 import { ConfigModule as NestConfigModule } from '@nestjs/config'
 import { APP_FILTER } from '@nestjs/core'
+import { ScheduleModule } from '@nestjs/schedule'
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup'
 import { LoggerModule } from 'nestjs-pino'
 import { AppController } from './app.controller'
@@ -99,6 +100,8 @@ interface ExpressResponse extends ServerResponse<IncomingMessage> {
         },
       },
     }),
+    // The only user of `@nestjs/schedule`: the automatic supplier order run.
+    ScheduleModule.forRoot(),
     DbModule,
     AuthModule,
     EmailModule,

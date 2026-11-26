@@ -21,7 +21,7 @@ import {
   type StatusTone,
 } from '@/features/common/components/back-office-status-badge'
 import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
-import { handleMutationError } from '@/features/common/lib/api-error'
+import { handleMutationError, refusalMessage } from '@/features/common/lib/api-error'
 import {
   closeSupplierOrder,
   downloadSupplierOrderExport,
@@ -52,15 +52,23 @@ export default function SupplierOrderDetailPage() {
 
   const send = useMutation({
     mutationFn: (version: number) => sendSupplierOrder(id, version),
-    onSuccess: () => {
-      toast.success(t('purchasing.send.done'))
+    onSuccess: (sent) => {
+      toast.success(
+        sent.sentTo
+          ? t('purchasing.send.doneSentTo', { address: sent.sentTo })
+          : t('purchasing.send.doneNoMail'),
+      )
       void queryClient.invalidateQueries({ queryKey: ['admin-purchasing'] })
     },
-    onError: (error) =>
-      handleMutationError(error, toast.error, {
-        conflict: t('purchasing.send.alreadySent'),
-        fallback: t('purchasing.send.alreadySent'),
-      }),
+    onError: (error) => {
+      const refused = refusalMessage(error, { order_mail_failed: t('purchasing.send.mailFailed') })
+      if (refused) toast.error(refused)
+      else
+        handleMutationError(error, toast.error, {
+          conflict: t('purchasing.send.alreadySent'),
+          fallback: t('purchasing.send.alreadySent'),
+        })
+    },
   })
 
   const close = useMutation({
@@ -143,6 +151,14 @@ export default function SupplierOrderDetailPage() {
           </>
         }
       />
+
+      {order.sentMode && (
+        <p className="text-base text-muted-foreground" data-testid="supplier-order-sent-how">
+          {t(`purchasing.sentHow.${order.sentMode}${order.sentTo ? 'To' : 'NoMail'}`, {
+            address: order.sentTo ?? '',
+          })}
+        </p>
+      )}
 
       {skippedLines.length > 0 && (
         <div

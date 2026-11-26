@@ -32,6 +32,7 @@ import type {
 import type {
   CreateSupplierInput,
   SupplierFiltering,
+  SupplierOrderSchedule,
   SupplierPagination,
   UpdateSupplierInput,
 } from './contracts/supplier.contract'
@@ -115,9 +116,10 @@ export class CatalogService {
   }
 
   async createSupplier(input: CreateSupplierInput): Promise<Supplier> {
-    const { referentId, producerCategoryIds, ...rest } = this.stripNullish(input)
+    const { referentId, producerCategoryIds, orderSchedule, ...rest } = this.stripNullish(input)
     const supplier = new Supplier()
     wrap(supplier).assign(rest)
+    if (orderSchedule) this.applyOrderSchedule(supplier, orderSchedule, new Date())
     if (referentId) supplier.referent = this.em.getReference(Referent, referentId)
     if (producerCategoryIds && producerCategoryIds.length > 0) {
       supplier.producerCategories.set(
@@ -134,8 +136,18 @@ export class CatalogService {
   async updateSupplier(id: string, input: UpdateSupplierInput): Promise<Supplier> {
     const supplier = await this.getSupplier(id)
     this.assertVersion(supplier.version, input.version)
-    const { version: _version, referentId, producerCategoryIds, ...rest } = input
+    const {
+      version: _version,
+      referentId,
+      producerCategoryIds,
+      orderSchedule,
+      contactEmail,
+      ...rest
+    } = input
     wrap(supplier).assign(this.stripNullish(rest))
+    // `null` clears the address; leaving the field out keeps it.
+    if (contactEmail !== undefined) supplier.contactEmail = contactEmail ?? undefined
+    if (orderSchedule) this.applyOrderSchedule(supplier, orderSchedule, new Date())
     if (referentId !== undefined) {
       supplier.referent = referentId ? this.em.getReference(Referent, referentId) : undefined
     }
@@ -704,6 +716,43 @@ export class CatalogService {
     if (actual !== sent) {
       throw new ConflictException('This record changed since you opened it — reload and try again')
     }
+  }
+
+  /**
+   * Copies the schedule onto the supplier. `scheduleActiveSince` moves to `now` when the schedule
+   * goes from off to on, or when it stays on and one rule field changes, so a sending moment that
+   * came before the change is never run or alerted. `scheduleHandledDay` is never written here.
+   */
+  private applyOrderSchedule(supplier: Supplier, schedule: SupplierOrderSchedule, now: Date): void {
+    const before = {
+      frequency: supplier.scheduleFrequency ?? null,
+      weekParity: supplier.scheduleWeekParity ?? null,
+      monthWeek: supplier.scheduleMonthWeek ?? null,
+      distributionWeekday: supplier.scheduleDistributionWeekday ?? null,
+      sendingWeekday: supplier.scheduleSendingWeekday ?? null,
+      sendingHour: supplier.scheduleSendingHour ?? null,
+    }
+    const after = {
+      frequency: schedule.frequency ?? null,
+      weekParity: schedule.weekParity ?? null,
+      monthWeek: schedule.monthWeek ?? null,
+      distributionWeekday: schedule.distributionWeekday ?? null,
+      sendingWeekday: schedule.sendingWeekday ?? null,
+      sendingHour: schedule.sendingHour ?? null,
+    }
+    const ruleChanged = (Object.keys(after) as Array<keyof typeof after>).some(
+      (key) => after[key] !== before[key],
+    )
+    if (schedule.enabled && (!supplier.scheduleEnabled || ruleChanged)) {
+      supplier.scheduleActiveSince = now
+    }
+    supplier.scheduleEnabled = schedule.enabled
+    supplier.scheduleFrequency = after.frequency ?? undefined
+    supplier.scheduleWeekParity = after.weekParity ?? undefined
+    supplier.scheduleMonthWeek = after.monthWeek ?? undefined
+    supplier.scheduleDistributionWeekday = after.distributionWeekday ?? undefined
+    supplier.scheduleSendingWeekday = after.sendingWeekday ?? undefined
+    supplier.scheduleSendingHour = after.sendingHour ?? undefined
   }
 
   private stripNullish<T extends Record<string, unknown>>(input: T): Partial<T> {
