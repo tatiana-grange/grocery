@@ -3,7 +3,7 @@
 Created by the Mason at the plan step, 2026-11-26. Spec:
 `project-management/tasks/20261126-1519-email-templates.spec.md`.
 
-**Plan:** waiting for the Architect's reading.
+**Plan:** approved by the Architect on 2026-11-26, with the rulings under "Rulings at the reading".
 
 ## Program Design
 
@@ -374,3 +374,14 @@ line in the worklog, then the production files.
   are skipped.
 
 ## Diff-Review Findings
+
+## Rulings at the reading (Architect, 2026-11-26)
+
+- **Logo and the supplier order browser test (human's word):** the supplier order mail is sent
+  without the logo; its CSV stays the only attachment and `admin-purchasing-send-mail.spec.ts`
+  is not edited. Every other HTML mail carries the logo. The spec's `logo` criterion is amended.
+- **Membership SMS (human's word):** the four membership SMS turn French in this task, with the
+  short form of the French mail sentences. The spec's scope and `all-french` are amended. Drop
+  the helper that kept the English SMS text.
+- **Logo location:** option (a). The Architect moved the file to
+  `apps/api/src/modules/email/templates/static/logo.jpg` so the preview shows it.
