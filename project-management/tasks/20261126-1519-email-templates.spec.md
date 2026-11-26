@@ -1,6 +1,6 @@
 # E-mail templates: one shared layout, every mail in French
 
-**Status:** draft
+**Status:** in-progress — approved by the human on 2026-11-26 (name and logo given); Mason launched the same day
 
 ---
 
@@ -26,8 +26,8 @@ This task starts after the automatic supplier orders task
 
 **Included:**
 
-- React Email in the API, with one shared layout: the cooperative's name in the header, the
-  market look's colours, a footer saying who sent it and that the mail is automatic.
+- React Email in the API, with one shared layout: the cooperative's logo and name
+  (Lay'picerie) in the header, the market look's colours, a footer saying who sent it and that the mail is automatic.
 - Every mail the API sends today rewritten on that layout, in French:
   - account: e-mail verification, password reset (`auth.module.ts`, English today);
   - membership: approved, rejected, ended, reactivated (`members.service.ts`, English today);
@@ -41,8 +41,6 @@ This task starts after the automatic supplier orders task
 
 **Not Included:**
 
-- A logo or images: the cooperative has none in the repo today. The layout leaves a place for
-  one, filled when the human gives it.
 - Templates edited by admins from the app.
 - Any change to who receives which mail, or when.
 - The SMS texts.
@@ -60,7 +58,10 @@ This task starts after the automatic supplier orders task
 - [ ] **links-kept** — The verification and reset mails still carry their working link; the
   existing auth tests and browser tests that read those mails in MailDev stay green.
 - [ ] **cooperative-name** — The header and the sender name show the cooperative's name from
-  the setting.
+  the setting, "Lay'picerie" by default.
+- [ ] **logo** — Every HTML mail shows the logo in its header, embedded in the mail itself (an
+  inline attachment referenced by `cid:`), so it shows without loading anything from the web.
+  The text version does not carry it.
 - [ ] **preview** — One documented command opens every template in the browser.
 - [ ] **csv-unchanged** — The supplier order mail still attaches the same CSV, byte for byte.
 - [ ] **suite-green** — lint, typecheck, API tests, build and the browser suite pass.
@@ -123,7 +124,11 @@ variables, so the values are written in the layout, with a comment naming their 
 
 ## Notes
 
-- 2026-11-26, Architect: open for the human, the cooperative's exact name as it should appear
-  in the mails, and a logo if there is one.
+- 2026-11-26, human: the name is "Lay'picerie". The logo is the association's own
+  ("A Lay'picerie, épicerie associative & participative"). The Architect cropped it square and
+  resized it to 480 × 480 for mails: `apps/api/src/modules/email/assets/logo.jpg` (48 KB). The
+  layout shows it at about 120 px wide. It is sent as an inline attachment because Gmail
+  blocks images written into the HTML as data, and the app has no public address to host it
+  yet.
 
 ## Retrospective
