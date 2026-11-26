@@ -1,6 +1,6 @@
 # Send supplier orders automatically, on each supplier's rhythm
 
-**Status:** draft
+**Status:** ready — approved by the human on 2026-11-26, with the failure alert added
 
 ---
 
@@ -95,7 +95,11 @@ Decisions taken by the human on 2026-11-26:
   it comes back, as long as the distribution has not started. After that, nothing is sent and
   the admins are alerted.
 - [ ] **auto-failure-alert** — No supplier address, or an e-mail error: the order stays a draft
-  and every admin gets one alert naming the supplier and the reason.
+  and every admin gets one alert e-mail naming the supplier, the order and the reason. A failed
+  send is never retried on its own; this alert is how the admins learn they must resend it.
+  (Human, 2026-11-26.)
+- [ ] **manual-failure-alert** — A manual "Send" whose e-mail fails also sends that alert to
+  every admin, besides the error on screen. (Human, 2026-11-26.)
 - [ ] **admin-summary** — After each automatic send, the admins get one e-mail naming the
   supplier, the distribution date and the number of lines.
 - [ ] **sent-how-shown** — The order detail shows "sent by hand" or "sent automatically", and
@@ -216,5 +220,8 @@ Job tick (every few minutes) ──► Automatic run ─────────
   failed Pinier and Bertrand orders). The human set the rhythm model, the meaning of "send"
   and the fully automatic run in this session; the even and odd weeks were added by the
   human the same day.
+- 2026-11-26, Architect: when the mail server itself is down, the alert cannot leave either.
+  The run then logs the failure as an error, and the order stays a draft, visible in the list.
+  The human asked that every failed send, automatic or manual, alert every admin by e-mail.
 
 ## Retrospective
