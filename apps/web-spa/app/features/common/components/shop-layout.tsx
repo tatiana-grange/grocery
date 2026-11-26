@@ -7,7 +7,7 @@ import { MemberShell } from '@/features/common/components/member-shell'
  */
 export default function ShopLayout() {
   return (
-    <MemberShell contentClassName="max-w-5xl">
+    <MemberShell contentClassName="max-w-7xl">
       <Outlet />
     </MemberShell>
   )

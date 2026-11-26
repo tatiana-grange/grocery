@@ -26,7 +26,7 @@ export function QuickAddToCart({ product }: { product: ShopProduct }) {
     return (
       <Button
         variant="outline"
-        className="h-auto min-h-12 w-full text-center whitespace-normal"
+        className="h-auto min-h-12 w-full px-3 text-center text-sm whitespace-normal"
         render={<Link to={`/shop/products/${product.id}`} />}
       >
         {t('shop.quickAdd.chooseOptions')}

@@ -6,7 +6,7 @@ import { MemberTabBar } from '@/features/common/components/member-tab-bar'
 import { SiteHeader } from '@/features/common/components/site-header'
 
 interface MemberShellProps {
-  /** The width of the page: `max-w-5xl` for the shop, `max-w-3xl` for the member area. */
+  /** The width of the page: `max-w-7xl` for the shop, `max-w-5xl` for the member area. */
   contentClassName: string
   children: ReactNode
 }

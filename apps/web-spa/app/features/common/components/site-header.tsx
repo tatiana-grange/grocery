@@ -1,8 +1,8 @@
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
-import { CalendarDays, LogIn, LogOut, ShieldCheck, ShoppingCart, User } from 'lucide-react'
+import { CalendarDays, LogIn, LogOut, ShieldCheck, ShoppingCart, Store, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { AppSettingsMenu } from '@/features/common/components/app-settings-menu'
 import { useCartCount } from '@/features/cart/hooks/use-cart-count'
 import { PhoneMenu } from '@/features/common/components/phone-menu'
@@ -12,14 +12,24 @@ import { authClient } from '@/lib/auth-client'
 /**
  * The one top bar for the shop and the member area. Both shells render it so the same
  * controls stay in the same order whether you are browsing the catalogue or reading your
- * cart: settings, cart, back office for admins, account and sign-out once signed in.
+ * cart: settings, shop, cart, back office for admins, account and sign-out once signed in.
+ * The link of the current page carries `aria-current="page"` and keeps its hover look.
  */
+const CURRENT_PAGE_CLASS =
+  'aria-[current=page]:bg-muted aria-[current=page]:text-foreground dark:aria-[current=page]:bg-muted/50'
+
 export function SiteHeader() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: sessionData } = authClient.useSession()
   const { isAdmin } = useRoles()
   const cartCount = useCartCount()
+  const { pathname } = useLocation()
+
+  const currentPage = (path: string): { 'aria-current'?: 'page'; className: string } => ({
+    'aria-current': pathname === path || pathname.startsWith(`${path}/`) ? 'page' : undefined,
+    className: CURRENT_PAGE_CLASS,
+  })
 
   const handleLogout = async () => {
     await authClient.signOut()
@@ -42,7 +52,18 @@ export function SiteHeader() {
         <Button
           variant="ghost"
           size="sm"
+          data-testid="site-nav-shop"
+          {...currentPage('/shop')}
+          render={<Link to="/shop" />}
+        >
+          <Store className="size-5" />
+          {t('shop.nav.shop')}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           data-testid="site-nav-cart"
+          {...currentPage('/cart')}
           // Signed-out visitors hit MemberAreaLayout's own redirect-to-login guard for `/cart`,
           // which carries no return path — send them through the login page's `redirect` param
           // instead, matching AddToCartForm's sign-in prompt.
@@ -73,6 +94,7 @@ export function SiteHeader() {
               variant="ghost"
               size="sm"
               data-testid="site-nav-participation"
+              {...currentPage('/participation')}
               render={<Link to="/participation" />}
             >
               <CalendarDays className="size-5" />
@@ -82,6 +104,7 @@ export function SiteHeader() {
               variant="ghost"
               size="sm"
               data-testid="site-nav-account"
+              {...currentPage('/account')}
               render={<Link to="/account" />}
             >
               <User className="size-5" />

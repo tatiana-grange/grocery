@@ -275,6 +275,26 @@ test.describe('ordinateur et tablette', () => {
         await expect(link).toHaveText(/\S/)
       }
     })
+
+    test('le lien de la page en cours est marqué, et la boutique a le sien', async ({ page }) => {
+      const pages = [
+        { path: '/shop', id: 'site-nav-shop' },
+        { path: '/cart', id: 'site-nav-cart' },
+        { path: '/participation', id: 'site-nav-participation' },
+        { path: '/account', id: 'site-nav-account' },
+      ]
+      for (const current of pages) {
+        await page.goto(current.path)
+        for (const other of pages) {
+          const link = page.getByTestId(other.id)
+          if (other.id === current.id) {
+            await expect(link).toHaveAttribute('aria-current', 'page')
+          } else {
+            await expect(link).not.toHaveAttribute('aria-current', 'page')
+          }
+        }
+      }
+    })
   })
 
   test.describe('visiteur à 1440 px', () => {

@@ -24,8 +24,8 @@ const SORT_OPTIONS = [
 ]
 
 const LAYOUT_BY_VIEW = {
-  large: 'grid grid-cols-2 gap-4 sm:grid-cols-3',
-  compact: 'grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5',
+  large: 'grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4',
+  compact: 'grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
   list: 'flex flex-col gap-2',
 } as const
 

@@ -66,7 +66,7 @@ export function ProductCard({
     <Card
       data-testid={`shop-product-card-${product.id}`}
       size={compact ? 'sm' : 'default'}
-      className="h-full overflow-hidden [--card-spacing:--spacing(3)] sm:[--card-spacing:--spacing(5)]"
+      className="h-full overflow-hidden [--card-spacing:--spacing(3)] sm:[--card-spacing:--spacing(4)]"
     >
       <Link
         to={`/shop/products/${product.id}`}
@@ -98,7 +98,10 @@ export function ProductCard({
         <span className={cn('font-serif font-bold italic', compact ? 'text-lg' : 'text-xl')}>
           {price}
         </span>
-        <StockNotice product={product} />
+        {/* The stock line keeps its height when empty, so prices and buttons line up across cards. */}
+        <div className="min-h-6">
+          <StockNotice product={product} />
+        </div>
         <QuickAddToCart product={product} />
       </CardFooter>
     </Card>

@@ -17,7 +17,7 @@ export default function MemberAreaLayout() {
   }
 
   return (
-    <MemberShell contentClassName="max-w-3xl">
+    <MemberShell contentClassName="max-w-5xl">
       <Outlet />
     </MemberShell>
   )
