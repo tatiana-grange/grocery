@@ -52,28 +52,28 @@ on a desktop. The link is private to the project owner.
 ## Acceptance Criteria
 
 - [x] **market-palette** — in light mode, the colour variables of
-  `packages/ui/src/styles/globals.css` give: cream background `#F7F1E3`, ink-brown text `#2B241C`,
-  sage primary `#4E6B4A`, squash warning `#B4541A`, and the straw `#E9C46A`, kraft `#D9C3A0` and slate
-  `#2F3A33` tones. No Citrus value is left.
+      `packages/ui/src/styles/globals.css` give: cream background `#F7F1E3`, ink-brown text `#2B241C`,
+      sage primary `#4E6B4A`, squash warning `#B4541A`, and the straw `#E9C46A`, kraft `#D9C3A0` and slate
+      `#2F3A33` tones. No Citrus value is left.
 - [x] **market-fonts** — headings use Lora and everything else uses Onest. Host Grotesk is no longer
-  imported.
+      imported.
 - [x] **readable-text** — body text is at least 18 px; no interface text is below 14 px.
 - [x] **no-forced-capitals** — no `uppercase` class in `apps/web-spa/app` or `packages/ui/src`.
 - [x] **touch-targets** — buttons, action links and tabs are at least 44 px high.
 - [x] **contrast-aa** — every text-on-background pair of the theme reaches a contrast of at least
-  4.5:1.
+      4.5:1.
 - [x] **icon-with-label** — no navigation or main action button shows an icon alone; a visible label
-  goes with it.
+      goes with it.
 - [x] **mobile-tab-bar** — below 768 px wide, the member space shows a tab bar fixed at the bottom
-  (Shop, Cart, Participation, My account); above it, the navigation is at the top.
+      (Shop, Cart, Participation, My account); above it, the navigation is at the top.
 - [x] **evening-mode** — the dark mode stays, with its existing toggle: a slate background, cream
-  text, and the same sage and squash action colours, each pair at 4.5:1 or more.
+      text, and the same sage and squash action colours, each pair at 4.5:1 or more.
 - [x] **shop-grid-default** — on phones the shop still opens in the grid view; each product card's add
-  button shows the word "Add" ("Ajouter"), not an icon alone.
+      button shows the word "Add" ("Ajouter"), not an icon alone.
 - [x] **distribution-search-visible** — on the distribution table, the "Find a member" field stays
-  visible while a member's page is open.
+      visible while a member's page is open.
 - [x] **i18n-intact** — no hard-coded text is added; every new translation key exists in French and
-  English.
+      English.
 - [x] **e2e-green** — `pnpm e2e` passes with no existing test edited, skipped or deleted.
 - [x] **suite-green** — `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass.
 
