@@ -169,10 +169,17 @@ which carries a title on each button (slice 02 notes).
 **Left open.**
 
 - The shared toasts are 13 px, with colours from outside the theme. Fixing them needs
-  `packages/ui` (slice 03 work document).
-- The place of the balance block on the member page (slice 03 work document).
+  `packages/ui` (slice 03 work document). Now part of task `20261126-1135-market-styles-in-packages-ui`.
+- ~~The place of the balance block on the member page (slice 03 work document).~~ Ruled
+  2026-11-26: it stays beside the name; slice 03's `member-pane` criterion is amended to match.
 - Before-and-after screenshots were not posted on the pull request.
-- Retro proposals wait for their owners: six in slice 02, four in slice 03, six in slice 04.
+- ~~Retro proposals wait for their owners: six in slice 02, four in slice 03, six in slice 04.~~
+  Ruled by the human on 2026-11-26:
+  - applied to `AGENTS.md` and the guides: 02-2, 02-4, 02-5, 02-6, 04-4, 04-5 and 04-6;
+  - drafted as task `20261126-1135-market-styles-in-packages-ui`: 03-1, with the toasts;
+  - drafted as task `20261126-1135-e2e-tooling-for-parallel-work`: 02-1, 02-3, 03-2, 03-3, 04-1,
+    04-2 and 04-3;
+  - watched only: 03-4, the stock test "received twice".
 
 **One lesson from the merge.** The repository squashed with "commit messages" instead of "pull
 request title and description", so the squash commits of PR #23 and PR #24 carry the raw list of
