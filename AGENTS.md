@@ -90,7 +90,17 @@ the chisel block, because `chisel update` rewrites the block and the files chise
   disposable E2E stack (see `apps/documentation/src/content/docs/guides/web-spa-e2e.mdx`, "Manual
   checks on the E2E stack").
 - **Known flaky tests.** Wallet and distribution tests sometimes fail in a full `pnpm test` run and
-  pass alone. Rerun once and say so in the report. Do not hide it, and do not edit the test.
+  pass alone. So does the accounting period browser test (`accounting.spec.ts`, the period picker
+  under load) until its own task fixes the race. Rerun once and say so in the report. Do not hide
+  it, and do not edit the test.
+- **Prove the red at once.** As soon as a step's first failing test has run red, the Typist writes
+  the red log's name and its error line in the worklog, before any production file. On a long step,
+  commit the test file with that line. After a stop, file times are no proof of the order.
+- **Editing files.** Use the editing tools or a short Python script. `sed -i ''` fails on this
+  machine, where the `sed` on the path is GNU.
+- **Mockup numbers in the slice spec.** The reference canvas is private to the project owner, so
+  agents cannot open it. A slice spec copies the numbers it needs from the mockup: sizes, colours,
+  and which action is primary.
 
 <!-- chisel:begin -->
 <!--

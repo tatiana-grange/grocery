@@ -3,6 +3,17 @@
 Project history, newest first. Written by hand, one dated entry per
 task — never generated.
 
+## 2026-11-26
+
+- UI redesign "neighbourhood market": closed. PR #24 brought the four slices to `staging` in one
+  squash, together with lot 7 (accounting and exports), which the branch was built on. Slices 03
+  and 04 were merged into the parent branch first, with one conflict in this journal; on the merged
+  branch 886 unit and API tests and 235 browser tests passed. The spec and its slice folder move to
+  the archive. Left open: the 13 px toasts, the place of the balance block, the before-and-after
+  screenshots, and the slices' retro proposals. The squash of PR #23 and PR #24 used the raw commit
+  list as the body, because the repository was set to "commit messages"; it is now set to the pull
+  request title and description, and both pull requests carry a `BEGIN_COMMIT_OVERRIDE` block.
+
 ## 2026-11-25
 
 - UI redesign "neighbourhood market", slice 03, distribution table: built and reviewed on

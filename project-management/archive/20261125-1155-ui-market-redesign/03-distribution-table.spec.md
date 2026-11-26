@@ -26,10 +26,16 @@ canvas the parent spec links.
 - [x] **one-search** — the search field and its results exist once on the page. They keep their
       `data-testid` values (`distribution-member-search`, `distribution-search-results`,
       `distribution-search-empty`, and the rest). No locator matches two elements.
-- [x] **member-pane** — a member's page shows, from top to bottom: the member's name in Lora and
+- [ ] ~~**member-pane** — a member's page shows, from top to bottom: the member's name in Lora and
       number, the balance in a block that stands out, the list of what to hand over with its total, any
       warning, then the actions. The search result of the open member is marked as current
-      (`aria-current`).
+      (`aria-current`).~~
+- [x] **member-pane** (amended 2026-11-26 by the Architect, confirmed by the human the same day: the
+      mockup and the approved plan put the balance beside the name) — a member's page shows the
+      member's name in Lora and number, with the balance in a block that stands out on their right;
+      below 1024 px the block may fall under the name. Then, from top to bottom: the list of what to
+      hand over with its total, any warning, then the actions. The search result of the open member
+      is marked as current (`aria-current`).
 - [x] **big-actions** — the main actions of the table (validating a handover, recording a payment,
       the express sale) are at least 64 px high, with a visible label. Validating a handover is the
       primary button.
