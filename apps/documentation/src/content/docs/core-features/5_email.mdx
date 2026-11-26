@@ -1,10 +1,54 @@
 ---
 title: Email
-description: Email explanation
+description: How the API sends e-mail, and which provider it uses in production
 ---
-
-🚧 TODO
 
 # Email
 
-## MailerSend
+The API sends every e-mail through SMTP, with nodemailer, from one service:
+`apps/api/src/modules/email/email.service.ts`. No code depends on a provider. Changing provider
+means changing the settings below, nothing else.
+
+## Settings
+
+| Variable | Meaning |
+|---|---|
+| `EMAIL_HOST` | SMTP server |
+| `EMAIL_PORT` | SMTP port |
+| `EMAIL_SECURE` | `true` for a TLS connection from the start (port 465) |
+| `EMAIL_USER` | SMTP user name |
+| `EMAIL_PASSWORD` | SMTP password |
+| `EMAIL_FROM` | The sender address. It must belong to the verified domain in production. |
+
+## Local and tests
+
+Locally and in the E2E stack, the settings point at MailDev, a fake SMTP server that keeps the
+mails so they can be read without sending them (`docker-compose.yml`,
+`docker-compose.e2e.yml`). This is the default of `apps/api/.env.example`.
+
+## Production: Resend
+
+Decided on 2026-11-26: production sends through [Resend](https://resend.com). Its free plan
+(3,000 mails a month, 100 a day, checked in November 2026) covers the cooperative's volume: a
+few supplier orders a week, plus admin notices.
+
+To set it up:
+
+1. Create a Resend account for the association and add the association's domain.
+2. Add the DNS records Resend gives (SPF, DKIM) at the domain's registrar, and wait until
+   Resend shows the domain as verified. Without them, suppliers receive the mails as spam or
+   not at all.
+3. Create an API key with the "sending access" permission only.
+4. Set the API's production environment:
+
+```
+EMAIL_HOST=smtp.resend.com
+EMAIL_PORT=465
+EMAIL_SECURE=true
+EMAIL_USER=resend
+EMAIL_PASSWORD=<the Resend API key>
+EMAIL_FROM=<an address on the verified domain>
+```
+
+Check the SMTP values against Resend's own SMTP page when setting it up. The key is a secret:
+it goes in the encrypted environment file (see the "Encrypt env" guide), never in the repo.
