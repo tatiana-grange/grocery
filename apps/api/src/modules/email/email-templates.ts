@@ -14,7 +14,16 @@ import MembershipReactivated, {
 import MembershipRejected, {
   type MembershipRejectedEmailData,
 } from './templates/membership-rejected'
+import NegativeBalanceAdmin, {
+  type NegativeBalanceAdminEmailData,
+} from './templates/negative-balance-admin'
+import NegativeBalanceMember, {
+  type NegativeBalanceMemberEmailData,
+} from './templates/negative-balance-member'
 import PasswordReset, { type PasswordResetEmailData } from './templates/password-reset'
+import UnderpaidTopupAdmin, {
+  type UnderpaidTopupAdminEmailData,
+} from './templates/underpaid-topup-admin'
 
 // This file is `.ts`: JSX lives under `templates/` only (see the README), so it uses createElement.
 
@@ -70,5 +79,32 @@ export function renderMembershipReactivatedEmail(
   return renderEmail({
     subject: 'Votre adhésion est de nouveau active',
     element: createElement(MembershipReactivated, { brand: brand(), ...data }),
+  })
+}
+
+export function renderNegativeBalanceMemberEmail(
+  data: NegativeBalanceMemberEmailData,
+): Promise<RenderedEmail> {
+  return renderEmail({
+    subject: 'Un problème sur votre compte',
+    element: createElement(NegativeBalanceMember, { brand: brand(), ...data }),
+  })
+}
+
+export function renderNegativeBalanceAdminEmail(
+  data: NegativeBalanceAdminEmailData,
+): Promise<RenderedEmail> {
+  return renderEmail({
+    subject: `Solde négatif : ${data.memberName}`,
+    element: createElement(NegativeBalanceAdmin, { brand: brand(), ...data }),
+  })
+}
+
+export function renderUnderpaidTopupAdminEmail(
+  data: UnderpaidTopupAdminEmailData,
+): Promise<RenderedEmail> {
+  return renderEmail({
+    subject: `Paiement incomplet : ${data.memberName}`,
+    element: createElement(UnderpaidTopupAdmin, { brand: brand(), ...data }),
   })
 }

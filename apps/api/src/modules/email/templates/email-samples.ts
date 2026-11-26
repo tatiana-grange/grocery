@@ -20,4 +20,13 @@ export const emailSamples = {
   membershipRejected: { name: 'Mia Dupont', reason: 'Dossier incomplet' },
   membershipEnded: { name: 'Mia Dupont', reason: 'Cotisation non renouvelée' },
   membershipReactivated: { name: 'Mia Dupont' },
+  negativeBalanceMember: { name: 'Mia Dupont' },
+  negativeBalanceAdmin: { memberName: 'Mia Dupont', membershipNumber: '42', balanceCents: -500 },
+  underpaidTopupAdmin: {
+    memberName: 'Mia Dupont',
+    membershipNumber: '42',
+    requestedCents: 2000,
+    paidCents: 1500,
+    topupId: 'topup-42',
+  },
 }

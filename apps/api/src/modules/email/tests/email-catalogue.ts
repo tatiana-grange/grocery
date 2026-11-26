@@ -4,7 +4,10 @@ import {
   renderMembershipEndedEmail,
   renderMembershipReactivatedEmail,
   renderMembershipRejectedEmail,
+  renderNegativeBalanceAdminEmail,
+  renderNegativeBalanceMemberEmail,
   renderPasswordResetEmail,
+  renderUnderpaidTopupAdminEmail,
 } from '../email-templates'
 import type { RenderedEmail } from '../email-render'
 import { emailSamples } from '../templates/email-samples'
@@ -55,6 +58,24 @@ export const EMAIL_CATALOGUE: EmailCatalogueEntry[] = [
   {
     name: 'membership-reactivated',
     render: () => renderMembershipReactivatedEmail(emailSamples.membershipReactivated),
+    carriesLogo: true,
+    links: [],
+  },
+  {
+    name: 'negative-balance-member',
+    render: () => renderNegativeBalanceMemberEmail(emailSamples.negativeBalanceMember),
+    carriesLogo: true,
+    links: [],
+  },
+  {
+    name: 'negative-balance-admin',
+    render: () => renderNegativeBalanceAdminEmail(emailSamples.negativeBalanceAdmin),
+    carriesLogo: true,
+    links: [],
+  },
+  {
+    name: 'underpaid-topup-admin',
+    render: () => renderUnderpaidTopupAdminEmail(emailSamples.underpaidTopupAdmin),
     carriesLogo: true,
     links: [],
   },
