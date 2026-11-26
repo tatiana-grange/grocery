@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.0.4](https://github.com/tatiana-grange/grocery/compare/v0.0.3...v0.0.4) (2026-11-26)
+
+
+### Added
+
+* **api:** ✨ add association expenses, the profit-and-loss account and five CSV exports ([0336cfc](https://github.com/tatiana-grange/grocery/commit/0336cfc34a7ead42459f6d8b878ebd0f1917c1a7))
+* **api:** ✨ add online top-up, payment correction and refunds ([e0adf89](https://github.com/tatiana-grange/grocery/commit/e0adf89aeb75c10a29e36d7f6b467a7afea87730))
+* **api:** ✨ distribution, wallet, and the distributor table ([#22](https://github.com/tatiana-grange/grocery/issues/22)) ([d60d559](https://github.com/tatiana-grange/grocery/commit/d60d55900136c2ada66dc745cc685409d15bdf9b))
+* **api:** ✨ give members a balance and a ledger, and let staff record their payments ([d60d559](https://github.com/tatiana-grange/grocery/commit/d60d55900136c2ada66dc745cc685409d15bdf9b))
+* **api:** ✨ plan participation slots and let members sign up ([8aabe59](https://github.com/tatiana-grange/grocery/commit/8aabe59a560d46c96e4fa59f92e20d54006ae0aa))
+* **frontend:** ✨ add the distribution table, and show members their balance ([d60d559](https://github.com/tatiana-grange/grocery/commit/d60d55900136c2ada66dc745cc685409d15bdf9b))
+* **frontend:** ✨ add the expenses, profit-and-loss and exports screens to the back office ([0336cfc](https://github.com/tatiana-grange/grocery/commit/0336cfc34a7ead42459f6d8b878ebd0f1917c1a7))
+* **frontend:** ✨ add the member participation screen and the back-office slot screens ([8aabe59](https://github.com/tatiana-grange/grocery/commit/8aabe59a560d46c96e4fa59f92e20d54006ae0aa))
+* **frontend:** ✨ give every space the neighbourhood market look ([0336cfc](https://github.com/tatiana-grange/grocery/commit/0336cfc34a7ead42459f6d8b878ebd0f1917c1a7))
+
+
+### Fixed
+
+* **api:** 🐛 align the session and account foreign keys with the database ([dff7c52](https://github.com/tatiana-grange/grocery/commit/dff7c52274c3678d247576ddb8925ad8ff8b472d))
+
+
+### Documentation
+
+* **tooling:** 📝 close the UI market redesign and apply its retro ([#25](https://github.com/tatiana-grange/grocery/issues/25)) ([6e385dc](https://github.com/tatiana-grange/grocery/commit/6e385dc9a56af5a4a5c0dad077fc425e632b65a6))
+
+
+### Changed
+
+* **api:** ♻️ share one helper for 409 refusals and refusal messages ([ca6c0e8](https://github.com/tatiana-grange/grocery/commit/ca6c0e8fea1136754bb01ed4d82884a56d4d890f))
+
 ## [0.0.3](https://github.com/tatiana-grange/grocery/compare/v0.0.2...v0.0.3) (2026-09-12)
 
 
