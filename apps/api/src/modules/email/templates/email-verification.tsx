@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailButton } from './_components/email-button'
 import {
   EmailLayout,
@@ -12,11 +13,12 @@ export interface EmailVerificationEmailData {
   url: string
 }
 
+/** The mail that asks a new user to confirm their address. */
 export default function EmailVerification({
   brand,
   name,
   url,
-}: { brand: EmailBrand } & EmailVerificationEmailData) {
+}: { brand: EmailBrand } & EmailVerificationEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview="Confirmez votre adresse e-mail">
       <EmailParagraph>Bonjour {name},</EmailParagraph>

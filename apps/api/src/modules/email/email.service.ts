@@ -65,7 +65,6 @@ export class EmailService {
 
   async sendEmail({ to, cc, subject, content, html, attachments }: EmailOptions): Promise<void> {
     try {
-      // The logo goes after the caller's attachments, and only when the HTML shows it.
       const allAttachments: Array<EmailAttachment | InlineLogoAttachment> = [
         ...(attachments ?? []),
         ...(html?.includes(EMAIL_LOGO_SRC)
@@ -80,7 +79,7 @@ export class EmailService {
           : []),
       ]
       const mailOptions = {
-        from: `"${config.cooperative.name}" <${config.email.from}>`,
+        from: `"${config.cooperative.name.replace(/[\\"]/g, '\\$&')}" <${config.email.from}>`,
         to,
         subject,
         text: content,

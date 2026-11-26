@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailButton } from './_components/email-button'
 import {
   EmailLayout,
@@ -18,6 +19,7 @@ export interface SupplierOrderSendFailedEmailData {
   orderUrl: string
 }
 
+/** The mail to each admin when an order could not be sent. */
 export default function SupplierOrderSendFailed({
   brand,
   supplierName,
@@ -26,17 +28,17 @@ export default function SupplierOrderSendFailed({
   mode,
   reason,
   orderUrl,
-}: { brand: EmailBrand } & SupplierOrderSendFailedEmailData) {
-  const created = orderDay ? ` du ${orderDay}` : ''
-  const how = mode === 'automatic' ? "l'envoi automatique" : "l'envoi à la main"
-  const why =
+}: { brand: EmailBrand } & SupplierOrderSendFailedEmailData): ReactElement {
+  const orderDaySuffix = orderDay ? ` du ${orderDay}` : ''
+  const sendModeText = mode === 'automatic' ? "l'envoi automatique" : "l'envoi à la main"
+  const failureReasonText =
     reason === 'no_address'
       ? "le fournisseur n'a pas d'adresse e-mail"
       : "le serveur d'e-mail a refusé le message"
   return (
     <EmailLayout brand={brand} preview={`Commande non envoyée : ${supplierName}`}>
       <EmailParagraph>
-        {`La commande${created} de ${supplierName} (${orderId}) n'est pas partie : ${how} a échoué, ${why}.`}
+        {`La commande${orderDaySuffix} de ${supplierName} (${orderId}) n'est pas partie : ${sendModeText} a échoué, ${failureReasonText}.`}
       </EmailParagraph>
       <EmailParagraph>
         La commande reste en brouillon et rien ne sera réessayé tout seul. Il faut la renvoyer à la

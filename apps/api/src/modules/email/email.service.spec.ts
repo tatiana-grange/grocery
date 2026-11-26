@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { Transporter } from 'nodemailer'
+import { config } from '../../config/env.config'
 import { EmailService } from './email.service'
 
 describe('emailService', () => {
@@ -145,6 +146,20 @@ describe('emailService', () => {
       await service.sendEmail({ to: 'a@example.com', subject: 'S', content: 'C' })
 
       expect(mockSendMail.mock.calls[0][0].from).toMatch(/^"Lay'picerie" <.+@.+>$/)
+    })
+
+    it('escapes a quote and a backslash in the sender name', async () => {
+      const mockSendMail = useMockTransport()
+      const cooperative = config.cooperative as { name: string }
+      const originalName = cooperative.name
+      cooperative.name = 'La "Bonne" Coop\\'
+      try {
+        await service.sendEmail({ to: 'a@example.com', subject: 'S', content: 'C' })
+      } finally {
+        cooperative.name = originalName
+      }
+
+      expect(mockSendMail.mock.calls[0][0].from).toMatch(/^"La \\"Bonne\\" Coop\\\\" <.+@.+>$/)
     })
 
     it('adds the logo after the attachments of the caller when the HTML shows it', async () => {

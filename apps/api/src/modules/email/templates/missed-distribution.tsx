@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
 
@@ -7,11 +8,12 @@ export interface MissedDistributionEmailData {
   distributionDay: string
 }
 
+/** The mail to each admin when a distribution started with no order sent. */
 export default function MissedDistribution({
   brand,
   supplierName,
   distributionDay,
-}: { brand: EmailBrand } & MissedDistributionEmailData) {
+}: { brand: EmailBrand } & MissedDistributionEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview={`Distribution sans commande envoyée : ${supplierName}`}>
       <EmailParagraph>

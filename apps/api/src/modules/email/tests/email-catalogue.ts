@@ -86,7 +86,6 @@ export const EMAIL_CATALOGUE: EmailCatalogueEntry[] = [
   {
     name: 'supplier-order',
     render: () => renderSupplierOrderEmail(emailSamples.supplierOrder),
-    // The order to the supplier keeps the CSV as its only attachment, so it has no logo.
     carriesLogo: false,
     links: [],
   },

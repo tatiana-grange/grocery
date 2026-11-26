@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
 
@@ -7,11 +8,12 @@ export interface MembershipEndedEmailData {
   reason?: string
 }
 
+/** The mail to a member whose membership ended, with the reason when given. */
 export default function MembershipEnded({
   brand,
   name,
   reason,
-}: { brand: EmailBrand } & MembershipEndedEmailData) {
+}: { brand: EmailBrand } & MembershipEndedEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview="Votre adhésion a pris fin">
       <EmailParagraph>Bonjour {name},</EmailParagraph>

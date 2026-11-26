@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { formatEuros } from './_components/format-euros'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
@@ -10,6 +11,7 @@ export interface UnderpaidTopupAdminEmailData {
   topupId: string
 }
 
+/** The mail to each admin about a top-up that was paid short. */
 export default function UnderpaidTopupAdmin({
   brand,
   memberName,
@@ -17,7 +19,7 @@ export default function UnderpaidTopupAdmin({
   requestedCents,
   paidCents,
   topupId,
-}: { brand: EmailBrand } & UnderpaidTopupAdminEmailData) {
+}: { brand: EmailBrand } & UnderpaidTopupAdminEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview={`Paiement incomplet : ${memberName}`}>
       <EmailParagraph>

@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailButton } from './_components/email-button'
 import {
   EmailLayout,
@@ -12,11 +13,12 @@ export interface PasswordResetEmailData {
   url: string
 }
 
+/** The mail that gives a user the link to choose a new password. */
 export default function PasswordReset({
   brand,
   name,
   url,
-}: { brand: EmailBrand } & PasswordResetEmailData) {
+}: { brand: EmailBrand } & PasswordResetEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview="Réinitialisez votre mot de passe">
       <EmailParagraph>Bonjour {name},</EmailParagraph>

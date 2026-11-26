@@ -39,7 +39,7 @@ import { MembershipIntakeSetting } from './entities/membership-intake-setting.en
 import { MembershipPayment } from './entities/membership-payment.entity'
 import { Member } from './entities/member.entity'
 import { MembersMapper } from './members.mapper'
-import { membershipSmsText } from './membership-sms'
+import { buildMembershipSmsText } from './membership-sms'
 import {
   PHONE_EMAIL_DOMAIN,
   generateMembershipNumber,
@@ -586,11 +586,15 @@ export class MembersService {
       outcome === 'validated'
         ? () => renderMembershipApprovedEmail({ name: user.name })
         : () => renderMembershipRejectedEmail({ name: user.name, reason })
-    await this.send(
+    await this.send({
       user,
-      mail,
-      membershipSmsText({ outcome, cooperativeName: config.cooperative.name, reason }),
-    )
+      renderMail: mail,
+      smsText: buildMembershipSmsText({
+        outcome,
+        cooperativeName: config.cooperative.name,
+        reason,
+      }),
+    })
   }
 
   private async notifyLifecycle(
@@ -603,18 +607,26 @@ export class MembersService {
       outcome === 'terminated'
         ? () => renderMembershipEndedEmail({ name: user.name, reason })
         : () => renderMembershipReactivatedEmail({ name: user.name })
-    await this.send(
+    await this.send({
       user,
-      mail,
-      membershipSmsText({ outcome, cooperativeName: config.cooperative.name, reason }),
-    )
+      renderMail: mail,
+      smsText: buildMembershipSmsText({
+        outcome,
+        cooperativeName: config.cooperative.name,
+        reason,
+      }),
+    })
   }
 
-  private async send(
-    user: User,
-    renderMail: () => Promise<RenderedEmail>,
-    smsText: string,
-  ): Promise<void> {
+  private async send({
+    user,
+    renderMail,
+    smsText,
+  }: {
+    user: User
+    renderMail: () => Promise<RenderedEmail>
+    smsText: string
+  }): Promise<void> {
     // A lifecycle decision must always reach the member, so we send to whatever identifier
     // they registered with — not only a *verified* one. An email member who never clicked the
     // verification link still gets told their request was approved or rejected. The synthesized

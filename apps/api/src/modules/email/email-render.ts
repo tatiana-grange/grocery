@@ -1,6 +1,7 @@
 import { render } from '@react-email/render'
 import type { ReactElement } from 'react'
 
+/** A mail ready to send: its subject, its HTML and the plain text derived from that HTML. */
 export interface RenderedEmail {
   subject: string
   html: string

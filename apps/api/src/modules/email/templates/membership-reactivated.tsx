@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
 
@@ -5,10 +6,11 @@ export interface MembershipReactivatedEmailData {
   name: string
 }
 
+/** The mail to a member whose membership is active again. */
 export default function MembershipReactivated({
   brand,
   name,
-}: { brand: EmailBrand } & MembershipReactivatedEmailData) {
+}: { brand: EmailBrand } & MembershipReactivatedEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview="Votre adhésion est de nouveau active">
       <EmailParagraph>Bonjour {name},</EmailParagraph>

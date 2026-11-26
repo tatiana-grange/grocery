@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
 
@@ -5,10 +6,11 @@ export interface MembershipApprovedEmailData {
   name: string
 }
 
+/** The mail to a member whose membership was approved. */
 export default function MembershipApproved({
   brand,
   name,
-}: { brand: EmailBrand } & MembershipApprovedEmailData) {
+}: { brand: EmailBrand } & MembershipApprovedEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview="Votre adhésion est confirmée">
       <EmailParagraph>Bonjour {name},</EmailParagraph>

@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
 
@@ -5,11 +6,11 @@ export interface NegativeBalanceMemberEmailData {
   name: string
 }
 
-/** No amount and no cause here: the member only learns that purchases are paused. */
+/** The mail to a member whose account is below zero. It holds no amount. */
 export default function NegativeBalanceMember({
   brand,
   name,
-}: { brand: EmailBrand } & NegativeBalanceMemberEmailData) {
+}: { brand: EmailBrand } & NegativeBalanceMemberEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview="Un problème sur votre compte">
       <EmailParagraph>Bonjour {name},</EmailParagraph>

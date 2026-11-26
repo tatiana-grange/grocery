@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
 
@@ -7,11 +8,12 @@ export interface MembershipRejectedEmailData {
   reason?: string
 }
 
+/** The mail to a person whose membership request was rejected, with the reason when given. */
 export default function MembershipRejected({
   brand,
   name,
   reason,
-}: { brand: EmailBrand } & MembershipRejectedEmailData) {
+}: { brand: EmailBrand } & MembershipRejectedEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview="Votre demande d'adhésion">
       <EmailParagraph>Bonjour {name},</EmailParagraph>

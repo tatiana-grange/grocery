@@ -1,5 +1,5 @@
 import { Body, Container, Head, Heading, Hr, Html, Img, Preview, Section, Text } from 'react-email'
-import type { ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { emailTheme } from './email-theme'
 
 export interface EmailBrand {
@@ -24,7 +24,7 @@ export function EmailLayout({
   brand: EmailBrand
   preview: string
   children: ReactNode
-}) {
+}): ReactElement {
   return (
     <Html lang="fr">
       <Head />
@@ -87,13 +87,12 @@ export function EmailLayout({
   )
 }
 
-/** A paragraph of the body, in the text font. */
-export function EmailParagraph({ children }: { children: ReactNode }) {
+export function EmailParagraph({ children }: { children: ReactNode }): ReactElement {
   return <Text style={{ ...textStyle, margin: '0 0 16px' }}>{children}</Text>
 }
 
 /** Small muted text under a button, for the address of the link. */
-export function EmailLinkFallback({ url }: { url: string }) {
+export function EmailLinkFallback({ url }: { url: string }): ReactElement {
   return (
     <Text style={{ ...textStyle, fontSize: '13px', color: emailTheme.muted, margin: '16px 0 0' }}>
       Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur : {url}

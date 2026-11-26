@@ -1,7 +1,7 @@
 export type MembershipSmsOutcome = 'validated' | 'rejected' | 'terminated' | 'reactivated'
 
 /** The SMS a member without a real address gets: the short form of the membership mail. */
-export function membershipSmsText(input: {
+export function buildMembershipSmsText(input: {
   outcome: MembershipSmsOutcome
   cooperativeName: string
   reason?: string

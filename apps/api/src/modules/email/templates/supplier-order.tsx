@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react'
+import { formatCount } from './_components/format-count'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
 
@@ -14,12 +16,12 @@ export default function SupplierOrder({
   supplierName,
   orderDay,
   lines,
-}: { brand: EmailBrand } & SupplierOrderEmailData) {
+}: { brand: EmailBrand } & SupplierOrderEmailData): ReactElement {
   return (
     <EmailLayout brand={brand} preview={`Commande de ${brand.cooperativeName} — ${supplierName}`}>
       <EmailParagraph>Bonjour,</EmailParagraph>
       <EmailParagraph>
-        {`Voici la commande de ${brand.cooperativeName} du ${orderDay} (${lines.length} ${lines.length === 1 ? 'ligne' : 'lignes'}).`}
+        {`Voici la commande de ${brand.cooperativeName} du ${orderDay} (${formatCount({ count: lines.length, one: 'ligne', many: 'lignes' })}).`}
       </EmailParagraph>
       <ul style={{ margin: '0 0 16px', paddingLeft: '20px' }}>
         {lines.map((line, index) => (
@@ -33,7 +35,6 @@ export default function SupplierOrder({
 }
 
 SupplierOrder.PreviewProps = {
-  // Like the real mail, this one has no logo: its CSV stays the only attachment.
   brand: { ...PREVIEW_BRAND, logoSrc: null },
   ...emailSamples.supplierOrder,
 }

@@ -1,9 +1,15 @@
 import { Link } from 'react-email'
-import type { ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { emailTheme } from './email-theme'
 
 /** A link styled as the primary button. */
-export function EmailButton({ href, children }: { href: string; children: ReactNode }) {
+export function EmailButton({
+  href,
+  children,
+}: {
+  href: string
+  children: ReactNode
+}): ReactElement {
   return (
     <Link
       href={href}
