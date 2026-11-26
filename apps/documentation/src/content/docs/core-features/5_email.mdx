@@ -42,8 +42,9 @@ derived from the HTML, so the links and figures are the same in both.
   the cooperative's name and the logo.
 - A new template needs a sample in `templates/email-samples.ts` and an entry in
   `tests/email-catalogue.ts`. A test fails when a `.tsx` file in `templates/` has no entry.
-- JSX is allowed only under `modules/email/templates/`. The build, the type check and the tests
-  are set up for `.tsx` there and nowhere else.
+- JSX belongs only under `modules/email/templates/`. The tests accept `.tsx` there and nowhere
+  else. The build reads TSX in any file, because the Nest CLI refused an SWC setup split by
+  folder; the tests are the guard.
 
 ### The logo
 

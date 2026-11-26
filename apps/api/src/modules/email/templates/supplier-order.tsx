@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { emailTheme } from './_components/email-theme'
 import { formatCount } from './_components/format-count'
 import { EmailLayout, EmailParagraph, type EmailBrand } from './_components/email-layout'
 import { emailSamples, PREVIEW_BRAND } from './email-samples'
@@ -23,7 +24,16 @@ export default function SupplierOrder({
       <EmailParagraph>
         {`Voici la commande de ${brand.cooperativeName} du ${orderDay} (${formatCount({ count: lines.length, one: 'ligne', many: 'lignes' })}).`}
       </EmailParagraph>
-      <ul style={{ margin: '0 0 16px', paddingLeft: '20px' }}>
+      <ul
+        style={{
+          margin: '0 0 16px',
+          paddingLeft: '20px',
+          fontFamily: emailTheme.sans,
+          fontSize: '16px',
+          lineHeight: '24px',
+          color: emailTheme.text,
+        }}
+      >
         {lines.map((line, index) => (
           <li key={index}>{`${line.productName} : ${line.quantity} ${line.unit}`}</li>
         ))}

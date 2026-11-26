@@ -98,7 +98,9 @@ variables, so the values are written in the layout, with a comment naming their 
   loaded, since many mail clients block them.
 - The cooperative's name is a new setting in `env.config.ts`, also used as the sender's display
   name (`"<name>" <EMAIL_FROM>`).
-- The API's TypeScript setup must accept `.tsx` in the email module only; the plan says how.
+- ~~The API's TypeScript setup must accept `.tsx` in the email module only; the plan says how.~~
+- The tests accept `.tsx` in `modules/email/templates/` only. The build reads TSX in any file:
+  the Nest CLI refused an SWC setup split by folder. (Architect, 2026-11-26, at the close.)
 
 ## Testing Strategy
 
@@ -132,7 +134,9 @@ variables, so the values are written in the layout, with a comment naming their 
 
 - 2026-11-26, human: the name is "Lay'picerie". The logo is the association's own
   ("A Lay'picerie, épicerie associative & participative"). The Architect cropped it square and
-  resized it to 480 × 480 for mails: `apps/api/src/modules/email/assets/logo.jpg` (48 KB). The
+  resized it to 480 × 480 for mails: ~~`apps/api/src/modules/email/assets/logo.jpg`~~
+  `apps/api/src/modules/email/templates/static/logo.jpg` (moved by the Architect at the plan
+  reading, so the preview serves it) (48 KB). The
   layout shows it at about 120 px wide. It is sent as an inline attachment because Gmail
   blocks images written into the HTML as data, and the app has no public address to host it
   yet.
