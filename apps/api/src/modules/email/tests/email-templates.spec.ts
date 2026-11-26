@@ -4,7 +4,10 @@ import {
   renderMembershipEndedEmail,
   renderMembershipRejectedEmail,
   renderNegativeBalanceAdminEmail,
+  renderMissedDistributionEmail,
   renderNegativeBalanceMemberEmail,
+  renderSupplierOrderEmail,
+  renderSupplierOrderSendFailedEmail,
   renderUnderpaidTopupAdminEmail,
 } from '../email-templates'
 import { EMAIL_CATALOGUE } from './email-catalogue'
@@ -144,6 +147,73 @@ describe('e-mail templates', () => {
 
       expect(mail.html).toContain('&lt;b&gt;')
       expect(mail.html).not.toContain('<b>Mia')
+    })
+  })
+
+  describe('purchasing mails', () => {
+    const lines = [
+      { productName: 'Farine T65', quantity: 10, unit: 'kg' },
+      { productName: 'Œufs', quantity: 6, unit: 'pièces' },
+      { productName: 'Miel', quantity: 1, unit: 'pièce' },
+    ]
+
+    it('lists every line of the order to the supplier in both versions', async () => {
+      const mail = await renderSupplierOrderEmail({
+        supplierName: 'Moulin Dupont',
+        orderDay: '2 décembre 2026',
+        lines,
+      })
+
+      for (const version of [mail.html, mail.text]) {
+        expect(version).toContain('Farine T65 : 10 kg')
+        expect(version).toContain('Œufs : 6 pièces')
+        expect(version).toContain('Miel : 1 pièce')
+        expect(version).toContain('2 décembre 2026')
+      }
+      expect(mail.subject).toBe("Commande de Lay'picerie — Moulin Dupont")
+      expect(mail.text).toContain('3 lignes')
+      expect(mail.text).toContain('fichier CSV joint')
+    })
+
+    it('escapes the supplier name and the product names', async () => {
+      const mail = await renderSupplierOrderEmail({
+        supplierName: '<b>Moulin</b>',
+        orderDay: '2 décembre 2026',
+        lines: [{ productName: '<i>Farine</i>', quantity: 1, unit: 'kg' }],
+      })
+
+      expect(mail.html).toContain('&lt;i&gt;Farine')
+      expect(mail.html).not.toContain('<i>Farine')
+      expect(mail.html).not.toContain('<b>Moulin')
+    })
+
+    it('escapes the supplier name in the alerts', async () => {
+      const mail = await renderMissedDistributionEmail({
+        supplierName: '<b>Moulin</b>',
+        distributionDay: '4 décembre 2026',
+      })
+
+      expect(mail.html).toContain('&lt;b&gt;Moulin')
+      expect(mail.html).not.toContain('<b>Moulin')
+    })
+
+    it('writes the address of the order in full in both versions of the failure alert', async () => {
+      const orderUrl = 'https://app.example.org/admin/purchasing/supplier-orders/order-42'
+      const mail = await renderSupplierOrderSendFailedEmail({
+        supplierName: 'Moulin Dupont',
+        orderId: 'order-42',
+        orderDay: '2 décembre 2026',
+        mode: 'manual',
+        reason: 'mail_error',
+        orderUrl,
+      })
+
+      expect(mail.html).toContain(orderUrl)
+      expect(mail.text).toContain(orderUrl)
+      expect(mail.text).toContain('Voir la commande')
+      expect(mail.text).toContain('à la main')
+      expect(mail.text).toContain("le serveur d'e-mail a refusé le message")
+      expect(mail.text).not.toContain("pas d'adresse e-mail")
     })
   })
 })

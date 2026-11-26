@@ -2,18 +2,18 @@ import { EntityManager } from '@mikro-orm/core'
 import { Injectable, Logger } from '@nestjs/common'
 import { config } from '../../config/env.config'
 import { describeError } from '../../common/error.util'
-import { escapeHtml } from '../../common/html.util'
 import { formatParisDayInFrench } from '../../common/paris-time.util'
+import type { RenderedEmail } from '../email/email-render'
+import {
+  renderMissedDistributionEmail,
+  renderSupplierOrderAutoSentEmail,
+  renderSupplierOrderSendFailedEmail,
+} from '../email/email-templates'
 import { EmailService } from '../email/email.service'
 import { findAdminAddresses } from '../members/admin-addresses'
 import type { SupplierOrderSentMode } from './contracts/supplier-order.contract'
 import { SupplierOrder } from './entities/supplier-order.entity'
 import type { SendFailureReason } from './supplier-order-mail.service'
-
-interface Notice {
-  subject: string
-  content: string
-}
 
 const FRENCH_DAY = new Intl.DateTimeFormat('fr-FR', {
   day: 'numeric',
@@ -25,10 +25,6 @@ const FRENCH_DAY = new Intl.DateTimeFormat('fr-FR', {
 /** "4 décembre 2026" for a calendar day written `YYYY-MM-DD`. */
 function formatDay(day: string): string {
   return FRENCH_DAY.format(new Date(`${day}T12:00:00Z`))
-}
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`
 }
 
 /**
@@ -53,14 +49,14 @@ export class SupplierOrderNoticeService {
     lineCount: number
     orderCount: number
   }): Promise<void> {
-    await this.run(`Auto-sent summary for ${input.supplierName}`, async () => ({
-      subject: `Commande envoyée automatiquement : ${input.supplierName}`,
-      content:
-        `La commande de ${input.supplierName} pour la distribution du ` +
-        `${formatDay(input.distributionDay)} est partie par e-mail : ` +
-        `${plural(input.lineCount, 'ligne', 'lignes')} dans ` +
-        `${plural(input.orderCount, 'commande', 'commandes')}.`,
-    }))
+    await this.run(`Auto-sent summary for ${input.supplierName}`, async () =>
+      renderSupplierOrderAutoSentEmail({
+        supplierName: input.supplierName,
+        distributionDay: formatDay(input.distributionDay),
+        lineCount: input.lineCount,
+        orderCount: input.orderCount,
+      }),
+    )
   }
 
   /** A send that did not happen: no supplier address, or the mail server refused it. */
@@ -74,20 +70,14 @@ export class SupplierOrderNoticeService {
       `Send failure alert for ${input.supplierName}, order ${input.orderId}`,
       async () => {
         const order = await this.em.findOne(SupplierOrder, { id: input.orderId })
-        const created = order ? ` du ${formatParisDayInFrench(order.createdAt)}` : ''
-        const how = input.mode === 'automatic' ? "l'envoi automatique" : "l'envoi à la main"
-        const why =
-          input.reason === 'no_address'
-            ? "le fournisseur n'a pas d'adresse e-mail"
-            : "le serveur d'e-mail a refusé le message"
-        return {
-          subject: `Commande non envoyée : ${input.supplierName}`,
-          content:
-            `La commande${created} de ${input.supplierName} (${input.orderId}) n'est pas partie : ` +
-            `${how} a échoué, ${why}. La commande reste en brouillon et rien ne sera ` +
-            `réessayé tout seul. Il faut la renvoyer à la main : ` +
-            this.orderPath(input.orderId),
-        }
+        return renderSupplierOrderSendFailedEmail({
+          supplierName: input.supplierName,
+          orderId: input.orderId,
+          orderDay: order ? formatParisDayInFrench(order.createdAt) : undefined,
+          mode: input.mode,
+          reason: input.reason,
+          orderUrl: this.orderPath(input.orderId),
+        })
       },
     )
   }
@@ -97,17 +87,16 @@ export class SupplierOrderNoticeService {
     supplierName: string
     distributionDay: string
   }): Promise<void> {
-    await this.run(`Missed distribution alert for ${input.supplierName}`, async () => ({
-      subject: `Distribution sans commande envoyée : ${input.supplierName}`,
-      content:
-        `La distribution du ${formatDay(input.distributionDay)} de ${input.supplierName} a ` +
-        `commencé sans que la commande soit partie. Rien n'a été envoyé pour cette ` +
-        `distribution. Il faut passer la commande au fournisseur à la main.`,
-    }))
+    await this.run(`Missed distribution alert for ${input.supplierName}`, async () =>
+      renderMissedDistributionEmail({
+        supplierName: input.supplierName,
+        distributionDay: formatDay(input.distributionDay),
+      }),
+    )
   }
 
   /** Builds the notice, then sends one mail to each admin. Never rejects. */
-  private async run(label: string, build: () => Promise<Notice>): Promise<void> {
+  private async run(label: string, build: () => Promise<RenderedEmail>): Promise<void> {
     try {
       const notice = await build()
       const addresses = await findAdminAddresses(this.em, (user) =>
@@ -118,8 +107,8 @@ export class SupplierOrderNoticeService {
           this.email.sendEmail({
             to,
             subject: notice.subject,
-            content: notice.content,
-            html: `<p>${escapeHtml(notice.content)}</p>`,
+            content: notice.text,
+            html: notice.html,
           }),
         ),
       )
@@ -129,9 +118,7 @@ export class SupplierOrderNoticeService {
         }
       }
     } catch (error) {
-      this.logger.error(
-        `${label} failed: ${describeError(error)}`,
-      )
+      this.logger.error(`${label} failed: ${describeError(error)}`)
     }
   }
 

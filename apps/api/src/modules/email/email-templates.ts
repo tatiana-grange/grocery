@@ -14,6 +14,9 @@ import MembershipReactivated, {
 import MembershipRejected, {
   type MembershipRejectedEmailData,
 } from './templates/membership-rejected'
+import MissedDistribution, {
+  type MissedDistributionEmailData,
+} from './templates/missed-distribution'
 import NegativeBalanceAdmin, {
   type NegativeBalanceAdminEmailData,
 } from './templates/negative-balance-admin'
@@ -21,15 +24,28 @@ import NegativeBalanceMember, {
   type NegativeBalanceMemberEmailData,
 } from './templates/negative-balance-member'
 import PasswordReset, { type PasswordResetEmailData } from './templates/password-reset'
+import SupplierOrder, { type SupplierOrderEmailData } from './templates/supplier-order'
+import SupplierOrderAutoSent, {
+  type SupplierOrderAutoSentEmailData,
+} from './templates/supplier-order-auto-sent'
+import SupplierOrderSendFailed, {
+  type SupplierOrderSendFailedEmailData,
+} from './templates/supplier-order-send-failed'
 import UnderpaidTopupAdmin, {
   type UnderpaidTopupAdminEmailData,
 } from './templates/underpaid-topup-admin'
 
 // This file is `.ts`: JSX lives under `templates/` only (see the README), so it uses createElement.
 
-/** The brand of a real mail: the cooperative's name from the setting, the inline logo. */
-function brand(): EmailBrand {
-  return { cooperativeName: config.cooperative.name, logoSrc: EMAIL_LOGO_SRC }
+/**
+ * The brand of a real mail: the cooperative's name from the setting, and the inline logo unless
+ * the mail leaves without it.
+ */
+function brand(options: { logo?: boolean } = {}): EmailBrand {
+  return {
+    cooperativeName: config.cooperative.name,
+    logoSrc: options.logo === false ? null : EMAIL_LOGO_SRC,
+  }
 }
 
 export function renderEmailVerificationEmail(
@@ -106,5 +122,40 @@ export function renderUnderpaidTopupAdminEmail(
   return renderEmail({
     subject: `Paiement incomplet : ${data.memberName}`,
     element: createElement(UnderpaidTopupAdmin, { brand: brand(), ...data }),
+  })
+}
+
+/** The order to the supplier leaves without the logo: its CSV stays the only attachment. */
+export function renderSupplierOrderEmail(data: SupplierOrderEmailData): Promise<RenderedEmail> {
+  return renderEmail({
+    subject: `Commande de ${config.cooperative.name} — ${data.supplierName}`,
+    element: createElement(SupplierOrder, { brand: brand({ logo: false }), ...data }),
+  })
+}
+
+export function renderSupplierOrderAutoSentEmail(
+  data: SupplierOrderAutoSentEmailData,
+): Promise<RenderedEmail> {
+  return renderEmail({
+    subject: `Commande envoyée automatiquement : ${data.supplierName}`,
+    element: createElement(SupplierOrderAutoSent, { brand: brand(), ...data }),
+  })
+}
+
+export function renderSupplierOrderSendFailedEmail(
+  data: SupplierOrderSendFailedEmailData,
+): Promise<RenderedEmail> {
+  return renderEmail({
+    subject: `Commande non envoyée : ${data.supplierName}`,
+    element: createElement(SupplierOrderSendFailed, { brand: brand(), ...data }),
+  })
+}
+
+export function renderMissedDistributionEmail(
+  data: MissedDistributionEmailData,
+): Promise<RenderedEmail> {
+  return renderEmail({
+    subject: `Distribution sans commande envoyée : ${data.supplierName}`,
+    element: createElement(MissedDistribution, { brand: brand(), ...data }),
   })
 }

@@ -29,4 +29,28 @@ export const emailSamples = {
     paidCents: 1500,
     topupId: 'topup-42',
   },
+  supplierOrder: {
+    supplierName: 'Moulin Dupont',
+    orderDay: '2 décembre 2026',
+    lines: [
+      { productName: 'Farine T65', quantity: 10, unit: 'kg' },
+      { productName: 'Œufs', quantity: 6, unit: 'pièces' },
+      { productName: 'Miel', quantity: 1, unit: 'pièce' },
+    ],
+  },
+  supplierOrderAutoSent: {
+    supplierName: 'Moulin Dupont',
+    distributionDay: '4 décembre 2026',
+    lineCount: 7,
+    orderCount: 2,
+  },
+  supplierOrderSendFailed: {
+    supplierName: 'Moulin Dupont',
+    orderId: 'order-42',
+    orderDay: '2 décembre 2026',
+    mode: 'automatic' as const,
+    reason: 'no_address' as const,
+    orderUrl: 'https://app.example.org/admin/purchasing/supplier-orders/order-42',
+  },
+  missedDistribution: { supplierName: 'Moulin Dupont', distributionDay: '4 décembre 2026' },
 }

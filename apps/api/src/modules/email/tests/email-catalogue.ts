@@ -6,7 +6,11 @@ import {
   renderMembershipRejectedEmail,
   renderNegativeBalanceAdminEmail,
   renderNegativeBalanceMemberEmail,
+  renderMissedDistributionEmail,
   renderPasswordResetEmail,
+  renderSupplierOrderAutoSentEmail,
+  renderSupplierOrderEmail,
+  renderSupplierOrderSendFailedEmail,
   renderUnderpaidTopupAdminEmail,
 } from '../email-templates'
 import type { RenderedEmail } from '../email-render'
@@ -76,6 +80,31 @@ export const EMAIL_CATALOGUE: EmailCatalogueEntry[] = [
   {
     name: 'underpaid-topup-admin',
     render: () => renderUnderpaidTopupAdminEmail(emailSamples.underpaidTopupAdmin),
+    carriesLogo: true,
+    links: [],
+  },
+  {
+    name: 'supplier-order',
+    render: () => renderSupplierOrderEmail(emailSamples.supplierOrder),
+    // The order to the supplier keeps the CSV as its only attachment, so it has no logo.
+    carriesLogo: false,
+    links: [],
+  },
+  {
+    name: 'supplier-order-auto-sent',
+    render: () => renderSupplierOrderAutoSentEmail(emailSamples.supplierOrderAutoSent),
+    carriesLogo: true,
+    links: [],
+  },
+  {
+    name: 'supplier-order-send-failed',
+    render: () => renderSupplierOrderSendFailedEmail(emailSamples.supplierOrderSendFailed),
+    carriesLogo: true,
+    links: [emailSamples.supplierOrderSendFailed.orderUrl],
+  },
+  {
+    name: 'missed-distribution',
+    render: () => renderMissedDistributionEmail(emailSamples.missedDistribution),
     carriesLogo: true,
     links: [],
   },

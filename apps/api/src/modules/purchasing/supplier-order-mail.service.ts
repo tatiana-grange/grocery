@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { describeError } from '../../common/error.util'
-import { escapeHtml } from '../../common/html.util'
 import { formatParisDayInFrench } from '../../common/paris-time.util'
+import { renderSupplierOrderEmail } from '../email/email-templates'
 import { EmailService } from '../email/email.service'
 import { realAddress } from '../members/admin-addresses'
 import type { SupplierOrder } from './entities/supplier-order.entity'
@@ -19,7 +19,9 @@ export const ORDER_MAIL_POPULATE = [
   'lines.product',
 ] as const
 
-export type OrderMailResult = { sentTo: string } | { sentTo: null; reason: Extract<SendFailureReason, 'no_address'> }
+export type OrderMailResult =
+  | { sentTo: string }
+  | { sentTo: null; reason: Extract<SendFailureReason, 'no_address'> }
 
 /** The mail server refused the order e-mail. */
 export class OrderMailError extends Error {}
@@ -44,23 +46,15 @@ export class SupplierOrderMailService {
     const to = order.supplier.contactEmail?.trim()
     if (!to) return { sentTo: null, reason: 'no_address' }
 
-    const lines = order.lines.getItems()
-    const textLines = lines.map((line) => {
-      const quantity = Number(line.quantity)
-      const unit = line.product.saleMode === 'weight' ? 'kg' : quantity > 1 ? 'pièces' : 'pièce'
-      return `${line.product.name} : ${quantity} ${unit}`
+    const mail = await renderSupplierOrderEmail({
+      supplierName: order.supplier.name,
+      orderDay: formatParisDayInFrench(order.createdAt),
+      lines: order.lines.getItems().map((line) => {
+        const quantity = Number(line.quantity)
+        const unit = line.product.saleMode === 'weight' ? 'kg' : quantity > 1 ? 'pièces' : 'pièce'
+        return { productName: line.product.name, quantity, unit }
+      }),
     })
-    const day = formatParisDayInFrench(order.createdAt)
-    const intro =
-      `Bonjour,\n\nVoici la commande de la coopérative Grocery du ${day} ` +
-      `(${lines.length} ${lines.length === 1 ? 'ligne' : 'lignes'}).`
-    const outro = 'Le détail est aussi dans le fichier CSV joint.\n\nMerci et bonne journée.'
-    const content = `${intro}\n\n${textLines.join('\n')}\n\n${outro}`
-    const html =
-      `<p>Bonjour,</p><p>Voici la commande de la coopérative Grocery du ${escapeHtml(day)} ` +
-      `(${lines.length} ${lines.length === 1 ? 'ligne' : 'lignes'}).</p>` +
-      `<ul>${textLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul>` +
-      `<p>Le détail est aussi dans le fichier CSV joint.</p><p>Merci et bonne journée.</p>`
 
     const referent = order.supplier.referent
     const cc =
@@ -71,9 +65,9 @@ export class SupplierOrderMailService {
       await this.email.sendEmail({
         to,
         ...(cc ? { cc: [cc] } : {}),
-        subject: `Commande de la coopérative Grocery — ${order.supplier.name}`,
-        content,
-        html,
+        subject: mail.subject,
+        content: mail.text,
+        html: mail.html,
         attachments: [
           { filename: exported.filename, content: exported.content, contentType: 'text/csv' },
         ],
