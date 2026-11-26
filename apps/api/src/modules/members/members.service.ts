@@ -13,6 +13,13 @@ import { config } from '../../config/env.config'
 import { Account, Session, User } from '../auth/auth.entity'
 import { buildSearchFilter } from '../db/search.util'
 import { SmsService } from '../auth/sms.service'
+import type { RenderedEmail } from '../email/email-render'
+import {
+  renderMembershipApprovedEmail,
+  renderMembershipEndedEmail,
+  renderMembershipReactivatedEmail,
+  renderMembershipRejectedEmail,
+} from '../email/email-templates'
 import { EmailService } from '../email/email.service'
 import type {
   CreateMemberInput,
@@ -32,6 +39,7 @@ import { MembershipIntakeSetting } from './entities/membership-intake-setting.en
 import { MembershipPayment } from './entities/membership-payment.entity'
 import { Member } from './entities/member.entity'
 import { MembersMapper } from './members.mapper'
+import { membershipSmsText } from './membership-sms'
 import {
   PHONE_EMAIL_DOMAIN,
   generateMembershipNumber,
@@ -574,15 +582,15 @@ export class MembersService {
     reason?: string,
   ): Promise<void> {
     const user = member.user
-    const subject =
-      outcome === 'validated' ? 'Your membership is confirmed' : 'Your membership request'
-    const body =
+    const mail =
       outcome === 'validated'
-        ? `Hello ${user.name}, your membership has been approved. You can now sign in.`
-        : `Hello ${user.name}, your membership request was not approved.${
-            reason ? ` Reason: ${reason}` : ''
-          }`
-    await this.send(user, subject, body)
+        ? () => renderMembershipApprovedEmail({ name: user.name })
+        : () => renderMembershipRejectedEmail({ name: user.name, reason })
+    await this.send(
+      user,
+      mail,
+      membershipSmsText({ outcome, cooperativeName: config.cooperative.name, reason }),
+    )
   }
 
   private async notifyLifecycle(
@@ -591,18 +599,22 @@ export class MembersService {
     reason?: string,
   ): Promise<void> {
     const user = member.user
-    const subject =
-      outcome === 'terminated' ? 'Your membership has ended' : 'Your membership is active again'
-    const body =
+    const mail =
       outcome === 'terminated'
-        ? `Hello ${user.name}, your membership has been terminated.${
-            reason ? ` Reason: ${reason}` : ''
-          }`
-        : `Hello ${user.name}, your membership has been reactivated. You can sign in again.`
-    await this.send(user, subject, body)
+        ? () => renderMembershipEndedEmail({ name: user.name, reason })
+        : () => renderMembershipReactivatedEmail({ name: user.name })
+    await this.send(
+      user,
+      mail,
+      membershipSmsText({ outcome, cooperativeName: config.cooperative.name, reason }),
+    )
   }
 
-  private async send(user: User, subject: string, body: string): Promise<void> {
+  private async send(
+    user: User,
+    renderMail: () => Promise<RenderedEmail>,
+    smsText: string,
+  ): Promise<void> {
     // A lifecycle decision must always reach the member, so we send to whatever identifier
     // they registered with — not only a *verified* one. An email member who never clicked the
     // verification link still gets told their request was approved or rejected. The synthesized
@@ -610,9 +622,15 @@ export class MembersService {
     const realEmail =
       user.email && !user.email.endsWith(`@${PHONE_EMAIL_DOMAIN}`) ? user.email : null
     if (realEmail) {
-      await this.emailService.sendEmail({ to: realEmail, subject, content: body })
+      const mail = await renderMail()
+      await this.emailService.sendEmail({
+        to: realEmail,
+        subject: mail.subject,
+        content: mail.text,
+        html: mail.html,
+      })
     } else if (user.phoneNumber) {
-      await this.smsService.sendSms({ to: user.phoneNumber, content: `${subject}: ${body}` })
+      await this.smsService.sendSms({ to: user.phoneNumber, content: smsText })
     }
   }
 }

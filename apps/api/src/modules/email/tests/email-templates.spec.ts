@@ -1,5 +1,6 @@
 import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { renderMembershipEndedEmail, renderMembershipRejectedEmail } from '../email-templates'
 import { EMAIL_CATALOGUE } from './email-catalogue'
 
 const ENGLISH_WORDS = /\b(hello|your|please|reason)\b/i
@@ -62,6 +63,33 @@ describe('e-mail templates', () => {
       const mail = await entry.render()
 
       expect(mail.text).toContain("Lay'picerie")
+    })
+  })
+
+  describe('membership mails', () => {
+    it('escapes a name and a reason typed by a person', async () => {
+      const mail = await renderMembershipRejectedEmail({
+        name: '<b>Mia</b>',
+        reason: '<script>x</script>',
+      })
+
+      expect(mail.html).toContain('&lt;b&gt;')
+      expect(mail.html).toContain('&lt;script&gt;')
+      expect(mail.html).not.toContain('<b>Mia')
+      expect(mail.html).not.toContain('<script>')
+    })
+
+    it.each([
+      ['rejected', renderMembershipRejectedEmail],
+      ['ended', renderMembershipEndedEmail],
+    ])('shows the reason of the %s mail only when given', async (_name, render) => {
+      const withReason = await render({ name: 'Mia', reason: 'Dossier incomplet' })
+      const withoutReason = await render({ name: 'Mia' })
+
+      expect(withReason.text).toContain('Motif : Dossier incomplet')
+      expect(withReason.html).toContain('Dossier incomplet')
+      expect(withoutReason.text).not.toContain('Motif')
+      expect(withoutReason.html).not.toContain('Motif')
     })
   })
 })

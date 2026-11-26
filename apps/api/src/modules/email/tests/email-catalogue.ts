@@ -1,4 +1,11 @@
-import { renderEmailVerificationEmail, renderPasswordResetEmail } from '../email-templates'
+import {
+  renderEmailVerificationEmail,
+  renderMembershipApprovedEmail,
+  renderMembershipEndedEmail,
+  renderMembershipReactivatedEmail,
+  renderMembershipRejectedEmail,
+  renderPasswordResetEmail,
+} from '../email-templates'
 import type { RenderedEmail } from '../email-render'
 import { emailSamples } from '../templates/email-samples'
 
@@ -26,5 +33,29 @@ export const EMAIL_CATALOGUE: EmailCatalogueEntry[] = [
     render: () => renderPasswordResetEmail(emailSamples.passwordReset),
     carriesLogo: true,
     links: [emailSamples.passwordReset.url],
+  },
+  {
+    name: 'membership-approved',
+    render: () => renderMembershipApprovedEmail(emailSamples.membershipApproved),
+    carriesLogo: true,
+    links: [],
+  },
+  {
+    name: 'membership-rejected',
+    render: () => renderMembershipRejectedEmail(emailSamples.membershipRejected),
+    carriesLogo: true,
+    links: [],
+  },
+  {
+    name: 'membership-ended',
+    render: () => renderMembershipEndedEmail(emailSamples.membershipEnded),
+    carriesLogo: true,
+    links: [],
+  },
+  {
+    name: 'membership-reactivated',
+    render: () => renderMembershipReactivatedEmail(emailSamples.membershipReactivated),
+    carriesLogo: true,
+    links: [],
   },
 ]

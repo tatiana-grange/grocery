@@ -16,4 +16,8 @@ export const emailSamples = {
     name: 'Mia Dupont',
     url: 'https://app.example.org/reset-password?token=sample-token',
   },
+  membershipApproved: { name: 'Mia Dupont' },
+  membershipRejected: { name: 'Mia Dupont', reason: 'Dossier incomplet' },
+  membershipEnded: { name: 'Mia Dupont', reason: 'Cotisation non renouvelée' },
+  membershipReactivated: { name: 'Mia Dupont' },
 }
