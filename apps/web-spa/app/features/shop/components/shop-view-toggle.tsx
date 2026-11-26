@@ -23,10 +23,17 @@ export function ShopViewToggle({
       onChange={onChange}
       options={SHOP_VIEWS.map((option) => {
         const Icon = ICONS[option]
+        const name = t(`shop.view.${option}`)
         return {
           value: option,
-          label: <Icon className="size-4" />,
-          ariaLabel: t(`shop.view.${option}`),
+          // SegmentedControl takes no title; the wrapper fills the button, so hovering it
+          // anywhere shows the name of the view.
+          label: (
+            <span title={name} className="flex size-full items-center justify-center">
+              <Icon className="size-5" />
+            </span>
+          ),
+          ariaLabel: name,
           testId: `shop-view-${option}`,
         }
       })}

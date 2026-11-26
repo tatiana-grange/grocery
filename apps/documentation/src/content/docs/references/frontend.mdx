@@ -36,6 +36,10 @@ If not specified otherwise, follow the following guidelines:
   - ./packages/openapi-generator/client/zod.gen.ts
   - ./packages/openapi-generator/client/types.gen.ts
 - Use shadcn/ui for components.
+- Text sizes follow the theme of `packages/ui`. Body text — a sentence, a paragraph, a label a
+  member reads out — is at least 18 px (`text-base`). A short note next to a value (a date, a
+  member number, a status pill, a balance under a search result) may be 16 px (`text-sm`). No
+  interface text goes below 14 px, and no text is forced into capitals.
 - Use react-router for routing.
   - routes are usually defined in a `routes.ts` file
 - Use react-hook-form for form handling.

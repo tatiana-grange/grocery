@@ -315,6 +315,10 @@
   },
   "shop": {
     "nav": {
+      "mainNavigation": "Main navigation",
+      "menu": "Menu",
+      "cartItems_one": "{{count}} item",
+      "cartItems_other": "{{count}} items",
       "shop": "Shop",
       "cart": "Cart",
       "myAccount": "My account",
@@ -370,6 +374,7 @@
     "quantity": "Quantity",
     "unitPrice": "Unit price",
     "lineTotal": "Line total",
+    "removeLine": "Remove",
     "total": "Total",
     "signInToAdd": "Sign in to add to cart",
     "addToCart": "Add to cart",
@@ -615,7 +620,13 @@
       "cannot_reverse_reversal": "A reversal cannot itself be reversed."
     },
     "eur": "€{{value}}",
-    "dismiss": "Cancel"
+    "dismiss": "Cancel",
+    "table": {
+      "navigation": "Distribution navigation",
+      "toHandOver": "To hand over",
+      "notHandedOver": "Not handed over this time",
+      "ordersToHandOver": "Orders to hand over"
+    }
   },
   "wallet": {
     "title": "Account",
@@ -829,6 +840,112 @@
       "addMember": "Sign up a member",
       "remove": "Remove",
       "removed": "Member removed."
+    }
+  },
+  "adminAccounting": {
+    "period": {
+      "from": "From",
+      "to": "To",
+      "thisYear": "This year"
+    },
+    "category": {
+      "rent": "Rent",
+      "insurance": "Insurance",
+      "utilities": "Utilities",
+      "equipment": "Equipment",
+      "bank_fees": "Bank fees",
+      "other": "Other"
+    },
+    "method": {
+      "cash": "Cash",
+      "cheque": "Cheque",
+      "transfer": "Bank transfer",
+      "card": "Card"
+    },
+    "columns": {
+      "day": "Day",
+      "category": "Category",
+      "label": "Label",
+      "method": "Paid by",
+      "amount": "Amount",
+      "recordedBy": "Recorded by"
+    },
+    "expenses": {
+      "title": "Expenses",
+      "subtitle": "What the cooperative spent. A cancelled expense stays in the list, with a second row that reverses it.",
+      "new": "Record an expense",
+      "cancel": "Cancel",
+      "cancelled": "Cancelled",
+      "cancellationOf": "Cancellation:",
+      "empty": "No expenses in this period.",
+      "count_one": "{{count}} row",
+      "count_other": "{{count}} rows",
+      "toProfitAndLoss": "Profit and loss"
+    },
+    "form": {
+      "title": "Record an expense",
+      "description": "The amount is in euros. The expense cannot be edited later, only cancelled.",
+      "date": "Day",
+      "amount": "Amount (€)",
+      "category": "Category",
+      "label": "Label",
+      "method": "Paid by",
+      "submit": "Record",
+      "recorded": "Expense recorded.",
+      "error": {
+        "date": "Pick a day.",
+        "amount": "Enter an amount above 0, with at most two decimals.",
+        "label": "Enter a label of 1 to {{max}} characters."
+      }
+    },
+    "cancel": {
+      "title": "Cancel this expense",
+      "warning": "\"{{label}}\" ({{amount}}) stays in the books and a second row reverses it. This cannot be undone. To fix a mistake, record the expense again.",
+      "reason": "Reason",
+      "reasonHint": "Why is this expense cancelled?",
+      "keep": "Keep it",
+      "confirm": "Cancel the expense",
+      "done": "Expense cancelled.",
+      "error": {
+        "already_cancelled": "This expense was already cancelled.",
+        "cannot_cancel_cancellation": "A cancellation cannot be cancelled."
+      }
+    },
+    "nav": {
+      "accounting": "Accounting"
+    },
+    "pnl": {
+      "title": "Profit and loss",
+      "subtitle": "What the cooperative sold, what it cost, and what it spent, for a period. Days are read in Paris time.",
+      "toExpenses": "Expenses",
+      "figure": "Figure",
+      "sales": "Sales",
+      "costOfGoodsSold": "Cost of goods sold",
+      "grossMargin": "Gross margin",
+      "membershipFees": "Membership fees",
+      "expensesTotal": "Total expenses",
+      "result": "Result",
+      "walletNote": "Member wallet money (top-ups, payments, refunds) belongs to the members and is not on this account."
+    },
+    "exports": {
+      "title": "Exports",
+      "description": "One CSV file per kind of record, for the period above. Open it in a spreadsheet.",
+      "wallet-movements": "Wallet movements",
+      "sales": "Sales",
+      "purchases": "Purchases",
+      "membership-fees": "Membership fees",
+      "expenses": "Expenses"
+    }
+  },
+  "backOffice": {
+    "subtitle": "Grocery management",
+    "navigation": "Back office navigation",
+    "openDistribution": "Open the distribution",
+    "open": "Open",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {{page}} / {{pageCount}}"
     }
   }
 }

@@ -92,7 +92,7 @@ function NavigationItemComponent({
     <NavLink
       to={item.to}
       className={({ isActive }) =>
-        cn(baseClassName, isActive && 'text-primary font-medium bg-primary/10')
+        cn(baseClassName, isActive && 'text-foreground font-medium bg-primary/10')
       }
     >
       {item.icon}

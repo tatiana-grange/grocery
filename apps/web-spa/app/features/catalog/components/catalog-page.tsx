@@ -1,7 +1,7 @@
-import { PageTitle } from '@grocery/ui/components/app'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@grocery/ui/components/primitives/tabs'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
 import { CategoriesTab } from '@/features/catalog/components/categories-tab'
 import { ProductsTab } from '@/features/catalog/components/products-tab'
 import { SuppliersTab } from '@/features/catalog/components/suppliers-tab'
@@ -15,10 +15,7 @@ export default function CatalogPage() {
 
   return (
     <div className="space-y-6" data-testid="page-catalog">
-      <div>
-        <PageTitle>{t('catalog.title')}</PageTitle>
-        <p className="text-sm text-muted-foreground">{t('catalog.subtitle')}</p>
-      </div>
+      <BackOfficePageHead title={t('catalog.title')} description={t('catalog.subtitle')} />
 
       <Tabs
         value={tab}

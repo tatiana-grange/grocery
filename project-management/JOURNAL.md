@@ -3,6 +3,17 @@
 Project history, newest first. Written by hand, one dated entry per
 task — never generated.
 
+## 2026-11-26
+
+- UI redesign "neighbourhood market": closed. PR #24 brought the four slices to `staging` in one
+  squash, together with lot 7 (accounting and exports), which the branch was built on. Slices 03
+  and 04 were merged into the parent branch first, with one conflict in this journal; on the merged
+  branch 886 unit and API tests and 235 browser tests passed. The spec and its slice folder move to
+  the archive. Left open: the 13 px toasts, the place of the balance block, the before-and-after
+  screenshots, and the slices' retro proposals. The squash of PR #23 and PR #24 used the raw commit
+  list as the body, because the repository was set to "commit messages"; it is now set to the pull
+  request title and description, and both pull requests carry a `BEGIN_COMMIT_OVERRIDE` block.
+
 ## 2026-11-25
 
 - Diagnosis of the 500 on reversing a reversal: fixed on `fix/reverse-reversal-500`. The cause was
@@ -13,7 +24,95 @@ task — never generated.
   also explains the wallet and distribution tests that failed now and then since lot 5. All
   gates green (605 API tests). Proposed: check route ids as UUIDs, since a bad id answers 500.
 
+- UI redesign "neighbourhood market", slice 03, distribution table: built and reviewed on
+  `feat/ui-market-distribution`, in its own worktree beside slice 04.
+  - **The table.** The member search now lives in the layout, once. From 1024 px it is a
+    400 px column on the left that stays in view; below that it sits above the page. Picking
+    another member opens their page at once, and the open member is marked as current.
+  - **A member's page.** It reads like the mockup: the name in Lora, the balance in a slate
+    block, then "À remettre" with one card per order. Each card has one list of lines, which
+    still shows why a line is not ready. Its kraft footer holds the total and a 72 px "Valider la
+    remise". Warnings come next, in a squash box, then 72 px buttons for a payment and an express
+    sale.
+  - **Other screens.** The express sale, the receipt and the wallet dialogs follow the same look.
+    Forced capitals and raw amber are gone.
+  - **How it was built.** A Typist wrote a new browser test at 1194 and 768 px, seen red first at
+    each of three steps. The review led to one shared receipt notice and the new translation keys
+    in one block. The screenshots found cramped names in the search column, now fixed.
+  - **Gates.** All five pass: 187 browser tests and 874 unit and API tests. One known flaky
+    wallet test failed once in the full run and passed alone.
+  - **Left open for the Architect.** The shared toasts are 13 px with colours from outside the
+    theme; fixing that needs `packages/ui`. Four retro proposals wait in the work document.
+  - The parent spec stays open for slice 04.
+
+- UI redesign "neighbourhood market", slice 04, back office: built and reviewed on
+  `feat/ui-market-back-office`, in its own worktree beside slice 03. The sidebar is cream, with
+  the awning band, "Grocery" in Lora and a subtitle, six links with an icon and a label, the
+  current one in sage, and a straw "Ouvrir la distribution" button at the bottom. On a desktop it
+  now folds away whole instead of shrinking to icons. Every page opens with a 52 px Lora title and
+  its explanation; stock and slot details show their numbers in small cards. Tables sit in one
+  framed look, statuses are word badges in four tones, and rows waiting for review get a new
+  straw tint in the theme. `ListPagination` takes optional labels; the back office shows
+  "Précédent", "Suivant" and "Page 1 / 3". Forced capitals, a raw amber notice and faded archived
+  rows are gone. A new browser test at 1440 and 1194 px, light and evening, drove it in five
+  steps, each seen red first. The screenshots found cut search placeholders and a price on two
+  lines; both fixed. All five gates green (886 unit and API tests, 219 browser tests); the known
+  accounting period test failed once and passed alone. Six retro proposals and two open points
+  wait in the work document. The parent spec stays open.
+
+- UI redesign "neighbourhood market", slice 02, member space and sign-in: built and reviewed on
+  `feat/ui-market-redesign`. Below 768 px the shop and member area now have a tab bar fixed at the
+  bottom (Shop, Cart, Participation, My account; Sign in for visitors), with the current tab marked
+  and the cart count on its icon. The top bar on a phone keeps the name and one "Menu" button for
+  the settings, the back office and sign-out. From 768 px the top links are as before, with an icon
+  each. CSS decides which bar shows, so both stay in the page: the phone controls have their own
+  testids, and a test that looks a navigation word up by its text must scope its search. The awning
+  band tops the shop, member area and sign-in pages; sign-in shows the name in Lora. The shop cards,
+  the cart and the slot cards fit at 390 px, and the member screens lose forced capitals and raw
+  colours. One new browser test at 390 px drives it, written step by step and seen red first. The
+  usage limit stopped the first Typist after step 1; a second one did steps 3 to 5. The review led
+  to one shared auth link and small fixes. The screenshots found a cut cart row the test had
+  missed, because the table frame scrolls on its own; the check now looks there too. Inter is no
+  longer loaded from Google Fonts. All five gates green (875 unit and API tests, 172 browser
+  tests). Two older flaky tests failed once each and passed on the rerun: the accounting period
+  test from slice 01, and a quick-add test of the cart that also fails without this slice's code.
+  Six retro proposals wait for the human in the work document. The parent spec stays open for
+  slices 03 and 04.
+
+- UI redesign "neighbourhood market", slice 01, theme and shared components: built and reviewed on
+  `feat/ui-market-redesign`. The Citrus theme is gone. The app now uses cream paper, ink-brown
+  text, sage and squash actions, Lora headings and Onest text, with an evening mode on slate. The
+  text scale is raised in the theme, so body text is 18 px and nothing is under 14 px. Buttons,
+  fields, selects and tabs are 44 to 52 px high, with 2 px ink-brown borders and 12 px corners. A
+  new awning band component waits for slices 02 to 04 to place it. Every text pair of both modes
+  passes 4.5:1, and a new unit test in `packages/ui` checks it. A Typist coded it in four steps,
+  each test written first and seen failing. The review found two real gaps, both fixed:
+  destructive menu items unreadable at night, and four unused fields still too short. On the
+  Architect's word, one class changed in the add-to-cart control, whose sage text was unreadable
+  on slate. The final full runs are green (875 unit and API tests, 150 browser tests). Left open:
+  a period-picker race found in the accounting screen, which predates the slice and needs its own
+  task; the phone layout of the member space, for slice 02. The slice documents stay beside the
+  parent spec, which is still open.
+
 ## 2026-11-24
+
+- Lot 7, accounting and exports, the last delivery lot: built and reviewed on
+  `feat/accounting-exports`. Admins record association expenses (rent, insurance, utilities,
+  equipment, bank fees, other). The expense ledger is append-only: a mistake is cancelled once,
+  with a reason, by an opposite row dated the day of the cancellation. Admins read a
+  profit-and-loss account for any period, read in Paris time: sales and cost of goods sold come
+  from handovers (express sales included, checked in the code), fees from fee payments, and
+  wallet money stays off it. Five CSV files (wallet movements, sales, purchases, fees, expenses)
+  match the account's figures and guard text against spreadsheet formulas. Three Typists coded
+  it in seven steps, test first. The review found naming, typing and placement points, all fixed
+  or answered in the work document. All five gates are green (726 API tests, 140 browser tests);
+  one distribution test failed once with a 500 and passed on the rerun. Open for the human: two
+  spec lines the Architect amended at the plan reading, and seven retro proposals in the spec.
+  A six-check feature review then found 51 points (missing tests, copied code, return types,
+  comments, French wording, a download revoked too early), all fixed on the human's word. The
+  CSV writer and the download helper are now shared with the purchasing export, whose file stays
+  byte for byte the same. 735 API tests and 143 browser tests green; two known flaky tests passed
+  on the rerun. The report sits beside the spec.
 
 - Lot 6, participation planning: built and reviewed on `feat/participation-planning`. Admins create,
   edit, cancel and delete time slots with a number of places. Members sign up while places are

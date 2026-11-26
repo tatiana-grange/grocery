@@ -1,20 +1,29 @@
-import { Badge } from '@grocery/ui/components/primitives/badge'
+import type { MemberListItem } from '@grocery/openapi-generator/client/types.gen'
+import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  BackOfficeStatusBadge,
+  type StatusTone,
+} from '@/features/common/components/back-office-status-badge'
 
-type Status = 'pending' | 'active' | 'rejected' | 'terminated'
+type MemberStatus = MemberListItem['status']
 
-const VARIANT: Record<Status, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  pending: 'secondary',
-  active: 'default',
-  rejected: 'destructive',
-  terminated: 'outline',
+const STATUS_TONE: Record<MemberStatus, StatusTone> = {
+  pending: 'attention',
+  active: 'positive',
+  rejected: 'negative',
+  terminated: 'neutral',
 }
 
-export function MemberStatusBadge({ status }: { status: Status }) {
+interface MemberStatusBadgeProps {
+  status: MemberStatus
+}
+
+export function MemberStatusBadge({ status }: MemberStatusBadgeProps): ReactElement {
   const { t } = useTranslation()
   return (
-    <Badge variant={VARIANT[status]} data-testid={`member-status-${status}`}>
+    <BackOfficeStatusBadge tone={STATUS_TONE[status]} data-testid={`member-status-${status}`}>
       {t(`members.status.${status}`)}
-    </Badge>
+    </BackOfficeStatusBadge>
   )
 }

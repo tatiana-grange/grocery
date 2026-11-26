@@ -10,9 +10,9 @@ export function MemberQr({ membershipNumber }: { membershipNumber: string }) {
 
   return (
     <div className="flex flex-col items-center gap-2 rounded-lg border border-border p-6">
-      <QRCodeSVG value={membershipNumber} size={160} className="rounded bg-white p-2" />
-      <p className="font-mono text-sm">{membershipNumber}</p>
-      <p className="text-xs text-muted-foreground">{t('members.account.qrHint')}</p>
+      <QRCodeSVG value={membershipNumber} size={160} marginSize={2} className="rounded-lg" />
+      <p className="font-mono text-base">{membershipNumber}</p>
+      <p className="text-base text-muted-foreground">{t('members.account.qrHint')}</p>
     </div>
   )
 }

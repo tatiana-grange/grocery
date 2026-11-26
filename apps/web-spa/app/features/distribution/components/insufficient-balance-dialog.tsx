@@ -1,5 +1,6 @@
 import { Button } from '@grocery/ui/components/primitives/button'
 import { useTranslation } from 'react-i18next'
+import { DistributionNotice } from '@/features/distribution/components/distribution-notice'
 import { RecordPaymentForm } from '@/features/wallet/components/record-payment-form'
 
 interface InsufficientBalanceDialogProps {
@@ -25,20 +26,22 @@ export function InsufficientBalanceDialog({
   const { t } = useTranslation()
   return (
     <div
-      className={`space-y-4 rounded-lg border p-4 ${
-        shortfallEur == null ? 'border-border' : 'border-destructive/50 bg-destructive/5'
-      }`}
+      className="space-y-4 rounded-xl border-2 border-border bg-card p-5"
       data-testid="insufficient-balance-dialog"
     >
       <div className="flex items-start gap-3">
-        <p className="flex-1 text-sm font-medium">
-          {shortfallEur == null
-            ? t('wallet.recordPayment')
-            : t('distribution.refusal.insufficient_balance', {
+        <div className="min-w-0 flex-1">
+          {shortfallEur == null ? (
+            <p className="font-serif text-xl font-semibold">{t('wallet.recordPayment')}</p>
+          ) : (
+            <DistributionNotice tone="warning">
+              {t('distribution.refusal.insufficient_balance', {
                 amount: t('distribution.eur', { value: shortfallEur.toFixed(2) }),
               })}
-        </p>
-        <Button variant="ghost" size="sm" onClick={onDismiss}>
+            </DistributionNotice>
+          )}
+        </div>
+        <Button variant="outline" onClick={onDismiss}>
           {t('distribution.dismiss')}
         </Button>
       </div>

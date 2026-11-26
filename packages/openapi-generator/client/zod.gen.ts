@@ -3,6 +3,15 @@
 import { z } from 'zod';
 
 /**
+ * CancelExpenseInput
+ *
+ * Why the expense is cancelled, 1 to 500 characters.
+ */
+export const zCancelExpenseInput = z.object({
+    reason: z.string().min(1).max(500)
+});
+
+/**
  * CreateReferent
  *
  * Create a referent
@@ -338,6 +347,124 @@ export const zTestSettlePayment = z.object({
             paidAmountCents: z.int().gte(-9007199254740991).lte(9007199254740991)
         })
     ])
+});
+
+/**
+ * CalendarDay
+ *
+ * A calendar day written YYYY-MM-DD, with no time and no time zone.
+ */
+export const zCalendarDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+/**
+ * ExpenseCategory
+ *
+ * The fixed list of association expense categories.
+ */
+export const zExpenseCategory = z.enum([
+    'rent',
+    'insurance',
+    'utilities',
+    'equipment',
+    'bank_fees',
+    'other'
+]);
+
+/**
+ * ExpensePaymentMethod
+ *
+ * How an association expense was paid.
+ */
+export const zExpensePaymentMethod = z.enum([
+    'cash',
+    'cheque',
+    'transfer',
+    'card'
+]);
+
+/**
+ * RecordExpenseInput
+ *
+ * An expense to record. The amount is a whole number of cents, at least 1. The label is 1 to 200 characters. Any other field is ignored.
+ */
+export const zRecordExpenseInput = z.object({
+    spentOn: zCalendarDay,
+    amountCents: z.int().gte(1).lte(2147483647),
+    category: zExpenseCategory,
+    paymentMethod: zExpensePaymentMethod,
+    label: z.string().min(1).max(200)
+});
+
+/**
+ * ExpenseKind
+ *
+ * A plain expense, or the reversing row that cancels one.
+ */
+export const zExpenseKind = z.enum(['expense', 'cancellation']);
+
+/**
+ * Expense
+ *
+ * An association expense, or the negative row that cancels one. Rows are never edited or deleted.
+ */
+export const zExpense = z.object({
+    id: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+    spentOn: zCalendarDay,
+    amountCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    category: zExpenseCategory,
+    label: z.string(),
+    paymentMethod: zExpensePaymentMethod,
+    kind: zExpenseKind,
+    cancelsExpenseId: z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ]),
+    cancelledByExpenseId: z.union([
+        z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/),
+        z.null()
+    ]),
+    isCancelled: z.boolean(),
+    reason: z.union([
+        z.string(),
+        z.null()
+    ]),
+    recordedByName: z.string(),
+    createdAt: z.string()
+});
+
+/**
+ * ExpenseList
+ *
+ * A paginated page of expense rows, newest day first.
+ */
+export const zExpenseList = z.object({
+    data: z.array(zExpense),
+    meta: z.object({
+        offset: z.number(),
+        pageSize: z.number(),
+        itemCount: z.number(),
+        hasMore: z.boolean()
+    })
+});
+
+/**
+ * ProfitAndLoss
+ *
+ * The profit-and-loss account for a period. Wallet money (top-ups, payment corrections, refunds) is not on it: it belongs to the members. All amounts are in cents.
+ */
+export const zProfitAndLoss = z.object({
+    from: zCalendarDay,
+    to: zCalendarDay,
+    salesCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    costOfGoodsSoldCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    grossMarginCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    membershipFeesCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    expensesByCategory: z.array(z.object({
+        category: zExpenseCategory,
+        amountCents: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })),
+    expensesTotalCents: z.int().gte(-9007199254740991).lte(9007199254740991),
+    resultCents: z.int().gte(-9007199254740991).lte(9007199254740991)
 });
 
 /**
@@ -2228,6 +2355,16 @@ export const zTestSeedResetResponse = z.object({
 });
 
 /**
+ * PeriodQuery
+ *
+ * A period of calendar days in Europe/Paris, both days included. `from` must not be after `to`.
+ */
+export const zPeriodQuery = z.object({
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+});
+
+/**
  * PaginationQuerySchema
  *
  * Schema for pagination query
@@ -2236,6 +2373,19 @@ export const zPaginationQuerySchema = z.object({
     offset: z.int().gte(0).lte(9007199254740991).default(0),
     pageSize: z.int().gte(1).lte(100).default(50)
 });
+
+/**
+ * ExportName
+ *
+ * Which CSV export to download.
+ */
+export const zExportName = z.enum([
+    'wallet-movements',
+    'sales',
+    'purchases',
+    'membership-fees',
+    'expenses'
+]);
 
 /**
  * FilterQueryStringSchema
@@ -4123,3 +4273,99 @@ export const zMemberSlotsControllerListMineData = z.object({
  * A paginated page of the caller’s coming sign-ups, earliest start first
  */
 export const zMemberSlotsControllerListMineResponse = zMySignupList;
+
+export const zAdminExpensesControllerListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        offset: z.int().gte(0).lte(9007199254740991).default(0),
+        pageSize: z.int().gte(1).lte(100).default(50),
+        from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+    })
+});
+
+/**
+ * A paginated page of expense rows, newest day first.
+ */
+export const zAdminExpensesControllerListResponse = zExpenseList;
+
+export const zAdminExpensesControllerRecordData = z.object({
+    body: z.object({
+        spentOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        amountCents: z.int().gte(1).lte(2147483647),
+        category: z.enum([
+            'rent',
+            'insurance',
+            'utilities',
+            'equipment',
+            'bank_fees',
+            'other'
+        ]),
+        paymentMethod: z.enum([
+            'cash',
+            'cheque',
+            'transfer',
+            'card'
+        ]),
+        label: z.string().min(1).max(200)
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * An association expense, or the negative row that cancels one. Rows are never edited or deleted.
+ */
+export const zAdminExpensesControllerRecordResponse = zExpense;
+
+export const zAdminExpensesControllerCancelData = z.object({
+    body: z.object({
+        reason: z.string().min(1).max(500)
+    }),
+    path: z.object({
+        expenseId: z.uuid().regex(/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/)
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * An association expense, or the negative row that cancels one. Rows are never edited or deleted.
+ */
+export const zAdminExpensesControllerCancelResponse = zExpense;
+
+export const zAdminAccountingControllerGetProfitAndLossData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+    })
+});
+
+/**
+ * The profit-and-loss account for a period. Wallet money (top-ups, payment corrections, refunds) is not on it: it belongs to the members. All amounts are in cents.
+ */
+export const zAdminAccountingControllerGetProfitAndLossResponse = zProfitAndLoss;
+
+export const zAdminAccountingControllerDownloadExportData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        exportName: z.enum([
+            'wallet-movements',
+            'sales',
+            'purchases',
+            'membership-fees',
+            'expenses'
+        ])
+    }),
+    query: z.object({
+        from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+    })
+});
+
+/**
+ * The CSV file, with a header row. UTF-8, comma separated, CRLF line ends.
+ */
+export const zAdminAccountingControllerDownloadExportResponse = z.string();

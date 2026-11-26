@@ -11,7 +11,7 @@ export function CheckoutConfirmation({ result }: { result: CheckoutResult }) {
     <div className="space-y-4" data-testid="checkout-confirmation">
       {result.droppedLines.length > 0 && (
         <div
-          className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 text-sm"
+          className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 text-base"
           data-testid="checkout-dropped-lines"
         >
           <p className="font-semibold">{t('cart.checkout.droppedTitle')}</p>
@@ -34,7 +34,7 @@ export function CheckoutConfirmation({ result }: { result: CheckoutResult }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-1 text-base">
               {order.lines.map((line) => (
                 <li key={line.id} className="flex justify-between">
                   <span>
@@ -45,7 +45,7 @@ export function CheckoutConfirmation({ result }: { result: CheckoutResult }) {
               ))}
             </ul>
             <p
-              className="text-sm text-muted-foreground"
+              className="text-base text-muted-foreground"
               data-testid={`checkout-next-steps-${order.id}`}
             >
               {t(`cart.checkout.nextSteps.${order.orderingMode}`)}

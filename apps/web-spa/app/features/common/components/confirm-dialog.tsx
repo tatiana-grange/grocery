@@ -18,9 +18,13 @@ interface ConfirmDialogProps {
   backLabel: string
   confirmLabel: string
   destructive?: boolean
+  /** Disables the confirm button on top of `isPending`, for example until a field is filled. */
+  confirmDisabled?: boolean
   isPending: boolean
   onConfirm: () => void
   onClose: () => void
+  /** Shown between the question and the buttons, for a field the answer needs. */
+  children?: ReactNode
 }
 
 /** A yes-or-no question asked before an action, open as long as it is rendered. */
@@ -32,9 +36,11 @@ export function ConfirmDialog({
   backLabel,
   confirmLabel,
   destructive = false,
+  confirmDisabled = false,
   isPending,
   onConfirm,
   onClose,
+  children,
 }: ConfirmDialogProps) {
   return (
     <Dialog open onOpenChange={(open) => (open ? undefined : onClose())}>
@@ -43,6 +49,7 @@ export function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription data-testid={descriptionTestId}>{description}</DialogDescription>
         </DialogHeader>
+        {children}
         <DialogFooter>
           <Button variant="outline" data-testid={`${testId}-back`} onClick={onClose}>
             {backLabel}
@@ -50,7 +57,7 @@ export function ConfirmDialog({
           <Button
             variant={destructive ? 'destructive' : 'default'}
             data-testid={`${testId}-confirm`}
-            disabled={isPending}
+            disabled={isPending || confirmDisabled}
             onClick={onConfirm}
           >
             {confirmLabel}

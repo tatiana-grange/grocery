@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/onest/index.css';
-@import '@fontsource-variable/host-grotesk/index.css';
 @import '@fontsource-variable/lora/index.css';
 
 /* Watch for changes in the ui package */
@@ -17,141 +16,177 @@
 @custom-variant data-vertical (&[data-orientation='vertical']);
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Citrus theme (shadcnblocks) — lime primary, teal secondary.
-   Installed with: npx shadcn add @shadcnblocks/theme/citrus
-   The semantic --success / --warning / --info tokens and the base-layer
-   details below are project additions kept on top of the theme.
+   Neighbourhood market theme — cream paper, ink-brown outlines, sage green.
+   Light mode is the market by day; `.dark` is the "evening" mode (slate).
+   Every value is written in hex so the unit test can read and check it.
+   `straw`, `kraft` and `slate` are decoration only. `warning` is a fill
+   only (squash text on cream is under 4.5:1) and no component writes
+   `text-primary` (sage text on slate is under 4.5:1).
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
   --header-height: 3rem;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
-  /* ── Light mode ─────────────────────────────────────────────────────── */
-  --background: oklch(0.9851 0 0);
-  --foreground: oklch(0.269 0 0);
+  --background: #f7f1e3;
+  --foreground: #2b241c;
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.269 0 0);
+  --card: #fffcf5;
+  --card-foreground: #2b241c;
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.269 0 0);
+  --popover: #fffcf5;
+  --popover-foreground: #2b241c;
 
-  /* Primary = citrus lime; foreground is near-black */
-  --primary: oklch(0.8719 0.1829 125.59);
-  --primary-foreground: oklch(0 0 0);
+  --primary: #4e6b4a;
+  --primary-foreground: #fffcf5;
 
-  /* Secondary = deep teal */
-  --secondary: oklch(0.5591 0.0631 185.87);
-  --secondary-foreground: oklch(1 0 0);
+  --secondary: #d9c3a0;
+  --secondary-foreground: #2b241c;
 
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.439 0 0);
+  --muted: #ede4d0;
+  --muted-foreground: #5c5246;
 
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.269 0 0);
+  --accent: #ede4d0;
+  --accent-foreground: #2b241c;
 
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
+  --destructive: #9b2c22;
+  --destructive-foreground: #fffcf5;
 
-  /* Semantic tokens (project addition, not part of the theme) */
-  --success: oklch(0.62 0.16 150);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.72 0.17 65);
-  --warning-foreground: oklch(0.155 0 0);
-  --info: oklch(0.6 0.15 240);
-  --info-foreground: oklch(0.985 0 0);
+  --success: #3b6e3f;
+  --success-foreground: #fffcf5;
+  --warning: #b4541a;
+  --warning-foreground: #fffcf5;
+  --info: #2f5d73;
+  --info-foreground: #fffcf5;
 
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.87 0 0);
-  --ring: oklch(0.8719 0.1829 125.59);
+  --straw: #e9c46a;
+  --straw-foreground: #2b241c;
+  /* Rows and notices that wait for an admin */
+  --straw-tint: #fdf6e4;
+  --kraft: #d9c3a0;
+  --kraft-foreground: #2b241c;
+  --slate: #2f3a33;
+  --slate-foreground: #f7f1e3;
 
-  /* Charts */
-  --chart-1: oklch(0.8719 0.1829 125.59);
-  --chart-2: oklch(0.5591 0.0631 185.87);
-  --chart-3: oklch(0.8416 0.2214 127.63);
-  --chart-4: oklch(0.8565 0.0734 182);
-  --chart-5: oklch(0.7227 0.192 149.58);
+  --border: #2b241c;
+  --input: #2b241c;
+  /* Soft dividers: table rows, separators */
+  --rule: #d9c3a0;
+  --ring: #4e6b4a;
 
-  /* Sidebar */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.269 0 0);
-  --sidebar-primary: oklch(0.8719 0.1829 125.59);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-accent: oklch(0.9851 0 0);
-  --sidebar-accent-foreground: oklch(0.269 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.8719 0.1829 125.59);
+  --awning-a: #4e6b4a;
+  --awning-b: #fffcf5;
 
-  /* Fonts */
-  --font-sans: 'Onest Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --chart-1: #4e6b4a;
+  --chart-2: #b4541a;
+  --chart-3: #e9c46a;
+  --chart-4: #d9c3a0;
+  --chart-5: #2f3a33;
+
+  --sidebar: #fffcf5;
+  --sidebar-foreground: #2b241c;
+  --sidebar-primary: #4e6b4a;
+  --sidebar-primary-foreground: #fffcf5;
+  --sidebar-accent: #ede4d0;
+  --sidebar-accent-foreground: #2b241c;
+  --sidebar-border: #d9c3a0;
+  --sidebar-ring: #4e6b4a;
+
+  /* Fonts: Lora for headings, Onest for the rest */
+  --font-sans:
+    'Onest Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Lora Variable', ui-serif, Georgia, serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Monaco, Consolas, monospace;
-  --font-display: 'Host Grotesk Variable', var(--font-sans);
+  --font-display: var(--font-serif);
   --font-text: var(--font-sans);
 
-  /* Shadows */
-  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --shadow-2xs: 0 1px 3px 0px rgb(43 36 28 / 0.05);
+  --shadow-xs: 0 1px 3px 0px rgb(43 36 28 / 0.05);
+  --shadow-sm: 0 1px 3px 0px rgb(43 36 28 / 0.1), 0 1px 2px -1px rgb(43 36 28 / 0.1);
+  --shadow: 0 1px 3px 0px rgb(43 36 28 / 0.1), 0 1px 2px -1px rgb(43 36 28 / 0.1);
+  --shadow-md: 0 1px 3px 0px rgb(43 36 28 / 0.1), 0 2px 4px -1px rgb(43 36 28 / 0.1);
+  --shadow-lg: 0 1px 3px 0px rgb(43 36 28 / 0.1), 0 4px 6px -1px rgb(43 36 28 / 0.1);
+  --shadow-xl: 0 1px 3px 0px rgb(43 36 28 / 0.1), 0 8px 10px -1px rgb(43 36 28 / 0.1);
+  --shadow-2xl: 0 1px 3px 0px rgb(43 36 28 / 0.25);
 }
 
 .dark {
-  /* ── Dark mode ──────────────────────────────────────────────────────── */
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.922 0 0);
+  /* ── Evening mode: slate and cream. Tokens not listed here (primary,
+     secondary, warning, success, info, straw, kraft, slate, charts,
+     awning-a, sidebar-primary) keep their light values. ───────────────── */
+  --background: #2f3a33;
+  --foreground: #f7f1e3;
 
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.922 0 0);
+  --card: #3a473f;
+  --card-foreground: #f7f1e3;
 
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.922 0 0);
+  --popover: #3a473f;
+  --popover-foreground: #f7f1e3;
 
-  --primary: oklch(0.8719 0.1829 125.59);
-  --primary-foreground: oklch(0 0 0);
+  --muted: #26302a;
+  --muted-foreground: #d3c9b3;
 
-  --secondary: oklch(0.5591 0.0631 185.87);
-  --secondary-foreground: oklch(1 0 0);
+  --accent: #46544b;
+  --accent-foreground: #f7f1e3;
 
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  /* Lighter brick so it reads as text on slate */
+  --destructive: #f2a595;
+  --destructive-foreground: #2b241c;
 
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.922 0 0);
+  --border: #d9c3a0;
+  --input: #d9c3a0;
+  --rule: #5e6e63;
+  --straw-tint: #4c5443;
+  /* Sage is too dark on slate: straw at night */
+  --ring: #e9c46a;
 
-  --destructive: oklch(0.64 0.21 25.33);
-  --destructive-foreground: oklch(0.969 0 0);
+  --awning-b: #f7f1e3;
 
-  --success: oklch(0.55 0.15 150);
-  --success-foreground: oklch(0.969 0 0);
-  --warning: oklch(0.65 0.16 65);
-  --warning-foreground: oklch(0.097 0 0);
-  --info: oklch(0.55 0.14 240);
-  --info-foreground: oklch(0.969 0 0);
+  --sidebar: #26302a;
+  --sidebar-foreground: #f7f1e3;
+  --sidebar-accent: #46544b;
+  --sidebar-accent-foreground: #f7f1e3;
+  --sidebar-border: #5e6e63;
+  --sidebar-ring: #e9c46a;
+}
 
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.371 0 0);
-  --ring: oklch(0.8719 0.1829 125.59);
+/* Text scale. Plain `@theme` (not `inline`) so every `text-*` class in the app follows.
+   Body text is 18 px (`text-base`); nothing is below 14 px (`text-xs`). */
+@theme {
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5rem;
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.75rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 2rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.25rem;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 2.5rem;
+  --text-4xl: 2.5rem;
+  --text-4xl--line-height: 2.75rem;
+}
 
-  --chart-1: oklch(0.8719 0.1829 125.59);
-  --chart-2: oklch(0.5591 0.0631 185.87);
-  --chart-3: oklch(0.8416 0.2214 127.63);
-  --chart-4: oklch(0.8565 0.0734 182);
-  --chart-5: oklch(0.7227 0.192 149.58);
-
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.922 0 0);
-  --sidebar-primary: oklch(0.8719 0.1829 125.59);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.922 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.8719 0.1829 125.59);
+/* The market awning: stripes on the top half, one half-disc under each stripe for the scalloped
+   edge. 24 px high, 48 px per stripe pair. Uses only the two awning variables. */
+@utility awning {
+  background-image:
+    repeating-linear-gradient(90deg, var(--awning-a) 0 24px, var(--awning-b) 24px 48px),
+    radial-gradient(circle at 12px 12px, var(--awning-a) 12px, transparent 12.5px),
+    radial-gradient(circle at 12px 12px, var(--awning-b) 12px, transparent 12.5px);
+  background-size:
+    100% 12px,
+    48px 24px,
+    48px 24px;
+  background-position:
+    0 0,
+    0 0,
+    24px 0;
+  background-repeat: no-repeat, repeat-x, repeat-x;
 }
 
 @theme inline {
@@ -184,7 +219,15 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-straw: var(--straw);
+  --color-straw-foreground: var(--straw-foreground);
+  --color-straw-tint: var(--straw-tint);
+  --color-kraft: var(--kraft);
+  --color-kraft-foreground: var(--kraft-foreground);
+  --color-slate: var(--slate);
+  --color-slate-foreground: var(--slate-foreground);
   --color-border: var(--border);
+  --color-rule: var(--rule);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
@@ -226,13 +269,21 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply font-sans min-h-screen bg-background text-foreground;
+    @apply font-sans min-h-screen bg-background text-base text-foreground;
   }
 
   .bg-gradient-bg {
     background-image:
-      radial-gradient(at 61% 77%, oklch(0.8719 0.1829 125.59 / 7%) 0px, transparent 50%),
-      radial-gradient(at 10% 3%, oklch(0.5591 0.0631 185.87 / 8%) 0px, transparent 50%);
+      radial-gradient(
+        at 61% 77%,
+        color-mix(in srgb, var(--straw) 12%, transparent) 0px,
+        transparent 50%
+      ),
+      radial-gradient(
+        at 10% 3%,
+        color-mix(in srgb, var(--primary) 8%, transparent) 0px,
+        transparent 50%
+      );
   }
 
   /* ── Premium texture & details ──────────────────────────────────────── */

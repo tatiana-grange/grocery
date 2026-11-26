@@ -1,4 +1,4 @@
-import { PageTitle } from '@grocery/ui/components/app'
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
@@ -13,6 +13,9 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
+import { BackOfficeFigureCard } from '@/features/common/components/back-office-figure-card'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
+import { BackOfficeTableFrame } from '@/features/common/components/back-office-table-frame'
 import { stockDetailQueryOptions } from '@/features/admin-inventory/utils/inventory-queries'
 
 export default function StockDetailPage() {
@@ -26,42 +29,48 @@ export default function StockDetailPage() {
 
   return (
     <div className="space-y-6" data-testid="page-stock-detail">
-      <Button
-        variant="ghost"
-        size="sm"
-        render={<Link to="/admin/inventory" />}
-        data-testid="stock-detail-back"
-      >
-        <ArrowLeft className="mr-2 size-4" />
-        {t('inventory.backToList')}
-      </Button>
-
       <div>
-        <PageTitle>{data.product.name}</PageTitle>
-        <div className="mt-2 flex gap-6 text-sm">
-          <span data-testid="stock-detail-on-hand">
-            {t('inventory.columns.onHand')}:{' '}
-            <span className="font-semibold">{data.quantityOnHand}</span>
-          </span>
-          <span data-testid="stock-detail-cost">
-            {t('inventory.columns.costPrice')}:{' '}
-            <span className="font-semibold">
-              {data.costPriceEur == null
-                ? t('inventory.noCostPrice')
-                : t('inventory.costValue', { value: data.costPriceEur.toFixed(2) })}
-            </span>
-          </span>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          render={<Link to="/admin/inventory" />}
+          data-testid="stock-detail-back"
+        >
+          <ArrowLeft />
+          {t('inventory.backToList')}
+        </Button>
       </div>
 
+      <BackOfficePageHead
+        title={data.product.name}
+        figures={
+          <>
+            <BackOfficeFigureCard
+              testId="stock-detail-on-hand"
+              label={t('inventory.columns.onHand')}
+              value={data.quantityOnHand}
+            />
+            <BackOfficeFigureCard
+              testId="stock-detail-cost"
+              label={t('inventory.columns.costPrice')}
+              value={
+                data.costPriceEur == null
+                  ? t('inventory.noCostPrice')
+                  : t('inventory.costValue', { value: data.costPriceEur.toFixed(2) })
+              }
+            />
+          </>
+        }
+      />
+
       <section className="space-y-3">
-        <h2 className="text-lg font-bold">{t('inventory.movementsHeading')}</h2>
+        <SectionTitle>{t('inventory.movementsHeading')}</SectionTitle>
         {data.movements.length === 0 ? (
-          <p className="text-sm text-muted-foreground" data-testid="stock-detail-no-movements">
+          <p className="text-base text-muted-foreground" data-testid="stock-detail-no-movements">
             {t('inventory.noMovements')}
           </p>
         ) : (
-          <div className="rounded-lg border border-border">
+          <BackOfficeTableFrame>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -84,7 +93,7 @@ export default function StockDetailPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </BackOfficeTableFrame>
         )}
       </section>
     </div>

@@ -32,10 +32,12 @@ export function EmptyState({ icon, title, description, action, className }: Empt
     <div
       className={cn('flex flex-col items-center justify-center py-12 px-6 text-center', className)}
     >
-      {icon ? <div className="mb-4 p-3 rounded-full bg-muted">{icon}</div> : null}
+      {icon ? (
+        <div className="mb-4 p-3 rounded-full border-2 border-border bg-muted">{icon}</div>
+      ) : null}
       <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
       {description ? (
-        <p className="text-sm text-muted-foreground mb-6 max-w-sm">{description}</p>
+        <p className="text-base text-muted-foreground mb-6 max-w-sm">{description}</p>
       ) : null}
       {action ? (
         <Button onClick={action.onClick} variant={action.variant ?? 'default'}>

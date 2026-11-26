@@ -68,9 +68,11 @@ function TopupResult({ topupId }: { topupId: string }) {
 
       {isPaid && topup ? (
         <section className="space-y-2" data-testid="topup-return-credited">
-          <p>{t('wallet.topup.return.credited', { amount: eur(topup.amountEur) })}</p>
+          <p className="text-base">
+            {t('wallet.topup.return.credited', { amount: eur(topup.amountEur) })}
+          </p>
           {wallet ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               {t('wallet.topup.return.balance')}:{' '}
               <span className="font-semibold tabular-nums" data-testid="topup-return-balance">
                 {eur(wallet.balanceEur)}

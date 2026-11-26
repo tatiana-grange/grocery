@@ -69,10 +69,15 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
   const amount = (quantity: number) => quantityLabel(product, quantity, t)
 
   return (
-    <TableRow data-testid={`cart-line-${line.id}`}>
+    <TableRow
+      data-testid={`cart-line-${line.id}`}
+      className="max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-center max-md:gap-x-3 max-md:gap-y-2 max-md:px-3 max-md:py-4"
+    >
       {/* The pickup breakdown is a sentence, not a label: it has to wrap inside the column
-          rather than push the table wider than the page. */}
-      <TableCell className="font-medium whitespace-normal wrap-break-word">
+          rather than push the table wider than the page. On a phone the row is a two-column
+          grid: name across, then stepper and remove, then unit price and line total. The
+          `order` classes set that reading order without moving the cells, which a table needs. */}
+      <TableCell className="font-medium whitespace-normal wrap-break-word max-md:order-1 max-md:col-span-2 max-md:block max-md:p-0">
         {product.name}
         {/* The ordering mode is a catalogue detail the shopper has already acted on; what it
             means for them here is the pickup breakdown below. Only a problem with the line
@@ -89,7 +94,7 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
             to wait for a delivery. */}
         {later > 0 && (
           <ul
-            className="mt-1.5 space-y-0.5 text-xs text-muted-foreground"
+            className="mt-1.5 space-y-0.5 text-sm text-muted-foreground"
             data-testid={`cart-line-pickup-${line.id}`}
           >
             {now > 0 && (
@@ -107,7 +112,7 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
           </ul>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell className="max-md:order-2 max-md:block max-md:min-w-0 max-md:p-0">
         {/* The line is there by definition, so this only ever renders as the stepper. Taking the
             amount down to nothing drops the line, exactly as it does in the shop. */}
         <AddToCartControl
@@ -124,16 +129,23 @@ function CartLineRow({ pickup }: { pickup: CartLinePickup }) {
           }}
         />
       </TableCell>
-      <TableCell>{line.unitPriceEur.toFixed(2)} €</TableCell>
-      <TableCell className="font-semibold">{line.lineTotalEur.toFixed(2)} €</TableCell>
-      <TableCell>
+      <TableCell className="max-md:order-4 max-md:block max-md:p-0 max-md:whitespace-normal">
+        <span className="md:hidden">{t('cart.unitPrice')} </span>
+        {line.unitPriceEur.toFixed(2)} €
+      </TableCell>
+      <TableCell className="font-semibold max-md:order-5 max-md:block max-md:p-0 max-md:text-right max-md:whitespace-normal">
+        <span className="md:hidden">{t('cart.lineTotal')} </span>
+        {line.lineTotalEur.toFixed(2)} €
+      </TableCell>
+      <TableCell className="max-md:order-3 max-md:block max-md:p-0 max-md:text-right">
         <AlertDialog>
           <AlertDialogTrigger
             render={
-              <Button variant="ghost" size="icon" data-testid={`cart-line-remove-${line.id}`} />
+              <Button variant="ghost" size="sm" data-testid={`cart-line-remove-${line.id}`} />
             }
           >
             <Trash2 className="size-4" />
+            {t('cart.removeLine')}
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -170,8 +182,8 @@ function PendingPickupNotice({ pickups }: { pickups: CartLinePickup[] }) {
 
   return (
     <div className="rounded-lg bg-muted p-4" data-testid="cart-pending-notice">
-      <h2 className="text-sm font-semibold">{t('cart.pickup.summaryTitle')}</h2>
-      <ul className="mt-2 space-y-1 text-sm">
+      <h2 className="font-serif text-lg font-semibold">{t('cart.pickup.summaryTitle')}</h2>
+      <ul className="mt-2 space-y-1 text-base">
         {pending.map(({ line, later }) => (
           <li key={line.id} className="flex flex-wrap justify-between gap-x-4">
             <span>{line.product.name}</span>
@@ -181,7 +193,7 @@ function PendingPickupNotice({ pickups }: { pickups: CartLinePickup[] }) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-muted-foreground">{t('cart.pickup.summaryNote')}</p>
+      <p className="mt-3 text-sm text-muted-foreground">{t('cart.pickup.summaryNote')}</p>
     </div>
   )
 }
@@ -232,13 +244,9 @@ export default function CartPage() {
       <div className="space-y-6" data-testid="page-cart">
         <PageTitle>{t('cart.checkout.title')}</PageTitle>
         <CheckoutConfirmation result={confirmation} />
-        <Link
-          to="/shop"
-          className="text-sm font-medium underline"
-          data-testid="checkout-back-to-shop"
-        >
+        <Button variant="link" render={<Link to="/shop" />} data-testid="checkout-back-to-shop">
           {t('cart.browseShop')}
-        </Link>
+        </Button>
       </div>
     )
   }
@@ -258,7 +266,7 @@ export default function CartPage() {
         <BackToShopButton />
         <div className="space-y-4 text-center">
           <PageTitle>{t('cart.title')}</PageTitle>
-          <p className="text-sm text-muted-foreground">{t('cart.loadError')}</p>
+          <p className="text-base text-muted-foreground">{t('cart.loadError')}</p>
           <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
             {t('common.retry')}
           </Button>
@@ -282,13 +290,9 @@ export default function CartPage() {
             title={t('cart.empty')}
           />
           <div className="text-center">
-            <Link
-              to="/shop"
-              className="text-sm font-medium underline"
-              data-testid="cart-browse-shop"
-            >
+            <Button variant="link" render={<Link to="/shop" />} data-testid="cart-browse-shop">
               {t('cart.browseShop')}
-            </Link>
+            </Button>
           </div>
         </div>
       ) : (
@@ -297,17 +301,17 @@ export default function CartPage() {
             {/* Fixed widths: the product name and its pickup breakdown would otherwise size the
                 column from their longest line and scroll the table sideways. Everything else is
                 a short number, so the product column takes whatever room is left. */}
-            <Table className="table-fixed">
-              <TableHeader>
+            <Table className="table-fixed max-md:block">
+              <TableHeader className="max-md:hidden">
                 <TableRow>
                   <TableHead>{t('cart.product')}</TableHead>
                   <TableHead className="w-44">{t('cart.quantity')}</TableHead>
                   <TableHead className="w-28">{t('cart.unitPrice')}</TableHead>
                   <TableHead className="w-32">{t('cart.lineTotal')}</TableHead>
-                  <TableHead className="w-14" />
+                  <TableHead className="w-32" />
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="max-md:block">
                 {pickups.map((pickup) => (
                   <CartLineRow key={pickup.line.id} pickup={pickup} />
                 ))}
@@ -317,7 +321,7 @@ export default function CartPage() {
 
           <PendingPickupNotice pickups={pickups} />
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-lg font-bold" data-testid="cart-total">
               {t('cart.total')}: {cart.totalEur.toFixed(2)} €
             </span>

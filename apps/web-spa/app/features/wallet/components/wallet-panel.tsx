@@ -1,3 +1,4 @@
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Badge } from '@grocery/ui/components/primitives/badge'
 import { Button } from '@grocery/ui/components/primitives/button'
 import { Skeleton } from '@grocery/ui/components/primitives/skeleton'
@@ -32,12 +33,12 @@ export function WalletPanel({ wallet, onCorrect }: WalletPanelProps) {
   const eur = (value: number) => t('wallet.eur', { value: value.toFixed(2) })
 
   return (
-    <section className="space-y-4 rounded-lg border border-border p-4" data-testid="wallet-panel">
+    <section className="space-y-4 rounded-xl border-2 border-border p-4" data-testid="wallet-panel">
       <div className="flex items-baseline gap-3">
-        <h2 className="font-semibold">{t('wallet.title')}</h2>
-        <span className="ml-auto text-sm text-muted-foreground">{t('wallet.balance')}</span>
+        <SectionTitle>{t('wallet.title')}</SectionTitle>
+        <span className="ml-auto text-base text-muted-foreground">{t('wallet.balance')}</span>
         <span
-          className={`text-2xl font-semibold tabular-nums ${shown.balanceEur < 0 ? 'text-destructive' : ''}`}
+          className={`font-serif text-3xl font-bold italic tabular-nums ${shown.balanceEur < 0 ? 'text-destructive' : ''}`}
           data-testid="wallet-balance"
         >
           {eur(shown.balanceEur)}
@@ -46,13 +47,13 @@ export function WalletPanel({ wallet, onCorrect }: WalletPanelProps) {
 
       <div data-testid="wallet-history">
         {shown.entries.data.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('wallet.empty')}</p>
+          <p className="text-base text-muted-foreground">{t('wallet.empty')}</p>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-rule">
             {shown.entries.data.map((entry) => (
               <li
                 key={entry.id}
-                className="flex flex-wrap items-center gap-3 py-2 text-sm"
+                className="flex flex-wrap items-center gap-3 py-2 text-base"
                 data-testid={`wallet-entry-${entry.id}`}
               >
                 <span className="text-muted-foreground">

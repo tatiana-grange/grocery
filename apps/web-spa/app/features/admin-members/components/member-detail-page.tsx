@@ -1,4 +1,4 @@
-import { PageTitle, SectionTitle } from '@grocery/ui/components/app'
+import { SectionTitle } from '@grocery/ui/components/app'
 import { Button } from '@grocery/ui/components/primitives/button'
 import {
   Dialog,
@@ -14,12 +14,14 @@ import { Textarea } from '@grocery/ui/components/primitives/textarea'
 import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { MemberFeePanel } from '@/features/admin-members/components/member-fee-panel'
 import { MemberProfileEdit } from '@/features/admin-members/components/member-profile-edit'
+import { MemberFeeBadge } from '@/features/admin-members/components/member-fee-badge'
 import { MemberStatusBadge } from '@/features/admin-members/components/member-status-badge'
+import { BackOfficePageHead } from '@/features/common/components/back-office-page-head'
 import {
   decideMember,
   memberDetailQueryOptions,
@@ -104,27 +106,27 @@ export default function MemberDetailPage() {
   return (
     <div className="space-y-6" data-testid="page-member-detail">
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         data-testid="member-back-to-list"
         render={<Link to="/admin/members" />}
       >
-        <ArrowLeft className="mr-2 size-4" />
+        <ArrowLeft />
         {t('adminMembers.backToList')}
       </Button>
 
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <PageTitle>{member.name}</PageTitle>
-          <p className="font-mono text-xs text-muted-foreground">{member.membershipNumber}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <MemberProfileEdit member={member} />
-          <MemberStatusBadge status={member.status} />
-        </div>
-      </div>
+      <BackOfficePageHead
+        title={member.name}
+        description={<span className="font-mono text-sm">{member.membershipNumber}</span>}
+        actions={
+          <>
+            <MemberProfileEdit member={member} />
+            <MemberStatusBadge status={member.status} />
+          </>
+        }
+      />
 
-      <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
+      <dl className="grid gap-px overflow-hidden rounded-xl border-2 border-border bg-border sm:grid-cols-2">
         <Field
           label={t('adminMembers.columns.identifier')}
           value={member.identifiers.email ?? member.identifiers.phoneNumber ?? '—'}
@@ -139,7 +141,7 @@ export default function MemberDetailPage() {
         />
         <Field
           label={t('adminMembers.columns.fee')}
-          value={t(`members.feeState.${member.fee.state}`)}
+          value={<MemberFeeBadge feeState={member.fee.state} />}
         />
         <Field
           label={t('adminMembers.roles')}
@@ -149,7 +151,7 @@ export default function MemberDetailPage() {
       </dl>
 
       {isPending && (
-        <div className="flex gap-3 rounded-lg border border-border p-4">
+        <div className="flex gap-3 rounded-xl border-2 border-border bg-card p-4">
           <Button
             data-testid="member-validate"
             disabled={mutation.isPending}
@@ -204,7 +206,7 @@ export default function MemberDetailPage() {
       )}
 
       {member.status === 'active' && (
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-4">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-border bg-card p-4">
           <Button
             variant="outline"
             size="sm"
@@ -265,7 +267,7 @@ export default function MemberDetailPage() {
       )}
 
       {member.status === 'terminated' && (
-        <div className="rounded-lg border border-border p-4">
+        <div className="rounded-xl border-2 border-border bg-card p-4">
           <Button
             size="sm"
             data-testid="member-reactivate"
@@ -281,12 +283,12 @@ export default function MemberDetailPage() {
 
       <section className="space-y-2">
         <SectionTitle>{t('adminMembers.history')}</SectionTitle>
-        <ul className="space-y-1 text-sm">
+        <ul className="space-y-1 text-base">
           {member.statusHistory.map((entry, index) => (
-            <li key={index} className="flex justify-between border-b border-border py-1">
+            <li key={index} className="flex justify-between border-b border-rule py-1">
               <span>
-                {entry.fromStatus ? `${entry.fromStatus} → ` : ''}
-                <strong>{entry.toStatus}</strong>
+                {entry.fromStatus ? `${t(`members.status.${entry.fromStatus}`)} → ` : ''}
+                <strong>{t(`members.status.${entry.toStatus}`)}</strong>
                 {entry.reason ? ` — ${entry.reason}` : ''}
               </span>
               <span className="text-muted-foreground">
@@ -301,13 +303,11 @@ export default function MemberDetailPage() {
   )
 }
 
-function Field({ label, value, testId }: { label: string; value: string; testId?: string }) {
+function Field({ label, value, testId }: { label: string; value: ReactNode; testId?: string }) {
   return (
-    <div className="bg-background p-4">
-      <dt className="mb-1 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="text-sm font-medium" data-testid={testId}>
+    <div className="bg-card p-4">
+      <dt className="mb-1 text-sm font-semibold text-muted-foreground">{label}</dt>
+      <dd className="text-lg font-semibold" data-testid={testId}>
         {value}
       </dd>
     </div>

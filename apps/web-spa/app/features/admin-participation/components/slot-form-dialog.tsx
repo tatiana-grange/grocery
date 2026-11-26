@@ -33,10 +33,10 @@ import {
   MAX_LABEL_LENGTH,
   MAX_PLACES,
   type SlotFormValues,
-  toDateInput,
   toInstant,
   toTimeInput,
 } from '@/features/admin-participation/utils/slot-form'
+import { toDateInput } from '@/features/common/lib/date-input'
 import { getParticipationRefusalMessage } from '@/features/participation/utils/participation-refusal'
 
 interface SlotFormDialogProps {
@@ -179,7 +179,7 @@ export function SlotFormDialog({ slot, onClose }: SlotFormDialogProps) {
               />
             </div>
             {isLocked ? (
-              <p className="text-sm text-muted-foreground" data-testid="slot-form-locked">
+              <p className="text-base text-muted-foreground" data-testid="slot-form-locked">
                 {t('adminParticipation.form.locked')}
               </p>
             ) : null}
@@ -205,7 +205,7 @@ export function SlotFormDialog({ slot, onClose }: SlotFormDialogProps) {
             />
 
             {refusal ? (
-              <p className="text-sm text-destructive" data-testid="slot-form-error">
+              <p className="text-base text-destructive" data-testid="slot-form-error">
                 {refusal}
               </p>
             ) : null}

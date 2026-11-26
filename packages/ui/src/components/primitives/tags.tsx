@@ -150,7 +150,7 @@ function TagsContent({ className, children, ...props }: TagsContentProps) {
 type TagsInputProps = ComponentProps<typeof CommandInput>
 
 function TagsInput({ className, ...props }: TagsInputProps) {
-  return <CommandInput className={cn('h-9', className)} {...props} />
+  return <CommandInput className={cn('h-12', className)} {...props} />
 }
 
 type TagsListProps = ComponentProps<typeof CommandList>

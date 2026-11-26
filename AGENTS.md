@@ -59,24 +59,48 @@ the chisel block, because `chisel update` rewrites the block and the files chise
   is a defect.
 - **The plan names the first failing test.** For each step, the plan says which seams get a
   failing test first. The Typist shows the test red before making it green. A step with no red
-  test is reported, not ticked.
+  test is reported, not ticked. Write the step's first failing test file before any production
+  file of that step; a test written after the code has to be made red by breaking the code, which
+  proves less.
 - **Who writes the corrections.** The Architect writes the "Corrections at the reading" section of
   the work document, signs it, and dates it. The Mason rereads the file before editing it, because
   `oxfmt` may have reformatted it.
+- **A change to a human's line is signed.** When anyone but the human changes a line in a 🧑 zone
+  of a spec (for example an Architect who corrects a criterion at the plan reading), the change
+  carries who made it and the date, and the old text stays struck above it. The human's
+  confirmation, when it comes, is written on the same line with its date.
 - **Running the E2E suite.** The disposable stack binds Postgres on 5434 and the mail container on
   1093 and 1043. Before `pnpm e2e`, run `docker ps` and look for another project on those ports.
   If one is there, say so; never stop another project's container.
 - **Long gate commands.** `pnpm lint`, `pnpm test` and `pnpm e2e` run past the shell's 120-second
   limit. Run them in the background and write the full output to a log file. Read the log, never a
   filtered copy: a filtered run once lost the failure messages of flaky wallet tests.
-- **Formatting.** `oxfmt` fails with "Expected at least one target file" on a long list of paths.
-  Run it per folder.
+- **Formatting.** Format only the files you changed, by name: `oxfmt <file> <file>…`. Never give
+  it a folder: a folder run rewrites every unformatted file in it (lot 7 rewrote an unrelated
+  page). `oxfmt` fails with "Expected at least one target file" on a very long list of paths, so
+  pass them in batches of a few files. `pnpm fmt:check` fails on files that were already
+  unformatted: look for your own file names in its output, not at its exit code.
 - **Docs front matter.** A colon in a `description` breaks `astro build`. Quote any description
   that holds one, and run the documentation build when you add a page.
 - **Forms.** `frontend.mdx` asks for react-hook-form. A small dialog with one or two fields may use
   `useState`, as the wallet dialogs do. Anything with validation across fields uses react-hook-form.
+- **Local ports.** Port 5111, the dev database port in `.env`, belongs to another project's
+  Postgres on this machine, and no grocery dev database exists. Never run `pnpm docker:up` or
+  `db:fresh:seed` against `.env` without checking `docker ps` first. For manual checks, use the
+  disposable E2E stack (see `apps/documentation/src/content/docs/guides/web-spa-e2e.mdx`, "Manual
+  checks on the E2E stack").
 - **Known flaky tests.** Wallet and distribution tests sometimes fail in a full `pnpm test` run and
-  pass alone. Rerun once and say so in the report. Do not hide it, and do not edit the test.
+  pass alone. So does the accounting period browser test (`accounting.spec.ts`, the period picker
+  under load) until its own task fixes the race. Rerun once and say so in the report. Do not hide
+  it, and do not edit the test.
+- **Prove the red at once.** As soon as a step's first failing test has run red, the Typist writes
+  the red log's name and its error line in the worklog, before any production file. On a long step,
+  commit the test file with that line. After a stop, file times are no proof of the order.
+- **Editing files.** Use the editing tools or a short Python script. `sed -i ''` fails on this
+  machine, where the `sed` on the path is GNU.
+- **Mockup numbers in the slice spec.** The reference canvas is private to the project owner, so
+  agents cannot open it. A slice spec copies the numbers it needs from the mockup: sizes, colours,
+  and which action is primary.
 
 <!-- chisel:begin -->
 <!--

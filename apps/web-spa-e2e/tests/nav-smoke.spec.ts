@@ -48,6 +48,8 @@ test('toutes les routes rendent leur contenu propre', async ({ page }) => {
     { path: '/participation', testId: 'page-participation' },
     { path: '/admin/slots', testId: 'page-slots-list' },
     { path: `/admin/slots/${slotId}`, testId: 'page-slot-detail' },
+    { path: '/admin/accounting', testId: 'page-profit-and-loss' },
+    { path: '/admin/accounting/expenses', testId: 'page-expenses' },
   ]
 
   for (const { path, testId } of routes) {

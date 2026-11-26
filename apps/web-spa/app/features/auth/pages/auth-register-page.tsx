@@ -4,7 +4,6 @@ import { toast } from '@grocery/ui/components/primitives/sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
 import {
   normalizePhone,
   synthesizedEmailFor,
@@ -13,6 +12,7 @@ import {
 import { authClient } from '@/lib/auth-client'
 import { AuthPageHeader } from '../components/auth-page-header'
 import { AuthRegisterForm, type AuthRegisterFormData } from '../forms/auth-register-form'
+import { AuthTextLink } from '@/features/auth/components/auth-text-link'
 
 type Step = 'form' | 'otp' | 'done'
 
@@ -102,10 +102,8 @@ export default function Register() {
             {t('auth.register.resendEmail')}
           </Button>
         )}
-        <div className="mt-4 text-center text-sm">
-          <Link to="/login" className="font-medium">
-            {t('auth.register.backToLogin')}
-          </Link>
+        <div className="mt-4 text-center">
+          <AuthTextLink to="/login">{t('auth.register.backToLogin')}</AuthTextLink>
         </div>
       </div>
     )
@@ -155,17 +153,17 @@ export default function Register() {
         onSubmit={(data) => register.mutate(data)}
         isPending={register.isPending}
       />
-      <div className="h-6">
+      <div className="min-h-7">
         {register.error ? (
-          <div className="text-sm font-medium text-red-500">
+          <div className="text-base font-medium text-destructive">
             {t('auth.register.failedToRegister')}
           </div>
         ) : null}
       </div>
-      <div className="text-center text-sm">
-        <Link to="/login" className="font-medium">
+      <div className="text-center">
+        <AuthTextLink to="/login">
           {t('auth.register.hasAccount')} {t('auth.register.login')}
-        </Link>
+        </AuthTextLink>
       </div>
     </div>
   )
