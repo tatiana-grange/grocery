@@ -90,16 +90,16 @@ function SupplierForm({ supplier, onCancel, onSaved }: SupplierFormProps) {
   const mutation = useMutation({
     mutationFn: (values: SupplierFormValues) => {
       const name = values.name.trim()
-      // An empty address is not sent: the API keeps the value it has when a field is missing.
-      const contactEmail = values.contactEmail.trim() || undefined
+      const address = values.contactEmail.trim()
       return supplier
         ? updateSupplier(supplier.id, {
             name,
             type: values.type,
-            contactEmail,
+            // An emptied address is sent as null, which clears it; left out, the API keeps it.
+            contactEmail: address || null,
             version: supplier.version,
           })
-        : createSupplier({ name, type: values.type, contactEmail })
+        : createSupplier({ name, type: values.type, contactEmail: address || undefined })
     },
     onSuccess: () => {
       toast.success(t('catalog.toasts.saved'))

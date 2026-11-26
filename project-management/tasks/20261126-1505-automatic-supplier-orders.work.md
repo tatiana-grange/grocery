@@ -490,6 +490,8 @@ The full list of cases per step is in the checkboxes below.
 ## Worklog
 
 - 2026-11-26, Mason: plan written from the spec and the code read above. No production code.
+- 2026-11-26, Typist, step 7 green: `step7-green.log` (new spec, 3 tests pass) and `step7-green-all.log` (new spec, `supplier-order-schedule`, `admin-purchasing-reception`, `admin-inventory-stock`, `back-office-desktop`, `catalog-suppliers`, `admin-purchasing-aggregate`: 69 pass, no flaky rerun). `pnpm typecheck` clean for web-spa and web-spa-e2e. Playwright started and stopped its own API and SPA servers (ports 3060 and 5273 free after). The ruling's dialog part is done here: the supplier dialog sends `contactEmail: null` when the field is emptied on an existing supplier; red `step7-clear-red.log` (`expect(locator).toHaveValue` failed: the old address came back), then green in the run above (new case `l'admin efface l'adresse e-mail d'un fournisseur` in `supplier-order-schedule.spec.ts`, a new case, no old case touched). The old `purchasing.send.done` i18n key is replaced by three keys (`doneSentTo`, `doneNoMail`, `mailFailed`); the 502 toast has no browser test (maildev cannot be made to refuse a message), it is covered by the API test and reads the `order_mail_failed` code through `refusalMessage`.
+- 2026-11-26, Typist, step 7 red: log `step7-red.log` (scratchpad), error line `SyntaxError: Named export 'E2E_ORDER_MAIL' not found. The requested module '../../api/src/seeders/e2e.fixtures' is a CommonJS module` then `Error: No tests found.` (the fixture is missing). Test infrastructure written before: `readAttachmentText` and the `cc`/`attachments` fields in `web-spa-e2e/maildev.ts` (additive; no existing test touched).
 - 2026-11-26, Typist, step 6 green: `step6-green.log` (purchasing and catalog, 9 files, 143 tests pass, the lot 3 send and aggregation cases unchanged) and `step6-typecheck.log` (whole repo clean). `pnpm generate` ran against a dev API on the E2E database (port 3060, real pid 63157, stopped; port free) and added only `sentMode` and `sentTo`. Notes: `SupplierOrderMailService.sendOrder` returns `{ sentTo: null, reason: 'no_address' }` as the plan says. The export route's attachment equals `mapper.toExport` (test compares it with the route). `PurchasingService.markSent` is public so the step 8 run can use it. `PurchasingModule` now imports `EmailModule`, provides and exports the mail and notice services. Because `send` now needs the mail service, `PurchasingService` takes `SupplierOrderMailService` and `SupplierOrderNoticeService` in its constructor. The attached test file's setup now overrides `EmailService` with a fake `sendEmail` for every case.
 - 2026-11-26, Typist, step 6 red: log `step6-red.log` (scratchpad), 5 of the new cases fail, first error line `AssertionError: expected undefined to be 'manual'` (no `sentMode` yet); the mail-error case fails with `expected 200 to be 502`. Before it, the ruling's clearing test went red then green: `step6-clear-red.log` (`AssertionError: expected 'commandes@ferme.example' to be null`) and `step6-clear-green.log` (catalog controller spec, 27 pass), with the fix in `CatalogService.updateSupplier`.
 - 2026-11-26, Typist, step 5 green: `step5-green.log` (new notice spec plus the unchanged `member-notice.service.spec.ts`: 20 pass) and `step5-api-all.log` (whole API suite, 43 files, 801 tests pass); typecheck clean. Small difference from the plan: `findAdminAddresses(em, onSkipped?)` takes an optional second argument, so `MemberNoticeService` keeps logging each admin it skips (same behaviour as before). `PurchasingModule` is not wired yet (no `EmailModule` import, no provider for `SupplierOrderNoticeService`): step 6 does it when the first caller exists. The failure alert loads the order to read its creation date, so it needs the order saved when it is called. oxlint shows two old warnings in files I did not write.
@@ -565,11 +567,11 @@ The full list of cases per step is in the checkboxes below.
   - [x] aggregation split into `collectPendingLines` / `createDraft`; lot 3 aggregation cases
         green unchanged
   - [x] `pnpm generate`; commit
-- [ ] **7. How the order was sent, in the SPA**
-  - [ ] red first: `admin-purchasing-send-mail.spec.ts` (browser, maildev)
-  - [ ] `E2E_ORDER_MAIL` fixtures and seeding
-  - [ ] the "sent how" line on the detail; the three send toasts; i18n fr and en
-  - [ ] commit
+- [x] **7. How the order was sent, in the SPA**
+  - [x] red first: `admin-purchasing-send-mail.spec.ts` (browser, maildev)
+  - [x] `E2E_ORDER_MAIL` fixtures and seeding
+  - [x] the "sent how" line on the detail; the three send toasts; i18n fr and en
+  - [x] commit
 - [ ] **8. The automatic run**
   - [ ] red first: `supplier-order-schedule.service.spec.ts`, the `auto-send` case
   - [ ] `SupplierOrderScheduleService.runDue(now)`

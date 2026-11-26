@@ -60,3 +60,19 @@ test('une adresse e-mail invalide est refusée', async ({ page }) => {
 
   await expect(page.getByTestId('supplier-save')).toBeDisabled()
 })
+
+test('l’admin efface l’adresse e-mail d’un fournisseur', async ({ page }) => {
+  const row = page.getByTestId('supplier-row-Ferme des Prés')
+  await row.getByTestId('supplier-edit').click()
+  await page.getByTestId('supplier-contact-email').fill('commandes@ferme-des-pres.example')
+  await page.getByTestId('supplier-save').click()
+  await expect(row.getByTestId('supplier-edit')).toBeVisible()
+
+  await row.getByTestId('supplier-edit').click()
+  await page.getByTestId('supplier-contact-email').fill('')
+  await page.getByTestId('supplier-save').click()
+  await expect(row.getByTestId('supplier-edit')).toBeVisible()
+
+  await row.getByTestId('supplier-edit').click()
+  await expect(page.getByTestId('supplier-contact-email')).toHaveValue('')
+})

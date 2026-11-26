@@ -505,9 +505,17 @@
     },
     "send": {
       "action": "Send",
-      "done": "Supplier order marked as sent.",
+      "doneSentTo": "Order sent to {{address}}.",
+      "doneNoMail": "Order marked as sent. No e-mail left: the supplier has no address.",
+      "mailFailed": "The e-mail did not leave. The order stays a draft and the admins have been told.",
       "alreadySent": "This order has already been sent.",
       "export": "Export"
+    },
+    "sentHow": {
+      "manualTo": "Sent by hand to {{address}}",
+      "automaticTo": "Sent automatically to {{address}}",
+      "manualNoMail": "Sent by hand. No e-mail left (the supplier has no address)",
+      "automaticNoMail": "Sent automatically. No e-mail left (the supplier has no address)"
     },
     "close": {
       "action": "Close order",

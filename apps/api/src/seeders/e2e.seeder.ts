@@ -7,6 +7,7 @@ import { Account } from '../modules/auth/auth.entity'
 import {
   createCategoryData,
   createProductData,
+  createReferentData,
   createSupplierData,
 } from '../modules/catalog/catalog.factory'
 import { MembershipPayment } from '../modules/members/entities/membership-payment.entity'
@@ -17,10 +18,13 @@ import { Order } from '../modules/orders/entities/order.entity'
 import { Product } from '../modules/catalog/entities/product.entity'
 import { applySearchNormalization } from '../modules/db/search.util'
 import { StockMovement } from '../modules/inventory/entities/stock-movement.entity'
+import { SupplierOrder } from '../modules/purchasing/entities/supplier-order.entity'
+import { SupplierOrderLine } from '../modules/purchasing/entities/supplier-order-line.entity'
 import { Slot } from '../modules/participation/entities/slot.entity'
 import { WalletEntry } from '../modules/wallet/entities/wallet-entry.entity'
 import {
   E2E_DISTRIBUTION,
+  E2E_ORDER_MAIL,
   E2E_PARTICIPATION,
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
@@ -34,6 +38,7 @@ import {
 // which the `@grocery/web-spa-e2e` package also imports.
 export {
   E2E_DISTRIBUTION,
+  E2E_ORDER_MAIL,
   E2E_PARTICIPATION,
   E2E_PASSWORD,
   E2E_PRODUCT_BARCODE,
@@ -312,6 +317,46 @@ export class E2eSeeder extends Seeder {
     seedPreOrder(zelda, unitPreOrder, 3)
     seedPreOrder(zelda, weightPreOrder, 1)
     seedPreOrder(milo, archivedPreOrder, 1)
+
+    // --- order e-mail: a supplier with an address, a referent copy, and an order already sent
+    const mailReferent = await createReferentData(em, { lastName: 'Référent Mail E2E' })
+    mailReferent.contactEmail = E2E_ORDER_MAIL.referentEmail
+    const mailSupplier = await createSupplierData(em, {
+      name: E2E_ORDER_MAIL.supplierName,
+      type: 'producer',
+      referent: mailReferent,
+    })
+    mailSupplier.contactEmail = E2E_ORDER_MAIL.supplierEmail
+    const { product: mailProduct } = await createProductData(em, {
+      name: E2E_ORDER_MAIL.productName,
+      saleMode: 'unit',
+      orderingMode: 'pre_order',
+      priceEur: 5,
+      supplier: mailSupplier,
+      category,
+      setByUser: adminUser,
+    })
+    const { product: mailSentProduct } = await createProductData(em, {
+      name: E2E_ORDER_MAIL.sentProductName,
+      saleMode: 'unit',
+      orderingMode: 'pre_order',
+      priceEur: 6,
+      supplier: mailSupplier,
+      category,
+      setByUser: adminUser,
+    })
+    seedPreOrder(milo, mailProduct, 2)
+    const sentMailOrder = new SupplierOrder()
+    sentMailOrder.supplier = mailSupplier
+    sentMailOrder.status = 'sent'
+    sentMailOrder.sentAt = new Date()
+    sentMailOrder.sentMode = 'automatic'
+    sentMailOrder.sentTo = E2E_ORDER_MAIL.supplierEmail
+    const sentMailLine = new SupplierOrderLine()
+    sentMailLine.supplierOrder = sentMailOrder
+    sentMailLine.product = mailSentProduct
+    sentMailLine.quantity = '3'
+    em.persist([mailSupplier, sentMailOrder, sentMailLine])
 
     // --- lot 4 distribution: stocked products + four members in the states the table handles
     const distributionSupplier = await createSupplierData(em, {

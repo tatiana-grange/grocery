@@ -49,6 +49,22 @@ export const E2E_PURCHASING = {
 } as const
 
 /**
+ * Order e-mail fixtures: a supplier with an address and a referent with an address, one
+ * pre-ordered product with one pending pre-order (the manual "Send" mails it), and one order
+ * already sent automatically to the supplier address. Kept apart from `E2E_PURCHASING`, whose
+ * supplier has no address, so the existing "Send" specs take the "no e-mail" path.
+ */
+export const E2E_ORDER_MAIL = {
+  supplierName: 'Fournisseur Mail E2E',
+  supplierEmail: 'commandes@fournisseur-mail.e2e.example',
+  referentEmail: 'referent@fournisseur-mail.e2e.example',
+  /** Pre-order, one pending pre-order: what the manual send mails. */
+  productName: 'Farine précommande mail E2E',
+  /** On the order that already left automatically. */
+  sentProductName: 'Huile déjà commandée E2E',
+} as const
+
+/**
  * Lot 4 distribution fixtures: a dedicated supplier, products already in stock, and five
  * members each parked in one of the states the table has to handle. Isolated from the lot 2
  * and lot 3 fixtures so the distribution specs never collide with cart, checkout, catalog,

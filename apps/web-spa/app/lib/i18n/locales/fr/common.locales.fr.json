@@ -505,9 +505,17 @@
     },
     "send": {
       "action": "Envoyer",
-      "done": "Commande fournisseur marquée comme envoyée.",
+      "doneSentTo": "Commande envoyée à {{address}}.",
+      "doneNoMail": "Commande marquée envoyée. Aucun e-mail n'est parti : le fournisseur n'a pas d'adresse.",
+      "mailFailed": "L'e-mail n'est pas parti. La commande reste en brouillon et les admins sont prévenus.",
       "alreadySent": "Cette commande a déjà été envoyée.",
       "export": "Exporter"
+    },
+    "sentHow": {
+      "manualTo": "Envoyée à la main à {{address}}",
+      "automaticTo": "Envoyée automatiquement à {{address}}",
+      "manualNoMail": "Envoyée à la main. Aucun e-mail n'est parti (pas d'adresse fournisseur)",
+      "automaticNoMail": "Envoyée automatiquement. Aucun e-mail n'est parti (pas d'adresse fournisseur)"
     },
     "close": {
       "action": "Clôturer la commande",
