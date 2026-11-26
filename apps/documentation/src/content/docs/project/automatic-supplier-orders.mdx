@@ -1,0 +1,88 @@
+---
+title: Automatic supplier orders
+description: How a supplier's rhythm gives its distribution and sending dates, and how orders are e-mailed by hand or automatically
+---
+
+This page extends [lot 3, purchasing](/grocery/project/lot-3-purchasing). Lot 3 gathers the
+pending pre-orders of one supplier into a draft supplier order, and staff press "Send". Since
+this task, "Send" e-mails the order to the supplier, and an order can also leave on its own on
+the supplier's rhythm. The spec and work documents are in `project-management/archive/`,
+under `20261126-1505-automatic-supplier-orders`.
+
+## The rhythm of a supplier
+
+The schedule lives on the supplier (catalog module). An admin sets it from the supplier list
+in the back office, with the "Envoi automatique" button. It has:
+
+- **The distribution rule.** Either a weekday "every week", "in even weeks" or "in odd weeks",
+  or "the 1st, 2nd, 3rd, 4th or last" weekday of the month. Even and odd follow the ISO week
+  number, the one printed on French calendars. A year with a week 53 is followed by week 1, so
+  two odd weeks can come in a row: the rule follows the numbers, not a strict "one in two".
+- **The sending moment.** "The last [weekday] before the distribution", at a whole hour. The
+  sending day is always strictly before the distribution day: a Friday distribution sent on
+  Fridays is sent the Friday a week earlier.
+
+Every day and hour is read in Paris time. When the clocks go forward, a 02:00 sending leaves
+at 03:00; when they go back, at the first 02:00.
+
+The supplier list shows the next distribution and its sending moment. The rule is a pure
+function, `apps/api/src/modules/catalog/order-schedule.util.ts`; the Paris time helpers it
+shares with accounting are in `apps/api/src/common/paris-time.util.ts`.
+
+## The order e-mail
+
+Sending an order, by hand or automatically, e-mails the supplier's contact address. The body
+lists the products and their quantities, and the CSV attached is the same file as the
+"Exporter" download. The supplier's referent gets a copy when the referent has an address.
+The order then records how it was sent ("à la main" or "automatiquement") and to which
+address. The order detail page shows both.
+
+- **By hand, with no supplier address:** the order is marked sent, as before, and the screen
+  says no e-mail left.
+- **By hand, when the e-mail fails:** the order stays a draft, the screen shows an error, and
+  every admin gets an alert e-mail.
+
+## The automatic run
+
+A job inside the API ticks every five minutes (`@nestjs/schedule`) and runs
+`SupplierOrderScheduleService.runDue(now)`. For each supplier whose schedule is on and which is
+not archived:
+
+1. When the sending moment of the next distribution has come, the run gathers the pending
+   pre-orders into a draft, as the "Agréger les précommandes" button does, then sends every draft of the
+   supplier, each as its own e-mail.
+2. If an order of this supplier was already sent since 00:00 on the previous distribution day,
+   the run sends nothing for this distribution. A manual send between two distributions
+   counts for the next one; pre-orders made after it wait for the distribution after.
+3. Nothing pending and no draft: nothing is sent and nobody is mailed.
+4. After each automatic send, every admin gets one summary: the supplier, the distribution
+   date, the number of lines.
+5. No supplier address, or an e-mail error: the order stays a draft and every admin gets one
+   alert naming the supplier, the order and the reason. A failed send is never retried on its
+   own; an admin resends it by hand.
+
+**Once per distribution.** Each supplier is handled in its own transaction, under a row lock
+taken with `SKIP LOCKED`. The distribution day is written on the supplier before anything is
+tried, so a second tick, or a second API process, finds it handled and does nothing.
+
+**Late catch-up.** If the API was down at the sending moment, the run sends when it comes
+back, as long as the distribution day has not started (00:00 Paris). After that, it sends
+nothing and alerts the admins once.
+
+**Switching on late.** A schedule switched on or changed after this distribution's sending
+moment does nothing for this distribution: no send and no alert. It starts with the next one.
+
+**Known limit.** If the API process dies after an e-mail has left but before its transaction
+commits, the order is still a draft and the distribution is not marked handled. The next tick
+then e-mails the supplier a second time. Ruling this out would need an outbox, which this task
+did not build. When the mail server itself is down, the alerts cannot leave either: the run
+logs the failure, and the order stays a draft, visible in the list.
+
+**Tests stay off the clock.** The tests call `runDue` with fixed instants. The API test apps
+never load the scheduler, and the browser suite runs with the job disabled (`E2E=true`).
+
+## Not included
+
+Exceptions to a rhythm (a skipped week, holidays: switch the schedule off and on), several
+rules for one supplier, other rhythms, automatic retries, and choosing a referent from the
+supplier form.
